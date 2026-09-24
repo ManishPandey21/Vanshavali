@@ -18,6 +18,70 @@ export default function PersonDetail({ person, persons, onBack, onSelectPerson }
     return (person.fatherId && p.fatherId === person.fatherId) || (person.motherId && p.motherId === person.motherId);
   });
 
+  // Extended relationships
+  const grandparents = persons.filter(p => {
+    if (father && (father.fatherId === p.id || father.motherId === p.id)) return true;
+    if (mother && (mother.fatherId === p.id || mother.motherId === p.id)) return true;
+    return false;
+  });
+
+  const grandchildren = persons.filter(p => {
+    return children.some(c => p.fatherId === c.id || p.motherId === c.id);
+  });
+
+  const unclesAunts = persons.filter(p => {
+    if (father && father.fatherId && (p.fatherId === father.fatherId) && p.id !== father.id) return true;
+    if (mother && mother.fatherId && (p.fatherId === mother.fatherId) && p.id !== mother.id) return true;
+    return false;
+  });
+
+  const nephewsNieces = persons.filter(p => {
+    return siblings.some(s => p.fatherId === s.id || p.motherId === s.id);
+  });
+
+  const cousins = persons.filter(p => {
+    return unclesAunts.some(ua => p.fatherId === ua.id || p.motherId === ua.id);
+  });
+
+  // In-laws
+  const inLaws: { person: Person; label: string }[] = [];
+  if (spouses.length > 0) {
+    const spouse = spouses[0];
+    const spouseFather = spouse.fatherId ? persons.find(p => p.id === spouse.fatherId) : null;
+    const spouseMother = spouse.motherId ? persons.find(p => p.id === spouse.motherId) : null;
+    if (spouseFather) inLaws.push({ person: spouseFather, label: 'Father-in-law' });
+    if (spouseMother) inLaws.push({ person: spouseMother, label: 'Mother-in-law' });
+    
+    // Spouse's siblings
+    const spouseSiblings = persons.filter(p => {
+      if (p.id === spouse.id) return false;
+      return (spouse.fatherId && p.fatherId === spouse.fatherId) || (spouse.motherId && p.motherId === spouse.motherId);
+    });
+    spouseSiblings.forEach(ss => {
+      inLaws.push({ person: ss, label: ss.gender === 'male' ? 'Brother-in-law' : 'Sister-in-law' });
+    });
+
+    // Siblings' spouses
+    siblings.forEach(sib => {
+      sib.spouseIds.forEach(spId => {
+        const sp = persons.find(p => p.id === spId);
+        if (sp) {
+          inLaws.push({ person: sp, label: sp.gender === 'male' ? 'Brother-in-law' : 'Sister-in-law' });
+        }
+      });
+    });
+
+    // Children's spouses
+    children.forEach(child => {
+      child.spouseIds.forEach(spId => {
+        const sp = persons.find(p => p.id === spId);
+        if (sp) {
+          inLaws.push({ person: sp, label: sp.gender === 'male' ? 'Son-in-law (Damad)' : 'Daughter-in-law (Bahu)' });
+        }
+      });
+    });
+  }
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       {/* Back Button */}
@@ -242,14 +306,193 @@ export default function PersonDetail({ person, persons, onBack, onSelectPerson }
                       <button
                         key={sibling.id}
                         onClick={() => onSelectPerson(sibling)}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition-all"
+                        className="flex items-center gap-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg hover:shadow-sm transition-all"
                       >
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                           sibling.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
                         }`}>
                           {sibling.firstName[0]}
                         </div>
-                        <span className="text-sm text-gray-800">{sibling.firstName} {sibling.lastName}</span>
+                        <div className="text-left">
+                          <span className="text-sm text-gray-800">{sibling.firstName} {sibling.lastName}</span>
+                          <span className="text-[10px] text-purple-600 ml-1">
+                            ({sibling.gender === 'male' ? 'Brother' : 'Sister'})
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Grandparents */}
+              {grandparents.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Grandparents ({grandparents.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {grandparents.map(gp => {
+                      const isPaternal = father && (father.fatherId === gp.id || father.motherId === gp.id);
+                      const label = gp.gender === 'male' 
+                        ? (isPaternal ? 'Paternal Grandfather (Dada)' : 'Maternal Grandfather (Nana)')
+                        : (isPaternal ? 'Paternal Grandmother (Dadi)' : 'Maternal Grandmother (Nani)');
+                      return (
+                        <button
+                          key={gp.id}
+                          onClick={() => onSelectPerson(gp)}
+                          className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg hover:shadow-sm transition-all"
+                        >
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                            gp.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                          }`}>
+                            {gp.firstName[0]}
+                          </div>
+                          <div className="text-left">
+                            <span className="text-sm text-gray-800">{gp.firstName} {gp.lastName}</span>
+                            <span className="text-[10px] text-amber-600 block">{label}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Grandchildren */}
+              {grandchildren.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Grandchildren ({grandchildren.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {grandchildren.map(gc => (
+                      <button
+                        key={gc.id}
+                        onClick={() => onSelectPerson(gc)}
+                        className="flex items-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg hover:shadow-sm transition-all"
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                          gc.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                        }`}>
+                          {gc.firstName[0]}
+                        </div>
+                        <div className="text-left">
+                          <span className="text-sm text-gray-800">{gc.firstName} {gc.lastName}</span>
+                          <span className="text-[10px] text-teal-600 block">
+                            {gc.gender === 'male' ? 'Grandson (Pota/Dota)' : 'Granddaughter (Poti/Doti)'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Uncles & Aunts */}
+              {unclesAunts.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Uncles & Aunts ({unclesAunts.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {unclesAunts.map(ua => {
+                      const isPaternal = father && father.fatherId === ua.fatherId;
+                      const label = ua.gender === 'male'
+                        ? (isPaternal ? 'Paternal Uncle (Chacha/Tau)' : 'Maternal Uncle (Mama)')
+                        : (isPaternal ? 'Paternal Aunt (Bua)' : 'Maternal Aunt (Mami)');
+                      return (
+                        <button
+                          key={ua.id}
+                          onClick={() => onSelectPerson(ua)}
+                          className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg hover:shadow-sm transition-all"
+                        >
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                            ua.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                          }`}>
+                            {ua.firstName[0]}
+                          </div>
+                          <div className="text-left">
+                            <span className="text-sm text-gray-800">{ua.firstName} {ua.lastName}</span>
+                            <span className="text-[10px] text-orange-600 block">{label}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Nephews & Nieces */}
+              {nephewsNieces.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Nephews & Nieces ({nephewsNieces.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {nephewsNieces.map(nn => (
+                      <button
+                        key={nn.id}
+                        onClick={() => onSelectPerson(nn)}
+                        className="flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg hover:shadow-sm transition-all"
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                          nn.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                        }`}>
+                          {nn.firstName[0]}
+                        </div>
+                        <div className="text-left">
+                          <span className="text-sm text-gray-800">{nn.firstName} {nn.lastName}</span>
+                          <span className="text-[10px] text-indigo-600 block">
+                            {nn.gender === 'male' ? 'Nephew (Bhatija/Bhanja)' : 'Niece (Bhatiji/Bhanji)'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cousins */}
+              {cousins.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Cousins ({cousins.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {cousins.map(cousin => (
+                      <button
+                        key={cousin.id}
+                        onClick={() => onSelectPerson(cousin)}
+                        className="flex items-center gap-2 px-3 py-2 bg-pink-50 border border-pink-200 rounded-lg hover:shadow-sm transition-all"
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                          cousin.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                        }`}>
+                          {cousin.firstName[0]}
+                        </div>
+                        <div className="text-left">
+                          <span className="text-sm text-gray-800">{cousin.firstName} {cousin.lastName}</span>
+                          <span className="text-[10px] text-pink-600 block">
+                            {cousin.gender === 'male' ? 'Cousin Brother' : 'Cousin Sister'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* In-Laws */}
+              {inLaws.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">In-Laws ({inLaws.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {inLaws.map((il, idx) => (
+                      <button
+                        key={`${il.person.id}-${idx}`}
+                        onClick={() => onSelectPerson(il.person)}
+                        className="flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-lg hover:shadow-sm transition-all"
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                          il.person.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                        }`}>
+                          {il.person.firstName[0]}
+                        </div>
+                        <div className="text-left">
+                          <span className="text-sm text-gray-800">{il.person.firstName} {il.person.lastName}</span>
+                          <span className="text-[10px] text-cyan-600 block">{il.label}</span>
+                        </div>
                       </button>
                     ))}
                   </div>
