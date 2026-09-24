@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4a97d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0845c;
+}
+
+/* Smooth transitions */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom font for Indian text */
+@font-face {
+  font-family: 'Indian';
+  src: local('Noto Sans Devanagari'), local('Noto Sans Tamil'), local('Noto Sans Telugu');
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Tree connection lines */
+.tree-line {
+  position: relative;
+}
+
+.tree-line::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  width: 1px;
+  height: 12px;
+  background: #d1d5db;
+}
+
+/* Print styles for biodata */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
