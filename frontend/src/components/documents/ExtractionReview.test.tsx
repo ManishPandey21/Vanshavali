@@ -128,9 +128,9 @@ describe("ExtractionReview", () => {
       "fetch",
       vi.fn(async () =>
         jsonResponse([
-          proposal({ id: "a", status: "accepted", label: "Name", field: "name" }),
-          proposal({ id: "b", status: "edited", label: "Sex", field: "sex", final_value: "male" }),
-          proposal({ id: "c", status: "rejected", label: "Place of birth", field: "place_of_birth" }),
+          proposal({ id: "a", status: "accepted", label: "Name", field: "name", value_label: "source-verified" }),
+          proposal({ id: "b", status: "edited", label: "Sex", field: "sex", final_value: "male", value_label: "user-confirmed" }),
+          proposal({ id: "c", status: "rejected", label: "Place of birth", field: "place_of_birth", value_label: "rejected" }),
         ]),
       ),
     );

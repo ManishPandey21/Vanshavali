@@ -15,6 +15,7 @@ import type {
   ParcelOut,
   ParcelUpdate,
   PartitionIn,
+  PersonOut,
   PersonPropertyInterestsOut,
   PropertyDetailOut,
   PropertyEventIn,
@@ -193,6 +194,8 @@ export interface MergePreview {
   relationships_to_move: number;
   relationships_between_them_removed: number;
   warnings: string[];
+  survivor: PersonOut;
+  merged: PersonOut;
 }
 
 export function useMergePreview(treeId: string, survivor: string, merged: string) {

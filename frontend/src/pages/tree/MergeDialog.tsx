@@ -56,8 +56,6 @@ export function MergeDialog({ a, b, onClose }: { a: PersonSummary; b: PersonSumm
   const [reason, setReason] = useState("");
   const keep = survivor === "a" ? a : b;
   const drop = survivor === "a" ? b : a;
-  const pk = usePerson(treeId, keep.id);
-  const pd = usePerson(treeId, drop.id);
   const preview = useMergePreview(treeId, keep.id, drop.id);
   const merge = useMerge(treeId);
   return (
@@ -100,8 +98,8 @@ export function MergeDialog({ a, b, onClose }: { a: PersonSummary; b: PersonSumm
             </div>
           </fieldset>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Side p={pk.data} survivor />
-            <Side p={pd.data} survivor={false} />
+            <Side p={preview.data?.survivor} survivor />
+            <Side p={preview.data?.merged} survivor={false} />
           </div>
           {preview.isLoading && <Spinner />}
           <ErrorAlert error={preview.error} />

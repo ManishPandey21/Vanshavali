@@ -129,9 +129,9 @@ export function AcceptInvitePage() {
             <ErrorAlert error={new Error(t("invite.expired"))} />
           ) : (
             <>
-              {accept.error instanceof ApiError && accept.error.code === "scope_conflict" ? (
+              {accept.error instanceof ApiError && (accept.error.code === "scope_conflict" || accept.error.code === "invitation_email_mismatch") ? (
                 <p role="alert" className="rounded-lg border border-haldi-300 bg-haldi-100 p-3 text-sm text-haldi-700">
-                  {t("invite.scopeConflict")}
+                  {accept.error.code === "scope_conflict" ? t("invite.scopeConflict") : t("invite.otherEmail", { invited: preview.data.email, me: me.data.email })}
                 </p>
               ) : (
                 <ErrorAlert error={accept.error} />

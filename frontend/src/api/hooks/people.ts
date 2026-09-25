@@ -96,6 +96,23 @@ export function useDeletePerson(treeId: string) {
   });
 }
 
+export function useDeletedPeople(treeId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["tree", treeId, "people-deleted"],
+    queryFn: () => api.get<PersonSummary[]>(`/trees/${treeId}/people/deleted`),
+    enabled,
+  });
+}
+
+export function useErasePerson(treeId: string) {
+  const invalidate = useInvalidateTree(treeId);
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      api.post<Message>(`/trees/${treeId}/people/${id}/erase`, { reason, confirm: true }),
+    onSuccess: invalidate,
+  });
+}
+
 export function useRestorePerson(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({

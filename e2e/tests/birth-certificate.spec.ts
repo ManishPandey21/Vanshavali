@@ -34,7 +34,7 @@ test("birth certificate: upload, OCR, review, accept and reject", async ({ page,
   await dialog.getByRole("button", { name: "Upload document" }).click();
 
   // Document detail: vault storage, pipeline finished (sync jobs), proposals listed.
-  await expect(page.getByRole("heading", { name: "Birth certificate of Ravi", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Birth certificate of Ravi", level: 1 })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText("Vault", { exact: true })).toBeVisible();
   const dob = page.getByRole("listitem", { name: "Date of birth" });
   await expect(dob).toBeVisible({ timeout: 60_000 });

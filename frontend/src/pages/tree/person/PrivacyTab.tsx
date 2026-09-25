@@ -8,6 +8,7 @@ import { useTreeCtx } from "../../../lib/tree-context";
 import { PRIVACY_LEVELS } from "../../../components/person/PersonForm";
 import { PrivacyBadge } from "../../../components/person/badges";
 import { GrantsPanel } from "../../../components/privacy/GrantsPanel";
+import { ErasePanel } from "./ErasePanel";
 import { Button } from "../../../components/ui/Button";
 import { ErrorAlert, LiveRegion, Spinner } from "../../../components/ui/feedback";
 import { Field, Select, TextArea, TextInput } from "../../../components/ui/form";
@@ -127,6 +128,7 @@ export function PrivacyTab({ person, isClaimant }: { person: PersonOut; isClaima
       </section>
       {person.privacy_level === "CUSTOM" && <GrantsPanel resourceType="person" resourceId={person.id} isCustom />}
       {(isAdmin || isClaimant) && <ConsentSection personId={person.id} />}
+      <ErasePanel person={person} />
     </div>
   );
 }

@@ -1389,6 +1389,54 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/people/deleted": {
+   "get": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Deleted People",
+    "description": "Soft-deleted (restorable) people, for tree admins. Merged-away people are listed under merges.",
+    "operationId": "deleted_people_api_v1_trees__tree_id__people_deleted_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/PersonSummary"
+         },
+         "title": "Response Deleted People Api V1 Trees  Tree Id  People Deleted Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/people/{person_id}": {
    "get": {
     "tags": [

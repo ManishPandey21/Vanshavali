@@ -48,6 +48,9 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Second step: the server answered 401 mfa_required, so ask for the authenticator code.
+  const [mfaStep, setMfaStep] = useState(false);
+  const [code, setCode] = useState("");
 
   if (me.isLoading) return <Spinner />;
   if (me.data) return <Navigate to={next} replace />;
@@ -55,39 +58,83 @@ export function LoginPage() {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     login.mutate(
-      { email, password },
+      { email, password, ...(mfaStep ? { mfa_code: code.replace(/\s+/g, "") } : {}) },
       {
         onSuccess: (u) => {
           void i18n.changeLanguage(normalizeLanguage(u.preferred_language));
           navigate(next, { replace: true });
         },
+        onError: (err) => {
+          if (err instanceof ApiError && err.code === "mfa_required") setMfaStep(true);
+        },
       },
     );
   };
-  const err = login.error instanceof ApiError && login.error.status === 401 ? new Error(t("auth.invalidCredentials")) : login.error;
+  const e = login.error;
+  const err =
+    e instanceof ApiError && e.code === "mfa_required"
+      ? null
+      : e instanceof ApiError && e.code === "mfa_invalid"
+        ? new Error(t("auth.mfaInvalid"))
+        : e instanceof ApiError && e.status === 401
+          ? new Error(t("auth.invalidCredentials"))
+          : e;
   return (
     <AuthFrame
-      title={t("auth.loginTitle")}
-      subtitle={t("auth.loginSubtitle")}
+      title={mfaStep ? t("auth.mfaTitle") : t("auth.loginTitle")}
+      subtitle={mfaStep ? t("auth.mfaSubtitle") : t("auth.loginSubtitle")}
       footer={
-        <>
-          {t("auth.noAccount")}{" "}
-          <Link className="font-medium text-kumkum-800 underline" to={`/register${params.get("next") ? `?next=${encodeURIComponent(next)}` : ""}`}>
-            {t("auth.createAccount")}
-          </Link>
-        </>
+        mfaStep ? (
+          <button
+            type="button"
+            className="font-medium text-kumkum-800 underline"
+            onClick={() => {
+              setMfaStep(false);
+              setCode("");
+              login.reset();
+            }}
+          >
+            {t("auth.mfaBack")}
+          </button>
+        ) : (
+          <>
+            {t("auth.noAccount")}{" "}
+            <Link className="font-medium text-kumkum-800 underline" to={`/register${params.get("next") ? `?next=${encodeURIComponent(next)}` : ""}`}>
+              {t("auth.createAccount")}
+            </Link>
+          </>
+        )
       }
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
-        <Field label={t("auth.email")} required>
-          {(p) => <TextInput {...p} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
-        </Field>
-        <Field label={t("auth.password")} required>
-          {(p) => <TextInput {...p} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />}
-        </Field>
+        {mfaStep ? (
+          <Field label={t("auth.mfaCode")} required hint={t("auth.mfaCodeHint")}>
+            {(p) => (
+              <TextInput
+                {...p}
+                autoFocus
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={10}
+                value={code}
+                onChange={(ev) => setCode(ev.target.value)}
+              />
+            )}
+          </Field>
+        ) : (
+          <>
+            <Field label={t("auth.email")} required>
+              {(p) => <TextInput {...p} type="email" autoComplete="email" required value={email} onChange={(ev) => setEmail(ev.target.value)} />}
+            </Field>
+            <Field label={t("auth.password")} required>
+              {(p) => <TextInput {...p} type="password" autoComplete="current-password" required value={password} onChange={(ev) => setPassword(ev.target.value)} />}
+            </Field>
+          </>
+        )}
         <ErrorAlert error={err} />
-        <Button type="submit" className="w-full" loading={login.isPending}>
-          {t("auth.login")}
+        <Button type="submit" className="w-full" loading={login.isPending} disabled={mfaStep && code.replace(/\s+/g, "").length < 6}>
+          {mfaStep ? t("auth.mfaVerify") : t("auth.login")}
         </Button>
       </form>
     </AuthFrame>

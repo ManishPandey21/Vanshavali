@@ -18,7 +18,8 @@ import {
 } from "../../api/hooks/trees";
 import { useBranches } from "../../api/hooks/family";
 import { useMe } from "../../api/hooks/auth";
-import { usePerson, useRestorePerson } from "../../api/hooks/people";
+import { useDeletedPeople, usePerson, useRestorePerson } from "../../api/hooks/people";
+import { lifespan } from "../../lib/dates";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
 import { PRIVACY_LEVELS } from "../../components/person/PersonForm";
@@ -544,62 +545,37 @@ function ClaimPerson({ personId }: { personId: string }) {
   );
 }
 
-/**
- * Recycle bin for people (tree admins). The API has no "list deleted people" endpoint, so removed
- * people are found from the audit log (person.deleted minus later person.restored); names are
- * not recoverable until restored because deleted people are hidden from every read.
- */
+/** Recycle bin for people (tree admins): soft-deleted people, restorable with all their records. */
 export function RestorePeoplePage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { treeId, can } = useTreeCtx();
-  const allowed = can(Perm.TREE_MANAGE) && can(Perm.AUDIT_READ);
-  const deleted = useAudit(treeId, "person.deleted");
-  const restored = useAudit(treeId, "person.restored");
+  const allowed = can(Perm.TREE_MANAGE);
+  const deleted = useDeletedPeople(treeId, allowed);
   const restore = useRestorePerson(treeId);
-  const [done, setDone] = useState<Record<string, string>>({});
   if (!allowed) return <Navigate to={`/t/${treeId}`} replace />;
-  const lastRestore = new Map<string, string>();
-  for (const e of restored.data?.pages.flatMap((p) => p.items) ?? []) {
-    if (e.target_id && (!lastRestore.has(e.target_id) || lastRestore.get(e.target_id)! < e.created_at)) lastRestore.set(e.target_id, e.created_at);
-  }
-  const seen = new Set<string>();
-  const items = (deleted.data?.pages.flatMap((p) => p.items) ?? []).filter((e) => {
-    if (!e.target_id || seen.has(e.target_id)) return false;
-    seen.add(e.target_id);
-    const r = lastRestore.get(e.target_id);
-    return !r || r < e.created_at;
-  });
+  const items = deleted.data ?? [];
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t("restore.title")} subtitle={t("restore.subtitle")} />
-      {(deleted.isLoading || restored.isLoading) && <Spinner />}
-      <ErrorAlert error={deleted.error || restored.error || restore.error} />
+      {deleted.isLoading && <Spinner />}
+      <ErrorAlert error={deleted.error || restore.error} />
       {deleted.data && items.length === 0 && <EmptyState title={t("restore.none")} />}
-      <ul className="card divide-y divide-stone-100">
-        {items.map((e) => (
-          <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-            <span>
-              {done[e.target_id!] ? (
-                <Link className="font-medium text-kumkum-800 underline" to={`/t/${treeId}/people/${e.target_id}`}>
-                  {done[e.target_id!]}
-                </Link>
-              ) : (
-                <span className="font-medium">{t("restore.removedPerson")}</span>
-              )}
-              <span className="block text-xs text-ink-muted">
-                {t("restore.removedBy", { name: e.actor_name ?? t("audit.system"), date: new Date(e.created_at).toLocaleString(i18n.language) })} · <code>{e.target_id!.slice(0, 8)}</code>
+      {items.length > 0 && (
+        <ul className="card divide-y divide-stone-100">
+          {items.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+              <span>
+                <span className="font-medium">{p.display_name}</span>
+                {lifespan(p, t) && <span className="ml-1 text-xs text-ink-muted">({lifespan(p, t)})</span>}
               </span>
-            </span>
-            {done[e.target_id!] ? (
-              <Badge tone="green">{t("restore.restored")}</Badge>
-            ) : (
-              <Button size="sm" loading={restore.isPending && restore.variables === e.target_id} onClick={() => restore.mutate(e.target_id!, { onSuccess: (p) => setDone((d) => ({ ...d, [p.id]: p.display_name })) })}>
+              <Button size="sm" loading={restore.isPending && restore.variables === p.id} onClick={() => restore.mutate(p.id)}>
                 {t("restore.restore")}
               </Button>
-            )}
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
+      <LiveRegion message={restore.isSuccess ? t("restore.restored") : ""} />
     </div>
   );
 }

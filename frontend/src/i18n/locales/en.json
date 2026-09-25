@@ -82,7 +82,14 @@
     "passwordTooShort": "Use at least 10 characters.",
     "privacyPromise": "Living relatives' details stay private by default. Nothing is shared publicly unless a tree owner turns it on — and even then only for people who have passed away.",
     "registerSubtitle": "Start a private tree for your family, or accept an invitation.",
-    "registerTitle": "Create your account"
+    "registerTitle": "Create your account",
+    "mfaTitle": "Two-step verification",
+    "mfaSubtitle": "Enter the code from your authenticator app to finish signing in.",
+    "mfaCode": "Authentication code",
+    "mfaCodeHint": "6 digits from your authenticator app.",
+    "mfaVerify": "Verify and sign in",
+    "mfaInvalid": "That code isn't valid. Check your authenticator app and try again.",
+    "mfaBack": "Use a different account"
   },
   "account": {
     "changePassword": "Change password",
@@ -96,7 +103,31 @@
     "sessions": "Signed-in devices",
     "thisDevice": "This device",
     "title": "Your account",
-    "unknownDevice": "Unknown device"
+    "unknownDevice": "Unknown device",
+    "mfa": {
+      "title": "Two-step verification",
+      "on": "On",
+      "off": "Off",
+      "intro": "Protect your family's archive with a code from an authenticator app (such as Google Authenticator or Aegis) whenever you sign in.",
+      "setUp": "Set up two-step verification",
+      "step1": "Open your authenticator app and add a new account.",
+      "step2": "Enter this secret key (or use the setup URI below):",
+      "showUri": "Show setup URI",
+      "step3": "Enter the 6-digit code the app shows to confirm.",
+      "enable": "Turn on",
+      "disableIntro": "To turn two-step verification off, confirm your password and a current code.",
+      "disable": "Turn off",
+      "enabled": "Two-step verification is on.",
+      "disabled": "Two-step verification is off."
+    },
+    "close": {
+      "title": "Close account",
+      "intro": "Closing your account signs you out everywhere and removes you from every family tree. The family records you added stay with each tree. This can't be undone.",
+      "typeToConfirm": "Type {{phrase}} to confirm",
+      "soleOwner": "You are the only owner of a family tree. Make another member an owner, or delete that tree, before closing your account.",
+      "openTree": "Open the tree's members",
+      "submit": "Close my account permanently"
+    }
   },
   "trees": {
     "create": "New family tree",
@@ -1794,5 +1825,19 @@
     "confirmTitle": "Include sensitive data in the archive?",
     "confirmBody": "The archive will include sensitive fields and/or vault documents such as certificates and deeds. Anyone with the file can read them. The export is recorded in the audit log.",
     "confirm": "Yes, include and download"
+  },
+  "erase": {
+    "title": "Erase personal data",
+    "intro": "Permanently erases this person's names, dates, places, notes and other personal data. Use this for a data-erasure request. It can't be undone.",
+    "open": "Erase this person's data…",
+    "confirmTitle": "Permanently erase {{name}}?",
+    "confirmDescription": "This cannot be undone or restored.",
+    "point1": "Names, life events, heritage details, astrology and notes are deleted.",
+    "point2": "An anonymous placeholder (“Erased person”) stays in the tree so parents, children and spouses remain connected.",
+    "point3": "The erasure is recorded in the audit log with your reason.",
+    "reason": "Reason",
+    "reasonHint": "For example, the person's own erasure request.",
+    "typeName": "Type the name “{{name}}” to confirm",
+    "submit": "Erase permanently"
   }
 }

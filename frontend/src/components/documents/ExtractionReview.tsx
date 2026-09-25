@@ -6,7 +6,7 @@ import { ApiError } from "../../api/client";
 import { useProposals, useReviewProposal } from "../../api/hooks/documents";
 import { useTreeCtx } from "../../lib/tree-context";
 import { emptyDate, normalizeDate, validateDate, validateTime } from "../../lib/dates";
-import { fieldKind, valueLabel, type FieldKind } from "../../lib/documents";
+import { fieldKind, valueLabel, type FieldKind, type ValueLabel } from "../../lib/documents";
 import { GenealogicalDateEditor } from "../dates/GenealogicalDateEditor";
 import { TimeEditor } from "../dates/TimeEditor";
 import { PersonPicker } from "../pickers";
@@ -121,7 +121,8 @@ function ProposalRow({ p, canReview, targetPersonId }: { p: ProposalOut; canRevi
   const [draft, setDraft] = useState<EditDraft>(() => draftFromProposal(p));
   const [note, setNote] = useState("");
   const [draftErr, setDraftErr] = useState<string | null>(null);
-  const label = valueLabel(p.status);
+  // The server labels values: extracted | source-verified (accepted) | user-confirmed (edited) | rejected.
+  const label = (p.value_label as ValueLabel | undefined) ?? valueLabel(p.status);
   const conflict = review.error instanceof ApiError && review.error.code === "conflicting_value";
   const loc = p.source_location as { page?: number; line?: number } | null;
   const send = (action: ReviewIn["action"]) => {
