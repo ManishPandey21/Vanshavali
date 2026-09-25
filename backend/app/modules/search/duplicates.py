@@ -15,6 +15,8 @@ from app.modules.genealogy import lookup
 from app.modules.genealogy.serialize import Serializer
 from app.modules.search.schemas import DuplicateCandidate
 
+MAX_PAIRS = 250_000  # hard budget per request; results are best-effort beyond this
+
 
 def _name_sim(a: set[str], b: set[str]) -> tuple[float, str | None]:
     best, why = 0.0, None
@@ -46,19 +48,49 @@ def candidate_pairs(
             spouses[r.person_a_id].add(r.person_b_id)
             spouses[r.person_b_id].add(r.person_a_id)
     ids = sorted(subjects, key=str)
-    # blocking on first letter of any name token keeps this ~O(n·k)
-    blocks: dict[str, set[uuid.UUID]] = defaultdict(set)
+
+    # Blocking (keeps this far below O(n²)): people are compared only when their name records share
+    # a phonetic key (first + last token) and their birth decades are within one of each other.
+    # People without a birth year are compared with everyone in their name block.
+    def decade(pid: uuid.UUID) -> int | None:
+        bd = subjects[pid].birth_date
+        return bd.year // 10 if bd and bd.year else None
+
+    name_blocks: dict[tuple[str, str], set[uuid.UUID]] = defaultdict(set)
     for pid in ids:
         for n in names[pid]:
-            for tok in n.split():
-                blocks[tok[:2]].add(pid)
+            toks = n.split()
+            if not toks:
+                continue
+            first = (jellyfish.metaphone(toks[0]) or toks[0])[:2]
+            last = (jellyfish.metaphone(toks[-1]) or toks[-1])[:2]
+            name_blocks[(first, last)].add(pid)
     pairs: set[tuple[uuid.UUID, uuid.UUID]] = set()
-    for members in blocks.values():
-        ms = sorted(members, key=str)
-        for i, a in enumerate(ms):
-            for b in ms[i + 1 :]:
-                if person_id is None or person_id in (a, b):
-                    pairs.add((a, b))
+    for members in name_blocks.values():
+        if person_id is not None:
+            if person_id not in members:
+                continue
+            candidates = [(person_id, m) for m in members if m != person_id]
+        else:
+            ms = sorted(members, key=str)
+            by_decade: dict[int | None, list[uuid.UUID]] = defaultdict(list)
+            for m in ms:
+                by_decade[decade(m)].append(m)
+            candidates = []
+            for d, group in by_decade.items():
+                neighbours = [
+                    x for dd in ((d - 1, d, d + 1) if d is not None else ()) for x in by_decade.get(dd, [])
+                ]
+                pool = ms if d is None else neighbours + by_decade.get(None, [])
+                candidates.extend((a, b) for a in group for b in pool if str(a) < str(b) or b not in group)
+        for a, b in candidates:
+            if a == b:
+                continue
+            pairs.add((a, b) if str(a) < str(b) else (b, a))
+            if len(pairs) >= MAX_PAIRS:
+                break
+        if len(pairs) >= MAX_PAIRS:
+            break
     out: list[tuple[float, uuid.UUID, uuid.UUID, list[str]]] = []
     for a, b in pairs:
         if b in parents[a] or a in parents[b] or b in spouses[a]:

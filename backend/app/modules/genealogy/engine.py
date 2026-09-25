@@ -6,6 +6,7 @@ import uuid
 from collections import deque
 from dataclasses import dataclass
 from itertools import pairwise
+from typing import Any, NamedTuple
 
 from sqlalchemy import select, text
 
@@ -29,7 +30,7 @@ from app.modules.genealogy.serialize import Serializer, relationship_out
 _EXCLUDED_EVIDENCE = (EvidenceStatus.DISPROVEN, EvidenceStatus.SUPERSEDED)
 
 
-def _lineage_filter(lineages: set[Lineage] | None, rel: Relationship) -> bool:
+def _lineage_filter(lineages: set[Lineage] | None, rel: Any) -> bool:
     if not lineages:
         return True
     return (rel.lineage or Lineage.BIOLOGICAL) in lineages
@@ -385,24 +386,40 @@ def _blood_label(up: int, down: int, sex: SexAtBirth | None, half: bool) -> str:
     return label
 
 
+class _Edge(NamedTuple):
+    id: uuid.UUID
+    person_a_id: uuid.UUID
+    person_b_id: uuid.UUID
+    type: RelationshipType
+    lineage: Lineage | None
+
+
 def _load_graph(
     ctx: TreeContext, lineages: set[Lineage] | None
 ) -> tuple[
-    dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]],
-    dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]],
-    dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]],
+    dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]],
+    dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]],
+    dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]],
 ]:
     deleted = set(
         ctx.db.scalars(select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None)))
     )
-    parents: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]] = {}
-    children: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]] = {}
-    spouses: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]] = {}
-    for r in ctx.db.scalars(
-        select(Relationship).where(
+    parents: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]] = {}
+    children: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]] = {}
+    spouses: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]] = {}
+    rows = ctx.db.execute(
+        select(
+            Relationship.id,
+            Relationship.person_a_id,
+            Relationship.person_b_id,
+            Relationship.type,
+            Relationship.lineage,
+        ).where(
             Relationship.tree_id == ctx.tree_id, Relationship.evidence_status.notin_(list(_EXCLUDED_EVIDENCE))
         )
-    ):
+    ).all()
+    for row in rows:
+        r = _Edge(*row)  # lightweight: 30k+ edges are loaded per call at 10k people
         if r.person_a_id in deleted or r.person_b_id in deleted:
             continue
         if r.type in PARENT_TYPES:
@@ -417,7 +434,7 @@ def _load_graph(
 
 
 def _ancestors_with_depth(
-    start: uuid.UUID, parents: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]], limit: int
+    start: uuid.UUID, parents: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]], limit: int
 ) -> dict[uuid.UUID, int]:
     out = {start: 0}
     q = deque([start])
@@ -437,12 +454,32 @@ def relationship_path(
 ) -> RelationshipPathOut:
     """Relationship between two visible people. People the viewer cannot see are never identified:
     their ids are replaced by ``None`` in ``path`` and omitted from ``common_ancestor_ids``, and the
-    kinship words for them are gender-neutral."""
+    kinship words for them are gender-neutral.
+
+    Visibility is evaluated only for the people on the result (path + common ancestors), not for the
+    whole tree, which keeps this O(edges) at 10k+ people.
+    """
     lookup.get_person(ctx, a_id)
     lookup.get_person(ctx, b_id)
-    all_ids = set(ctx.db.scalars(select(Person.id).where(Person.tree_id == ctx.tree_id)))
-    visible = set(lookup.visible_subjects(ctx, all_ids))
-    out = _relationship_path_raw(ctx, a_id, b_id, lineages, visible)
+    graph = _load_graph(ctx, lineages)
+    # pass 1 without sex data finds the path; only the people it touches are then loaded
+    out = _relationship_path_raw(ctx, a_id, b_id, graph, {})
+    _parents, _children, spouses = graph
+    touched = {p for p in out.path if p is not None} | set(out.common_ancestor_ids)
+    visible = set(lookup.visible_subjects(ctx, touched))
+    hidden = touched - visible
+    wanted = (
+        touched | {a_id, b_id} | {s for s, _ in spouses.get(a_id, [])} | {s for s, _ in spouses.get(b_id, [])}
+    )
+    sex = {
+        pid: (None if pid in hidden else sx)
+        for pid, sx in ctx.db.execute(
+            select(Person.id, Person.sex_at_birth).where(Person.tree_id == ctx.tree_id, Person.id.in_(wanted))
+        )
+        .tuples()
+        .all()
+    }
+    out = _relationship_path_raw(ctx, a_id, b_id, graph, sex)
     return out.model_copy(
         update={
             "path": [p if p in visible else None for p in out.path],
@@ -452,19 +489,15 @@ def relationship_path(
 
 
 def _relationship_path_raw(
-    ctx: TreeContext, a_id: uuid.UUID, b_id: uuid.UUID, lineages: set[Lineage] | None, visible: set[uuid.UUID]
+    ctx: TreeContext,
+    a_id: uuid.UUID,
+    b_id: uuid.UUID,
+    graph: tuple[dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]], ...],
+    sex: dict[uuid.UUID, SexAtBirth | None],
 ) -> RelationshipPathOut:
     b = lookup.get_person(ctx, b_id)
     limit = get_settings().max_traversal_depth
-    parents, children, spouses = _load_graph(ctx, lineages)
-    sex = {
-        pid: (sx if pid in visible else None)
-        for pid, sx in ctx.db.execute(
-            select(Person.id, Person.sex_at_birth).where(Person.tree_id == ctx.tree_id)
-        )
-        .tuples()
-        .all()
-    }
+    parents, children, spouses = graph
 
     def blood(x: uuid.UUID, y: uuid.UUID) -> tuple[int, int, list[uuid.UUID], set[Lineage]] | None:
         ax = _ancestors_with_depth(x, parents, limit)

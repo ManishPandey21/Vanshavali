@@ -98,7 +98,7 @@ Last verified: 2026-09-25.
 | Item | Status |
 |---|---|
 | RLS second barrier | DEFERRED |
-| Load tests (10k-person tree, p95 targets) | DEFERRED |
+| Load tests (10k-person tree, p95 targets) | PARTIAL: in-process benchmark at 10k people, 6 of 7 interactive endpoints under p95 500 ms (see `docs/operations/performance.md`); HTTP-level load test DEFERRED |
 | WCAG 2.2 AA audit | DEFERRED (keyboard navigation and a text alternative for the tree exist) |
 | Observability (structured logs, traces, alerts) | DEFERRED |
 | Backup/restore drill | PARTIAL (runbook in `docs/operations/backup-restore.md`) |
