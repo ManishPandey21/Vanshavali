@@ -146,7 +146,7 @@ export function TreeLayout() {
               <UserMenu />
             </div>
           </header>
-          <main id="main" className="mx-auto max-w-6xl px-4 py-5 lg:px-8 lg:py-8">
+          <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-5 lg:px-8 lg:py-8">
             <Outlet />
           </main>
         </div>

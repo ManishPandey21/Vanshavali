@@ -81,7 +81,7 @@ export function PrivacyTab({ person, isClaimant }: { person: PersonOut; isClaima
           <fieldset>
             <legend className="label">{t("privacy.fieldOverrides")}</legend>
             <p className="hint mb-2">{current === null && !isAdmin ? t("privacy.claimantCantSeeOverrides") : t("privacy.fieldOverridesHint")}</p>
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full text-sm">
                 <caption className="sr-only">{t("privacy.fieldOverrides")}</caption>
                 <thead>

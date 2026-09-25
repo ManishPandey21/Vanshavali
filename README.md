@@ -54,8 +54,22 @@ npm run dev                               # http://localhost:3000 (proxies /api 
 ```
 Development defaults (`backend/app/core/config.py`, all overridable with `VSH_*` environment
 variables): local encrypted file storage in `backend/var/storage`, jobs run inline
-(`VSH_JOB_MODE=sync`), and an EICAR-only test scanner. **`VSH_ENV=production` refuses to start**
-with dev keys, the test scanner or insecure cookies.
+(`VSH_JOB_MODE=sync`), an EICAR-only test scanner, and a console mailer (`VSH_MAIL_BACKEND=console`:
+verification and password-reset emails, with their links, are printed in the backend log in
+development; `file` writes them to `VSH_MAIL_FILE_DIR`; `smtp` sends them via `VSH_SMTP_*` with
+STARTTLS). **`VSH_ENV=production` refuses to start** with dev keys, the test scanner, a non-SMTP
+mailer or insecure cookies.
+
+Operations settings:
+- `VSH_LOG_FORMAT=json|text`: structured logs.
+- `VSH_METRICS_TOKEN`: enables `GET /api/v1/metrics`.
+- `VSH_STATEMENT_TIMEOUT_MS`: default 15000.
+- `VSH_DOCUMENT_PURGE_AFTER_DAYS`: default 30.
+
+The API and worker should connect as a **non-owner database role** so row-level security applies.
+Docker Compose does this with `vanshavali_app`. Local `uv run` against the owner role works, but
+without that second barrier (`/api/v1/health/ready` reports `"rls": "bypassed"`). See
+`docs/operations/deployment.md`.
 
 ## Quality gates
 ```bash
@@ -64,7 +78,9 @@ make frontend-test frontend-build   # eslint, tsc, vitest, vite build
 make e2e                            # Playwright
 ```
 Backend tests expect a PostgreSQL role `vanshavali`/`vanshavali` that is allowed to create
-databases. Point `VSH_TEST_ADMIN_URL` elsewhere if needed. CI runs all of the above plus
+databases and roles. Point `VSH_TEST_ADMIN_URL` elsewhere if needed. The suite creates the schema
+as that owner, but the app under test connects as a restricted role (`vsh_app_test`), so every test
+also exercises row-level security. CI runs all of the above plus
 dependency audits and Docker builds (`.github/workflows/ci.yml`).
 
 ## Key principles

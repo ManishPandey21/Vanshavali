@@ -1,7 +1,7 @@
 """Security audit regression tests (2026-09-25).
 
-Regression tests for the issues found in the security audit (SEC-1 … SEC-13). All are fixed except
-SEC-12, an accepted risk kept as a strict xfail so it flips when email verification lands.
+Regression tests for the issues found in the security audit (SEC-1 … SEC-13). All are fixed; SEC-12
+(account enumeration at registration) was closed by email verification (Phase 8).
 Originally: every test here documented a CONFIRMED issue. Each was marked ``xfail(strict=True)``: it failed
 (proving the bug) and will start "passing" — which strict xfail reports as a failure — once the
 issue is fixed, at which point the marker should be removed so the test guards the fix.
@@ -10,8 +10,6 @@ issue is fixed, at which point the marker should be removed so the test guards t
 from __future__ import annotations
 
 from typing import Any
-
-import pytest
 
 from tests.conftest import join_tree
 from tests.doc_fixtures import BIRTH_CERTIFICATE_LINES, text_pdf, upload
@@ -302,17 +300,19 @@ def test_erasure_keeps_preserved_gedcom_payload(owner, tree):
 # ------------------------------------------------------------------ SEC-12 account enumeration
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="SEC-12 ACCEPTED RISK: registration reveals whether an email has an account. The proper fix (always answer 'check your email' + email verification) needs an email provider, which is DEFERRED; mitigated by per-IP rate limiting. See docs/security/threat-model.md T19.",
-)
-def test_registration_enumerates_accounts(owner, make_client):
-    c = make_client()
-    r = c.post(
+def test_registration_does_not_enumerate_accounts(owner, make_client):
+    """SEC-12 (fixed): an existing and a new email get the same status and body."""
+    taken = make_client().post(
         "/auth/register",
         json={"email": owner.user["email"], "password": "another good password", "display_name": "X"},
     )
-    assert r.json().get("error", {}).get("code") != "email_taken"
+    fresh = make_client().post(
+        "/auth/register",
+        json={"email": "brand-new@example.com", "password": "another good password", "display_name": "X"},
+    )
+    assert taken.status_code == fresh.status_code == 202
+    assert taken.json() == fresh.json()
+    assert "vsh_session" not in taken.cookies and "vsh_session" not in fresh.cookies
 
 
 # ------------------------------------------------------------------------ SEC-13 audit gap

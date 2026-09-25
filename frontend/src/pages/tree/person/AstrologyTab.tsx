@@ -163,7 +163,7 @@ function BirthConflictsPanel({ personId }: { personId: string }) {
             <p className="rounded-lg bg-leaf-50 p-2 text-sm text-leaf-700">{c.data.claims.length ? t("astrology.noConflicts") : t("astrology.noClaims")}</p>
           )}
           {(c.data.withheld_fields ?? []).length > 0 && <RedactionNotice label={t("astrology.withheld", { fields: c.data.withheld_fields!.join(", ") })} />}
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">{t("astrology.claims")}</caption>
               <thead className="text-left text-xs uppercase tracking-wide text-ink-muted">

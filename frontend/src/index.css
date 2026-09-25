@@ -59,13 +59,30 @@
   :lang(pa) {
     line-height: 1.7;
   }
+  /* Reduced motion: stop animations outright. A near-zero duration alone makes infinite animations
+     (spinners) flicker at frame rate, so the iteration count is capped too (WCAG 2.3.3). */
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto !important;
+    }
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+  /* Below lg the tree pages have a fixed bottom navigation bar; keep a focused control from being
+     scrolled underneath it (WCAG 2.4.11 Focus Not Obscured). */
+  @media (width < 64rem) {
+    html {
+      scroll-padding-bottom: 5.5rem;
+    }
+  }
+  /* The skip-link target is focusable only programmatically; no ring around the whole page. */
+  main:focus {
+    outline: none;
   }
 }
 

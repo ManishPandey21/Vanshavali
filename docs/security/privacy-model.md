@@ -79,8 +79,13 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Remove from tree | Soft delete, restorable by an admin |
 | Privacy erasure | `POST /people/{id}/erase`: irreversible; leaves an anonymous placeholder |
 | Delete uploaded file | Document soft delete plus retention (restore available) |
-| Close account | `POST /auth/close-account`: deactivates, revokes sessions, leaves trees. Refused for a sole tree owner. |
+| Close account | `POST /auth/close-account`: deactivates, revokes sessions, kills emailed links, leaves trees. Refused for a sole tree owner. |
 | Export own data / tree | GEDCOM export (the full archival package is tracked in `IMPLEMENTATION_STATUS.md`) |
+
+**Account emails** (verification, "someone tried to register with your email", password reset) are
+transactional only: plain text + simple HTML, no images, tracking pixels or link rewriting, in the
+user's preferred language. Registration and reset never reveal whether an email has an account
+(threat model T19). Emailed tokens are stored only as SHA-256 hashes and never audited.
 
 **DEFERRED:** a formal data-subject-request inbox with SLAs and a grievance officer contact
 (DPDP Rules commencement is phased, so this is tracked as a legal workstream). Age-verification and

@@ -10,10 +10,10 @@ from PIL import Image
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.core.db import get_sessionmaker
 from app.core.security import sign_payload
 from app.core.storage import ObjectExists, get_store
 from app.models import AuditEvent, Document
+from tests.conftest import owner_session
 from tests.doc_fixtures import (
     eicar_png,
     javascript_pdf,
@@ -31,14 +31,14 @@ def _png() -> bytes:
 
 
 def _row(doc_id: str) -> Document:
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         doc = db.get(Document, doc_id)
         assert doc is not None
         return doc
 
 
 def _audit_actions(tree_id: str) -> list[AuditEvent]:
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         return list(db.scalars(select(AuditEvent).where(AuditEvent.tree_id == tree_id)))
 
 

@@ -17,7 +17,7 @@ import {
 import { Button } from "../../../components/ui/Button";
 import { Dialog } from "../../../components/ui/Dialog";
 import { ErrorAlert } from "../../../components/ui/feedback";
-import { Field, Select, TextInput } from "../../../components/ui/form";
+import { Field, Select, TextInput, focusFirstInvalid } from "../../../components/ui/form";
 
 export type RelationKind = "parent" | "spouse" | "child" | "sibling";
 
@@ -67,6 +67,7 @@ export function AddRelativeDialog({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    const form = e.currentTarget as HTMLFormElement;
     const body: RelativeIn = { relation };
     if (mode === "existing") {
       if (!existing) {
@@ -77,6 +78,7 @@ export function AddRelativeDialog({
     } else {
       if (Object.keys(validatePersonDraft(draft)).length) {
         setErr(t("person.err.fixErrors"));
+        focusFirstInvalid(form);
         return;
       }
       body.new_person = buildPersonCreate(draft);
@@ -87,6 +89,7 @@ export function AddRelativeDialog({
     if (relation === "spouse" && hasDate(startDate)) {
       if (Object.keys(validateDate(startDate)).length) {
         setErr(t("person.err.fixErrors"));
+        focusFirstInvalid(form);
         return;
       }
       body.start_date = normalizeDate(startDate);

@@ -34,14 +34,52 @@ export function useLogin() {
   });
 }
 
+type Message = components["schemas"]["Message"];
+
+/** Registration never signs in: the server always answers 202 "check your email" (no enumeration). */
 export function useRegister() {
-  const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: components["schemas"]["RegisterIn"]) =>
-      apiRequest<UserOut>("/auth/register", { method: "POST", body, skipAuthRedirect: true }),
+      apiRequest<Message>("/auth/register", { method: "POST", body, skipAuthRedirect: true }),
+  });
+}
+
+/** Opens an emailed verification link: marks the email verified and starts a session. */
+export function useVerifyEmail() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiRequest<UserOut>("/auth/verify-email", { method: "POST", body: { token }, skipAuthRedirect: true }),
     onSuccess: (user) => {
       qc.clear();
       qc.setQueryData(authKeys.me, user);
+    },
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      apiRequest<Message>("/auth/resend-verification", { method: "POST", body: { email }, skipAuthRedirect: true }),
+  });
+}
+
+export function useRequestPasswordReset() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      apiRequest<Message>("/auth/password-reset/request", { method: "POST", body: { email }, skipAuthRedirect: true }),
+  });
+}
+
+export function useConfirmPasswordReset() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: components["schemas"]["PasswordResetConfirmIn"]) =>
+      apiRequest<Message>("/auth/password-reset/confirm", { method: "POST", body, skipAuthRedirect: true }),
+    onSuccess: () => {
+      // every session was revoked server-side
+      qc.clear();
+      qc.setQueryData(authKeys.me, null);
     },
   });
 }

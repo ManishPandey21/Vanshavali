@@ -186,10 +186,20 @@ export function TreeChart({
               const hidden = !p;
               const isRoot = n.node.id === layout.rootId;
               const years = p ? lifespan(p, t) ?? "" : "";
+              // Everything the box shows visually (status bar, minor, lock) is also in the accessible name.
+              const extras = p
+                ? [
+                    p.profile_status !== "unknown" ? t(`enum.profileStatus.${p.profile_status}`) : null,
+                    p.is_minor ? t("person.badge.minor") : null,
+                    p.is_protected ? t("person.badge.protected") : null,
+                  ].filter(Boolean)
+                : [];
               const label =
                 (p
                   ? t("treeView.nodeLabel", { name: p.display_name, years: years || t("treeView.datesUnknown"), generation: n.node.generation })
-                  : t("treeView.hiddenNodeLabel", { generation: n.node.generation })) + (n.node.partner ? ` ${t("treeView.partnerNode")}.` : "");
+                  : t("treeView.hiddenNodeLabel", { generation: n.node.generation })) +
+                (n.node.partner ? ` ${t("treeView.partnerNode")}.` : "") +
+                (extras.length ? ` ${extras.join(", ")}.` : "");
               return (
                 <g
                   key={n.node.id}
@@ -217,7 +227,15 @@ export function TreeChart({
                     strokeWidth={isRoot ? 2 : 1}
                     strokeDasharray={hidden ? "4 3" : undefined}
                   />
-                  {p && <rect width={5} height={NODE_H - 16} x={0} y={8} rx={2} fill={p.profile_status === "living" ? "#22643a" : p.profile_status === "deceased" ? "#8a7a66" : "#c9b89c"} />}
+                  {/* Status bar: shape as well as colour (WCAG 1.4.1) — solid = living, broken = deceased,
+                      outline = unknown. Explained in the legend under the chart. */}
+                  {p && p.profile_status === "living" && <rect width={5} height={NODE_H - 16} x={0} y={8} rx={2} fill="#22643a" />}
+                  {p && p.profile_status === "deceased" && (
+                    <line x1={2.5} y1={8} x2={2.5} y2={NODE_H - 8} stroke="#6b5d4d" strokeWidth={5} strokeDasharray="6 4" />
+                  )}
+                  {p && p.profile_status !== "living" && p.profile_status !== "deceased" && (
+                    <rect width={4} height={NODE_H - 17} x={0.5} y={8.5} rx={2} fill="none" stroke="#8a7a66" />
+                  )}
                   <text x={14} y={26} fontSize={14} fontWeight={600} fill={hidden ? "#57534e" : "#231a12"} fontStyle={hidden ? "italic" : undefined}>
                     {p ? truncate(p.display_name, 22) : t("person.privatePerson")}
                   </text>
@@ -254,7 +272,8 @@ export function TreeChart({
           </g>
         </svg>
       </div>
-      <p id="tree-kbd-help" className="mt-2 text-xs text-ink-muted">
+      <p className="mt-2 text-xs text-ink-muted">{t("treeView.statusLegend")}</p>
+      <p id="tree-kbd-help" className="mt-1 text-xs text-ink-muted">
         {t("treeView.keyboardHelp")}
       </p>
     </div>

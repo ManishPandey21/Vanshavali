@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PASSWORD, api, createPerson, registerWithTree, uniqueEmail } from "./helpers";
+import { PASSWORD, api, createPerson, openVerificationLink, registerWithTree, uniqueEmail } from "./helpers";
 
 /**
  * Critical flow 4: Viewer Attempts Unauthorized Change. A second user joins via an invitation link
@@ -23,6 +23,9 @@ test("viewer sees no edit controls and a direct PATCH is refused", async ({ brow
   await page.getByLabel("Email").fill(viewerEmail);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
+  // the verification link carries the invitation as ?next=, so opening it continues to the invite
+  await openVerificationLink(page, viewerEmail);
   await expect(page.getByRole("heading", { name: "Family tree invitation" })).toBeVisible();
   await expect(page.getByText("Viewer", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Join this family tree" }).click();

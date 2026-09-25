@@ -40,7 +40,7 @@ export function Tabs({
       <div
         role="tablist"
         aria-label={label}
-        className="-mx-4 flex gap-1 overflow-x-auto border-b border-stone-300 px-4 sm:mx-0 sm:px-0"
+        className="relative -mx-4 flex gap-1 overflow-x-auto border-b border-stone-300 px-4 sm:mx-0 sm:px-0"
       >
         {tabs.map((tab) => {
           const selected = tab.id === active;

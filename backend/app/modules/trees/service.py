@@ -122,6 +122,9 @@ def find_invitation(db: Session, token: str) -> TreeInvitation:
 
 
 def accept_invitation(db: Session, user: User, token: str, info: RequestInfo) -> TreeMembership:
+    if user.email_verified_at is None:
+        # the invitation is bound to an email address, so the address must be proven first
+        raise Forbidden("Confirm your email address before joining a tree", code="email_not_verified")
     inv = find_invitation(db, token)
     if inv.accepted_at is not None:
         raise Conflict("Invitation has already been used", code="invitation_used")

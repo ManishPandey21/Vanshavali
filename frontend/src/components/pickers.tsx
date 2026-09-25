@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link2, MapPin, X } from "lucide-react";
 import { usePeople, usePlaces } from "../api/hooks/people";
@@ -6,6 +6,7 @@ import type { PersonSummary, PlaceOut } from "../api/types";
 import { useDebounced } from "../lib/useDebounced";
 import { Combobox } from "./ui/Combobox";
 import { lifespan } from "../lib/dates";
+import { langOfText } from "../lib/names";
 
 /** Search-as-you-type picker over people the viewer can see (server-filtered). */
 export function PersonPicker({
@@ -27,6 +28,17 @@ export function PersonPicker({
   const [text, setText] = useState("");
   const q = useDebounced(text.trim(), 250);
   const people = usePeople(treeId, q);
+  const labelId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  // Choosing or clearing swaps the input for the chosen-person box (and back); move focus along so
+  // it is not dropped on <body> (WCAG 2.4.3).
+  const refocus = useRef<"clear" | "input" | null>(null);
+  useEffect(() => {
+    const target = refocus.current;
+    refocus.current = null;
+    if (target === "clear") rootRef.current?.querySelector<HTMLElement>("button")?.focus();
+    else if (target === "input") rootRef.current?.querySelector<HTMLElement>("input")?.focus();
+  }, [value]);
   const options = (people.data?.pages.flatMap((p) => p.items) ?? [])
     .filter((p) => !excludeIds.includes(p.id))
     .slice(0, 20)
@@ -36,7 +48,7 @@ export function PersonPicker({
       textValue: p.display_name,
       label: (
         <span className="flex items-center justify-between gap-2">
-          <span>{p.display_name}</span>
+          <span lang={langOfText(p.display_name)}>{p.display_name}</span>
           <span className="text-xs text-ink-muted">
             {lifespan(p, t)}
           </span>
@@ -46,11 +58,23 @@ export function PersonPicker({
 
   if (value) {
     return (
-      <div>
-        <p className="label">{label}</p>
+      <div ref={rootRef} role="group" aria-labelledby={labelId}>
+        <p id={labelId} className="label">
+          {label}
+        </p>
         <div className="flex items-center justify-between gap-2 rounded-lg border border-kumkum-200 bg-kumkum-50 px-3 py-2 text-sm">
-          <span className="font-medium">{value.display_name}</span>
-          <button type="button" className="rounded p-1 hover:bg-white" onClick={() => onChange(null)} aria-label={t("pickers.clearPerson", { name: value.display_name })}>
+          <span className="font-medium" lang={langOfText(value.display_name)}>
+            {value.display_name}
+          </span>
+          <button
+            type="button"
+            className="rounded p-1 hover:bg-white"
+            onClick={() => {
+              refocus.current = "input";
+              onChange(null);
+            }}
+            aria-label={t("pickers.clearPerson", { name: value.display_name })}
+          >
             <X className="size-4" aria-hidden />
           </button>
         </div>
@@ -58,20 +82,23 @@ export function PersonPicker({
     );
   }
   return (
-    <Combobox
-      label={label}
-      text={text}
-      onTextChange={setText}
-      options={options}
-      onSelect={(p) => {
-        onChange(p);
-        setText("");
-      }}
-      loading={people.isFetching}
-      placeholder={t("pickers.personPlaceholder")}
-      emptyText={t("pickers.noPeople")}
-      hint={hint}
-    />
+    <div ref={rootRef}>
+      <Combobox
+        label={label}
+        text={text}
+        onTextChange={setText}
+        options={options}
+        onSelect={(p) => {
+          refocus.current = "clear";
+          onChange(p);
+          setText("");
+        }}
+        loading={people.isFetching}
+        placeholder={t("pickers.personPlaceholder")}
+        emptyText={t("pickers.noPeople")}
+        hint={hint}
+      />
+    </div>
   );
 }
 

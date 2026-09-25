@@ -9,6 +9,7 @@ import { AppShell } from "./components/layout/AppShell";
 import { TreeLayout } from "./components/layout/TreeLayout";
 import { Spinner } from "./components/ui/feedback";
 import { LoginPage, RegisterPage } from "./pages/auth/AuthPages";
+import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/auth/EmailPages";
 import { AcceptInvitePage, CreateTreePage, TreesListPage } from "./pages/trees/TreesPages";
 import { AccountPage } from "./pages/AccountPage";
 import { DashboardPage } from "./pages/tree/DashboardPage";
@@ -82,6 +83,9 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/invite/:token" element={<AcceptInvitePage />} />
         <Route path="/p/:slug" element={<PublicTreePage />} />
         <Route path="/p/:slug/people/:personId" element={<PublicPersonPage />} />

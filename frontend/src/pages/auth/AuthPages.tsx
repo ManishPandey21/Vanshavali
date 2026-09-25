@@ -1,10 +1,10 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useLogin, useMe, useRegister } from "../../api/hooks/auth";
+import { useLogin, useMe, useRegister, useResendVerification } from "../../api/hooks/auth";
 import { ApiError } from "../../api/client";
 import { Button } from "../../components/ui/Button";
-import { ErrorAlert, Spinner } from "../../components/ui/feedback";
+import { ErrorAlert, LiveRegion, Spinner } from "../../components/ui/feedback";
 import { Field, TextInput } from "../../components/ui/form";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
@@ -64,12 +64,16 @@ export function LoginPage() {
   // Second step: the server answered 401 mfa_required, so ask for the authenticator code.
   const [mfaStep, setMfaStep] = useState(false);
   const [code, setCode] = useState("");
+  const resend = useResendVerification();
+  const location = useLocation();
+  const passwordReset = (location.state as { passwordReset?: boolean } | null)?.passwordReset === true;
 
   if (me.isLoading) return <Spinner />;
   if (me.data) return <Navigate to={next} replace />;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    resend.reset();
     login.mutate(
       { email, password, ...(mfaStep ? { mfa_code: code.replace(/\s+/g, "") } : {}) },
       {
@@ -84,8 +88,9 @@ export function LoginPage() {
     );
   };
   const e = login.error;
+  const notVerified = e instanceof ApiError && e.code === "email_not_verified";
   const err =
-    e instanceof ApiError && e.code === "mfa_required"
+    (e instanceof ApiError && e.code === "mfa_required") || notVerified
       ? null
       : e instanceof ApiError && e.code === "mfa_invalid"
         ? new Error(t("auth.mfaInvalid"))
@@ -119,6 +124,11 @@ export function LoginPage() {
         )
       }
     >
+      {passwordReset && (
+        <p role="status" className="mb-4 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-900">
+          {t("auth.resetDone")}
+        </p>
+      )}
       <form onSubmit={submit} className="space-y-4" noValidate>
         {mfaStep ? (
           <Field label={t("auth.mfaCode")} required hint={t("auth.mfaCodeHint")}>
@@ -143,7 +153,25 @@ export function LoginPage() {
             <Field label={t("auth.password")} required>
               {(p) => <TextInput {...p} type="password" autoComplete="current-password" required value={password} onChange={(ev) => setPassword(ev.target.value)} />}
             </Field>
+            <p className="-mt-2 text-right text-sm">
+              <Link className="font-medium text-kumkum-800 underline" to="/forgot-password">
+                {t("auth.forgotPassword")}
+              </Link>
+            </p>
           </>
+        )}
+        {notVerified && (
+          <div role="alert" className="space-y-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-ink">
+            <p>{t("auth.emailNotVerified")}</p>
+            {resend.isSuccess ? (
+              <p className="font-medium">{t("auth.resent")}</p>
+            ) : (
+              <Button type="button" variant="secondary" size="sm" loading={resend.isPending} onClick={() => resend.mutate(email)}>
+                {t("auth.resendLink")}
+              </Button>
+            )}
+            <ErrorAlert error={resend.error} />
+          </div>
         )}
         <ErrorAlert error={err} />
         <Button type="submit" className="w-full" loading={login.isPending} disabled={mfaStep && code.replace(/\s+/g, "").length < 6}>
@@ -160,14 +188,52 @@ export function RegisterPage() {
   const next = safeNext(params.get("next"));
   const me = useMe();
   const register = useRegister();
-  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const resend = useResendVerification();
 
   if (me.isLoading) return <Spinner />;
   if (me.data) return <Navigate to={next} replace />;
+
+  if (register.isSuccess) {
+    return (
+      <AuthFrame
+        title={t("auth.checkEmailTitle")}
+        footer={
+          <Link className="font-medium text-kumkum-800 underline" to={`/login${params.get("next") ? `?next=${encodeURIComponent(next)}` : ""}`}>
+            {t("auth.backToLogin")}
+          </Link>
+        }
+      >
+        <div className="space-y-4 text-sm">
+          <p>{t("auth.checkEmailBody", { email: email.trim() })}</p>
+          <p className="text-ink-muted">{t("auth.checkEmailHint")}</p>
+          <LiveRegion message={resend.isSuccess ? t("auth.resent") : ""} />
+          {resend.isSuccess && <p className="font-medium">{t("auth.resent")}</p>}
+          <ErrorAlert error={resend.error} />
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="secondary" loading={resend.isPending} disabled={resend.isSuccess} onClick={() => resend.mutate(email.trim())}>
+              {t("auth.resendLink")}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                register.reset();
+                resend.reset();
+                setPassword("");
+                setSubmitted(false);
+              }}
+            >
+              {t("auth.useDifferentEmail")}
+            </Button>
+          </div>
+        </div>
+      </AuthFrame>
+    );
+  }
 
   const pwTooShort = password.length < 10;
   const fieldErrors = register.error instanceof ApiError ? register.error.fieldErrors() : {};
@@ -175,10 +241,14 @@ export function RegisterPage() {
     e.preventDefault();
     setSubmitted(true);
     if (pwTooShort || !displayName.trim() || !email.trim()) return;
-    register.mutate(
-      { email, password, display_name: displayName.trim(), preferred_language: normalizeLanguage(inst.language) },
-      { onSuccess: () => navigate(next, { replace: true }) },
-    );
+    register.mutate({
+      email: email.trim(),
+      password,
+      display_name: displayName.trim(),
+      preferred_language: normalizeLanguage(inst.language),
+      // carried in the emailed link so an invitation continues after verification
+      ...(next !== "/" ? { next } : {}),
+    });
   };
   return (
     <AuthFrame
