@@ -34,7 +34,7 @@ from app.modules.genealogy import lookup
 
 VALUE_LABEL = {
     ProposalStatus.PENDING: "extracted",
-    ProposalStatus.ACCEPTED: "user-confirmed",
+    ProposalStatus.ACCEPTED: "source-verified",  # value accepted exactly as the document states it
     ProposalStatus.EDITED: "user-confirmed",
     ProposalStatus.REJECTED: "rejected",
 }

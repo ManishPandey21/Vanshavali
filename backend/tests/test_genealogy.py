@@ -332,3 +332,12 @@ def test_descendant_graph_includes_in_law_partners(owner, tree):
     assert partner["partner"] is True and partner["generation"] == 1
     assert any({u["a"], u["b"]} == {son["id"], wife["id"]} for u in g["unions"])
     assert any(e["source"] == wife["id"] and e["target"] == kid["id"] for e in g["edges"])
+
+
+def test_deleted_people_listing_for_admins(owner, tree, member_factory):
+    t = tree["id"]
+    p = create_person(owner, t, "Removed")
+    owner.delete(f"/trees/{t}/people/{p['id']}")
+    listed = owner.get(f"/trees/{t}/people/deleted").json()
+    assert [x["id"] for x in listed] == [p["id"]] and listed[0]["display_name"] == "Removed Iyer"
+    assert member_factory(["CONTRIBUTOR"]).get(f"/trees/{t}/people/deleted").status_code == 403

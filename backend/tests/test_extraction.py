@@ -154,7 +154,7 @@ def test_accept_creates_competing_birth_with_citation_and_provenance(owner, tree
     r = _review(owner, t, props["date_of_birth"]["id"], note="matches the scan")
     assert r.status_code == 200, r.text
     reviewed = r.json()
-    assert reviewed["status"] == "accepted" and reviewed["value_label"] == "user-confirmed"
+    assert reviewed["status"] == "accepted" and reviewed["value_label"] == "source-verified"
     assert reviewed["applied_target_type"] == "event"
     assert reviewed["reviewed_by"] == owner.user["id"]
     event_id = reviewed["applied_target_id"]

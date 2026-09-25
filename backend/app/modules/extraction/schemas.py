@@ -32,7 +32,9 @@ class ProposalOut(ApiModel):
     applied_target_type: str | None
     applied_target_id: uuid.UUID | None
     created_at: dt.datetime
-    value_label: str = "extracted"  # extracted | user-confirmed | rejected (ADR-0009 §4)
+    value_label: str = (
+        "extracted"  # extracted | source-verified (accepted as read) | user-confirmed (edited) | rejected
+    )
 
 
 class ReviewIn(ApiModel):

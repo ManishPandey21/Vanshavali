@@ -108,6 +108,22 @@ def list_people(
     )
 
 
+@router.get("/people/deleted", response_model=list[PersonSummary])
+def deleted_people(ctx: TreeCtx) -> list[PersonSummary]:
+    """Soft-deleted (restorable) people, for tree admins. Merged-away people are listed under merges."""
+    from app.authz.permissions import Permission
+
+    ctx.require(Permission.TREE_MANAGE)
+    rows = ctx.db.scalars(
+        select(Person)
+        .where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None), Person.merged_into_id.is_(None))
+        .order_by(Person.deleted_at.desc())
+    ).all()
+    subjects = load_subjects(ctx, rows)
+    ser = Serializer(ctx)
+    return [ser.summary(subjects[p.id]) for p in rows]
+
+
 @router.post("/people", response_model=PersonOut, status_code=status.HTTP_201_CREATED)
 def create_person(body: PersonCreate, ctx: TreeCtx) -> PersonOut:
     person = service.create_person(ctx, body)

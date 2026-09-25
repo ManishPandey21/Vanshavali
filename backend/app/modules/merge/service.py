@@ -133,7 +133,12 @@ def preview(ctx: TreeContext, survivor_id: uuid.UUID, merged_id: uuid.UUID) -> d
         )
     ).all()
     between = [r for r in rels if survivor.id in (r.person_a_id, r.person_b_id)]
+    from app.modules.genealogy.serialize import Serializer
+
+    ser = Serializer(ctx)
     return {
+        "survivor": ser.person_out(lookup.get_person_subject(ctx, survivor.id)).model_dump(mode="json"),
+        "merged": ser.person_out(lookup.get_person_subject(ctx, merged.id)).model_dump(mode="json"),
         "survivor_id": survivor.id,
         "merged_id": merged.id,
         "references_to_move": counts,

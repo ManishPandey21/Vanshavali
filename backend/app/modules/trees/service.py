@@ -128,7 +128,9 @@ def accept_invitation(db: Session, user: User, token: str, info: RequestInfo) ->
     if inv.expires_at < dt.datetime.now(dt.UTC):
         raise ApiError("Invitation has expired", code="invitation_expired", status_code=410)
     if inv.email != user.email:
-        raise Forbidden("This invitation was issued to a different email address")
+        raise Forbidden(
+            "This invitation was issued to a different email address", code="invitation_email_mismatch"
+        )
     existing = db.scalar(
         select(TreeMembership).where(TreeMembership.tree_id == inv.tree_id, TreeMembership.user_id == user.id)
     )
