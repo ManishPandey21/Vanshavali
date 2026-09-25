@@ -1,139 +1,110 @@
-import { useState } from 'react';
-import { Page, Person, ViewMode } from './types';
-import { samplePersons, sampleFamily, sampleHouseholds } from './data/sampleData';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import FamilyTree from './components/FamilyTree';
-import MemberList from './components/MemberList';
-import AddPerson from './components/AddPerson';
-import PersonDetail from './components/PersonDetail';
-import GotraView from './components/GotraView';
-import SearchView from './components/SearchView';
-import BiodataGenerator from './components/BiodataGenerator';
+import { useEffect } from "react";
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { setUnauthenticatedHandler } from "./api/client";
+import { authKeys, useMe } from "./api/hooks/auth";
+import { normalizeLanguage, storedLanguage } from "./i18n";
+import { AppShell } from "./components/layout/AppShell";
+import { TreeLayout } from "./components/layout/TreeLayout";
+import { Spinner } from "./components/ui/feedback";
+import { LoginPage, RegisterPage } from "./pages/auth/AuthPages";
+import { AcceptInvitePage, CreateTreePage, TreesListPage } from "./pages/trees/TreesPages";
+import { AccountPage } from "./pages/AccountPage";
+import { DashboardPage } from "./pages/tree/DashboardPage";
+import { PeoplePage } from "./pages/tree/PeoplePage";
+import { AddPersonPage } from "./pages/tree/AddPersonPage";
+import { PersonProfilePage } from "./pages/tree/person/PersonProfilePage";
+import { TreeViewerPage } from "./pages/tree/TreeViewerPage";
+import { RelationshipPage } from "./pages/tree/RelationshipPage";
+import { BranchDetailPage, BranchesPage } from "./pages/tree/BranchesPages";
+import { HouseholdsPage, JointFamilyPage } from "./pages/tree/HouseholdsPages";
+import { PlacesPage } from "./pages/tree/PlacesPage";
+import { SourcesPage } from "./pages/tree/SourcesPage";
+import { DuplicatesPage, SearchPage } from "./pages/tree/SearchPages";
+import { AuditPage, ClaimsPage, InvitationsPage, MembersPage, SettingsPage } from "./pages/tree/AdminPages";
+import { PublicPersonPage, PublicTreePage } from "./pages/public/PublicPages";
 
-function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const [persons, setPersons] = useState<Person[]>(samplePersons);
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [biodataPerson, setBiodataPerson] = useState<Person | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('tree');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const handleSelectPerson = (person: Person) => {
-    setSelectedPerson(person);
-    setCurrentPage('tree');
-  };
-
-  const handleAddPerson = (person: Person) => {
-    setPersons([...persons, person]);
-    setCurrentPage('members');
-  };
-
-  const handleGenerateBiodata = (person: Person) => {
-    setBiodataPerson(person);
-    setCurrentPage('dashboard'); // Will show biodata view
-  };
-
-  const renderPage = () => {
-    if (biodataPerson) {
-      return (
-        <BiodataGenerator
-          person={biodataPerson}
-          persons={persons}
-          onBack={() => setBiodataPerson(null)}
-        />
-      );
-    }
-
-    if (selectedPerson && currentPage === 'tree') {
-      return (
-        <PersonDetail
-          person={selectedPerson}
-          persons={persons}
-          onBack={() => setSelectedPerson(null)}
-          onSelectPerson={handleSelectPerson}
-          onGenerateBiodata={handleGenerateBiodata}
-        />
-      );
-    }
-
-    switch (currentPage) {
-      case 'dashboard':
-        return (
-          <Dashboard
-            family={sampleFamily}
-            persons={persons}
-            households={sampleHouseholds}
-            onSelectPerson={handleSelectPerson}
-            onNavigate={setCurrentPage}
-            onGenerateBiodata={handleGenerateBiodata}
-          />
-        );
-      case 'tree':
-        return (
-          <FamilyTree
-            persons={persons}
-            rootPersonId={sampleFamily.rootPersonId}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            onSelectPerson={handleSelectPerson}
-          />
-        );
-      case 'members':
-        return (
-          <MemberList
-            persons={persons}
-            onSelectPerson={handleSelectPerson}
-            onAddPerson={() => setCurrentPage('add')}
-          />
-        );
-      case 'add':
-        return (
-          <AddPerson
-            persons={persons}
-            onAdd={handleAddPerson}
-            onCancel={() => setCurrentPage('members')}
-          />
-        );
-      case 'gotra':
-        return <GotraView persons={persons} />;
-      case 'search':
-        return (
-          <SearchView
-            persons={persons}
-            onSelectPerson={handleSelectPerson}
-          />
-        );
-      default:
-        return (
-          <Dashboard
-            family={sampleFamily}
-            persons={persons}
-            households={sampleHouseholds}
-            onSelectPerson={handleSelectPerson}
-            onNavigate={setCurrentPage}
-            onGenerateBiodata={handleGenerateBiodata}
-          />
-        );
-    }
-  };
-
-  return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar
-        currentPage={currentPage}
-        onNavigate={(page) => {
-          setCurrentPage(page);
-          setSelectedPerson(null);
-        }}
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-      />
-      <main className={`flex-1 overflow-auto transition-all duration-300 ${sidebarOpen ? 'ml-0' : 'ml-0'}`}>
-        {renderPage()}
-      </main>
-    </div>
-  );
+/** Sends any 401 from the API to the login page (keeping where the user was). */
+function AuthRedirector() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const qc = useQueryClient();
+  useEffect(() => {
+    setUnauthenticatedHandler(() => {
+      qc.setQueryData(authKeys.me, null);
+      if (!location.pathname.startsWith("/login") && !location.pathname.startsWith("/p/")) {
+        navigate(`/login?next=${encodeURIComponent(location.pathname + location.search)}`, { replace: true });
+      }
+    });
+    return () => setUnauthenticatedHandler(null);
+  }, [navigate, location, qc]);
+  return null;
 }
 
-export default App;
+/** Applies the signed-in user's saved language unless this browser explicitly chose one. */
+function LanguageSync() {
+  const me = useMe();
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    if (me.data && !storedLanguage()) {
+      const lang = normalizeLanguage(me.data.preferred_language);
+      if (!i18n.language.startsWith(lang)) void i18n.changeLanguage(lang);
+    }
+  }, [me.data, i18n]);
+  return null;
+}
+
+function RequireAuth() {
+  const me = useMe();
+  const location = useLocation();
+  if (me.isLoading) return <Spinner />;
+  if (!me.data) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  return <Outlet />;
+}
+
+export default function App() {
+  return (
+    <>
+      <AuthRedirector />
+      <LanguageSync />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/invite/:token" element={<AcceptInvitePage />} />
+        <Route path="/p/:slug" element={<PublicTreePage />} />
+        <Route path="/p/:slug/people/:personId" element={<PublicPersonPage />} />
+        <Route element={<RequireAuth />}>
+          <Route element={<AppShell />}>
+            <Route index element={<TreesListPage />} />
+            <Route path="/trees/new" element={<CreateTreePage />} />
+            <Route path="/account" element={<AccountPage />} />
+          </Route>
+          <Route path="/t/:treeId" element={<TreeLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="people" element={<PeoplePage />} />
+            <Route path="people/new" element={<AddPersonPage />} />
+            <Route path="people/:personId" element={<PersonProfilePage />} />
+            <Route path="tree" element={<TreeViewerPage />} />
+            <Route path="tree/:personId" element={<TreeViewerPage />} />
+            <Route path="relationship" element={<RelationshipPage />} />
+            <Route path="joint-family" element={<JointFamilyPage />} />
+            <Route path="branches" element={<BranchesPage />} />
+            <Route path="branches/:branchId" element={<BranchDetailPage />} />
+            <Route path="households" element={<HouseholdsPage />} />
+            <Route path="places" element={<PlacesPage />} />
+            <Route path="sources" element={<SourcesPage />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="duplicates" element={<DuplicatesPage />} />
+            <Route path="admin/members" element={<MembersPage />} />
+            <Route path="admin/invitations" element={<InvitationsPage />} />
+            <Route path="admin/claims" element={<ClaimsPage />} />
+            <Route path="admin/audit" element={<AuditPage />} />
+            <Route path="admin/settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  );
+}
