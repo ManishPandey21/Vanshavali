@@ -51,7 +51,7 @@ SURNAMES = ["Iyer", "Sharma", "Patel", "Reddy", "Nair", "Das", "Singh", "Rao", "
 
 
 def build(people: int, seed: int = 7) -> tuple[str, str, list[uuid.UUID]]:
-    rng = random.Random(seed)
+    rng = random.Random(seed)  # noqa: S311 - deterministic synthetic benchmark data, not security-related
     email = f"bench-{uuid.uuid4().hex[:8]}@example.com"
     with get_sessionmaker()() as db:
         user = User(email=email, password_hash=hash_password("benchmark-password"), display_name="Bench")
