@@ -3,3 +3,14 @@ node_modules/
 dist/
 build/
 *.log
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+backend/var/
+.env
+coverage/
+playwright-report/
+test-results/
