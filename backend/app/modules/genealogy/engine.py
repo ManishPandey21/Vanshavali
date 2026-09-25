@@ -258,21 +258,59 @@ def graph(
         if r.parent in alias and r.child in alias
     ]
     unique_edges = {(e.source, e.target, e.type): e for e in edges}
-    # unions among visible nodes (to draw couples)
+    # unions touching visible nodes. Partners outside the lineage (in-laws) are added as partner
+    # nodes on their spouse's generation, so descendant views can show couples (only if visible).
     visible = [p for p in gen if p in summaries]
     unions: list[dict[str, str]] = []
     if visible:
-        for u in ctx.db.scalars(
-            select(Relationship).where(
-                Relationship.tree_id == ctx.tree_id,
-                Relationship.type.in_(list(UNION_TYPES)),
-                Relationship.person_a_id.in_(visible),
-                Relationship.person_b_id.in_(visible),
+        union_rows = list(
+            ctx.db.scalars(
+                select(Relationship).where(
+                    Relationship.tree_id == ctx.tree_id,
+                    Relationship.type.in_(list(UNION_TYPES)),
+                    Relationship.person_a_id.in_(visible) | Relationship.person_b_id.in_(visible),
+                )
             )
-        ):
-            unions.append(
-                {"id": str(u.id), "a": str(u.person_a_id), "b": str(u.person_b_id), "type": u.type.value}
-            )
+        )
+        partner_gen: dict[uuid.UUID, int] = {}
+        for u in union_rows:
+            for inside, other in ((u.person_a_id, u.person_b_id), (u.person_b_id, u.person_a_id)):
+                if inside in gen and other not in gen:
+                    partner_gen.setdefault(other, gen[inside])
+        partner_subjects = lookup.visible_subjects(ctx, partner_gen) if len(nodes) < max_nodes else {}
+        partner_summaries = Serializer(ctx).summaries(partner_subjects)
+        for pid, g in partner_gen.items():
+            if pid in partner_summaries:
+                alias[pid] = str(pid)
+                nodes.append(
+                    GraphNode(id=str(pid), person=partner_summaries[pid], generation=g, partner=True)
+                )
+        for u in union_rows:
+            if (
+                u.person_a_id in alias
+                and u.person_b_id in alias
+                and not alias[u.person_a_id].startswith("hidden")
+            ):
+                if alias[u.person_b_id].startswith("hidden"):
+                    continue
+                unions.append(
+                    {"id": str(u.id), "a": str(u.person_a_id), "b": str(u.person_b_id), "type": u.type.value}
+                )
+        if partner_summaries:
+            for pr in ctx.db.scalars(
+                select(Relationship).where(
+                    Relationship.tree_id == ctx.tree_id,
+                    Relationship.type.in_(list(PARENT_TYPES)),
+                    Relationship.person_a_id.in_(list(partner_summaries)),
+                    Relationship.person_b_id.in_([p for p in gen if p in alias]),
+                )
+            ):
+                if lineages and not _lineage_filter(lineages, pr):
+                    continue
+                key = (alias[pr.person_a_id], alias[pr.person_b_id], pr.type)
+                unique_edges.setdefault(
+                    key, GraphEdge(source=key[0], target=key[1], type=pr.type, lineage=pr.lineage)
+                )
     return GraphOut(
         root_id=root_id,
         direction=direction,
@@ -346,6 +384,9 @@ def _load_graph(
     dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]],
     dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]],
 ]:
+    deleted = set(
+        ctx.db.scalars(select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None)))
+    )
     parents: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]] = {}
     children: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]] = {}
     spouses: dict[uuid.UUID, list[tuple[uuid.UUID, Relationship]]] = {}
@@ -354,6 +395,8 @@ def _load_graph(
             Relationship.tree_id == ctx.tree_id, Relationship.evidence_status.notin_(list(_EXCLUDED_EVIDENCE))
         )
     ):
+        if r.person_a_id in deleted or r.person_b_id in deleted:
+            continue
         if r.type in PARENT_TYPES:
             if not _lineage_filter(lineages, r):
                 continue
@@ -384,15 +427,36 @@ def _ancestors_with_depth(
 def relationship_path(
     ctx: TreeContext, a_id: uuid.UUID, b_id: uuid.UUID, lineages: set[Lineage] | None = None
 ) -> RelationshipPathOut:
+    """Relationship between two visible people. People the viewer cannot see are never identified:
+    their ids are replaced by ``None`` in ``path`` and omitted from ``common_ancestor_ids``, and the
+    kinship words for them are gender-neutral."""
     lookup.get_person(ctx, a_id)
+    lookup.get_person(ctx, b_id)
+    all_ids = set(ctx.db.scalars(select(Person.id).where(Person.tree_id == ctx.tree_id)))
+    visible = set(lookup.visible_subjects(ctx, all_ids))
+    out = _relationship_path_raw(ctx, a_id, b_id, lineages, visible)
+    return out.model_copy(
+        update={
+            "path": [p if p in visible else None for p in out.path],
+            "common_ancestor_ids": [c for c in out.common_ancestor_ids if c in visible],
+        }
+    )
+
+
+def _relationship_path_raw(
+    ctx: TreeContext, a_id: uuid.UUID, b_id: uuid.UUID, lineages: set[Lineage] | None, visible: set[uuid.UUID]
+) -> RelationshipPathOut:
     b = lookup.get_person(ctx, b_id)
     limit = get_settings().max_traversal_depth
     parents, children, spouses = _load_graph(ctx, lineages)
-    sex = dict(
-        ctx.db.execute(select(Person.id, Person.sex_at_birth).where(Person.tree_id == ctx.tree_id))
+    sex = {
+        pid: (sx if pid in visible else None)
+        for pid, sx in ctx.db.execute(
+            select(Person.id, Person.sex_at_birth).where(Person.tree_id == ctx.tree_id)
+        )
         .tuples()
         .all()
-    )
+    }
 
     def blood(x: uuid.UUID, y: uuid.UUID) -> tuple[int, int, list[uuid.UUID], set[Lineage]] | None:
         ax = _ancestors_with_depth(x, parents, limit)

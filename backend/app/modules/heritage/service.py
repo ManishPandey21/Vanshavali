@@ -44,6 +44,13 @@ ATTRIBUTE_GROUP = {
 }
 
 
+MULTI_VALUED = {
+    HeritageAttribute.RECORDED_PARENT_NAME.value,
+    HeritageAttribute.FAMILY_TRADITIONS.value,
+    HeritageAttribute.LANGUAGE_TRADITIONS.value,
+}
+
+
 def _group(attribute: str) -> str:
     return ATTRIBUTE_GROUP.get(attribute, FieldGroup.HERITAGE)
 
@@ -178,6 +185,8 @@ def update_assertion(ctx: TreeContext, assertion_id: uuid.UUID, body: AssertionU
     has_value = bool(a.value_text) or a.value_json is not None or a.place_id is not None
     if a.value_status == ValueStatus.KNOWN and not has_value:
         raise Unprocessable("a known value needs value_text, value_json or place_id")
+    if a.value_status != ValueStatus.KNOWN and has_value:
+        raise Unprocessable(f"a '{a.value_status.value}' assertion must not carry a value")
     if body.is_preferred is not None:
         a.is_preferred = body.is_preferred
         if body.is_preferred:
@@ -198,7 +207,12 @@ def update_assertion(ctx: TreeContext, assertion_id: uuid.UUID, body: AssertionU
 def delete_assertion(ctx: TreeContext, assertion_id: uuid.UUID) -> None:
     a, _ = get_assertion(ctx, assertion_id)
     if a.subject_type == AssertionSubject.PERSON:
-        ctx.require(Permission.PERSON_WRITE, person_id=a.person_id)
+        ctx.require(Permission.ASSERTION_WRITE, person_id=a.person_id)
+        # researchers (assertion.write without person.write) may only withdraw their own proposals
+        if not ctx.has(Permission.PERSON_WRITE) and a.created_by != ctx.user_id:
+            from app.core.errors import Forbidden
+
+            raise Forbidden("You can only remove assertions you proposed")
     else:
         ctx.require(Permission.FAMILY_WRITE)
     ctx.db.delete(a)
@@ -243,7 +257,10 @@ def profile(ctx: TreeContext, subject_type: AssertionSubject, subject_id: uuid.U
             if a.value_status == ValueStatus.KNOWN
             and a.evidence_status.value not in ("DISPROVEN", "SUPERSEDED")
         }
-        disputed = len(live_values) > 1 or any(a.evidence_status.value == "DISPUTED" for a in items)
+        multi = attr in MULTI_VALUED  # several values are normal, not a disagreement
+        disputed = (not multi and len(live_values) > 1) or any(
+            a.evidence_status.value == "DISPUTED" for a in items
+        )
         views.append(
             HeritageAttributeView(
                 attribute=attr,

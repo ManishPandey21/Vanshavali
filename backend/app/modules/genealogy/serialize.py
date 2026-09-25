@@ -255,6 +255,10 @@ class Serializer:
             sex_at_birth=s.person.sex_at_birth,
             birth_year=by,
             death_year=(death.date or {}).get("year") if death and death.date else None,
+            birth_date=None if by is None or birth is None else birth.date,
+            birth_display=None if by is None or birth is None else birth.date_display,
+            death_date=death.date if death else None,
+            death_display=death.date_display if death else None,
             is_minor=s.is_minor if not self.ctx.public else False,
             is_protected=s.is_protected,
             privacy_level=None if self.ctx.public else s.person.privacy_level,
@@ -314,7 +318,9 @@ class Serializer:
             notes=None if ctx.public else gated(FieldGroup.NOTES, p.notes),
             contact_info=None if ctx.public else gated(FieldGroup.CONTACT, p.contact_info),
             residential_address=None if ctx.public else gated(FieldGroup.ADDRESS, p.residential_address),
-            field_privacy=dict(p.field_privacy or {}) if ctx.is_admin else None,
+            field_privacy=dict(p.field_privacy or {})
+            if ctx.is_admin or (ctx.user is not None and p.claimed_by_user_id == ctx.user.id)
+            else None,
             claimed_by_user_id=p.claimed_by_user_id if not ctx.public else None,
             names=[name_out(n) for n in names]
             if not ctx.public

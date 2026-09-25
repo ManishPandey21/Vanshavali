@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime as dt
 import uuid
 from collections import deque
 
@@ -12,7 +11,7 @@ from sqlalchemy import func, select
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
-from app.core.dates import GenealogicalDate, date_to_json
+from app.core.dates import DatePrecision, GenealogicalDate, date_to_json
 from app.core.errors import Conflict, Unprocessable
 from app.models import BranchMembership, FamilyBranch, Household, HouseholdMembership, Person, Relationship
 from app.models.enums import DescentRule, EvidenceStatus, RelationshipType, SexAtBirth
@@ -328,8 +327,8 @@ def end_household_member(
         ctx.db.delete(m)
     else:
         m.end_date = date_to_json(
-            end_date or GenealogicalDate(precision="year_only", year=dt.date.today().year)
-        )  # type: ignore[arg-type]
+            end_date or GenealogicalDate(precision=DatePrecision.UNKNOWN)
+        )  # never invent a date
     audit.log(
         ctx,
         "household.member_ended" if not delete else "household.member_removed",

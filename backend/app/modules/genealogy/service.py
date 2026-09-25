@@ -90,7 +90,11 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
 
 
 def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Place:
-    if not (ctx.has(Permission.PERSON_WRITE) or ctx.has(Permission.PROPERTY_WRITE)):
+    if not (
+        ctx.has(Permission.PERSON_WRITE)
+        or ctx.has(Permission.PROPERTY_WRITE)
+        or ctx.has(Permission.SOURCE_WRITE)
+    ):
         raise Forbidden()
     place = lookup.get_place(ctx, place_id)
     changes = body.model_dump(mode="json", exclude_unset=True)

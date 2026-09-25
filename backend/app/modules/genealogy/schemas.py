@@ -337,6 +337,12 @@ class PersonSummary(ApiModel):
     sex_at_birth: SexAtBirth | None
     birth_year: int | None = None
     death_year: int | None = None
+    # Qualified dates (precision + calendar), already privacy-redacted; use these for display so
+    # "c. 1840 (shaka)" is never shown as a bare "1840".
+    birth_date: dict[str, Any] | None = None
+    birth_display: str | None = None
+    death_date: dict[str, Any] | None = None
+    death_display: str | None = None
     is_minor: bool = False
     is_protected: bool = False
     privacy_level: PrivacyLevel | None = None
@@ -470,6 +476,7 @@ class GraphNode(ApiModel):
     person: PersonSummary | None
     hidden: bool = False
     generation: int
+    partner: bool = False  # spouse/partner of a lineage member, not in the lineage itself
 
 
 class GraphEdge(ApiModel):
@@ -495,7 +502,7 @@ class RelationshipPathOut(ApiModel):
     found: bool
     label: str | None = None
     chain: list[str] = []
-    path: list[uuid.UUID] = []
+    path: list[uuid.UUID | None] = []  # None = a person hidden from the viewer
     common_ancestor_ids: list[uuid.UUID] = []
     lineages: list[Lineage] = []
     explanation: str | None = None

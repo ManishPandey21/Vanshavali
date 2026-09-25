@@ -257,3 +257,26 @@ def test_close_account(owner, tree, make_client):
         == 401
     )
     assert len(owner.get(f"/trees/{tree['id']}/members").json()) == 1
+
+
+def test_relationship_path_does_not_identify_hidden_people(owner, tree, member_factory):
+    t = tree["id"]
+    gp = create_person(
+        owner, t, "HiddenGrandpa", sex="male", status="living", privacy_level="PRIVATE_TREE_ADMINS"
+    )
+    dad = create_person(owner, t, "Dad", sex="male")
+    uncle = create_person(owner, t, "Uncle", sex="male")
+    me = create_person(owner, t, "Me", sex="male")
+    link(owner, t, gp["id"], dad["id"], "biological_parent")
+    link(owner, t, gp["id"], uncle["id"], "biological_parent")
+    link(owner, t, dad["id"], me["id"], "biological_parent")
+    viewer = member_factory(["VIEWER"])
+    r = viewer.get(f"/trees/{t}/relationship-path", params={"from": me["id"], "to": uncle["id"]})
+    body = r.json()
+    assert body["label"] == "uncle"
+    assert gp["id"] not in r.text
+    assert None in body["path"] and body["common_ancestor_ids"] == []
+    # deleted people are not used as connectors
+    owner.delete(f"/trees/{t}/people/{dad['id']}")
+    r2 = owner.get(f"/trees/{t}/relationship-path", params={"from": me["id"], "to": uncle["id"]}).json()
+    assert r2["found"] is False

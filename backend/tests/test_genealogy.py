@@ -307,3 +307,28 @@ def test_soft_delete_and_restore(owner, tree):
     assert owner.get(f"/trees/{t}/people/{p['id']}").status_code == 404
     assert owner.post(f"/trees/{t}/people/{p['id']}/restore").status_code == 200
     assert owner.get(f"/trees/{t}/people/{p['id']}").status_code == 200
+
+
+def test_summaries_carry_qualified_dates(owner, tree):
+    t = tree["id"]
+    create_person(owner, t, "Old", birth={"date": {"calendar": "shaka", "precision": "circa", "year": 1840}})
+    item = owner.get(f"/trees/{t}/people").json()["items"][0]
+    assert item["birth_display"] == "c. 1840 (shaka)"
+    assert item["birth_date"]["precision"] == "circa"
+
+
+def test_descendant_graph_includes_in_law_partners(owner, tree):
+    t = tree["id"]
+    gp = create_person(owner, t, "Grandpa", sex="male")
+    son = create_person(owner, t, "Son", sex="male")
+    wife = create_person(owner, t, "DaughterInLaw", sex="female")
+    kid = create_person(owner, t, "Kid")
+    link(owner, t, gp["id"], son["id"], "biological_parent")
+    link(owner, t, son["id"], wife["id"], "spouse")
+    link(owner, t, son["id"], kid["id"], "biological_parent")
+    link(owner, t, wife["id"], kid["id"], "biological_parent")
+    g = owner.get(f"/trees/{t}/people/{gp['id']}/descendants?depth=3").json()
+    partner = next(n for n in g["nodes"] if n["id"] == wife["id"])
+    assert partner["partner"] is True and partner["generation"] == 1
+    assert any({u["a"], u["b"]} == {son["id"], wife["id"]} for u in g["unions"])
+    assert any(e["source"] == wife["id"] and e["target"] == kid["id"] for e in g["edges"])

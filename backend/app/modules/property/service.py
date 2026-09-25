@@ -63,7 +63,6 @@ from app.models.enums import (
     InterestType,
     PrivacyLevel,
     PropertyEventType,
-    StorageClass,
 )
 from app.modules.genealogy import lookup
 from app.modules.property.schemas import (
@@ -170,19 +169,11 @@ def visible_properties(ctx: TreeContext, props: Iterable[Property]) -> list[Prop
 
 
 def can_view_document(ctx: TreeContext, doc: Document) -> bool:
-    """Metadata visibility for a linked document (ADR-0006 §5). Bytes are never served here."""
-    if doc.deleted_at is not None:
-        return False
-    grant = (GrantResource.DOCUMENT, doc.id)
-    if not level_allows(ctx, doc.privacy_level, grant=grant):
-        return False
-    if doc.storage_class == StorageClass.VAULT:
-        return (
-            ctx.has(Permission.DOCUMENT_VAULT)
-            or (ctx.has(Permission.PROPERTY_DOCUMENTS) and doc.category in PROPERTY_DOCUMENT_CATEGORIES)
-            or ctx.has_grant(GrantResource.DOCUMENT, doc.id, GrantPermission.VIEW)
-        )
-    return True
+    """Metadata visibility for a linked document — delegates to the canonical documents rule
+    (ADR-0006 §5). Bytes are never served from the property module."""
+    from app.modules.documents.access import can_view_document as _canonical
+
+    return doc.deleted_at is None and _canonical(ctx, doc)
 
 
 # ================================================================ small helpers
