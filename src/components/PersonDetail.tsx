@@ -6,9 +6,10 @@ interface PersonDetailProps {
   persons: Person[];
   onBack: () => void;
   onSelectPerson: (person: Person) => void;
+  onGenerateBiodata?: (person: Person) => void;
 }
 
-export default function PersonDetail({ person, persons, onBack, onSelectPerson }: PersonDetailProps) {
+export default function PersonDetail({ person, persons, onBack, onSelectPerson, onGenerateBiodata }: PersonDetailProps) {
   const father = person.fatherId ? persons.find(p => p.id === person.fatherId) : null;
   const mother = person.motherId ? persons.find(p => p.id === person.motherId) : null;
   const spouses = person.spouseIds.map(id => persons.find(p => p.id === id)).filter(Boolean) as Person[];
@@ -135,6 +136,14 @@ export default function PersonDetail({ person, persons, onBack, onSelectPerson }
                 )}
               </div>
             </div>
+            {onGenerateBiodata && person.isLiving && (
+              <button
+                onClick={() => onGenerateBiodata(person)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors text-sm font-medium shadow-sm"
+              >
+                📋 Generate Biodata
+              </button>
+            )}
           </div>
         </div>
       </div>

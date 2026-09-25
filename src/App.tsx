@@ -9,11 +9,13 @@ import AddPerson from './components/AddPerson';
 import PersonDetail from './components/PersonDetail';
 import GotraView from './components/GotraView';
 import SearchView from './components/SearchView';
+import BiodataGenerator from './components/BiodataGenerator';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [persons, setPersons] = useState<Person[]>(samplePersons);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [biodataPerson, setBiodataPerson] = useState<Person | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('tree');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -27,7 +29,22 @@ function App() {
     setCurrentPage('members');
   };
 
+  const handleGenerateBiodata = (person: Person) => {
+    setBiodataPerson(person);
+    setCurrentPage('dashboard'); // Will show biodata view
+  };
+
   const renderPage = () => {
+    if (biodataPerson) {
+      return (
+        <BiodataGenerator
+          person={biodataPerson}
+          persons={persons}
+          onBack={() => setBiodataPerson(null)}
+        />
+      );
+    }
+
     if (selectedPerson && currentPage === 'tree') {
       return (
         <PersonDetail
@@ -35,6 +52,7 @@ function App() {
           persons={persons}
           onBack={() => setSelectedPerson(null)}
           onSelectPerson={handleSelectPerson}
+          onGenerateBiodata={handleGenerateBiodata}
         />
       );
     }
@@ -48,6 +66,7 @@ function App() {
             households={sampleHouseholds}
             onSelectPerson={handleSelectPerson}
             onNavigate={setCurrentPage}
+            onGenerateBiodata={handleGenerateBiodata}
           />
         );
       case 'tree':
@@ -93,6 +112,7 @@ function App() {
             households={sampleHouseholds}
             onSelectPerson={handleSelectPerson}
             onNavigate={setCurrentPage}
+            onGenerateBiodata={handleGenerateBiodata}
           />
         );
     }
