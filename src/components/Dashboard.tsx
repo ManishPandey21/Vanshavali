@@ -7,9 +7,10 @@ interface DashboardProps {
   households: Household[];
   onSelectPerson: (person: Person) => void;
   onNavigate: (page: Page) => void;
+  onGenerateBiodata?: (person: Person) => void;
 }
 
-export default function Dashboard({ family, persons, households, onSelectPerson, onNavigate }: DashboardProps) {
+export default function Dashboard({ family, persons, households, onSelectPerson, onNavigate, onGenerateBiodata }: DashboardProps) {
   const livingCount = persons.filter(p => p.isLiving).length;
   const deceasedCount = persons.filter(p => !p.isLiving).length;
   const gotras = [...new Set(persons.map(p => p.gotra).filter(Boolean))];
@@ -130,9 +131,28 @@ export default function Dashboard({ family, persons, households, onSelectPerson,
           <p className="text-sm text-gray-600 mb-4">
             Create traditional Indian matrimonial biodata from family tree data. Export as PDF.
           </p>
-          <button className="w-full bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 transition-colors text-sm font-medium opacity-75 cursor-not-allowed">
-            Coming Soon
-          </button>
+          {onGenerateBiodata ? (
+            <select
+              onChange={(e) => {
+                const person = persons.find(p => p.id === e.target.value);
+                if (person) onGenerateBiodata(person);
+                e.target.value = '';
+              }}
+              className="w-full bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 transition-colors text-sm font-medium cursor-pointer appearance-none px-3"
+              defaultValue=""
+            >
+              <option value="" disabled>Select Member for Biodata</option>
+              {persons.filter(p => p.isLiving && !p.isPrivate).map(p => (
+                <option key={p.id} value={p.id} className="text-gray-800">
+                  {p.firstName} {p.lastName}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <button className="w-full bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 transition-colors text-sm font-medium opacity-75 cursor-not-allowed">
+              Coming Soon
+            </button>
+          )}
         </div>
       </div>
 

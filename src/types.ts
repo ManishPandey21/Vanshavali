@@ -64,5 +64,5 @@ export interface Household {
   headId?: string;
 }
 
-export type ViewMode = 'tree' | 'cluster' | 'list';
+export type ViewMode = 'tree' | 'cluster' | 'list' | 'relations';
 export type Page = 'dashboard' | 'tree' | 'members' | 'add' | 'search' | 'gotra' | 'settings';
