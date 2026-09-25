@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { UnionOut } from "../../../api/types";
-import { jsonResponse, renderWithProviders } from "../../../test/utils";
+import { attested, jsonResponse, renderWithProviders } from "../../../test/utils";
 import { AddRelativeDialog } from "./AddRelativeDialog";
 
 const anchor = { id: "anchor-1", display_name: "Ramesh Sharma", profile_status: "living" as const, sex_at_birth: "male" as const };
@@ -30,17 +30,32 @@ const unions: UnionOut[] = [
 ];
 
 describe("AddRelativeDialog", () => {
+  it("asks for the family-data confirmation before showing the new-person form", async () => {
+    const fetchMock = vi.fn((url: RequestInfo | URL) =>
+      Promise.resolve(
+        String(url).includes("/attestation")
+          ? jsonResponse({ attested: false, current_version: "v1", attestation: null })
+          : jsonResponse({ kind: "family_data", version: "v1", language: "en", text: "I agree to add my family members' names to this private tree, and I confirm I have their permission to do so." }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithProviders(<AddRelativeDialog anchor={anchor} relation="parent" unions={[]} onClose={() => undefined} />);
+    const box = await screen.findByRole("checkbox", { name: /I confirm I have their permission/ });
+    expect(box).not.toBeChecked();
+    expect(screen.queryByRole("group", { name: "Name 1" })).not.toBeInTheDocument();
+  });
+
   it("posts a new child linked to the chosen union", async () => {
     document.cookie = "vsh_csrf=csrf-token";
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({ person: { id: "c1", display_name: "Aarav Sharma", profile_status: "living", sex_at_birth: "male" }, relationships: [] }, 201),
     );
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", vi.fn(attested(fetchMock)));
     const onClose = vi.fn();
     renderWithProviders(<AddRelativeDialog anchor={anchor} relation="child" unions={unions} onClose={onClose} />);
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByLabelText("Which union?")).toHaveValue("union-1");
-    const name1 = within(dialog).getByRole("group", { name: "Name 1" });
+    const name1 = await within(dialog).findByRole("group", { name: "Name 1" });
     await userEvent.type(within(name1).getByLabelText("Given name"), "Aarav");
     await userEvent.type(within(name1).getByLabelText("Surname / family name"), "Sharma");
     await userEvent.selectOptions(within(dialog).getByLabelText("Sex at birth"), "male");
@@ -71,8 +86,9 @@ describe("AddRelativeDialog", () => {
 
   it("does not submit a new person without any name", async () => {
     const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", vi.fn(attested(fetchMock)));
     renderWithProviders(<AddRelativeDialog anchor={anchor} relation="parent" unions={[]} onClose={() => undefined} />);
+    await screen.findByRole("group", { name: "Name 1" });
     await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Add parent" }));
     expect(await screen.findByText(/Enter at least a given name/)).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
@@ -80,10 +96,10 @@ describe("AddRelativeDialog", () => {
 
   it("posts a spouse with a year-only marriage date", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ person: anchor, relationships: [] }, 201));
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", vi.fn(attested(fetchMock)));
     renderWithProviders(<AddRelativeDialog anchor={anchor} relation="spouse" unions={[]} onClose={() => undefined} />);
     const dialog = screen.getByRole("dialog");
-    await userEvent.type(within(within(dialog).getByRole("group", { name: "Name 1" })).getByLabelText("Given name"), "Sunita");
+    await userEvent.type(within(await within(dialog).findByRole("group", { name: "Name 1" })).getByLabelText("Given name"), "Sunita");
     const marriage = within(dialog).getByRole("group", { name: "Date of marriage / start of union" });
     await userEvent.selectOptions(within(marriage).getByLabelText("How precise is this date?"), "year_only");
     await userEvent.type(within(marriage).getByLabelText(/^Year/), "1995");

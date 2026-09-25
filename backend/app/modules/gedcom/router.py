@@ -9,6 +9,7 @@ from app.api.deps import TreeCtx
 from app.authz.permissions import Permission
 from app.core.config import get_settings
 from app.core.errors import ApiError
+from app.modules.consent.attestation import require_attestation
 from app.modules.gedcom import service
 from app.modules.gedcom.schemas import CommitIn, ImportJobOut, ImportJobSummary
 
@@ -38,6 +39,7 @@ def _read_capped(file: UploadFile) -> bytes:
 @router.post("/imports", response_model=ImportJobOut, status_code=status.HTTP_201_CREATED)
 def upload_gedcom(ctx: TreeCtx, file: UploadFile = File(...)) -> ImportJobOut:
     ctx.require(Permission.GEDCOM_IMPORT)  # before reading the body
+    require_attestation(ctx)  # ADR-0011: an import adds people too
     data = _read_capped(file)
     job = service.upload(ctx, file.filename, data)
     return service.job_out(ctx, job)

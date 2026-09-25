@@ -9,7 +9,7 @@ test("enable two-step verification and sign in with an authenticator code", asyn
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByRole("heading", { name: "Your family trees" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start your family tree" })).toBeVisible();
 
   await page.goto("/account");
   await page.getByRole("button", { name: "Set up two-step verification" }).click();

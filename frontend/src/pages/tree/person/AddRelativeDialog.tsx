@@ -18,6 +18,7 @@ import { Button } from "../../../components/ui/Button";
 import { Dialog } from "../../../components/ui/Dialog";
 import { ErrorAlert } from "../../../components/ui/feedback";
 import { Field, Select, TextInput } from "../../../components/ui/form";
+import { FamilyConsentGate } from "../../../components/consent/FamilyConsent";
 
 export type RelationKind = "parent" | "spouse" | "child" | "sibling";
 
@@ -175,7 +176,9 @@ export function AddRelativeDialog({
         {mode === "existing" ? (
           <PersonPicker treeId={treeId} label={t("relatives.findPerson")} value={existing} onChange={setExisting} excludeIds={[anchor.id]} />
         ) : (
-          <PersonForm treeId={treeId} draft={draft} onChange={setDraft} showErrors={submitted} compact treeDefaultPrivacy={tree.default_person_privacy} />
+          <FamilyConsentGate treeId={treeId}>
+            <PersonForm treeId={treeId} draft={draft} onChange={setDraft} showErrors={submitted} compact treeDefaultPrivacy={tree.default_person_privacy} />
+          </FamilyConsentGate>
         )}
         {err && (
           <p role="alert" className="field-error text-sm">

@@ -165,9 +165,11 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // New accounts go through the guided first run unless they came here for something specific (e.g. a claim link).
+  const afterRegister = params.get("next") ? next : "/welcome";
 
   if (me.isLoading) return <Spinner />;
-  if (me.data) return <Navigate to={next} replace />;
+  if (me.data) return <Navigate to={register.isSuccess ? afterRegister : next} replace />;
 
   const pwTooShort = password.length < 10;
   const fieldErrors = register.error instanceof ApiError ? register.error.fieldErrors() : {};
@@ -177,7 +179,7 @@ export function RegisterPage() {
     if (pwTooShort || !displayName.trim() || !email.trim()) return;
     register.mutate(
       { email, password, display_name: displayName.trim(), preferred_language: normalizeLanguage(inst.language) },
-      { onSuccess: () => navigate(next, { replace: true }) },
+      { onSuccess: () => navigate(afterRegister, { replace: true }) },
     );
   };
   return (

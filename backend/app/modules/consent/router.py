@@ -14,7 +14,7 @@ from app.api.schemas import ApiModel
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Conflict, Forbidden
-from app.models import ConsentRecord, ProfileClaim, TreeMembership
+from app.models import ConsentRecord, ProfileClaim, ProfileClaimInvite, TreeMembership, User
 from app.models.enums import ClaimStatus, ConsentBasis
 from app.modules.genealogy import lookup
 
@@ -138,6 +138,19 @@ class ClaimOut(ApiModel):
     reviewed_at: dt.datetime | None
     review_note: str | None
     created_at: dt.datetime
+    via_invite: bool = False
+    # Only filled for tree admins, who need to know who is asking before approving.
+    claimant_name: str | None = None
+    claimant_email: str | None = None
+
+
+def _claim_out(c: ProfileClaim, claimant: User | None = None) -> ClaimOut:
+    out = ClaimOut.model_validate(c).model_copy(update={"via_invite": c.invite_id is not None})
+    if claimant is not None:
+        out = out.model_copy(
+            update={"claimant_name": claimant.display_name, "claimant_email": claimant.email}
+        )
+    return out
 
 
 @router.post("/people/{person_id}/claims", response_model=ClaimOut, status_code=status.HTTP_201_CREATED)
@@ -165,17 +178,74 @@ def request_claim(person_id: uuid.UUID, body: ClaimIn, ctx: TreeCtx) -> ClaimOut
     ctx.db.add(claim)
     ctx.db.flush()
     audit.log(ctx, "profile.claim_requested", target_type="person", target_id=person.id)
-    return ClaimOut.model_validate(claim)
+    return _claim_out(claim)
 
 
 @router.get("/claims", response_model=list[ClaimOut])
 def list_claims(ctx: TreeCtx, status_filter: ClaimStatus | None = None) -> list[ClaimOut]:
-    q = select(ProfileClaim).where(ProfileClaim.tree_id == ctx.tree_id)
-    if not ctx.has(Permission.MEMBERS_MANAGE) or not ctx.is_admin:
+    q = (
+        select(ProfileClaim, User)
+        .join(User, User.id == ProfileClaim.user_id)
+        .where(ProfileClaim.tree_id == ctx.tree_id)
+    )
+    admin = ctx.has(Permission.MEMBERS_MANAGE) and ctx.is_admin
+    if not admin:
         q = q.where(ProfileClaim.user_id == ctx.user_id)
     if status_filter:
         q = q.where(ProfileClaim.status == status_filter)
-    return [ClaimOut.model_validate(c) for c in ctx.db.scalars(q.order_by(ProfileClaim.created_at.desc()))]
+    rows = ctx.db.execute(q.order_by(ProfileClaim.created_at.desc())).all()
+    return [_claim_out(c, u if admin else None) for c, u in rows]
+
+
+def _complete_invited_claim(ctx, claim: ProfileClaim, person, membership: TreeMembership | None) -> None:  # type: ignore[no-untyped-def]
+    """ADR-0011: an approved invite claim brings a non-member in and records their own consent."""
+    invite = ctx.db.scalar(
+        select(ProfileClaimInvite).where(
+            ProfileClaimInvite.tree_id == ctx.tree_id, ProfileClaimInvite.id == claim.invite_id
+        )
+    )
+    if membership is None and invite is not None:
+        membership = TreeMembership(
+            tree_id=ctx.tree_id,
+            user_id=claim.user_id,
+            roles=[invite.offered_role.value],
+            branch_id=invite.branch_id,
+            linked_person_id=person.id,
+            created_by=invite.created_by,
+        )
+        ctx.db.add(membership)
+        ctx.db.flush()
+        audit.log(
+            ctx,
+            "member.joined",
+            target_type="membership",
+            target_id=membership.id,
+            details={"roles": list(membership.roles), "via": "claim_invite"},
+        )
+    if claim.consent_version and claim.consent_at:
+        claimant = ctx.db.get(User, claim.user_id)
+        consent = ConsentRecord(
+            tree_id=ctx.tree_id,
+            subject_person_id=person.id,
+            granted_by_user_id=claim.user_id,
+            granted_by_name=claimant.display_name if claimant else "Profile owner",
+            authority_basis=ConsentBasis.SELF,
+            purpose="Keep my profile in this private family tree",
+            data_categories=["names", "relationships", "life_events"],
+            granted_at=claim.consent_at,
+            notes=f"Profile claim statement {claim.consent_version} ({claim.consent_language}), "
+            f"sha256 {claim.consent_sha256}",
+            created_by=claim.user_id,
+        )
+        ctx.db.add(consent)
+        ctx.db.flush()
+        audit.log(
+            ctx,
+            "consent.granted",
+            target_type="person",
+            target_id=person.id,
+            details={"purpose": consent.purpose, "basis": ConsentBasis.SELF.value, "via": "claim_invite"},
+        )
 
 
 def _review(ctx, claim_id: uuid.UUID, approve: bool, note: str | None) -> ProfileClaim:  # type: ignore[no-untyped-def]
@@ -193,7 +263,7 @@ def _review(ctx, claim_id: uuid.UUID, approve: bool, note: str | None) -> Profil
         if person.claimed_by_user_id is not None:
             raise Conflict("This profile has already been claimed", code="already_claimed")
         person.claimed_by_user_id = claim.user_id
-        # Claiming links the profile; it does NOT widen the claimant's tree roles (PRS §29).
+        # Claiming links the profile; it does NOT widen an existing member's roles (PRS §29).
         m = ctx.db.scalar(
             select(TreeMembership).where(
                 TreeMembership.tree_id == ctx.tree_id, TreeMembership.user_id == claim.user_id
@@ -201,6 +271,8 @@ def _review(ctx, claim_id: uuid.UUID, approve: bool, note: str | None) -> Profil
         )
         if m is not None and m.linked_person_id is None:
             m.linked_person_id = person.id
+        if claim.invite_id is not None:
+            _complete_invited_claim(ctx, claim, person, m)
     audit.log(
         ctx,
         "profile.claim_approved" if approve else "profile.claim_rejected",
@@ -212,9 +284,9 @@ def _review(ctx, claim_id: uuid.UUID, approve: bool, note: str | None) -> Profil
 
 @router.post("/claims/{claim_id}/approve", response_model=ClaimOut)
 def approve_claim(claim_id: uuid.UUID, body: ClaimReview, ctx: TreeCtx) -> ClaimOut:
-    return ClaimOut.model_validate(_review(ctx, claim_id, True, body.note))
+    return _claim_out(_review(ctx, claim_id, True, body.note))
 
 
 @router.post("/claims/{claim_id}/reject", response_model=ClaimOut)
 def reject_claim(claim_id: uuid.UUID, body: ClaimReview, ctx: TreeCtx) -> ClaimOut:
-    return ClaimOut.model_validate(_review(ctx, claim_id, False, body.note))
+    return _claim_out(_review(ctx, claim_id, False, body.note))

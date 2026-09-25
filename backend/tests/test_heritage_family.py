@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.conftest import new_tree
 from tests.helpers import create_person, link, person_body
 
 
@@ -211,7 +212,7 @@ def test_sources_and_citations(owner, tree, member_factory):
 def test_citation_cannot_target_other_tree(owner, tree, make_client):
     other = make_client()
     other.register()
-    tb = other.post("/trees", json={"name": "B"}).json()["id"]
+    tb = new_tree(other, "B")["id"]
     foreign = create_person(other, tb, "Foreign")
     s = owner.post(f"/trees/{tree['id']}/sources", json={"title": "Mine"}).json()
     r = owner.post(

@@ -7,6 +7,7 @@ import { Perm } from "../../lib/permissions";
 import { PersonForm, buildPersonCreate, emptyPersonDraft, validatePersonDraft, type PersonDraft } from "../../components/person/PersonForm";
 import { Button, ButtonLink } from "../../components/ui/Button";
 import { ErrorAlert, PageHeader } from "../../components/ui/feedback";
+import { FamilyConsentGate } from "../../components/consent/FamilyConsent";
 
 export function AddPersonPage() {
   const { t, i18n } = useTranslation();
@@ -34,23 +35,25 @@ export function AddPersonPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t("people.addTitle")} subtitle={t("people.addSubtitle")} />
-      <form onSubmit={submit} noValidate className="card space-y-5 p-5">
-        <PersonForm treeId={treeId} draft={draft} onChange={setDraft} showErrors={submitted} treeDefaultPrivacy={tree.default_person_privacy} />
-        {clientError && (
-          <p role="alert" className="field-error text-sm">
-            {clientError}
-          </p>
-        )}
-        <ErrorAlert error={create.error} />
-        <div className="flex justify-end gap-2 border-t border-stone-200 pt-4">
-          <ButtonLink to={`/t/${treeId}/people`} variant="secondary">
-            {t("common.cancel")}
-          </ButtonLink>
-          <Button type="submit" loading={create.isPending}>
-            {t("people.save")}
-          </Button>
-        </div>
-      </form>
+      <FamilyConsentGate treeId={treeId}>
+        <form onSubmit={submit} noValidate className="card space-y-5 p-5">
+          <PersonForm treeId={treeId} draft={draft} onChange={setDraft} showErrors={submitted} treeDefaultPrivacy={tree.default_person_privacy} />
+          {clientError && (
+            <p role="alert" className="field-error text-sm">
+              {clientError}
+            </p>
+          )}
+          <ErrorAlert error={create.error} />
+          <div className="flex justify-end gap-2 border-t border-stone-200 pt-4">
+            <ButtonLink to={`/t/${treeId}/people`} variant="secondary">
+              {t("common.cancel")}
+            </ButtonLink>
+            <Button type="submit" loading={create.isPending}>
+              {t("people.save")}
+            </Button>
+          </div>
+        </form>
+      </FamilyConsentGate>
     </div>
   );
 }
