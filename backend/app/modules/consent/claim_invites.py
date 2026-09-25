@@ -19,6 +19,7 @@ from app.api.schemas import ApiModel, Message
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.config import get_settings
+from app.core.db import bind_tree
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessable
 from app.core.ratelimit import enforce
 from app.core.security import new_token, token_hash
@@ -174,6 +175,9 @@ def _find(db: DbDep, token: str, *, lock: bool = False) -> ProfileClaimInvite:
     inv = db.scalar(q)
     if inv is None or inv.revoked_at is not None:
         raise NotFound("Invite not found")
+    # The link holder is not a member yet: the matching 256-bit token is what scopes this request to
+    # the invite's tree, so bind it for row-level security (ADR-0002 §7) before reading tree data.
+    bind_tree(db, inv.tree_id)
     return inv
 
 

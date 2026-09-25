@@ -13,8 +13,88 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Register */
+        /**
+         * Register
+         * @description Always answers 202 with the same body, whether or not the email has an account (SEC-12).
+         *
+         *     A new email gets a verification link; an existing account's owner gets a notice instead.
+         *     Nobody is signed in until the link is opened (``POST /auth/verify-email``).
+         */
         post: operations["register_api_v1_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Email
+         * @description Consume a verification link (single use), mark the email verified and sign the user in.
+         */
+        post: operations["verify_email_api_v1_auth_verify_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend Verification */
+        post: operations["resend_verification_api_v1_auth_resend_verification_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Password Reset Request */
+        post: operations["password_reset_request_api_v1_auth_password_reset_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Password Reset Confirm
+         * @description Set a new password from a reset link; every session is revoked, so the user signs in again.
+         */
+        post: operations["password_reset_confirm_api_v1_auth_password_reset_confirm_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2118,8 +2198,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Liveness: the process is serving requests. Does not touch dependencies.
+         */
         get: operations["health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ready
+         * @description Readiness: database reachable, RLS in force (required in production), Redis if used.
+         */
+        get: operations["ready_api_v1_health_ready_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3291,6 +3394,14 @@ export interface components {
             outcome: string;
             /** Reasons */
             reasons: string[];
+        };
+        /** EmailIn */
+        EmailIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
         };
         /** EndMembershipIn */
         EndMembershipIn: {
@@ -4920,6 +5031,13 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** PasswordResetConfirmIn */
+        PasswordResetConfirmIn: {
+            /** Token */
+            token: string;
+            /** New Password */
+            new_password: string;
+        };
         /** PersonCreate */
         PersonCreate: {
             /** @default unknown */
@@ -5719,6 +5837,8 @@ export interface components {
              * @default en
              */
             preferred_language?: string;
+            /** Next */
+            next?: string | null;
         };
         /** RelatedEventOut */
         RelatedEventOut: {
@@ -6342,6 +6462,11 @@ export interface components {
              */
             hidden_document_count?: number;
         };
+        /** TokenIn */
+        TokenIn: {
+            /** Token */
+            token: string;
+        };
         /**
          * TraditionIn
          * @description Traditional genealogy record details (Bahi / Panda / temple register; PRS §20).
@@ -6460,6 +6585,11 @@ export interface components {
              * @default false
              */
             mfa_enabled?: boolean;
+            /**
+             * Email Verified
+             * @default false
+             */
+            email_verified?: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -6557,12 +6687,144 @@ export interface operations {
         };
         responses: {
             /** @description Successful Response */
-            201: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_email_api_v1_auth_verify_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_verification_api_v1_auth_resend_verification_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    password_reset_request_api_v1_auth_password_reset_request_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    password_reset_confirm_api_v1_auth_password_reset_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Validation Error */
@@ -12094,6 +12356,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    ready_api_v1_health_ready_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

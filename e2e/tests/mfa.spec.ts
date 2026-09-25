@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PASSWORD, freshTotpWindow, totp, uniqueEmail } from "./helpers";
+import { PASSWORD, freshTotpWindow, openVerificationLink, totp, uniqueEmail } from "./helpers";
 
 /** Two-step verification: enable with a TOTP code computed in the test, sign out, sign in with a code. */
 test("enable two-step verification and sign in with an authenticator code", async ({ page }) => {
@@ -9,6 +9,9 @@ test("enable two-step verification and sign in with an authenticator code", asyn
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
+  await openVerificationLink(page, email);
+  // verifying continues to the guided first run for new accounts
   await expect(page.getByRole("heading", { name: "Start your family tree" })).toBeVisible();
 
   await page.goto("/account");

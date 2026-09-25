@@ -8,11 +8,10 @@ from typing import Any
 
 from sqlalchemy import select
 
-from app.core.db import get_sessionmaker
 from app.models import AuditEvent, Document, DocumentLink
 from app.modules.property.schemas import LEGAL_NOTICE
 from app.modules.property.shares import find_violations
-from tests.conftest import new_tree
+from tests.conftest import new_tree, owner_session
 from tests.helpers import create_person
 
 YEAR = {"precision": "year_only"}
@@ -59,7 +58,7 @@ def insert_document(
     link_to: tuple | None = None,
 ) -> str:
     """The documents API is built separately; simulate an uploaded deed directly."""
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         doc = Document(
             tree_id=uuid.UUID(t),
             category=category,
@@ -90,7 +89,7 @@ def insert_document(
 
 
 def audit_actions(t: str) -> list[str]:
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         return list(
             db.scalars(
                 select(AuditEvent.action).where(
@@ -235,11 +234,15 @@ def test_full_flow_partition_timeline_lineage(owner, tree):
         "property.partition_recorded",
     ):
         assert a in actions
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         details = [
             e.details for e in db.scalars(select(AuditEvent).where(AuditEvent.action.like("property.%")))
         ]
-    assert "Ramdhan" not in str(details) and "1/3" not in str(details) and "123" not in str(details)
+    # ids are random UUIDs (which may contain e.g. "123"), so strip them before looking for leaked values
+    import re
+
+    text = re.sub(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "<id>", str(details))
+    assert "Ramdhan" not in text and "1/3" not in text and "123" not in text
 
 
 # ---------------------------------------------------------------- shares

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Globe2 } from "lucide-react";
 import type { RelatedPerson } from "../../api/types";
 import { usePublicAncestors, usePublicFamily, usePublicPeople, usePublicPerson, usePublicTree } from "../../api/hooks/family";
-import { nativeScriptNames, nameText } from "../../lib/names";
+import { langOfText, nativeScriptNames, nameText } from "../../lib/names";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import { DateText } from "../../components/dates/DateText";
@@ -17,13 +17,16 @@ function PublicFrame({ slug, title, children }: { slug: string; title?: string; 
   const { t } = useTranslation();
   return (
     <div className="min-h-dvh">
+      <a href="#main" className="sr-only-focusable absolute left-2 top-2 z-50 rounded bg-white px-3 py-2">
+        {t("nav.skipToContent")}
+      </a>
       <header className="border-b border-stone-200 bg-white/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <BrandMark to={`/p/${slug}`} />
           <LanguageSwitcher />
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-5xl px-4 py-6">
+      <main id="main" tabIndex={-1} className="mx-auto max-w-5xl px-4 py-6">
         <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-leaf-50 px-3 py-1 text-xs text-leaf-700">
           <Globe2 className="size-3.5" aria-hidden /> {t("public.banner")}
         </p>
@@ -39,7 +42,12 @@ export function PublicTreePage() {
   const { t } = useTranslation();
   const tree = usePublicTree(slug);
   const people = usePublicPeople(slug);
-  if (tree.isLoading) return <Spinner />;
+  if (tree.isLoading)
+    return (
+      <PublicFrame slug={slug}>
+        <Spinner />
+      </PublicFrame>
+    );
   if (tree.error || !tree.data)
     return (
       <PublicFrame slug={slug}>
@@ -56,7 +64,7 @@ export function PublicTreePage() {
       <ul className="card divide-y divide-stone-100">
         {people.data?.items.map((p) => (
           <li key={p.id} className="flex items-center justify-between px-4 py-2">
-            <Link to={`/p/${slug}/people/${p.id}`} className="font-medium text-kumkum-800 hover:underline">
+            <Link to={`/p/${slug}/people/${p.id}`} lang={langOfText(p.display_name)} className="font-medium text-kumkum-800 hover:underline">
               {p.display_name}
             </Link>
             <span className="text-xs text-ink-muted">
@@ -73,7 +81,7 @@ function PublicRelative({ slug, rel }: { slug: string; rel: RelatedPerson }) {
   return (
     <li className="flex flex-wrap items-center gap-2 py-1.5 text-sm">
       {rel.person ? (
-        <Link to={`/p/${slug}/people/${rel.person.id}`} className="font-medium text-kumkum-800 hover:underline">
+        <Link to={`/p/${slug}/people/${rel.person.id}`} lang={langOfText(rel.person.display_name)} className="font-medium text-kumkum-800 hover:underline">
           {rel.person.display_name}
         </Link>
       ) : (
@@ -90,7 +98,12 @@ export function PublicPersonPage() {
   const person = usePublicPerson(slug, personId);
   const family = usePublicFamily(slug, personId);
   const ancestors = usePublicAncestors(slug, personId, 4);
-  if (person.isLoading) return <Spinner />;
+  if (person.isLoading)
+    return (
+      <PublicFrame slug={slug}>
+        <Spinner />
+      </PublicFrame>
+    );
   if (person.error || !person.data)
     return (
       <PublicFrame slug={slug}>
@@ -107,7 +120,9 @@ export function PublicPersonPage() {
       <Link to={`/p/${slug}`} className="text-sm text-kumkum-800 underline">
         ← {t("public.back")}
       </Link>
-      <h1 className="mt-2 font-display text-3xl font-bold">{p.display_name}</h1>
+      <h1 className="mt-2 font-display text-3xl font-bold" lang={langOfText(p.display_name)}>
+        {p.display_name}
+      </h1>
       {native.length > 0 && (
         <p className="text-lg">
           {native.map((n) => (
@@ -153,7 +168,7 @@ export function PublicPersonPage() {
           <h2 id="pub-anc" className="mb-2 font-display text-lg font-semibold">
             {t("treeView.ancestors")}
           </h2>
-          <TreeList graph={ancestors.data} personHref={(id) => `/p/${slug}/people/${id}`} />
+          <TreeList graph={ancestors.data} personHref={(id) => `/p/${slug}/people/${id}`} headingLevel={3} />
         </section>
       )}
     </PublicFrame>

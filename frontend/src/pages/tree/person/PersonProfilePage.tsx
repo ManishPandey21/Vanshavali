@@ -7,7 +7,7 @@ import { useDeletePerson, usePerson, usePersonEvents } from "../../../api/hooks/
 import { useRequestClaim } from "../../../api/hooks/heritage";
 import { useTreeCtx } from "../../../lib/tree-context";
 import { Perm } from "../../../lib/permissions";
-import { nativeScriptNames, nameText } from "../../../lib/names";
+import { dirOfText, langOfText, nativeScriptNames, nameText } from "../../../lib/names";
 import { forgetPerson, rememberPerson } from "../../../lib/recent";
 import { PersonBadges, PrivacyBadge, RedactionNotice } from "../../../components/person/badges";
 import { DateText } from "../../../components/dates/DateText";
@@ -66,7 +66,7 @@ export function PersonProfilePage() {
       <header className="mb-5 rounded-2xl border border-stone-200 bg-gradient-to-br from-white to-kumkum-50 p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h1 id="person-name" className="font-display text-2xl font-bold sm:text-3xl">
+            <h1 id="person-name" lang={langOfText(p.display_name)} dir={dirOfText(p.display_name)} className="font-display text-2xl font-bold sm:text-3xl">
               {p.display_name}
             </h1>
             {native.length > 0 && (

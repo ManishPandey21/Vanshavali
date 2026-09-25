@@ -2,16 +2,31 @@
 
 from __future__ import annotations
 
+import hmac
+import logging
+import time
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, PlainTextResponse
 from sqlalchemy import text
 
 from app.api.router import api_router
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.core.db import get_engine
-from app.core.errors import install_error_handlers
+from app.core.errors import NotFound, Unauthorized, install_error_handlers
+from app.core.observability import (
+    REQUEST_ID_HEADER,
+    configure_logging,
+    incoming_request_id,
+    metrics,
+    request_id_var,
+)
+from app.models.rls import POLICY_NAME, RLS_TABLES
+
+access_log = logging.getLogger("app.access")
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -24,8 +39,50 @@ SECURITY_HEADERS = {
 }
 
 
+def rls_enforced() -> bool:
+    """True when the current DB role is subject to the tree-isolation policies (ADR-0002 §7)."""
+    with get_engine().connect() as conn:
+        row = conn.execute(
+            text(
+                "SELECT r.rolsuper OR r.rolbypassrls, "
+                "EXISTS (SELECT 1 FROM pg_tables t WHERE t.tablename = 'person' AND t.tableowner = current_user), "
+                "(SELECT count(*) FROM pg_policies p WHERE p.policyname = :policy) "
+                "FROM pg_roles r WHERE r.rolname = current_user"
+            ),
+            {"policy": POLICY_NAME},
+        ).one()
+    bypasses, owns, policies = row
+    return not bypasses and not owns and policies >= len(RLS_TABLES)
+
+
+def readiness(settings: Settings) -> tuple[bool, dict[str, str]]:
+    checks: dict[str, str] = {}
+    ok = True
+    try:
+        with get_engine().connect() as conn:
+            conn.execute(text("select 1"))
+        checks["database"] = "ok"
+    except Exception:
+        return False, {"database": "unavailable"}
+    enforced = rls_enforced()
+    checks["rls"] = "enforced" if enforced else "bypassed"
+    if not enforced and settings.env == "production":
+        ok = False  # never serve production traffic without the second isolation barrier
+    if settings.job_mode == "rq" or settings.rate_limit_backend == "redis":
+        try:
+            import redis
+
+            redis.Redis.from_url(settings.redis_url, socket_timeout=2).ping()
+            checks["redis"] = "ok"
+        except Exception:
+            checks["redis"] = "unavailable"
+            ok = False
+    return ok, checks
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_logging(settings)
     app = FastAPI(
         title="Vanshavali API",
         version="0.1.0",
@@ -44,6 +101,39 @@ def create_app() -> FastAPI:
     )
 
     @app.middleware("http")
+    async def request_context(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        rid = incoming_request_id(request.headers.get(REQUEST_ID_HEADER))
+        token = request_id_var.set(rid)
+        start = time.perf_counter()
+        status = 500
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            response.headers[REQUEST_ID_HEADER] = rid
+            return response
+        finally:
+            elapsed = time.perf_counter() - start
+            route = getattr(request.scope.get("route"), "path", None) or "unmatched"
+            if route != "unmatched" and not route.startswith(settings.api_prefix):
+                route = settings.api_prefix + route  # routes of the included api_router omit its prefix
+            metrics.observe(request.method, route, status, elapsed)
+            access_log.info(
+                "%s %s %s",
+                request.method,
+                route,
+                status,
+                extra={
+                    "method": request.method,
+                    "route": route,
+                    "status": status,
+                    "duration_ms": round(elapsed * 1000, 1),
+                },
+            )
+            request_id_var.reset(token)
+
+    @app.middleware("http")
     async def security_headers(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
@@ -60,9 +150,25 @@ def create_app() -> FastAPI:
 
     @app.get(f"{settings.api_prefix}/health", tags=["platform"])
     def health() -> dict[str, str]:
-        with get_engine().connect() as conn:
-            conn.execute(text("select 1"))
+        """Liveness: the process is serving requests. Does not touch dependencies."""
         return {"status": "ok"}
+
+    @app.get(f"{settings.api_prefix}/health/ready", tags=["platform"])
+    def ready() -> JSONResponse:
+        """Readiness: database reachable, RLS in force (required in production), Redis if used."""
+        ok, checks = readiness(settings)
+        body: dict[str, Any] = {"status": "ok" if ok else "unavailable", "checks": checks}
+        return JSONResponse(body, status_code=200 if ok else 503)
+
+    @app.get(f"{settings.api_prefix}/metrics", include_in_schema=False)
+    def prometheus(request: Request) -> Response:
+        expected = settings.metrics_token
+        given = request.headers.get("authorization", "")
+        if not expected:
+            raise NotFound()
+        if not hmac.compare_digest(given.encode(), f"Bearer {expected}".encode()):
+            raise Unauthorized()
+        return PlainTextResponse(metrics.render(), media_type="text/plain; version=0.0.4")
 
     return app
 

@@ -5,6 +5,7 @@ import type { EvidenceStatus, GenealogicalDate, PersonSummary, PrivacyLevel, Rel
 import { Badge, type Tone } from "../ui/Badge";
 import { dateQualifier } from "../../lib/dates";
 import { lifespan } from "../../lib/dates";
+import { dirOfText, langOfText } from "../../lib/names";
 
 export function StatusBadge({ status }: { status: PersonSummary["profile_status"] }) {
   const { t } = useTranslation();
@@ -152,7 +153,9 @@ export function PersonLink({ treeId, person, className = "" }: { treeId: string;
   const years = lifespan(person, t);
   return (
     <Link to={`/t/${treeId}/people/${person.id}`} className={`font-medium text-kumkum-800 underline-offset-2 hover:underline ${className}`}>
-      {person.display_name}
+      <span lang={langOfText(person.display_name)} dir={dirOfText(person.display_name)}>
+        {person.display_name}
+      </span>
       {years && (
         <span className="ml-1 text-xs font-normal text-ink-muted">
           <span className="sr-only">{t("person.lifespan")} </span>({years})

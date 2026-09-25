@@ -8,9 +8,9 @@ import uuid
 import pytest
 from sqlalchemy import select
 
-from app.core.db import get_sessionmaker
 from app.models import LandParcel, Property, Source
 from app.modules.extraction.masking import mask_aadhaar
+from tests.conftest import owner_session
 from tests.doc_fixtures import (
     BIRTH_CERTIFICATE_LINES,
     KUNDLI_LINES,
@@ -402,7 +402,7 @@ def test_kundli_extraction_creates_uploaded_chart_and_time_conflict(owner, tree)
 
 # ---------------------------------------------------------------- land records
 def _property(tree_id: str, owner_user_id: str) -> str:
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         p = Property(
             tree_id=uuid.UUID(tree_id),
             property_type="agricultural_land",
@@ -452,7 +452,7 @@ def test_land_record_extraction_fills_parcel(owner, tree, member_factory):
         r = _review(owner, t, props[f]["id"])
         assert r.status_code == 200, (f, r.text)
         assert r.json()["applied_target_type"] == "land_parcel"
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         parcels = list(db.scalars(select(LandParcel).where(LandParcel.property_id == uuid.UUID(prop_id))))
         assert len(parcels) == 1
         parcel = parcels[0]

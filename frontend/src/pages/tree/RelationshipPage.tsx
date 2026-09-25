@@ -7,7 +7,7 @@ import { usePerson, useRelationshipPath } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
 import { describeChain, regionalKinshipTerm } from "../../lib/kinship";
 import { PersonPicker } from "../../components/pickers";
-import { ErrorAlert, PageHeader, Spinner } from "../../components/ui/feedback";
+import { ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Button } from "../../components/ui/Button";
 import { LineageToggle } from "./person/FamilyTab";
 
@@ -41,6 +41,14 @@ export function RelationshipPage() {
   // The API label is English-only; in Hindi, lead with the regional term or the literal chain.
   const isHindi = i18n.language.startsWith("hi");
   const pathPeople = r?.path ?? [];
+  // A concise, always-mounted live region: a region inserted together with its content is often
+  // not announced (WCAG 4.1.3 Status Messages).
+  const announcement =
+    r && from.data && to.data && !path.isFetching
+      ? r.found
+        ? `${t("relationship.resultLead", { a: to.data.display_name, b: from.data.display_name })} ${regional || (isHindi && chainText) || r.label}`
+        : t("relationship.notFound")
+      : "";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -53,10 +61,11 @@ export function RelationshipPage() {
       <div className="mt-3">
         <LineageToggle value={lineage} onChange={setLineage} />
       </div>
+      <LiveRegion message={announcement} />
       {path.isFetching && <Spinner />}
       <ErrorAlert error={path.error} />
       {r && from.data && to.data && (
-        <section className="card mt-4 p-5" aria-live="polite" aria-labelledby="rel-result">
+        <section className="card mt-4 p-5" aria-labelledby="rel-result">
           {r.found ? (
             <>
               <p className="text-sm text-ink-muted">{t("relationship.resultLead", { a: to.data.display_name, b: from.data.display_name })}</p>

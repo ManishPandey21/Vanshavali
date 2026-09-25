@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronRight, Star, Trash2 } from "lucide-react";
 import type { EvidenceStatus, NameIn, NameType } from "../../api/types";
@@ -54,6 +54,10 @@ export function NameFields({
 }) {
   const { t } = useTranslation();
   const [more, setMore] = useState(false);
+  // The "a name needs a given name or surname" error belongs to both inputs (WCAG 3.3.1 / 1.3.1).
+  const errId = useId();
+  const withNameError = (p: { "aria-describedby"?: string; "aria-invalid"?: boolean }) =>
+    error ? { "aria-invalid": true, "aria-describedby": [p["aria-describedby"], errId].filter(Boolean).join(" ") } : {};
   const lang = value.language ?? undefined;
   const dir = isRtl(value.script) ? "rtl" : undefined;
   const set = (patch: Partial<NameDraft>) => onChange({ ...value, ...patch });
@@ -136,13 +140,13 @@ export function NameFields({
           )}
         </Field>
         <Field label={t("names.given")}>
-          {(p) => <TextInput {...p} lang={lang} dir={dir} value={value.given_name ?? ""} onChange={(e) => onTextInput({ given_name: e.target.value }, e.target.value)} />}
+          {(p) => <TextInput {...p} {...withNameError(p)} lang={lang} dir={dir} value={value.given_name ?? ""} onChange={(e) => onTextInput({ given_name: e.target.value }, e.target.value)} />}
         </Field>
         <Field label={t("names.middle")}>
           {(p) => <TextInput {...p} lang={lang} dir={dir} value={value.middle_names ?? ""} onChange={(e) => onTextInput({ middle_names: e.target.value }, e.target.value)} />}
         </Field>
         <Field label={t("names.surname")}>
-          {(p) => <TextInput {...p} lang={lang} dir={dir} value={value.surname ?? ""} onChange={(e) => onTextInput({ surname: e.target.value }, e.target.value)} />}
+          {(p) => <TextInput {...p} {...withNameError(p)} lang={lang} dir={dir} value={value.surname ?? ""} onChange={(e) => onTextInput({ surname: e.target.value }, e.target.value)} />}
         </Field>
         <Field label={t("names.fullAsRecorded")} hint={t("names.fullAsRecordedHint")} className="sm:col-span-2">
           {(p) => (
@@ -176,7 +180,7 @@ export function NameFields({
         </div>
       )}
       {error && (
-        <p className="field-error" role="alert">
+        <p id={errId} className="field-error" role="alert">
           {error}
         </p>
       )}

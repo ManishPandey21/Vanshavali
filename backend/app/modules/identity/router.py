@@ -12,15 +12,18 @@ from app.core.errors import Unauthorized
 from app.models import User, UserSession
 from app.modules.identity import service
 from app.modules.identity.schemas import (
+    EmailIn,
     LoginIn,
     MfaCodeIn,
     MfaDisableIn,
     MfaSetupOut,
     PasswordChangeIn,
     PasswordConfirmIn,
+    PasswordResetConfirmIn,
     ProfileUpdateIn,
     RegisterIn,
     SessionOut,
+    TokenIn,
     UserOut,
 )
 
@@ -28,22 +31,62 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def _user_out(user: User) -> UserOut:
-    return UserOut.model_validate(user).model_copy(update={"mfa_enabled": user.mfa_enabled_at is not None})
+    return UserOut.model_validate(user).model_copy(
+        update={
+            "mfa_enabled": user.mfa_enabled_at is not None,
+            "email_verified": user.email_verified_at is not None,
+        }
+    )
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterIn, request: Request, response: Response, db: DbDep) -> UserOut:
-    info = request_info(request)
-    user = service.register(
+@router.post("/register", response_model=Message, status_code=status.HTTP_202_ACCEPTED)
+def register(body: RegisterIn, request: Request, db: DbDep) -> Message:
+    """Always answers 202 with the same body, whether or not the email has an account (SEC-12).
+
+    A new email gets a verification link; an existing account's owner gets a notice instead.
+    Nobody is signed in until the link is opened (``POST /auth/verify-email``).
+    """
+    service.register(
         db,
         email=body.email,
         password=body.password,
         display_name=body.display_name,
         language=body.preferred_language,
-        info=info,
+        info=request_info(request),
+        next_path=body.next,
     )
+    return Message(message=service.REGISTER_ACCEPTED)
+
+
+@router.post("/verify-email", response_model=UserOut)
+def verify_email(body: TokenIn, request: Request, response: Response, db: DbDep) -> UserOut:
+    """Consume a verification link (single use), mark the email verified and sign the user in."""
+    info = request_info(request)
+    user = service.verify_email(db, body.token, info)
     service.start_session(db, user, response, info)
     return _user_out(user)
+
+
+@router.post("/resend-verification", response_model=Message, status_code=status.HTTP_202_ACCEPTED)
+def resend_verification(body: EmailIn, request: Request, db: DbDep) -> Message:
+    service.resend_verification(db, body.email, request_info(request))
+    return Message(message=service.EMAIL_SENT_IF_ACCOUNT)
+
+
+@router.post("/password-reset/request", response_model=Message, status_code=status.HTTP_202_ACCEPTED)
+def password_reset_request(body: EmailIn, request: Request, db: DbDep) -> Message:
+    service.request_password_reset(db, body.email, request_info(request))
+    return Message(message=service.EMAIL_SENT_IF_ACCOUNT)
+
+
+@router.post("/password-reset/confirm", response_model=Message)
+def password_reset_confirm(
+    body: PasswordResetConfirmIn, request: Request, response: Response, db: DbDep
+) -> Message:
+    """Set a new password from a reset link; every session is revoked, so the user signs in again."""
+    service.confirm_password_reset(db, body.token, body.new_password, request_info(request))
+    service.clear_auth_cookies(response)
+    return Message(message="Your password has been reset. Sign in with your new password.")
 
 
 @router.post("/login", response_model=UserOut)

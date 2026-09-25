@@ -10,7 +10,11 @@ const API_PORT = Number(process.env.VSH_E2E_API_PORT ?? 8100);
 const WEB_PORT = Number(process.env.VSH_E2E_WEB_PORT ?? 3100);
 const ADMIN_URL = process.env.VSH_E2E_ADMIN_URL ?? "postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres";
 const DB_NAME = process.env.VSH_E2E_DB ?? "vsh_e2e";
-const DB_URL = ADMIN_URL.replace(/\/[^/]*$/, `/${DB_NAME}`);
+const APP_ROLE = process.env.VSH_E2E_APP_ROLE ?? "vsh_app_e2e";
+// The backend connects as a non-owner role (password = name, test-only) so row-level security applies.
+const DB_URL = ADMIN_URL.replace(/\/[^/]*$/, `/${DB_NAME}`).replace(/\/\/[^@/]*@/, `//${APP_ROLE}:${APP_ROLE}@`);
+// The backend writes every email (verification, password reset) here; tests read links from it.
+const MAIL_DIR = `${process.cwd()}/.e2e-mail`;
 
 export default defineConfig({
   testDir: "./tests",
@@ -30,7 +34,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `uv run --project ../backend python scripts/reset_db.py && cd ../backend && uv run uvicorn app.main:app --port ${API_PORT}`,
+      command: `rm -rf .e2e-mail && uv run --project ../backend python scripts/reset_db.py && cd ../backend && uv run uvicorn app.main:app --port ${API_PORT}`,
       url: `http://localhost:${API_PORT}/api/v1/health`,
       reuseExistingServer: false,
       timeout: 180_000,
@@ -46,6 +50,8 @@ export default defineConfig({
         VSH_STORAGE_BACKEND: "local",
         VSH_STORAGE_LOCAL_PATH: `${process.cwd()}/.e2e-storage`,
         VSH_SCANNER: "eicar_test",
+        VSH_MAIL_BACKEND: "file",
+        VSH_MAIL_FILE_DIR: MAIL_DIR,
       },
       stdout: process.env.CI ? "pipe" : "ignore",
     },

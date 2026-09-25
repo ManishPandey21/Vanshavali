@@ -30,15 +30,19 @@ def test_password_hash_is_argon2_and_session_token_not_stored_raw(client):
         assert token not in tokens and len(tokens[0]) == 64
 
 
-def test_duplicate_email_rejected(client, make_client):
+def test_duplicate_email_does_not_create_or_sign_in(client, make_client):
     client.register(email="dup@example.com")
     other = make_client()
     r = other.post(
         "/auth/register",
         json={"email": "dup@example.com", "password": "another long pw", "display_name": "X"},
     )
-    assert r.status_code == 409
-    assert r.json()["error"]["code"] == "email_taken"
+    # generic answer (SEC-12); nobody is signed in and the original password still works
+    assert r.status_code == 202
+    assert other.get("/auth/me").status_code == 401
+    anon = make_client()
+    ok = anon.post("/auth/login", json={"email": "dup@example.com", "password": "correct horse battery"})
+    assert ok.status_code == 200
 
 
 def test_weak_password_rejected(client):

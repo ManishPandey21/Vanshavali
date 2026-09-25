@@ -69,7 +69,7 @@ export function MembersPage() {
       />
       {members.isLoading && <Spinner />}
       <ErrorAlert error={members.error || remove.error} />
-      <div className="card overflow-x-auto">
+      <div className="card relative overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">{t("members.title")}</caption>
           <thead className="bg-parchment text-left text-xs uppercase tracking-wide text-ink-muted">

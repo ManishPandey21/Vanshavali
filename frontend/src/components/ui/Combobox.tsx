@@ -1,5 +1,7 @@
 import { useId, useState, type ReactNode, type KeyboardEvent } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LiveRegion } from "./feedback";
 
 export interface ComboOption<T> {
   key: string;
@@ -37,11 +39,14 @@ export function Combobox<T>({
   labelHidden?: boolean;
   inputProps?: { lang?: string; "aria-invalid"?: boolean; required?: boolean };
 }) {
+  const { t } = useTranslation();
   const id = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const listId = `${id}-list`;
   const showList = open && (options.length > 0 || (!!emptyText && text.trim().length > 0 && !loading));
+  // Search-as-you-type results arrive asynchronously; announce how many (WCAG 4.1.3).
+  const status = open && text.trim() && !loading ? (options.length ? t("people.resultCount", { count: options.length }) : (emptyText ?? "")) : "";
 
   const choose = (i: number) => {
     const o = options[i];
@@ -124,6 +129,7 @@ export function Combobox<T>({
         ))}
         {options.length === 0 && emptyText && <li className="px-3 py-2 text-sm text-ink-muted">{emptyText}</li>}
       </ul>
+      <LiveRegion message={status} />
     </div>
   );
 }

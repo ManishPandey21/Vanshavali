@@ -24,8 +24,19 @@
    bound to (document, user, variant, expiry) that the API serves decrypted, with
    `Content-Disposition: attachment`, `nosniff` and `Cache-Control: no-store`. Every issue is
    audited.
-7. **Retention:** soft delete (`deleted_at`) plus a restore endpoint. Purging after the retention
-   period is **DEFERRED** to Phase 8.
+7. **Retention:** soft delete (`deleted_at`) plus a restore endpoint. After
+   `VSH_DOCUMENT_PURGE_AFTER_DAYS` (default 30), the daily maintenance job
+   (`python -m app.cli.maintenance purge-deleted-documents`) removes the document **permanently**:
+   - It deletes the original and all derivatives, including every S3 version (`ObjectStore.purge`).
+   - It deletes the row with its links, metadata history and extraction proposals.
+   - References from sources, astrology profiles, consent records and import jobs become NULL.
+   - It writes a `document.purged` audit event without the title.
+   - Bucket object-lock retention must be shorter than the purge window, or purges fail and are
+     retried on the next run.
+   - `sweep-orphans` reports stored objects that no row references. It deletes them only with
+     `--delete`, and never touches anything younger than 24 h or outside the app's key layout.
+   - Both commands run tree by tree with the tree bound, so they work as the RLS-restricted role
+     (`tests/test_retention.py`).
 
 ## Consequences
 Because the API serves bytes after decryption, S3 presigned URLs can't hand files out directly.

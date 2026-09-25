@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test";
-import { PASSWORD, uniqueEmail } from "./helpers";
+import { PASSWORD, openVerificationLink, uniqueEmail } from "./helpers";
 
 /**
  * Critical flow 1 (docs/architecture/README.md): register → create tree → add person →
@@ -24,6 +24,9 @@ test("register, build a small family and view it", async ({ page }) => {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
+  // nobody is signed in until the emailed link is opened
+  await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
+  await openVerificationLink(page, email);
   // new accounts land on the guided first run; this flow uses the regular screens instead
   await expect(page.getByRole("heading", { name: "Start your family tree" })).toBeVisible();
   await page.getByRole("link", { name: "Maybe later" }).click();

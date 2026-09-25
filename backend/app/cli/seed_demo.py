@@ -7,6 +7,7 @@ All people are fictional.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import sys
 from typing import Any
 
@@ -62,7 +63,12 @@ def seed(email: str, password: str) -> str:
     with Session() as db:
         user = db.scalar(select(User).where(User.email == email))
         if user is None:
-            user = User(email=email, password_hash=hash_password(password), display_name="Demo Owner")
+            user = User(
+                email=email,
+                password_hash=hash_password(password),
+                display_name="Demo Owner",
+                email_verified_at=dt.datetime.now(dt.UTC),
+            )
             db.add(user)
             db.flush()
         existing = db.scalar(

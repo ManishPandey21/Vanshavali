@@ -9,7 +9,6 @@ import pytest
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.core.db import get_sessionmaker
 from app.core.storage import get_store
 from app.models import (
     Assertion,
@@ -26,7 +25,7 @@ from app.models import (
 )
 from app.modules.gedcom import mapping, parser
 from app.modules.gedcom.gdate import format_date, parse_date
-from tests.conftest import new_tree
+from tests.conftest import new_tree, owner_session
 from tests.helpers import create_person, exact
 
 BASE = "https://vanshavali.app/gedcom/ext/v1/"
@@ -114,7 +113,7 @@ G551 = (
 
 
 def _db():  # type: ignore[no-untyped-def]
-    return get_sessionmaker()()
+    return owner_session()
 
 
 def _upload(client: Any, tree_id: str, content: bytes | str, name: str = "family.ged") -> Any:

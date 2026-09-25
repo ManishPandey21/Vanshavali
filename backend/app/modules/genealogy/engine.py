@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from collections import deque
+from collections.abc import Iterable
 from dataclasses import dataclass
 from itertools import pairwise
 from typing import Any, NamedTuple
 
-from sqlalchemy import select, text
+from sqlalchemy import or_, select, text
 
 from app.authz.context import TreeContext
 from app.core.config import get_settings
@@ -394,58 +394,103 @@ class _Edge(NamedTuple):
     lineage: Lineage | None
 
 
-def _load_graph(
-    ctx: TreeContext, lineages: set[Lineage] | None
-) -> tuple[
-    dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]],
-    dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]],
-    dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]],
-]:
-    deleted = set(
-        ctx.db.scalars(select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None)))
-    )
-    parents: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]] = {}
-    children: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]] = {}
-    spouses: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]] = {}
-    rows = ctx.db.execute(
-        select(
-            Relationship.id,
-            Relationship.person_a_id,
-            Relationship.person_b_id,
-            Relationship.type,
-            Relationship.lineage,
-        ).where(
-            Relationship.tree_id == ctx.tree_id, Relationship.evidence_status.notin_(list(_EXCLUDED_EVIDENCE))
+Adjacency = dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]]
+
+
+class _LazyGraph:
+    """Relationship edges loaded on demand, one batched query per BFS frontier.
+
+    The calculator only ever needs the neighbourhood of the two people: their ancestors and, for
+    in-law and marriage paths, a breadth-first search between them. Loading the whole edge list per
+    call made this endpoint dominate worker CPU at 10k people (docs/operations/performance.md).
+    """
+
+    def __init__(self, ctx: TreeContext, lineages: set[Lineage] | None) -> None:
+        self.ctx = ctx
+        self.lineages = lineages
+        self.loaded: set[uuid.UUID] = set()
+        self.seen_edges: set[uuid.UUID] = set()
+        self.deleted = set(
+            ctx.db.scalars(
+                select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None))
+            )
         )
-    ).all()
-    for row in rows:
-        r = _Edge(*row)  # lightweight: 30k+ edges are loaded per call at 10k people
-        if r.person_a_id in deleted or r.person_b_id in deleted:
-            continue
-        if r.type in PARENT_TYPES:
-            if not _lineage_filter(lineages, r):
+        self._parents: Adjacency = {}
+        self._children: Adjacency = {}
+        self._spouses: Adjacency = {}
+        self.parents = _LazyAdjacency(self, self._parents)
+        self.children = _LazyAdjacency(self, self._children)
+        self.spouses = _LazyAdjacency(self, self._spouses)
+
+    def prefetch(self, ids: Iterable[uuid.UUID]) -> None:
+        missing = [i for i in set(ids) if i not in self.loaded]
+        if not missing:
+            return
+        self.loaded.update(missing)
+        rows = self.ctx.db.execute(
+            select(
+                Relationship.id,
+                Relationship.person_a_id,
+                Relationship.person_b_id,
+                Relationship.type,
+                Relationship.lineage,
+            ).where(
+                Relationship.tree_id == self.ctx.tree_id,
+                Relationship.evidence_status.notin_(list(_EXCLUDED_EVIDENCE)),
+                or_(Relationship.person_a_id.in_(missing), Relationship.person_b_id.in_(missing)),
+            )
+        ).all()
+        for row in rows:
+            r = _Edge(*row)
+            if r.id in self.seen_edges:
                 continue
-            parents.setdefault(r.person_b_id, []).append((r.person_a_id, r))
-            children.setdefault(r.person_a_id, []).append((r.person_b_id, r))
-        elif r.type in UNION_TYPES:
-            spouses.setdefault(r.person_a_id, []).append((r.person_b_id, r))
-            spouses.setdefault(r.person_b_id, []).append((r.person_a_id, r))
-    return parents, children, spouses
+            self.seen_edges.add(r.id)
+            if r.person_a_id in self.deleted or r.person_b_id in self.deleted:
+                continue
+            if r.type in PARENT_TYPES:
+                if not _lineage_filter(self.lineages, r):
+                    continue
+                self._parents.setdefault(r.person_b_id, []).append((r.person_a_id, r))
+                self._children.setdefault(r.person_a_id, []).append((r.person_b_id, r))
+            elif r.type in UNION_TYPES:
+                self._spouses.setdefault(r.person_a_id, []).append((r.person_b_id, r))
+                self._spouses.setdefault(r.person_b_id, []).append((r.person_a_id, r))
+
+
+class _LazyAdjacency:
+    """Read-only ``dict.get`` view that loads a node's edges the first time it is asked for."""
+
+    def __init__(self, graph: _LazyGraph, data: Adjacency) -> None:
+        self.graph = graph
+        self.data = data
+
+    def get(
+        self, node: uuid.UUID, default: list[tuple[uuid.UUID, _Edge]] | None = None
+    ) -> list[tuple[uuid.UUID, _Edge]]:
+        if node not in self.graph.loaded:
+            self.graph.prefetch([node])
+        return self.data.get(node, default if default is not None else [])
 
 
 def _ancestors_with_depth(
-    start: uuid.UUID, parents: dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]], limit: int
+    start: uuid.UUID, parents: _LazyAdjacency, limit: int, via: dict[uuid.UUID, uuid.UUID] | None = None
 ) -> dict[uuid.UUID, int]:
+    """Generation distance to every ancestor; ``via`` records the child each ancestor was reached from."""
     out = {start: 0}
-    q = deque([start])
-    while q:
-        cur = q.popleft()
-        if out[cur] >= limit:
-            continue
-        for p, _ in parents.get(cur, []):
-            if p not in out:
-                out[p] = out[cur] + 1
-                q.append(p)
+    frontier = [start]
+    depth = 0
+    while frontier and depth < limit:
+        parents.graph.prefetch(frontier)
+        nxt: list[uuid.UUID] = []
+        for cur in frontier:
+            for p, _ in parents.get(cur, []):
+                if p not in out:
+                    out[p] = depth + 1
+                    nxt.append(p)
+                    if via is not None:
+                        via[p] = cur
+        frontier = nxt
+        depth += 1
     return out
 
 
@@ -461,7 +506,8 @@ def relationship_path(
     """
     lookup.get_person(ctx, a_id)
     lookup.get_person(ctx, b_id)
-    graph = _load_graph(ctx, lineages)
+    lazy = _LazyGraph(ctx, lineages)
+    graph = (lazy.parents, lazy.children, lazy.spouses)
     # pass 1 without sex data finds the path; only the people it touches are then loaded
     out = _relationship_path_raw(ctx, a_id, b_id, graph, {})
     _parents, _children, spouses = graph
@@ -492,23 +538,35 @@ def _relationship_path_raw(
     ctx: TreeContext,
     a_id: uuid.UUID,
     b_id: uuid.UUID,
-    graph: tuple[dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]], ...],
+    graph: tuple[_LazyAdjacency, _LazyAdjacency, _LazyAdjacency],
     sex: dict[uuid.UUID, SexAtBirth | None],
 ) -> RelationshipPathOut:
     b = lookup.get_person(ctx, b_id)
     limit = get_settings().max_traversal_depth
     parents, children, spouses = graph
 
-    def blood(x: uuid.UUID, y: uuid.UUID) -> tuple[int, int, list[uuid.UUID], set[Lineage]] | None:
-        ax = _ancestors_with_depth(x, parents, limit)
-        ay = _ancestors_with_depth(y, parents, limit)
+    def blood(x: uuid.UUID, y: uuid.UUID) -> tuple[int, int, list[uuid.UUID], list[uuid.UUID]] | None:
+        """(up, down, common ancestors, path x → common ancestor → y), or None if not blood kin."""
+        via_x: dict[uuid.UUID, uuid.UUID] = {}
+        via_y: dict[uuid.UUID, uuid.UUID] = {}
+        ax = _ancestors_with_depth(x, parents, limit, via_x)
+        ay = _ancestors_with_depth(y, parents, limit, via_y)
         common = set(ax) & set(ay)
         if not common:
             return None
         best = min(ax[c] + ay[c] for c in common)
         cas = [c for c in common if ax[c] + ay[c] == best]
-        c0 = min(cas, key=lambda c: ax[c])
-        return ax[c0], ay[c0], cas, set()
+        c0 = min(cas, key=lambda c: (ax[c], str(c)))
+
+        def up_to(start: uuid.UUID, via: dict[uuid.UUID, uuid.UUID]) -> list[uuid.UUID]:
+            chain = [c0]
+            while chain[-1] != start:
+                chain.append(via[chain[-1]])
+            return chain  # c0 … start
+
+        # built from the two upward searches: no downward search through the whole tree
+        path = [*reversed(up_to(x, via_x)), *up_to(y, via_y)[1:]]
+        return ax[c0], ay[c0], cas, path
 
     base = RelationshipPathOut(from_id=a_id, to_id=b_id, found=False)
     if a_id == b_id:
@@ -558,12 +616,11 @@ def _relationship_path_raw(
 
     res = blood(a_id, b_id)
     if res:
-        up, down, cas, _ = res
+        up, down, cas, path = res
         a_par = {p for p, r in parents.get(a_id, []) if r.type == RelationshipType.BIOLOGICAL_PARENT}
         b_par = {p for p, r in parents.get(b_id, []) if r.type == RelationshipType.BIOLOGICAL_PARENT}
         half = up == 1 and down == 1 and len(a_par & b_par) == 1 and (len(a_par) > 1 or len(b_par) > 1)
         label = _blood_label(up, down, sex.get(b_id), half)
-        path = _bfs_path(a_id, b_id, parents, children, {})
         chain = _chain(path, parents, children, spouses, sex)
         return base.model_copy(
             update={
@@ -580,7 +637,7 @@ def _relationship_path_raw(
     for sp, _ in spouses.get(a_id, []):
         r2 = blood(sp, b_id)
         if r2:
-            up, down, cas, _ = r2
+            up, down, cas, blood_path = r2
             inner = _blood_label(up, down, sex.get(b_id), False)
             label = {
                 "father": "father-in-law",
@@ -590,7 +647,7 @@ def _relationship_path_raw(
                 "sister": "sister-in-law",
                 "sibling": "sibling-in-law",
             }.get(inner, f"spouse's {inner}")
-            path = _bfs_path(a_id, b_id, parents, children, spouses)
+            path = [a_id, *blood_path]
             return base.model_copy(
                 update={
                     "found": True,
@@ -603,7 +660,7 @@ def _relationship_path_raw(
     for sp, _ in spouses.get(b_id, []):
         r2 = blood(a_id, sp)
         if r2:
-            up, down, cas, _ = r2
+            up, down, cas, blood_path = r2
             inner = _blood_label(up, down, sex.get(sp), False)
             if inner in ("son", "daughter", "child"):
                 label = _gendered(sex.get(b_id), "son-in-law", "daughter-in-law", "child-in-law")
@@ -613,7 +670,7 @@ def _relationship_path_raw(
                 label = _gendered(sex.get(b_id), "step-father", "step-mother", "step-parent")
             else:
                 label = f"{inner}'s spouse"
-            path = _bfs_path(a_id, b_id, parents, children, spouses)
+            path = [*blood_path, b_id]
             return base.model_copy(
                 update={
                     "found": True,
@@ -635,34 +692,76 @@ def _relationship_path_raw(
     )
 
 
-def _bfs_path(a: uuid.UUID, b: uuid.UUID, parents: dict, children: dict, spouses: dict) -> list[uuid.UUID]:
-    prev: dict[uuid.UUID, uuid.UUID | None] = {a: None}
-    q = deque([a])
-    while q:
-        cur = q.popleft()
-        if cur == b:
-            break
-        for nxt, _ in parents.get(cur, []) + children.get(cur, []) + spouses.get(cur, []):
-            if nxt not in prev:
-                prev[nxt] = cur
-                q.append(nxt)
-    if b not in prev:
+def _hops(prev: dict[uuid.UUID, uuid.UUID | None], n: uuid.UUID) -> int:
+    k = 0
+    while prev[n] is not None:
+        n = prev[n]  # type: ignore[assignment]
+        k += 1
+    return k
+
+
+def _bfs_path(
+    a: uuid.UUID,
+    b: uuid.UUID,
+    parents: _LazyAdjacency,
+    children: _LazyAdjacency,
+    spouses: _LazyAdjacency | None,
+) -> list[uuid.UUID]:
+    """Shortest path a → b (``spouses=None``: parent/child edges only).
+
+    Bidirectional: the smaller frontier is expanded each round, so an unrelated pair explores far
+    less of a large tree than a one-sided search would.
+    """
+    if a == b:
+        return [a]
+
+    def neighbours(n: uuid.UUID) -> list[tuple[uuid.UUID, _Edge]]:
+        return parents.get(n, []) + children.get(n, []) + (spouses.get(n, []) if spouses else [])
+
+    prev_a: dict[uuid.UUID, uuid.UUID | None] = {a: None}
+    prev_b: dict[uuid.UUID, uuid.UUID | None] = {b: None}
+    front_a, front_b = [a], [b]
+    meet: uuid.UUID | None = None
+    while front_a and front_b and meet is None:
+        grow_a = len(front_a) <= len(front_b)
+        front, prev, other = (front_a, prev_a, prev_b) if grow_a else (front_b, prev_b, prev_a)
+        parents.graph.prefetch(front)
+        nxt: list[uuid.UUID] = []
+        meets: list[uuid.UUID] = []
+        for cur in front:
+            for n, _ in neighbours(cur):
+                if n not in prev:
+                    prev[n] = cur
+                    nxt.append(n)
+                    if n in other:
+                        meets.append(n)
+        if meets:  # all are equally far on this side; take the one nearest the other end
+            meet = min(meets, key=lambda n: (_hops(other, n), str(n)))
+        if grow_a:
+            front_a = nxt
+        else:
+            front_b = nxt
+    if meet is None:
         return []
-    path = [b]
-    while prev[path[-1]] is not None:
-        path.append(prev[path[-1]])  # type: ignore[arg-type]
-    return list(reversed(path))
+    left = [meet]
+    while prev_a[left[-1]] is not None:
+        left.append(prev_a[left[-1]])  # type: ignore[arg-type]
+    right = [meet]
+    while prev_b[right[-1]] is not None:
+        right.append(prev_b[right[-1]])  # type: ignore[arg-type]
+    return [*reversed(left), *right[1:]]
 
 
 def _chain(
     path: list[uuid.UUID],
-    parents: dict,
-    children: dict,
-    spouses: dict,
+    parents: _LazyAdjacency,
+    children: _LazyAdjacency,
+    spouses: _LazyAdjacency,
     sex: dict[uuid.UUID, SexAtBirth | None],
 ) -> list[str]:
     """Kinship chain words (father, brother, wife…) so the UI can render regional terms (e.g. mama, bua)."""
     words: list[str] = []
+    parents.graph.prefetch(path)
     for x, y in pairwise(path):
         s = sex.get(y)
         if any(p == y for p, _ in parents.get(x, [])):

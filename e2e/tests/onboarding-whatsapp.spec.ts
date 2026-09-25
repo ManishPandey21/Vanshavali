@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PASSWORD, uniqueEmail } from "./helpers";
+import { PASSWORD, openVerificationLink, uniqueEmail } from "./helpers";
 
 /**
  * ADR-0011: register → guided onboarding (privacy notice, tree, yourself + parents behind the
@@ -7,12 +7,15 @@ import { PASSWORD, uniqueEmail } from "./helpers";
  * their own consent → the admin approves → the relative sees the tree. Nothing is mocked.
  */
 test("onboard a family and bring a relative in through a WhatsApp claim link", async ({ page, browser, baseURL }) => {
-  // ---- register lands on the guided first run
+  // ---- register, verify the email, and land on the guided first run
+  const ownerEmail = uniqueEmail("onboard");
   await page.goto("/register");
   await page.getByLabel("Your name").fill("Asha Iyer");
-  await page.getByLabel("Email").fill(uniqueEmail("onboard"));
+  await page.getByLabel("Email").fill(ownerEmail);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
+  await openVerificationLink(page, ownerEmail);
   await expect(page.getByRole("heading", { name: "Start your family tree" })).toBeVisible();
   await expect(page.getByText("Your tree is private.")).toBeVisible();
   await page.getByRole("button", { name: "I understand, continue" }).click();
@@ -53,12 +56,17 @@ test("onboard a family and bring a relative in through a WhatsApp claim link", a
   const rel = await relCtx.newPage();
   await rel.goto(link.replace(/^https?:\/\/[^/]+/, ""));
   await rel.getByRole("link", { name: "Create account" }).click();
+  const relEmail = uniqueEmail("relative");
   await rel.getByLabel("Your name").fill("Ravi Iyer");
-  await rel.getByLabel("Email").fill(uniqueEmail("relative"));
+  await rel.getByLabel("Email").fill(relEmail);
   await rel.getByLabel("Password").fill(PASSWORD);
   await rel.getByRole("button", { name: "Create account" }).click();
+  await expect(rel.getByRole("heading", { name: "Check your email" })).toBeVisible();
+  // the verification email carries the claim page in its fragment, so the token never reaches a server
+  await openVerificationLink(rel, relEmail);
+  await expect(rel).toHaveURL(/\/claim#[\w-]+$/);
 
-  // back on the claim page (the fragment survived sign-up), with a plain-language notice
+  // back on the claim page (the fragment survived sign-up and verification), with a plain-language notice
   await expect(rel.getByText("Asha Iyer added you as “Ravi Iyer” in the private family tree “Iyer parivar”.")).toBeVisible();
   await rel.getByRole("checkbox", { name: /This profile is about me/ }).check();
   await rel.getByRole("checkbox", { name: /I am 18 or older/ }).check();

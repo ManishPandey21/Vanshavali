@@ -8,6 +8,7 @@ then times key API calls in-process and prints p50/p95 per endpoint.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import random
 import statistics
 import time
@@ -54,7 +55,12 @@ def build(people: int, seed: int = 7) -> tuple[str, str, list[uuid.UUID]]:
     rng = random.Random(seed)  # noqa: S311 - deterministic synthetic benchmark data, not security-related
     email = f"bench-{uuid.uuid4().hex[:8]}@example.com"
     with get_sessionmaker()() as db:
-        user = User(email=email, password_hash=hash_password("benchmark-password"), display_name="Bench")
+        user = User(
+            email=email,
+            password_hash=hash_password("benchmark-password"),
+            display_name="Bench",
+            email_verified_at=dt.datetime.now(dt.UTC),
+        )
         db.add(user)
         db.flush()
         tree = Tree(name="Benchmark tree", slug=f"bench-{uuid.uuid4().hex[:8]}", created_by=user.id)

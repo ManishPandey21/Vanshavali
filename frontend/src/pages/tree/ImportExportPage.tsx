@@ -301,7 +301,7 @@ function ImportReview({ job, t }: { job: ImportJobOut; t: ReturnType<typeof useT
       {(job.preview ?? []).length > 0 && (
         <div>
           <h4 className="mb-2 font-semibold">{t("gedcom.preview", { shown: job.preview!.length, total: job.preview_total ?? job.preview!.length })}</h4>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">{t("gedcom.previewCaption")}</caption>
               <thead className="text-left text-xs uppercase tracking-wide text-ink-muted">

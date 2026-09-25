@@ -8,7 +8,7 @@ from typing import Any
 from sqlalchemy import text
 
 from app.core.db import get_engine
-from tests.conftest import attest, join_tree
+from tests.conftest import attest, join_tree, owner_session
 from tests.helpers import create_person, exact, person_body
 
 GEDCOM = "0 HEAD\n1 GEDC\n2 VERS 5.5.1\n1 CHAR UTF-8\n0 @I1@ INDI\n1 NAME Ravi /Iyer/\n0 TRLR\n"
@@ -139,8 +139,8 @@ def test_attestation_withdrawal_blocks_new_people_and_is_audited(owner, tree):
 def test_attestation_is_stored_with_hash_and_request_info(owner, tree):
     import hashlib
 
-    with get_engine().connect() as c:
-        row = c.execute(
+    with owner_session() as db:  # the app role sees nothing without a tree bound (RLS)
+        row = db.execute(
             text("SELECT statement_sha256, user_agent FROM family_data_attestation WHERE tree_id = :t"),
             {"t": tree["id"]},
         ).one()
