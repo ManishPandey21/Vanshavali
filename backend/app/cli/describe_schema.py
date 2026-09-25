@@ -75,13 +75,13 @@ def main() -> int:
                 continue
             seen.add(name)
             out += [f"### `{name}`", "", "| Column | Type | Null | Notes |", "|---|---|---|---|"]
-            fk_cols = {}
+            fk_cols: dict[str, str] = {}
             for c in t.constraints:
                 if isinstance(c, ForeignKeyConstraint):
                     target = c.elements[0].target_fullname.split(".")[0]
-                    for col in c.column_keys:
-                        if col != "tree_id" or len(c.column_keys) == 1:
-                            fk_cols[col] = f"→ {target}" + (
+                    for key in c.column_keys:
+                        if key != "tree_id" or len(c.column_keys) == 1:
+                            fk_cols[key] = f"→ {target}" + (
                                 " (composite, same tree)" if len(c.column_keys) > 1 else ""
                             )
             for col in t.columns:
