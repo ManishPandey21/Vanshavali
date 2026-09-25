@@ -1,6 +1,6 @@
 """Seed a demo account and family tree through the real service layer (authz + audit apply).
 
-Usage: uv run python -m app.cli.seed_demo [--email demo@vanshavali.local] [--password ...]
+Usage: uv run python -m app.cli.seed_demo [--email demo@example.com] [--password ...]
 All people are fictional.
 """
 
@@ -261,7 +261,7 @@ def seed(email: str, password: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--email", default="demo@vanshavali.local")
+    ap.add_argument("--email", default="demo@example.com")
     ap.add_argument("--password", default="demo-password-123")
     args = ap.parse_args(argv)
     seed(args.email, args.password)

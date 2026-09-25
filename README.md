@@ -29,7 +29,7 @@ cp .env.example .env            # set keys: see comments in the file
 docker compose up --build       # app on http://localhost:8080, API docs on :8000/api/v1/docs
 docker compose run --rm backend python -m app.cli.seed_demo   # optional demo family
 ```
-Demo login after seeding: `demo@vanshavali.local` / `demo-password-123` (fictional data).
+Demo login after seeding: `demo@example.com` / `demo-password-123` (fictional data).
 
 ## Local development (without Docker)
 Prerequisites: Python 3.11 + [uv](https://docs.astral.sh/uv/), Node 22, PostgreSQL 16 (with the

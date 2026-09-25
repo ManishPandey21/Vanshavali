@@ -15,3 +15,11 @@ def test_seed_demo_loads_and_is_idempotent(client):
     kavya = next(p for p in people if p["display_name"] == "Kavya Iyer")
     fam = client.get(f"/trees/{tree_id}/people/{kavya['id']}/family").json()
     assert fam["parents"][0]["relationship_type"] == "adoptive_parent"
+
+
+def test_default_demo_credentials_can_log_in(client):
+    from app.cli.seed_demo import main
+
+    assert main([]) == 0
+    r = client.post("/auth/login", json={"email": "demo@example.com", "password": "demo-password-123"})
+    assert r.status_code == 200, r.text
