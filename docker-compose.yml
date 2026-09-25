@@ -1,0 +1,109 @@
+# Local development / single-host deployment. See docs/operations/deployment.md.
+name: vanshavali
+
+x-backend-env: &backend-env
+  VSH_ENV: ${VSH_ENV:-development}
+  VSH_DATABASE_URL: postgresql+psycopg://vanshavali:${POSTGRES_PASSWORD:-vanshavali}@postgres:5432/vanshavali
+  VSH_REDIS_URL: redis://redis:6379/0
+  VSH_JOB_MODE: rq
+  VSH_RATE_LIMIT_BACKEND: redis
+  VSH_STORAGE_BACKEND: s3
+  VSH_S3_ENDPOINT_URL: http://minio:9000
+  VSH_S3_BUCKET: vanshavali
+  VSH_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-vanshavali}
+  VSH_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-vanshavali-minio-secret}
+  VSH_SCANNER: clamd
+  VSH_CLAMD_HOST: clamav
+  VSH_CLAMD_PORT: "3310"
+  VSH_PUBLIC_BASE_URL: ${VSH_PUBLIC_BASE_URL:-http://localhost:8080}
+  VSH_CORS_ORIGINS: '["http://localhost:8080","http://localhost:3000"]'
+  VSH_COOKIE_SECURE: ${VSH_COOKIE_SECURE:-false}
+  VSH_STANDARD_DATA_KEY: ${VSH_STANDARD_DATA_KEY:-dmFuc2hhdmFsaS1kZXYtc3RhbmRhcmQta2V5LTMyYiE=}
+  VSH_VAULT_DATA_KEY: ${VSH_VAULT_DATA_KEY:-dmFuc2hhdmFsaS1kZXYtdmF1bHQta2V5LTMyYnl0ZXM=}
+  VSH_SIGNING_KEY: ${VSH_SIGNING_KEY:-vanshavali-dev-signing-key-change-me}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vanshavali
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vanshavali}
+      POSTGRES_DB: vanshavali
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vanshavali"]
+      interval: 5s
+      retries: 20
+    ports: ["5432:5432"]
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-vanshavali}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-vanshavali-minio-secret}
+    volumes: [miniodata:/data]
+    ports: ["9001:9001"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      retries: 20
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on: { minio: { condition: service_healthy } }
+    entrypoint: >
+      /bin/sh -c "mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-vanshavali} $${MINIO_ROOT_PASSWORD:-vanshavali-minio-secret}
+      && mc mb --ignore-existing --with-versioning local/vanshavali
+      && mc anonymous set none local/vanshavali"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-vanshavali}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-vanshavali-minio-secret}
+
+  clamav:
+    image: clamav/clamav:1.4
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      retries: 20
+      start_period: 120s
+
+  migrate:
+    build: ./backend
+    environment: *backend-env
+    command: ["alembic", "upgrade", "head"]
+    depends_on: { postgres: { condition: service_healthy } }
+
+  backend:
+    build: ./backend
+    environment: *backend-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+      clamav: { condition: service_healthy }
+    ports: ["8000:8000"]
+
+  worker:
+    build: ./backend
+    environment: *backend-env
+    command: ["rq", "worker", "--url", "redis://redis:6379/0", "vanshavali"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    ports: ["8080:8080"]
+
+volumes:
+  pgdata:
+  miniodata:

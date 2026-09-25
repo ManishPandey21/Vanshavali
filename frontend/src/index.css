@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/*
+ * Vanshavali heritage palette. Text colours meet WCAG 2.2 AA (4.5:1) on the parchment and white
+ * surfaces; decorative saffron/amber tints are used for fills and borders only.
+ */
+@theme {
+  --font-sans: "Noto Sans", "Noto Sans Devanagari", "Noto Sans Tamil", ui-sans-serif, system-ui, "Segoe UI",
+    "Nirmala UI", "Mangal", sans-serif;
+  --font-display: "Noto Serif", "Noto Serif Devanagari", "Noto Sans Devanagari", Georgia, serif;
+
+  --color-parchment: #fbf7ef;
+  --color-parchment-deep: #f3ead8;
+  --color-ink: #231a12;
+  --color-ink-muted: #5c4b3b;
+  --color-kumkum-50: #fdf3ee;
+  --color-kumkum-100: #fbe3d6;
+  --color-kumkum-200: #f5c0a4;
+  --color-kumkum-600: #b4441c;
+  --color-kumkum-700: #9a3412;
+  --color-kumkum-800: #7c2d12;
+  --color-kumkum-900: #5a2110;
+  --color-haldi-100: #fdf1c7;
+  --color-haldi-300: #f5cf5e;
+  --color-haldi-500: #d99a0b;
+  --color-haldi-700: #8a5a00;
+  --color-leaf-50: #eef7f0;
+  --color-leaf-700: #22643a;
+  --color-indigo-deep: #26336b;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-parchment text-ink font-sans antialiased;
+    min-height: 100dvh;
+  }
+  :where(h1, h2, h3) {
+    @apply font-display;
+  }
+  /* Visible, high-contrast focus ring everywhere (WCAG 2.4.7 / 2.4.13). */
+  :focus-visible {
+    outline: 3px solid var(--color-kumkum-700);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Indic scripts need a little more line height for matras and conjuncts. */
+  :lang(hi),
+  :lang(mr),
+  :lang(sa),
+  :lang(ta),
+  :lang(te),
+  :lang(kn),
+  :lang(ml),
+  :lang(bn),
+  :lang(gu),
+  :lang(pa) {
+    line-height: 1.7;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-stone-200 bg-white shadow-sm;
+  }
+  .input {
+    @apply block w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-sm text-ink placeholder:text-stone-500 disabled:bg-stone-100 disabled:text-stone-500;
+  }
+  .input[aria-invalid="true"] {
+    @apply border-red-700;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-ink;
+  }
+  .hint {
+    @apply mt-1 text-xs text-ink-muted;
+  }
+  .field-error {
+    @apply mt-1 text-xs font-medium text-red-800;
+  }
+  .sr-only-focusable:not(:focus) {
+    @apply sr-only;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c4a97d;
+  border-radius: 4px;
+}

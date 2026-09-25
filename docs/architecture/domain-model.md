@@ -1,0 +1,121 @@
+# Domain model
+
+This document explains the model. The canonical schema is the SQLAlchemy models plus the Alembic
+migrations (ADR-0002); [data-model.md](data-model.md) is generated from them. If this graph and the
+schema disagree, the schema is right and this file needs fixing. The graph views below are
+architectural aids and do **not** replace the relational model (no graph DB, ADR-0002).
+
+Every tree-scoped entity also carries `tree_id`, `created_at/by` and `updated_at/by`. Every
+cross-entity reference is a composite `(tree_id, id)` foreign key. These columns are left out of
+the diagrams to keep them readable.
+
+## 1. Entity relationship view
+
+```mermaid
+erDiagram
+  USER ||--o{ TREE_MEMBERSHIP : holds
+  TREE ||--o{ TREE_MEMBERSHIP : grants
+  TREE ||--o{ TREE_INVITATION : issues
+  TREE ||--o{ ACCESS_GRANT : "explicit shares"
+  TREE ||--o{ PERSON : contains
+
+  PERSON ||--o{ NAME_RECORD : "has (type, script, language)"
+  PERSON ||--o{ RELATIONSHIP : "person_a (parent / partner)"
+  PERSON ||--o{ RELATIONSHIP : "person_b (child / partner)"
+  RELATIONSHIP |o--o{ RELATIONSHIP : "union_id (child's parents' union)"
+  PERSON ||--o{ EVENT_PARTICIPANT : participates
+  EVENT ||--o{ EVENT_PARTICIPANT : has
+  EVENT }o--o| PLACE : "occurs at / migrated from"
+  PLACE }o--o| PLACE : "within (village → tehsil → district → state → country)"
+
+  PERSON ||--o{ ASSERTION : "heritage claims (gotra, pravara, kula…)"
+  FAMILY_BRANCH ||--o{ ASSERTION : "branch heritage"
+  PERSON ||--o{ ASTROLOGY_PROFILE : "entered / chart / calculated / imported"
+  FAMILY_BRANCH ||--o{ BRANCH_MEMBERSHIP : has
+  PERSON ||--o{ BRANCH_MEMBERSHIP : "belongs (manual / derived)"
+  FAMILY_BRANCH }o--o| PERSON : "founded by"
+  FAMILY_BRANCH }o--o| FAMILY_BRANCH : "split from"
+  HOUSEHOLD ||--o{ HOUSEHOLD_MEMBERSHIP : "members over time (karta, head…)"
+  PERSON ||--o{ HOUSEHOLD_MEMBERSHIP : lives
+  HOUSEHOLD }o--o| FAMILY_BRANCH : "of branch"
+
+  SOURCE ||--o{ CITATION : "cited by"
+  CITATION }o--|| CLAIM : "supports person / name / event / relationship / assertion / astrology / property*"
+  DOCUMENT |o--o| SOURCE : "is evidence for"
+  DOCUMENT ||--o{ DOCUMENT_LINK : "about person / event / place / property…"
+  DOCUMENT ||--o{ DOCUMENT_DERIVATIVE : "preview, thumbnail, OCR text"
+  DOCUMENT ||--o{ DOCUMENT_METADATA_VERSION : "metadata history"
+  DOCUMENT ||--o{ EXTRACTION_PROPOSAL : "OCR proposals (never canonical)"
+
+  PROPERTY ||--o{ LAND_PARCEL : comprises
+  LAND_PARCEL |o--o{ LAND_PARCEL : "subdivided from"
+  PROPERTY ||--o{ PROPERTY_INTEREST : "held as (rational share)"
+  PROPERTY_INTEREST }o--o| PERSON : holder
+  PROPERTY_INTEREST }o--o| FAMILY_BRANCH : holder
+  PROPERTY ||--o{ PROPERTY_EVENT : history
+  PROPERTY_EVENT ||--o{ PROPERTY_INTEREST : "creates / ends"
+  PROPERTY_EVENT }o--o| EVENT : "linked life event (death → succession)"
+
+  PERSON ||--o{ CONSENT_RECORD : "subject of"
+  PERSON ||--o{ PROFILE_CLAIM : "claimed by user"
+  PERSON ||--o{ MERGE_RECORD : "survivor / merged"
+  TREE ||--o{ IMPORT_JOB : "GEDCOM imports"
+  PERSON ||--o{ GEDCOM_EXTENSION : "preserved unknown tags"
+  TREE ||--o{ AUDIT_EVENT : "append-only"
+```
+
+## 2. Graph view (conceptual relationships, PRS §47)
+
+```mermaid
+graph LR
+  P((Person)) -- PARENT_OF: biological / adoptive / step / foster / guardian --> P
+  P -- SPOUSE_OF / PARTNER_OF / former --> P
+  P -- MEMBER_OF_HOUSEHOLD --> H[Household]
+  P -- MEMBER_OF_BRANCH --> B[FamilyBranch]
+  P -- participant --> E[Event]
+  E -- BORN_AT / LIVED_AT / MIGRATED_FROM / MIGRATED_TO --> PL[Place]
+  P -- asserted heritage --> A[Assertion]
+  A -- ancestral village / temple --> PL
+  S[Source] -- SUPPORTED_BY_SOURCE --> C[Citation]
+  C --> P & E & A
+  D[Document] -- MENTIONED_IN_DOCUMENT --> P
+  D -- proposes --> X[ExtractionProposal]
+  X -. human review .-> A & E
+  PR[Property] -- comprises --> LP[LandParcel]
+  P -- HAS_INTEREST_IN_PROPERTY --> PI[PropertyInterest]
+  PI --> PR
+  PE[PropertyEvent] -- creates / ends --> PI
+  PE -- evidenced by --> D
+```
+
+## 3. Rules the model enforces
+
+| Rule | Where |
+|---|---|
+| No fixed parent/spouse columns. Every relationship is a typed edge. Multiple and overlapping unions are allowed. Children link to a specific union. | `relationship` + `union_id` (ADR-0003) |
+| No self edges, no duplicate edges. Symmetric pairs are stored ordered. | DB `CHECK` / `UNIQUE`, service normalisation |
+| No one can become their own ancestor | Recursive-CTE check before insert (`genealogy.service.is_ancestor`) |
+| At most two non-disputed biological parents. More claims must be recorded as `DISPUTED`. | Service (409 `too_many_biological_parents`) |
+| Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents. | `genealogy.engine.family` |
+| Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |
+| Incomplete dates keep their precision: nothing is padded, calendars are preserved, sort ranges are derived | `core/dates.GenealogicalDate` |
+| Approximate birth times are never exact. Exact requires a document-grade source. | `core/dates.GenealogicalTime` validator |
+| Competing claims coexist (several births, assertions, astrology profiles). One is preferred. Nothing is overwritten. | `is_preferred` + evidence status |
+| Heritage values are never inferred | No code path derives them. Enforced by a regression test. |
+| OCR/AI output is a proposal until reviewed | `extraction_proposal` (ADR-0009) |
+| Documented ownership shares ≤ 1 per property at any date. Asserted or disputed claims may overlap. | Property service (ADR-0010) |
+| Places keep their historical names. Renames append history. | `place.historical_names` |
+| Merges are reversible | `merge_record.changes` |
+| The audit log is append-only | DB trigger |
+
+## 4. Traversal strategy
+- Family unit (parents, unions + children, siblings): one query for the person's edges plus one
+  for siblings' parent edges.
+- Ancestors and descendants: a recursive CTE with a depth limit (≤25), path-based cycle guard,
+  evidence filter (excludes DISPROVEN and SUPERSEDED) and lineage filter. It returns nodes and
+  edges for progressive rendering, capped at 500 nodes per response.
+- Relationship calculator: loads the tree's edge list once, BFS plus lowest common ancestor gives
+  cousin degree and removal, half relations, in-laws, step and adoptive, plus a kinship `chain`
+  (father → brother …) that the UI renders in regional terms.
+- Closure tables or materialised paths are **DEFERRED** until load tests at 10k–100k people show
+  the need.
