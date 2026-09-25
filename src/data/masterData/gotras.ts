@@ -1,252 +1,47 @@
-// Master data for Gotras (Lineage/Clan systems)
+// Master database for Gotra (Lineage Clans)
 export interface Gotra {
   id: string;
   name: string;
-  sanskritName: string;
-  hindiName: string;
-  alternativeNames: string[];
-  rishi: string; // Founding sage
-  pravara?: string; // Sacred lineage
+  nameHindi: string;
+  nameTamil?: string;
+  nameTelugu?: string;
+  nameKannada?: string;
+  nameMalayalam?: string;
+  aliases: string[]; // Common spelling variations
+  pravara: string; // Sacred lineage
+  rishi: string; // Originating sage
   description?: string;
 }
 
 export const gotras: Gotra[] = [
-  {
-    id: 'gotra-1',
-    name: 'Kashyapa',
-    sanskritName: 'काश्यप',
-    hindiName: 'काश्यप',
-    alternativeNames: ['Kashyap', 'Kashyapa', 'Kasyapa'],
-    rishi: 'Kashyapa Rishi',
-    pravara: 'Kashyapa, Aghamarshana, Naidhruva',
-    description: 'One of the most common gotras, descended from sage Kashyapa'
-  },
-  {
-    id: 'gotra-2',
-    name: 'Bharadwaj',
-    sanskritName: 'भारद्वाज',
-    hindiName: 'भारद्वाज',
-    alternativeNames: ['Bharadwaj', 'Bhardwaj', 'Bharadwaja'],
-    rishi: 'Bharadwaj Rishi',
-    pravara: 'Angirasa, Bharhaspatya, Bharadwaja',
-    description: 'Descended from sage Bharadwaj, one of the Saptarishis'
-  },
-  {
-    id: 'gotra-3',
-    name: 'Vashishtha',
-    sanskritName: 'वशिष्ठ',
-    hindiName: 'वशिष्ठ',
-    alternativeNames: ['Vashishtha', 'Vasishtha', 'Vasishta'],
-    rishi: 'Vashishtha Rishi',
-    pravara: 'Vashishtha, Indra, Prajapati',
-    description: 'Descended from sage Vashishtha, family priest of Lord Rama'
-  },
-  {
-    id: 'gotra-4',
-    name: 'Atri',
-    sanskritName: 'अत्रि',
-    hindiName: 'अत्रि',
-    alternativeNames: ['Atri'],
-    rishi: 'Atri Rishi',
-    pravara: 'Atri, Arcananas, Avalokan',
-    description: 'One of the Saptarishis, descended from sage Atri'
-  },
-  {
-    id: 'gotra-5',
-    name: 'Angirasa',
-    sanskritName: 'आंगिरस',
-    hindiName: 'आंगिरस',
-    alternativeNames: ['Angirasa', 'Angiras', 'Angirasa'],
-    rishi: 'Angirasa Rishi',
-    pravara: 'Angirasa, Utathya, Samvartana',
-    description: 'Descended from sage Angirasa'
-  },
-  {
-    id: 'gotra-6',
-    name: 'Bhargava',
-    sanskritName: 'भार्गव',
-    hindiName: 'भार्गव',
-    alternativeNames: ['Bhargava', 'Bhargav'],
-    rishi: 'Bhrigu Rishi',
-    pravara: 'Bhargava, Chyavana, Apnavan',
-    description: 'Descended from sage Bhrigu'
-  },
-  {
-    id: 'gotra-7',
-    name: 'Agastya',
-    sanskritName: 'अगस्त्य',
-    hindiName: 'अगस्त्य',
-    alternativeNames: ['Agastya', 'Agasthya', 'Agasti'],
-    rishi: 'Agastya Rishi',
-    pravara: 'Agastya, Saubhari, Aila',
-    description: 'Descended from sage Agastya, prominent in South India'
-  },
-  {
-    id: 'gotra-8',
-    name: 'Gautama',
-    sanskritName: 'गौतम',
-    hindiName: 'गौतम',
-    alternativeNames: ['Gautama', 'Gotama', 'Gautam'],
-    rishi: 'Gautama Rishi',
-    pravara: 'Angirasa, Ayasasya, Gautama',
-    description: 'Descended from sage Gautama'
-  },
-  {
-    id: 'gotra-9',
-    name: 'Jamadagni',
-    sanskritName: 'जमदग्नि',
-    hindiName: 'जमदग्नि',
-    alternativeNames: ['Jamadagni', 'Jamadagnya'],
-    rishi: 'Jamadagni Rishi',
-    pravara: 'Bhargava, Chyavana, Apnavan, Aurva, Jamadagnya',
-    description: 'Descended from sage Jamadagni, father of Parashurama'
-  },
-  {
-    id: 'gotra-10',
-    name: 'Vishwamitra',
-    sanskritName: 'विश्वामित्र',
-    hindiName: 'विश्वामित्र',
-    alternativeNames: ['Vishwamitra', 'Vishvamitra', 'Vishva Mitra'],
-    rishi: 'Vishwamitra Rishi',
-    pravara: 'Vishwamitra, Devarata, Audalomi',
-    description: 'Descended from sage Vishwamitra'
-  },
-  {
-    id: 'gotra-11',
-    name: 'Shandilya',
-    sanskritName: 'शाण्डिल्य',
-    hindiName: 'शाण्डिल्य',
-    alternativeNames: ['Shandilya', 'Sandilya', 'Shandilya'],
-    rishi: 'Shandilya Rishi',
-    pravara: 'Shandilya, Aghamarshana, Devala',
-    description: 'Descended from sage Shandilya'
-  },
-  {
-    id: 'gotra-12',
-    name: 'Parashara',
-    sanskritName: 'पाराशर',
-    hindiName: 'पाराशर',
-    alternativeNames: ['Parashara', 'Parasar', 'Parashar'],
-    rishi: 'Parashara Rishi',
-    pravara: 'Vasishtha, Shaktya, Parasharya',
-    description: 'Descended from sage Parashara, father of Vyasa'
-  },
-  {
-    id: 'gotra-13',
-    name: 'Pulaha',
-    sanskritName: 'पुलह',
-    hindiName: 'पुलह',
-    alternativeNames: ['Pulaha', 'Pulaha'],
-    rishi: 'Pulaha Rishi',
-    description: 'Descended from sage Pulaha'
-  },
-  {
-    id: 'gotra-14',
-    name: 'Pulastya',
-    sanskritName: 'पुलस्त्य',
-    hindiName: 'पुलस्त्य',
-    alternativeNames: ['Pulastya', 'Pulasthya'],
-    rishi: 'Pulastya Rishi',
-    description: 'Descended from sage Pulastya, grandfather of Ravana'
-  },
-  {
-    id: 'gotra-15',
-    name: 'Kratu',
-    sanskritName: 'क्रतु',
-    hindiName: 'क्रतु',
-    alternativeNames: ['Kratu', 'Krathu'],
-    rishi: 'Kratu Rishi',
-    description: 'Descended from sage Kratu'
-  },
-  {
-    id: 'gotra-16',
-    name: 'Pulastya-Vashishtha',
-    sanskritName: 'पुलस्त्य-वशिष्ठ',
-    hindiName: 'पुलस्त्य-वशिष्ठ',
-    alternativeNames: ['Pulastya Vashishtha'],
-    rishi: 'Combined lineage',
-    description: 'Combined lineage of Pulastya and Vashishtha'
-  },
-  {
-    id: 'gotra-17',
-    name: 'Garga',
-    sanskritName: 'गर्ग',
-    hindiName: 'गर्ग',
-    alternativeNames: ['Garga', 'Garg'],
-    rishi: 'Garga Rishi',
-    pravara: 'Angirasa, Gargya, Bharadvaja',
-    description: 'Descended from sage Garga, famous astronomer'
-  },
-  {
-    id: 'gotra-18',
-    name: 'Kaushika',
-    sanskritName: 'कौशिक',
-    hindiName: 'कौशिक',
-    alternativeNames: ['Kaushika', 'Koushika', 'Kaushik'],
-    rishi: 'Vishwamitra (Kaushika)',
-    description: 'Alternative name for Vishwamitra gotra'
-  },
-  {
-    id: 'gotra-19',
-    name: 'Maudgalya',
-    sanskritName: 'मौद्गल्य',
-    hindiName: 'मौद्गल्य',
-    alternativeNames: ['Maudgalya', 'Mudgala', 'Mudgalya'],
-    rishi: 'Mudgala Rishi',
-    description: 'Descended from sage Mudgala'
-  },
-  {
-    id: 'gotra-20',
-    name: 'Kapila',
-    sanskritName: 'कपिल',
-    hindiName: 'कपिल',
-    alternativeNames: ['Kapila', 'Kapil'],
-    rishi: 'Kapila Rishi',
-    description: 'Descended from sage Kapila, founder of Samkhya philosophy'
-  },
-  {
-    id: 'gotra-21',
-    name: 'Upamanyu',
-    sanskritName: 'उपमन्यु',
-    hindiName: 'उपमन्यु',
-    alternativeNames: ['Upamanyu', 'Upamanyava'],
-    rishi: 'Upamanyu Rishi',
-    description: 'Descended from sage Upamanyu'
-  },
-  {
-    id: 'gotra-22',
-    name: 'Kutsa',
-    sanskritName: 'कुत्स',
-    hindiName: 'कुत्स',
-    alternativeNames: ['Kutsa', 'Kuts'],
-    rishi: 'Kutsa Rishi',
-    description: 'Descended from sage Kutsa'
-  },
-  {
-    id: 'gotra-23',
-    name: 'Auddalaka',
-    sanskritName: 'औद्दालक',
-    hindiName: 'औद्दालक',
-    alternativeNames: ['Auddalaka', 'Uddalaka', 'Aruni'],
-    rishi: 'Uddalaka Aruni',
-    description: 'Descended from sage Uddalaka Aruni'
-  },
-  {
-    id: 'gotra-24',
-    name: 'Vatapi',
-    sanskritName: 'वटापि',
-    hindiName: 'वटापि',
-    alternativeNames: ['Vatapi', 'Vadapi'],
-    rishi: 'Vatapi Rishi',
-    description: 'Descended from sage Vatapi'
-  },
-  {
-    id: 'gotra-25',
-    name: 'Kanva',
-    sanskritName: 'कण्व',
-    hindiName: 'कण्व',
-    alternativeNames: ['Kanva', 'Kanva'],
-    rishi: 'Kanva Rishi',
-    description: 'Descended from sage Kanva, foster father of Shakuntala'
-  }
+  { id: '1', name: 'Kashyapa', nameHindi: 'कश्यप', nameTamil: 'கசியப', nameTelugu: 'కశ్యప', nameKannada: 'ಕಶ್ಯಪ', nameMalayalam: 'കശ്യപ', aliases: ['Kashyap', 'Kashyapa', 'Kashyapam', 'Kashyapasa'], pravara: 'Kashyapa, Aghamarshana, Naidhruva', rishi: 'Sage Kashyapa', description: 'One of the most common gotras, descended from Sage Kashyapa' },
+  { id: '2', name: 'Bharadwaj', nameHindi: 'भरद्वाज', nameTamil: 'பரத்வாஜ', nameTelugu: 'భరద్వాజ', nameKannada: 'ಭರದ್ವಾಜ', nameMalayalam: 'ഭരദ്വാജ്', aliases: ['Bharadwaja', 'Bharathwaj', 'Bhardwaj', 'Bharadwaja'], pravara: 'Angirasa, Bharhaspatya, Bharadwaja', rishi: 'Sage Bharadwaja', description: 'Descended from Sage Bharadwaja, common in North India' },
+  { id: '3', name: 'Vashishtha', nameHindi: 'वशिष्ठ', nameTamil: 'வசிட்ட', nameTelugu: 'వశిష్ఠ', nameKannada: 'ವಶಿಷ್ಠ', nameMalayalam: 'വശിഷ്ഠ', aliases: ['Vasishtha', 'Vasishta', 'Washishtha', 'Vasist'], pravara: 'Vashishtha, Indrapramada, Abhipraraja', rishi: 'Sage Vashishtha', description: 'One of the Saptarishis, common across India' },
+  { id: '4', name: 'Atri', nameHindi: 'अत्रि', nameTamil: 'அத்திரி', nameTelugu: 'అత్రి', nameKannada: 'ಅತ್ರಿ', nameMalayalam: 'അത്രി', aliases: ['Athri', 'Aathri'], pravara: 'Atri, Arcananas, Aloya', rishi: 'Sage Atri', description: 'Descended from Sage Atri, one of the Saptarishis' },
+  { id: '5', name: 'Angirasa', nameHindi: 'आंगिरस', nameTamil: 'ஆங்கிரச', nameTelugu: 'ఆంగిరస', nameKannada: 'ಆಂಗಿರಸ', nameMalayalam: 'ആംഗിരസ', aliases: ['Angiras', 'Angirasas', 'Angirasa', 'Angir'], pravara: 'Angirasa, Avasyata, Trasadasyu', rishi: 'Sage Angirasa', description: 'Descended from Sage Angirasa' },
+  { id: '6', name: 'Bhargava', nameHindi: 'भार्गव', nameTamil: 'பார்கவ', nameTelugu: 'భార్గవ', nameKannada: 'ಭಾರ್ಗವ', nameMalayalam: 'ഭാര്ഗവ', aliases: ['Bhargav', 'Bhargavah'], pravara: 'Bhargava, Chyavana, Apnavana', rishi: 'Sage Bhrigu', description: 'Descended from Sage Bhrigu' },
+  { id: '7', name: 'Agastya', nameHindi: 'अगस्त्य', nameTamil: 'அகஸ்திய', nameTelugu: 'అగస్త్య', nameKannada: 'ಅಗಸ್ತ್ಯ', nameMalayalam: 'അഗസ്ത്യ', aliases: ['Agasthya', 'Agasti', 'Agastya'], pravara: 'Agastya, Saumavaha, Aidavalu', rishi: 'Sage Agastya', description: 'Very common in South India, especially Tamil Nadu' },
+  { id: '8', name: 'Gautama', nameHindi: 'गौतम', nameTamil: 'கௌதம', nameTelugu: 'గౌతమ', nameKannada: 'ಗೌತಮ', nameMalayalam: 'ഗൗതമ', aliases: ['Gautam', 'Gotam', 'Gowtham', 'Gautama'], pravara: 'Angirasa, Ayasya, Gautama', rishi: 'Sage Gautama', description: 'Descended from Sage Gautama' },
+  { id: '9', name: 'Jamadagni', nameHindi: 'जमदग्नि', nameTamil: 'ஜமதக்னி', nameTelugu: 'జమదగ్ని', nameKannada: 'ಜಮದಗ್ನಿ', nameMalayalam: 'ജമദഗ്നി', aliases: ['Jamadagni', 'Jamadagniya'], pravara: 'Bhargava, Chyavana, Jamadagni', rishi: 'Sage Jamadagni', description: 'Descended from Sage Jamadagni, father of Parashurama' },
+  { id: '10', name: 'Vishwamitra', nameHindi: 'विश्वामित्र', nameTamil: 'விச்வாமித்ர', nameTelugu: 'విశ్వామిత్ర', nameKannada: 'ವಿಶ್ವಾಮಿತ್ರ', nameMalayalam: 'വിശ്വാമിത്ര', aliases: ['Vishwamitra', 'Vishvamitra', 'Viswamitra'], pravara: 'Vishwamitra, Devarata, Audalam', rishi: 'Sage Vishwamitra', description: 'Descended from Sage Vishwamitra' },
+  { id: '11', name: 'Shandilya', nameHindi: 'शाण्डिल्य', nameTamil: 'சாண்டிலிய', nameTelugu: 'శాండిల్య', nameKannada: 'ಶಾಂಡಿಲ್ಯ', nameMalayalam: 'ശാണ്ടില്യ', aliases: ['Shandilya', 'Sandilya', 'Shandilya', 'Sandyal'], pravara: 'Shandilya, Aghamarshana, Naidhruva', rishi: 'Sage Shandilya', description: 'Common in North and Central India' },
+  { id: '12', name: 'Parashara', nameHindi: 'पराशर', nameTamil: 'பராசர', nameTelugu: 'పరాశర', nameKannada: 'ಪರಾಶರ', nameMalayalam: 'പരാശര', aliases: ['Parashar', 'Parasar', 'Parasara'], pravara: 'Parashara, Aghamarshana, Naidhruva', rishi: 'Sage Parashara', description: 'Descended from Sage Parashara, father of Vyasa' },
+  { id: '13', name: 'Kaundinya', nameHindi: 'कौण्डिन्य', nameTamil: 'கௌண்டின்ய', nameTelugu: 'కౌండిన్య', nameKannada: 'ಕೌಂಡಿನ್ಯ', nameMalayalam: 'കൗണ്ഡിന്യ', aliases: ['Kaundinya', 'Koundinya', 'Kaundinyayana'], pravara: 'Kaundinya, Vasishtha, Maitravaruna', rishi: 'Sage Kaundinya', description: 'Very common in South India' },
+  { id: '14', name: 'Upamanyu', nameHindi: 'उपमन्यु', nameTamil: 'உபமன்யு', nameTelugu: 'ఉపమన్యు', nameKannada: 'ಉಪಮನ್ಯು', nameMalayalam: 'ഉപമന്യു', aliases: ['Upamanyu', 'Upamanyava'], pravara: 'Upamanyu, Vashishtha, Aupamanyava', rishi: 'Sage Upamanyu', description: 'Less common but found across India' },
+  { id: '15', name: 'Garga', nameHindi: 'गर्ग', nameTamil: 'கர்க', nameTelugu: 'గర్గ', nameKannada: 'ಗರ್ಗ', nameMalayalam: 'ഗര്ഗ', aliases: ['Garga', 'Gargya'], pravara: 'Angirasa, Barhaspatya, Gargya', rishi: 'Sage Garga', description: 'Common in North India, especially among Jains' }
 ];
+
+export function searchGotras(query: string): Gotra[] {
+  if (!query) return [];
+  const q = query.toLowerCase().trim();
+  return gotras.filter(g =>
+    g.name.toLowerCase().includes(q) ||
+    g.nameHindi.includes(q) ||
+    (g.nameTamil && g.nameTamil.includes(q)) ||
+    (g.nameTelugu && g.nameTelugu.includes(q)) ||
+    (g.nameKannada && g.nameKannada.includes(q)) ||
+    (g.nameMalayalam && g.nameMalayalam.includes(q)) ||
+    g.aliases.some(alias => alias.toLowerCase().includes(q)) ||
+    g.rishi.toLowerCase().includes(q)
+  );
+}
