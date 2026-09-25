@@ -40,8 +40,8 @@ VSH_DATABASE_URL=…owner url… uv run python -m app.cli.benchmark --people 100
   - The synthetic data is a worst case: 10k people share just 200 name combinations.
 
 ## Next steps (Phase 8, measured triggers)
-- **Relationship path:** the HTTP load test below shows it is *the* throughput and tail-latency
-  bottleneck under concurrency. Fix it before go-live; the options are ranked below.
+- **Relationship path: fixed (recommendation 1a below).** The load test showed it was *the*
+  throughput and tail-latency bottleneck. Results are in "After the relationship-path fix" below.
 - **Duplicates:** move to a background job with cached results for trees over 20k people.
 - **Tree size:** repeat with 100k people before choosing a graph projection (ADR-0002).
 
@@ -140,8 +140,38 @@ be separated from host contention; re-measure on a quiet machine.
      deep pagination matters. Suggested DDL for the lead, if wanted:
      `CREATE INDEX ix_person_tree_display_name ON person (tree_id, preferred_display_name, id) WHERE deleted_at IS NULL`.
 
+## After the relationship-path fix (Phase 8)
+What changed:
+- The calculator no longer loads the tree's edge list per call (`engine._LazyGraph`). It fetches
+  edges with one indexed query per BFS frontier.
+- Blood-relation paths are built from the two upward ancestor searches, with no downward search.
+- The in-law and marriage fallback is a bidirectional BFS that expands the smaller frontier.
+- `tests/test_relationship_search.py` checks it against plain BFS on 300 random graphs.
+- `test_genealogy.py::test_relationship_path_loads_only_the_neighbourhood` checks that unrelated
+  families are never loaded.
+
+Relationship path, same 10k synthetic tree, in-process, single client:
+
+| Pair | Before | After (p50 / p95) |
+|---|---|---|
+| leaf → mid (14th cousin once removed) | 1,869 / 2,043 ms | **71 / 149 ms** |
+| leaf → root (17× great-grandfather) | n/a | 47 / 54 ms |
+| 40 random pairs from the load-test mix (lower half of the tree) | n/a | **85 / 137 ms** |
+
+HTTP load test, 20 users, RLS app role, same shared 4-vCPU box:
+
+| Run | Throughput | Overall p95 | Relationship path p50 / p95 |
+|---|---|---|---|
+| Before (RLS working tree) | 40.6 req/s | 1,587 ms | n/a |
+| After | **75.4 req/s** | **764 ms** | 318 / 1,394 ms |
+
+The "after" run was taken with a load average of 9–21 from other test suites on the same 4 vCPUs.
+Overall p95 is still above the 500 ms target in a closed loop with no think time. The remaining
+tail is CPU queueing on the shared box, not a single dominant endpoint: every route sits at a
+similar p95. Re-measure on a dedicated host before sizing.
+
 ## Recommendations (ranked)
-1. **Relationship path:** stop loading the whole edge set per request. The options, in order of
+1. **Relationship path: done (1a).** Original analysis: stop loading the whole edge set per request. The options, in order of
    preference:
    - (a) bidirectional BFS that fetches neighbours per frontier with indexed queries (touches
      hundreds of rows, not 20k);
@@ -149,8 +179,7 @@ be separated from host contention; re-measure on a quiet machine.
      endpoint already does depth 10 in ~35 ms), with BFS only as a fallback for in-law paths;
    - (c) a per-tree adjacency cache keyed by a relationship-change version.
 
-   Until one lands, cap concurrent path computations per worker (a semaphore of 1–2) so they queue
-   instead of starving other requests. Re-run `loadtest --exclude` to measure.
+   Option (a) is implemented. (b) and (c) remain available if 100k-person trees need them.
 2. **Capacity:** on this hardware, one 4-vCPU backend node sustains about 30–35 req/s of this mix
    (about 95 req/s without relationship path). At an assumed 1 request per 5 s per active human
    user, that is about 150 concurrent active users per node today (**ASSUMPTION** about usage).
