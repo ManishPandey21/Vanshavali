@@ -25,7 +25,7 @@ from app.models import (
 )
 from app.modules.gedcom import mapping, parser
 from app.modules.gedcom.gdate import format_date, parse_date
-from tests.conftest import owner_session
+from tests.conftest import new_tree, owner_session
 from tests.helpers import create_person, exact
 
 BASE = "https://vanshavali.app/gedcom/ext/v1/"
@@ -436,7 +436,7 @@ def test_imports_are_tree_scoped(owner, tree, make_client) -> None:
     job = _upload(owner, t, G7).json()
     other = make_client()
     other.register()
-    other_tree = other.post("/trees", json={"name": "Other"}).json()
+    other_tree = new_tree(other, "Other")
     # the other tree's admin cannot reach this job, neither via their tree nor ours
     assert other.get(f"/trees/{other_tree['id']}/imports/{job['id']}").status_code == 404
     assert other.post(f"/trees/{other_tree['id']}/imports/{job['id']}/commit", json={}).status_code == 404
@@ -570,8 +570,8 @@ def test_round_trip_export_then_import(owner, tree) -> None:
     text = exported.content.decode()
     assert "2 TAG _XYZ https://example.org/xyz" in text and "1 _XYZ custom value" in text
     assert "2 _XYZ_DETAIL nested" in text
-    new_tree = owner.post("/trees", json={"name": "Copy"}).json()["id"]
-    _import(owner, new_tree, exported.content)
+    copy_tree = new_tree(owner, "Copy")["id"]
+    _import(owner, copy_tree, exported.content)
 
     def snapshot(tree_id: str) -> dict[str, Any]:
         tid = uuid.UUID(tree_id)
@@ -624,7 +624,7 @@ def test_round_trip_export_then_import(owner, tree) -> None:
             "exts": exts, "statuses": statuses,
         }  # fmt: skip
 
-    a, b = snapshot(t), snapshot(new_tree)
+    a, b = snapshot(t), snapshot(copy_tree)
     for key in a:
         assert a[key] == b[key], key
     assert ("Ramesh Sharma", "gotra", "Kashyapa") in b["heritage"]

@@ -27,6 +27,9 @@ test("register, build a small family and view it", async ({ page }) => {
   // nobody is signed in until the emailed link is opened
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
   await openVerificationLink(page, email);
+  // new accounts land on the guided first run; this flow uses the regular screens instead
+  await expect(page.getByRole("heading", { name: "Start your family tree" })).toBeVisible();
+  await page.getByRole("link", { name: "Maybe later" }).click();
   await expect(page.getByRole("heading", { name: "Your family trees" })).toBeVisible();
 
   // ---- create tree
@@ -38,6 +41,11 @@ test("register, build a small family and view it", async ({ page }) => {
   // ---- add person with a Devanagari name and an approximate, verbally recalled birth time
   await page.getByRole("link", { name: "Add person" }).first().click();
   await expect(page.getByRole("heading", { name: "Add a person" })).toBeVisible();
+  // the family-data confirmation (ADR-0011) comes first, unticked
+  const consent = page.getByRole("checkbox", { name: /I confirm I have their permission/ });
+  await expect(consent).not.toBeChecked();
+  await consent.check();
+  await page.getByRole("button", { name: "Confirm and continue" }).click();
   const form = page.locator("form");
   await fillNewPerson(form, "Ramesh", "Sharma", "Male");
   await page.getByRole("button", { name: /Add another name/ }).click();

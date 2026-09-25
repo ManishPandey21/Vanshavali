@@ -212,9 +212,11 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const resend = useResendVerification();
+  // New accounts go through the guided first run unless they came here for something specific (e.g. a claim link).
+  const afterRegister = params.get("next") ? next : "/welcome";
 
   if (me.isLoading) return <Spinner />;
-  if (me.data) return <Navigate to={next} replace />;
+  if (me.data) return <Navigate to={register.isSuccess ? afterRegister : next} replace />;
 
   if (register.isSuccess) {
     return (
@@ -266,8 +268,9 @@ export function RegisterPage() {
       password,
       display_name: displayName.trim(),
       preferred_language: normalizeLanguage(inst.language),
-      // carried in the emailed link so an invitation continues after verification
-      ...(next !== "/" ? { next } : {}),
+      // carried in the emailed link, so verifying continues to the guided first run or to what the
+      // user came for (an invitation, a claim link)
+      next: afterRegister,
     });
   };
   return (

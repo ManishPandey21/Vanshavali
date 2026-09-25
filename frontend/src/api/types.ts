@@ -179,3 +179,14 @@ export interface Page<T> {
   items: T[];
   next_cursor?: string | null;
 }
+
+// Onboarding: family-data attestation and shareable claim invites (ADR-0011)
+export type StatementOut = S["StatementOut"];
+export type StatementKind = S["StatementKind"];
+export type AttestationStatus = S["AttestationStatus"];
+export type AttestationOut = S["AttestationOut"];
+export type ClaimInviteOut = S["ClaimInviteOut"];
+export type ClaimInviteCreated = S["ClaimInviteCreated"];
+export type ClaimInvitePreview = S["ClaimInvitePreview"];
+export type ClaimInviteAccept = S["ClaimInviteAccept"];
+export type ClaimSubmitted = S["ClaimSubmitted"];

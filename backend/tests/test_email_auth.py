@@ -188,9 +188,26 @@ def test_hindi_email_for_hindi_speakers(make_client):
 def test_registration_next_path_is_carried_and_validated(make_client):
     email = _email()
     assert _register(make_client(), email, next="/invite/abc123").status_code == 202
-    assert "?next=/invite/abc123" in latest_mail(email)["text"]
+    assert "#next=/invite/abc123" in latest_mail(email)["text"]
     for bad in ("//evil.example", "https://evil.example", "/\\evil.example"):
         assert _register(make_client(), _email(), next=bad).status_code == 422
+
+
+def test_claim_link_token_in_next_never_reaches_a_server(make_client):
+    """A claim-invite token lives in a URL fragment (ADR-0011, T22). Carried through registration as
+    ``next``, it must stay in the verification link's fragment, never its path or query string."""
+    import re
+
+    claim_token = "C" * 43
+    email = _email()
+    assert _register(make_client(), email, next=f"/claim#{claim_token}").status_code == 202
+    text = latest_mail(email)["text"]
+    link = re.search(r"https?://\S+/verify-email/\S+", text)
+    assert link is not None
+    before_fragment = link.group(0).split("#", 1)[0]
+    assert claim_token not in before_fragment and "?" not in before_fragment
+    assert f"#next=/claim%23{claim_token}" in link.group(0)
+    assert claim_token not in mailer.redact(text)  # nor in console mail logs
 
 
 def test_invitation_requires_verified_email(owner, tree, make_client):

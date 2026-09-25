@@ -24,7 +24,7 @@ test("viewer sees no edit controls and a direct PATCH is refused", async ({ brow
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
-  // the verification link carries the invitation as ?next=, so opening it continues to the invite
+  // the verification link carries the invitation as #next=, so opening it continues to the invite
   await openVerificationLink(page, viewerEmail);
   await expect(page.getByRole("heading", { name: "Family tree invitation" })).toBeVisible();
   await expect(page.getByText("Viewer", { exact: true })).toBeVisible();

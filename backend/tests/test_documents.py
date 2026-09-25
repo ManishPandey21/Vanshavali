@@ -13,7 +13,7 @@ from app.core.config import get_settings
 from app.core.security import sign_payload
 from app.core.storage import ObjectExists, get_store
 from app.models import AuditEvent, Document
-from tests.conftest import owner_session
+from tests.conftest import new_tree, owner_session
 from tests.doc_fixtures import (
     eicar_png,
     javascript_pdf,
@@ -302,7 +302,7 @@ def test_cross_tree_access_is_404(owner, tree, make_client):
     doc = upload(owner, t, _png(), mime="image/png").json()
     other = make_client()
     other.register()
-    other_tree = other.post("/trees", json={"name": "Other"}).json()["id"]
+    other_tree = new_tree(other, "Other")["id"]
     assert other.get(f"/trees/{other_tree}/documents/{doc['id']}").status_code == 404
     assert other.post(f"/trees/{other_tree}/documents/{doc['id']}/download-url").status_code == 404
     assert other.get(f"/trees/{t}/documents/{doc['id']}").status_code == 404

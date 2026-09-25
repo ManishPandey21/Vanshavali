@@ -171,17 +171,42 @@ def owner(make_client: Any) -> ApiClient:
     return c
 
 
-@pytest.fixture
-def tree(owner: ApiClient) -> dict[str, Any]:
-    r = owner.post("/trees", json={"name": "Iyer Family"})
+def attest(client: ApiClient, tree_id: str, language: str = "en") -> dict[str, Any]:
+    """Confirm the family-data statement (ADR-0011) so ``client`` may add people to the tree."""
+    stmt = client.get(f"/consent-statements/family_data?lang={language}").json()
+    r = client.post(
+        f"/trees/{tree_id}/attestation", json={"statement_version": stmt["version"], "language": language}
+    )
     assert r.status_code == 201, r.text
     return r.json()
 
 
+def new_tree(client: ApiClient, name: str) -> dict[str, Any]:
+    """Create a tree and confirm the family-data statement for it."""
+    r = client.post("/trees", json={"name": name})
+    assert r.status_code == 201, r.text
+    attest(client, r.json()["id"])
+    return r.json()
+
+
+@pytest.fixture
+def tree(owner: ApiClient) -> dict[str, Any]:
+    return new_tree(owner, "Iyer Family")
+
+
 def join_tree(
-    owner: ApiClient, member: ApiClient, tree_id: str, roles: list[str], branch_id: str | None = None
+    owner: ApiClient,
+    member: ApiClient,
+    tree_id: str,
+    roles: list[str],
+    branch_id: str | None = None,
+    *,
+    attested: bool = True,
 ) -> dict[str, Any]:
-    """Invite ``member`` with ``roles`` and accept; returns the membership tree payload."""
+    """Invite ``member`` with ``roles`` and accept; returns the membership tree payload.
+
+    By default the member also confirms the family-data statement, as the UI asks before adding people.
+    """
     assert member.user is not None
     body: dict[str, Any] = {"email": member.user["email"], "roles": roles}
     if branch_id:
@@ -190,6 +215,8 @@ def join_tree(
     assert r.status_code == 201, r.text
     r2 = member.post(f"/invitations/{r.json()['token']}/accept")
     assert r2.status_code == 200, r2.text
+    if attested:
+        attest(member, tree_id)
     return r2.json()
 
 

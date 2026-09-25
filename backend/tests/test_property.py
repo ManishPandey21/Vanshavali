@@ -11,7 +11,7 @@ from sqlalchemy import select
 from app.models import AuditEvent, Document, DocumentLink
 from app.modules.property.schemas import LEGAL_NOTICE
 from app.modules.property.shares import find_violations
-from tests.conftest import owner_session
+from tests.conftest import new_tree, owner_session
 from tests.helpers import create_person
 
 YEAR = {"precision": "year_only"}
@@ -610,7 +610,7 @@ def test_cross_tree_isolation(owner, tree, make_client):
     pid = make_property(owner, t)["id"]
     other = make_client()
     other.register(name="Other owner")
-    t2 = other.post("/trees", json={"name": "Other family"}).json()["id"]
+    t2 = new_tree(other, "Other family")["id"]
     pid2 = make_property(other, t2)["id"]
     # non-member of tree A
     assert other.get(f"/trees/{t}/properties/{pid}").status_code == 404

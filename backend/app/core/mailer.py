@@ -31,7 +31,7 @@ log = logging.getLogger("app.mail")
 
 REDACTED = "[redacted]"
 # Any long URL-safe token (our tokens are 43 chars) in a path segment or query value.
-_TOKEN_RE = re.compile(r"(?<=[/=])[A-Za-z0-9_-]{32,}")
+_TOKEN_RE = re.compile(r"(?:(?<=[/=#])|(?<=%23))[A-Za-z0-9_-]{32,}")
 
 
 def redact(text: str, sensitive: Iterable[str] = ()) -> str:

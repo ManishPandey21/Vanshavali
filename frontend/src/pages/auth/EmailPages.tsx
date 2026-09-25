@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useConfirmPasswordReset, useRequestPasswordReset, useVerifyEmail } from "../../api/hooks/auth";
 import { ApiError } from "../../api/client";
@@ -15,7 +15,9 @@ export function VerifyEmailPage() {
   const { t } = useTranslation();
   const { token = "" } = useParams();
   const [params] = useSearchParams();
-  const next = safeNext(params.get("next"));
+  const location = useLocation();
+  // The emailed link carries `next` in the fragment (never sent to servers); `?next=` is still accepted.
+  const next = safeNext(new URLSearchParams(location.hash.slice(1)).get("next") ?? params.get("next"));
   const verify = useVerifyEmail();
   const { mutate } = verify;
   const navigate = useNavigate();

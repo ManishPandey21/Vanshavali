@@ -63,7 +63,7 @@ export async function latestMail(to: string, kind?: string, timeoutMs = 10_000):
 
 /** The same-site path (with query) of the first verification/reset link in an email. */
 export function linkPath(mail: Mail, kind: "verify-email" | "reset-password"): string {
-  const m = mail.text.match(new RegExp(`/${kind}/[A-Za-z0-9_-]+(?:\\?\\S*)?`));
+  const m = mail.text.match(new RegExp(`/${kind}/[A-Za-z0-9_-]+(?:[?#]\\S*)?`));
   if (!m) throw new Error(`no ${kind} link in email "${mail.subject}"`);
   return m[0];
 }
@@ -86,15 +86,23 @@ export interface Seeded {
  */
 export async function registerVerified(ctx: BrowserContext, baseURL: string, email: string, displayName = "E2E Owner"): Promise<void> {
   await api(ctx, "POST", "/auth/register", { email, password: PASSWORD, display_name: displayName, preferred_language: "en" }, baseURL);
-  const token = linkPath(await latestMail(email, "verify_email"), "verify-email").split("/")[2].split("?")[0];
+  const token = linkPath(await latestMail(email, "verify_email"), "verify-email").split("/")[2].split(/[?#]/)[0];
   await api(ctx, "POST", "/auth/verify-email", { token }, baseURL);
 }
 
-/** Registers a fresh, verified user (signed in on this context) and creates a tree. */
+
+/** Confirms the family-data statement for a tree (ADR-0011) so people can be added to it. */
+export async function attest(ctx: BrowserContext, baseURL: string, treeId: string): Promise<void> {
+  const stmt = await api<{ version: string; language: string }>(ctx, "GET", "/consent-statements/family_data?lang=en", undefined, baseURL);
+  await api(ctx, "POST", `/trees/${treeId}/attestation`, { statement_version: stmt.version, language: stmt.language }, baseURL);
+}
+
+/** Registers a fresh, verified user (signed in on this context), creates a tree and confirms the family-data statement for it. */
 export async function registerWithTree(ctx: BrowserContext, baseURL: string, treeName: string, displayName = "E2E Owner"): Promise<Seeded> {
   const userEmail = uniqueEmail("owner");
   await registerVerified(ctx, baseURL, userEmail, displayName);
   const tree = await api<{ id: string }>(ctx, "POST", "/trees", { name: treeName }, baseURL);
+  await attest(ctx, baseURL, tree.id);
   return { treeId: tree.id, userEmail };
 }
 

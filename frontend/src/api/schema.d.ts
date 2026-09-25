@@ -1353,6 +1353,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/consent-statements/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Statement */
+        get: operations["get_statement_api_v1_consent_statements__kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/attestation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Attestation */
+        get: operations["get_attestation_api_v1_trees__tree_id__attestation_get"];
+        put?: never;
+        /** Create Attestation */
+        post: operations["create_attestation_api_v1_trees__tree_id__attestation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/attestation/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw Attestation */
+        post: operations["withdraw_attestation_api_v1_trees__tree_id__attestation_withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/claim-invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Claim Invite */
+        post: operations["create_claim_invite_api_v1_trees__tree_id__people__person_id__claim_invites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/claim-invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Claim Invites */
+        get: operations["list_claim_invites_api_v1_trees__tree_id__claim_invites_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/claim-invites/{invite_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Claim Invite */
+        delete: operations["revoke_claim_invite_api_v1_trees__tree_id__claim_invites__invite_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-invites/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Claim Invite */
+        get: operations["preview_claim_invite_api_v1_claim_invites__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-invites/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Claim Invite */
+        post: operations["accept_claim_invite_api_v1_claim_invites__token__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/merges/preview": {
         parameters: {
             query?: never;
@@ -2061,8 +2198,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Liveness: the process is serving requests. Does not touch dependencies.
+         */
         get: operations["health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ready
+         * @description Readiness: database reachable, RLS in force (required in production), Redis if used.
+         */
+        get: operations["ready_api_v1_health_ready_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2399,6 +2559,40 @@ export interface components {
              */
             attach: string;
         };
+        /** AttestationIn */
+        AttestationIn: {
+            /** Statement Version */
+            statement_version: string;
+            /** Language */
+            language: string;
+        };
+        /** AttestationOut */
+        AttestationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Statement Version */
+            statement_version: string;
+            /** Language */
+            language: string;
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+            /** Withdrawn At */
+            withdrawn_at: string | null;
+        };
+        /** AttestationStatus */
+        AttestationStatus: {
+            /** Attested */
+            attested: boolean;
+            /** Current Version */
+            current_version: string;
+            attestation: components["schemas"]["AttestationOut"] | null;
+        };
         /** AuditEventOut */
         AuditEventOut: {
             /**
@@ -2696,6 +2890,124 @@ export interface components {
             /** Message */
             message?: string | null;
         };
+        /** ClaimInviteAccept */
+        ClaimInviteAccept: {
+            /** Consent Version */
+            consent_version: string;
+            /** Language */
+            language: string;
+            /** Confirm Adult */
+            confirm_adult: boolean;
+            /** Message */
+            message?: string | null;
+        };
+        /** ClaimInviteCreate */
+        ClaimInviteCreate: {
+            /**
+             * Offered Role
+             * @default VIEWER
+             * @enum {string}
+             */
+            offered_role?: "VIEWER" | "CONTRIBUTOR";
+        };
+        /** ClaimInviteCreated */
+        ClaimInviteCreated: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            offered_role: components["schemas"]["Role"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Used At */
+            used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /**
+             * State
+             * @default active
+             * @enum {string}
+             */
+            state?: "active" | "used" | "expired" | "revoked";
+            /** Url */
+            url: string;
+            /** Token */
+            token: string;
+        };
+        /** ClaimInviteOut */
+        ClaimInviteOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            offered_role: components["schemas"]["Role"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Used At */
+            used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /**
+             * State
+             * @default active
+             * @enum {string}
+             */
+            state?: "active" | "used" | "expired" | "revoked";
+        };
+        /** ClaimInvitePreview */
+        ClaimInvitePreview: {
+            /** Tree Name */
+            tree_name: string;
+            /** Person Name */
+            person_name: string;
+            /** Invited By */
+            invited_by: string | null;
+            offered_role: components["schemas"]["Role"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "active" | "used" | "expired" | "revoked";
+            /** Claim Id */
+            claim_id?: string | null;
+        };
         /** ClaimOut */
         ClaimOut: {
             /**
@@ -2727,6 +3039,15 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Via Invite
+             * @default false
+             */
+            via_invite?: boolean;
+            /** Claimant Name */
+            claimant_name?: string | null;
+            /** Claimant Email */
+            claimant_email?: string | null;
         };
         /** ClaimReview */
         ClaimReview: {
@@ -2752,6 +3073,19 @@ export interface components {
          * @enum {string}
          */
         ClaimStatus: "requested" | "approved" | "rejected" | "withdrawn";
+        /** ClaimSubmitted */
+        ClaimSubmitted: {
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            status: components["schemas"]["ClaimStatus"];
+            /** Tree Name */
+            tree_name: string;
+            /** Person Name */
+            person_name: string;
+        };
         /** CloseAccountIn */
         CloseAccountIn: {
             /** Password */
@@ -5980,6 +6314,21 @@ export interface components {
              * @default []
              */
             duplicates?: components["schemas"]["DuplicateMatch"][];
+        };
+        /**
+         * StatementKind
+         * @enum {string}
+         */
+        StatementKind: "family_data" | "profile_claim";
+        /** StatementOut */
+        StatementOut: {
+            kind: components["schemas"]["StatementKind"];
+            /** Version */
+            version: string;
+            /** Language */
+            language: string;
+            /** Text */
+            text: string;
         };
         /**
          * StorageClass
@@ -9820,6 +10169,303 @@ export interface operations {
             };
         };
     };
+    get_statement_api_v1_consent_statements__kind__get: {
+        parameters: {
+            query?: {
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                kind: components["schemas"]["StatementKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatementOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_attestation_api_v1_trees__tree_id__attestation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttestationStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_attestation_api_v1_trees__tree_id__attestation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttestationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttestationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_attestation_api_v1_trees__tree_id__attestation_withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttestationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_claim_invite_api_v1_trees__tree_id__people__person_id__claim_invites_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimInviteCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimInviteCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_claim_invites_api_v1_trees__tree_id__claim_invites_get: {
+        parameters: {
+            query?: {
+                person_id?: string | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimInviteOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_claim_invite_api_v1_trees__tree_id__claim_invites__invite_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invite_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_claim_invite_api_v1_claim_invites__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimInvitePreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_claim_invite_api_v1_claim_invites__token__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimInviteAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimSubmitted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     preview_api_v1_trees__tree_id__merges_preview_get: {
         parameters: {
             query: {
@@ -11710,6 +12356,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    ready_api_v1_health_ready_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

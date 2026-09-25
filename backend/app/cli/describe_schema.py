@@ -46,7 +46,12 @@ GROUPS = {
     ],
     "Astrology": ["astrology_profile"],
     "Property": ["property", "land_parcel", "property_interest", "property_event", "property_event_parcel"],
-    "Privacy & consent": ["consent_record", "profile_claim"],
+    "Privacy & consent": [
+        "consent_record",
+        "profile_claim",
+        "profile_claim_invite",
+        "family_data_attestation",
+    ],
     "Interchange": ["import_job", "export_job", "gedcom_extension"],
     "Audit": ["audit_event"],
 }

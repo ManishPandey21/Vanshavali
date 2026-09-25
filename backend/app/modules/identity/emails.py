@@ -32,7 +32,9 @@ def link(path: str) -> str:
 def verify_link(token: str, next_path: str | None = None) -> str:
     url = link(f"/verify-email/{token}")
     if next_path:
-        url += f"?next={quote(next_path, safe='/')}"
+        # In the fragment, never the query: browsers don't send it to servers, so a claim-invite token
+        # carried in ``next`` (``/claim#<token>``, ADR-0011) stays out of web-server logs (threat T22).
+        url += f"#next={quote(next_path, safe='/')}"
     return url
 
 

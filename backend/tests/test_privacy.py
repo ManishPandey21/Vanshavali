@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from tests.conftest import join_tree
+from tests.conftest import join_tree, new_tree
 from tests.helpers import create_person, exact, link, person_body
 
 SECRET_DOB = {"precision": "exact", "year": 1985, "month": 7, "day": 23}
@@ -120,7 +120,7 @@ def test_cross_tree_access_is_404(owner, tree, make_client):
     p = create_person(owner, t, "InTreeA")
     other = make_client()
     other.register()
-    tb = other.post("/trees", json={"name": "Tree B"}).json()["id"]
+    tb = new_tree(other, "Tree B")["id"]
     q = create_person(other, tb, "InTreeB")
     # person of tree A via tree B's URL
     assert other.get(f"/trees/{tb}/people/{p['id']}").status_code == 404

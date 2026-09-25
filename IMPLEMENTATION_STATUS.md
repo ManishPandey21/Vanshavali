@@ -5,10 +5,12 @@ tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, 
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
 Last verified: 2026-09-25.
-- Backend: `uv run pytest` 160 passed, 1 xfailed (SEC-12, an accepted risk); ruff and mypy clean.
-- Frontend: lint, typecheck, Vitest (69) and build green.
-- Playwright: 5 specs green (core flow, birth certificate review, property partition, viewer denied,
-  MFA). CI runs the same gates.
+- Backend: `uv run pytest` 237 passed, run as the RLS-restricted app role, including the migration
+  roundtrip; ruff, ruff `S` and mypy clean.
+- Frontend: lint, typecheck, Vitest (101) and build green.
+- Playwright: 22 tests in 8 specs (core flow, birth certificate review, property partition, viewer
+  denied, MFA, password reset, onboarding + WhatsApp claim, accessibility). CI runs the same gates.
+  In the dev sandbox, birth certificate review needs Tesseract installed.
 
 ## Platform / Phase 0
 
@@ -95,6 +97,7 @@ Last verified: 2026-09-25.
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Consent ledger, profile claims, erasure, account closure | VERIFIED | `test_search_consent.py`, `test_privacy.py` | Formal data-subject-request inbox and grievance contact DEFERRED (legal workstream) |
+| Onboarding (ADR-0011): guided first run, server-enforced family-data attestation, WhatsApp/shareable claim links with the claimant's own consent and admin approval | VERIFIED | `test_onboarding.py` (25), Vitest `onboarding.test.tsx`, Playwright `onboarding-whatsapp.spec.ts` | Lawful basis for relatives who never claim, and legal review of the wording (en/hi), are open (Q13). A "this isn't me / remove me" response from a link holder is not built. |
 
 ## Security audit
 | Item | Status | Tests | Notes |

@@ -11,7 +11,8 @@ test("enable two-step verification and sign in with an authenticator code", asyn
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
   await openVerificationLink(page, email);
-  await expect(page.getByRole("heading", { name: "Your family trees" })).toBeVisible();
+  // verifying continues to the guided first run for new accounts
+  await expect(page.getByRole("heading", { name: "Start your family tree" })).toBeVisible();
 
   await page.goto("/account");
   await page.getByRole("button", { name: "Set up two-step verification" }).click();

@@ -15,11 +15,12 @@ from sqlalchemy.exc import DBAPIError
 from app.core.db import bind_tree, get_sessionmaker
 from app.models import Base, Person
 from app.models.rls import RLS_TABLES
+from tests.conftest import new_tree
 from tests.helpers import create_person
 
 # Tables with tree_id that are deliberately *not* under RLS (read before a tree is bound, or
 # append-only audit). Everything else that carries tree_id must be protected.
-NOT_RLS = {"tree_membership", "tree_invitation", "audit_event"}
+NOT_RLS = {"tree_membership", "tree_invitation", "profile_claim_invite", "audit_event"}
 
 
 def test_every_tree_scoped_table_is_covered():
@@ -50,11 +51,11 @@ def test_policies_installed_and_app_role_is_restricted():
 
 
 def _two_trees(owner, make_client):  # type: ignore[no-untyped-def]
-    ta = owner.post("/trees", json={"name": "A"}).json()["id"]
+    ta = new_tree(owner, "A")["id"]
     pa = create_person(owner, ta, "InA")
     other = make_client()
     other.register()
-    tb = other.post("/trees", json={"name": "B"}).json()["id"]
+    tb = new_tree(other, "B")["id"]
     pb = create_person(other, tb, "InB")
     return ta, pa, tb, pb
 

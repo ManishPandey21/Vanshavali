@@ -505,6 +505,15 @@ export function ClaimsPage() {
               <ClaimPerson personId={c.person_id} />
               <Badge tone={c.status === "approved" ? "green" : c.status === "rejected" ? "red" : "saffron"}>{t(`enum.claimStatus.${c.status}`)}</Badge>
             </div>
+            {c.claimant_name && (
+              <p className="mt-1 text-sm">
+                {t("claims.claimant", { name: c.claimant_name })}
+                {c.claimant_email && <span className="text-ink-muted"> · {c.claimant_email}</span>}
+              </p>
+            )}
+            {c.via_invite && (
+              <p className="mt-1 text-xs text-ink-muted">{t("claims.viaInvite")}</p>
+            )}
             <p className="mt-1 text-xs text-ink-muted">{new Date(c.created_at).toLocaleString(i18n.language)}</p>
             {c.message && <p className="mt-2 text-sm">“{c.message}”</p>}
             {c.review_note && (

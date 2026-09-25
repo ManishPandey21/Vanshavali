@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { jsonResponse, renderWithProviders } from "../../test/utils";
 import { LoginPage, RegisterPage } from "./AuthPages";
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./EmailPages";
@@ -10,6 +10,10 @@ const user = { id: "u1", email: "a@example.com", display_name: "A", preferred_la
 const unauth = () => jsonResponse({ error: { code: "unauthenticated", message: "Authentication required" } }, 401);
 
 type Handler = (body: unknown) => Response;
+
+function ClaimProbe() {
+  return <p>Claim page {useLocation().hash}</p>;
+}
 
 function setup(route: string, handlers: Record<string, Handler>) {
   const calls: { path: string; body: unknown }[] = [];
@@ -33,6 +37,8 @@ function setup(route: string, handlers: Record<string, Handler>) {
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/" element={<p>Trees list</p>} />
       <Route path="/invite/:token" element={<p>Invitation page</p>} />
+      <Route path="/welcome" element={<p>Welcome page</p>} />
+      <Route path="/claim" element={<ClaimProbe />} />
     </Routes>,
     { tree: null, route },
   );
@@ -62,6 +68,16 @@ describe("registration", () => {
     await userEvent.click(screen.getByRole("button", { name: "Send the link again" }));
     expect(await screen.findByText(/we've sent a new link/, { selector: "p" })).toBeInTheDocument();
     expect(calls[1]).toEqual({ path: "/auth/resend-verification", body: { email: "asha@example.com" } });
+  });
+
+  it("sends a plain sign-up on to the guided first run after verification", async () => {
+    const calls = setup("/register", { "/auth/register": accepted });
+    await userEvent.type(await screen.findByLabelText(/^Your name/), "Asha");
+    await userEvent.type(screen.getByLabelText(/^Email/), "asha@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password/), "a-long-passphrase");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    await screen.findByRole("heading", { name: "Check your email" });
+    expect((calls[0].body as { next?: string }).next).toBe("/welcome");
   });
 });
 
@@ -97,6 +113,11 @@ describe("verify email", () => {
   it("continues to a same-site next path, never an external one", async () => {
     setup("/verify-email/tok-123456789?next=%2Finvite%2Fabc", { "/auth/verify-email": () => jsonResponse(user) });
     expect(await screen.findByText("Invitation page")).toBeInTheDocument();
+  });
+
+  it("follows a next path carried in the link's fragment, keeping a claim token client-side", async () => {
+    setup("/verify-email/tok-123456789#next=%2Fclaim%23Tok_abc-123", { "/auth/verify-email": () => jsonResponse(user) });
+    expect(await screen.findByText("Claim page #Tok_abc-123")).toBeInTheDocument();
   });
 
   it("ignores an off-site next path", async () => {

@@ -9,8 +9,10 @@ subject to the policies. Migrations and maintenance tools connect as the table o
 not restrict (policies are not FORCEd), so migrations, backups and bulk tooling keep working.
 
 Identity/control tables that must be read before a tree is known — ``tree``, ``tree_membership``,
-``tree_invitation``, ``app_user``, ``user_session``, ``auth_token`` — and the append-only ``audit_event`` are not
-covered; they are protected by the service layer (and their own rules).
+``tree_invitation``, ``profile_claim_invite``, ``app_user``, ``user_session``, ``auth_token`` — and the
+append-only ``audit_event`` are not covered; they are protected by the service layer (and their own
+rules). The two invite tables are resolved by a 256-bit token before the holder is a member; the
+handler then binds the invite's tree for everything else it reads.
 """
 
 from __future__ import annotations
@@ -33,6 +35,7 @@ RLS_TABLES: tuple[str, ...] = (
     "export_job",
     "extraction_proposal",
     "family_branch",
+    "family_data_attestation",
     "gedcom_extension",
     "household",
     "household_membership",

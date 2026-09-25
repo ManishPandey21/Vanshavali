@@ -17,3 +17,4 @@ into 0003, 0009 and 0010.
 | 0008 | [GEDCOM 7 interoperability and Indian extensions](0008-gedcom.md) | Accepted |
 | 0009 | [OCR / AI extraction and provenance](0009-ocr-ai-provenance.md) | Accepted |
 | 0010 | [Ancestral property model](0010-property-model.md) | Accepted |
+| 0011 | [Onboarding, family-data attestation and shareable claim invites](0011-onboarding-attestation-claim-invites.md) | Accepted |

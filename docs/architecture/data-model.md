@@ -850,6 +850,11 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_consent_record_tree_id (t
 | `reviewed_by` | UUID | yes |  |
 | `reviewed_at` | DATETIME | yes |  |
 | `review_note` | TEXT | yes |  |
+| `invite_id` | UUID | yes | → profile_claim_invite (composite, same tree) |
+| `consent_version` | VARCHAR(40) | yes |  |
+| `consent_language` | VARCHAR(10) | yes |  |
+| `consent_sha256` | VARCHAR(64) | yes |  |
+| `consent_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -858,6 +863,48 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_consent_record_tree_id (t
 | `updated_at` | DATETIME | no |  |
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_profile_claim_tree_id (tree_id)`
+
+### `profile_claim_invite`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `person_id` | UUID | no | → person (composite, same tree) |
+| `token_hash` | VARCHAR(64) | no |  |
+| `offered_role` | enum(OWNER, FAMILY_ADMIN, BRANCH_ADMIN, CONTRIBUTOR, RESEARCHER, VIEWER, DOCUMENT_CUSTODIAN, PROPERTY_CUSTODIAN) | no |  |
+| `branch_id` | UUID | yes | → family_branch (composite, same tree) |
+| `expires_at` | DATETIME | no |  |
+| `used_by` | UUID | yes | → app_user |
+| `used_at` | DATETIME | yes |  |
+| `revoked_at` | DATETIME | yes |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_profile_claim_invite_person (tree_id, person_id)`; `INDEX ix_profile_claim_invite_tree_id (tree_id)`
+
+### `family_data_attestation`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `user_id` | UUID | no | → app_user |
+| `statement_version` | VARCHAR(40) | no |  |
+| `language` | VARCHAR(10) | no |  |
+| `statement_sha256` | VARCHAR(64) | no |  |
+| `accepted_at` | DATETIME | no |  |
+| `ip` | VARCHAR(64) | yes |  |
+| `user_agent` | VARCHAR(400) | yes |  |
+| `withdrawn_at` | DATETIME | yes |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_family_data_attestation_user (tree_id, user_id)`; `INDEX ix_family_data_attestation_tree_id (tree_id)`
 
 ## Interchange
 
