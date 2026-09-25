@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useLogin, useMe, useRegister, useResendVerification } from "../../api/hooks/auth";
@@ -29,8 +29,25 @@ export function safeNext(next: string | null): string {
   }
 }
 
-function AuthFrame({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode }) {
+function AuthFrame({
+  title,
+  subtitle,
+  children,
+  footer,
+  focusHeading = false,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+  /** Move focus to the heading on mount: the view replaced a form in place, without a navigation. */
+  focusHeading?: boolean;
+}) {
   const { t } = useTranslation();
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (focusHeading) heading.current?.focus();
+  }, [focusHeading]);
   return (
     <div className="flex min-h-dvh flex-col bg-[radial-gradient(ellipse_at_top,_#fbe3d6,_#fbf7ef_60%)]">
       <header className="flex items-center justify-between px-4 py-3">
@@ -40,7 +57,9 @@ function AuthFrame({ title, subtitle, children, footer }: { title: string; subti
       <main id="main" className="flex flex-1 items-start justify-center px-4 py-8 sm:items-center">
         <div className="w-full max-w-md">
           <div className="card p-6 sm:p-8">
-            <h1 className="font-display text-2xl font-bold">{title}</h1>
+            <h1 ref={heading} tabIndex={-1} className="font-display text-2xl font-bold">
+              {title}
+            </h1>
             {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
             <div className="mt-6">{children}</div>
           </div>
@@ -201,6 +220,7 @@ export function RegisterPage() {
     return (
       <AuthFrame
         title={t("auth.checkEmailTitle")}
+        focusHeading
         footer={
           <Link className="font-medium text-kumkum-800 underline" to={`/login${params.get("next") ? `?next=${encodeURIComponent(next)}` : ""}`}>
             {t("auth.backToLogin")}

@@ -51,7 +51,9 @@ describe("registration", () => {
     await userEvent.type(screen.getByLabelText(/^Email/), "asha@example.com");
     await userEvent.type(screen.getByLabelText(/^Password/), "a-long-passphrase");
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(await screen.findByRole("heading", { name: "Check your email" })).toBeInTheDocument();
+    const heading = await screen.findByRole("heading", { name: "Check your email" });
+    // the form was replaced in place: focus moves to the new heading instead of dropping to <body>
+    expect(heading).toHaveFocus();
     expect(screen.getByText(/If asha@example.com can be registered/)).toBeInTheDocument();
     expect(calls[0]).toEqual({
       path: "/auth/register",

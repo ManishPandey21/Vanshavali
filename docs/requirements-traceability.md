@@ -55,7 +55,7 @@ or `frontend/`.
 | 43 | Full archival ZIP with manifest, checksums, GEDCOM, canonical JSON, documents (sensitive opt-in) | export_job | `/t/exports/archive` | Import / Export page | `test_archive.py` | VERIFIED (API) |
 | 42 | Reports, PDF charts | — | — | — | — | DEFERRED (Phase 8) |
 | 49 | Performance targets (p95 < 500 ms, 10k people) | indexes | — | — | load tests DEFERRED | PARTIAL |
-| 50 | WCAG 2.2 AA | — | — | keyboard nav, labels, text alternative for tree | frontend tests | PARTIAL (formal audit DEFERRED Phase 8) |
+| 50 | WCAG 2.2 AA | — | — | keyboard nav, labels, text alternative for tree, route focus/titles, lang on other-script names, non-colour status cues | `e2e/tests/a11y.spec.ts` (axe + keyboard + semantics), frontend tests | VERIFIED by automated audit (`docs/accessibility/audit-2026-09.md`); assistive-technology test with NVDA/VoiceOver still manual |
 | 51 | English + Hindi UI; data independent of UI language | — | `/auth/me` preferred_language | i18next en/hi | frontend tests | IMPLEMENTED |
 | 55 | Backups, PITR, restore drills | ops runbook | — | — | — | PARTIAL (runbook; drills DEFERRED) |
 | 56 | Analytics without family content | no analytics SDK | — | — | — | IMPLEMENTED (by omission) |

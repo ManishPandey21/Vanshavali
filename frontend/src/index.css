@@ -90,8 +90,9 @@
   .card {
     @apply rounded-xl border border-stone-200 bg-white shadow-sm;
   }
+  /* stone-500 border: 4.8:1 against white, so the field boundary meets 1.4.11 Non-text Contrast. */
   .input {
-    @apply block w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-sm text-ink placeholder:text-stone-500 disabled:bg-stone-100 disabled:text-stone-500;
+    @apply block w-full rounded-lg border border-stone-500 bg-white px-3 py-2 text-sm text-ink placeholder:text-stone-500 disabled:bg-stone-100 disabled:text-stone-500;
   }
   .input[aria-invalid="true"] {
     @apply border-red-700;

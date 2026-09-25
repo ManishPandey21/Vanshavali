@@ -25,7 +25,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         id={id}
         value={i18n.language.startsWith("hi") ? "hi" : "en"}
         onChange={(e) => void change(e.target.value)}
-        className="rounded-md border border-stone-300 bg-white px-2 py-1 text-sm"
+        className="rounded-md border border-stone-500 bg-white px-2 py-1 text-sm"
       >
         {SUPPORTED_LANGUAGES.map((l) => (
           <option key={l.code} value={l.code} lang={l.code}>
