@@ -2,6 +2,10 @@ import { useMemo, useState, type ComponentType } from "react";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
+  ArchiveRestore,
+  ArrowDownUp,
+  FileText,
+  LandPlot,
   BookOpen,
   ClipboardList,
   Copy,
@@ -33,7 +37,7 @@ interface NavItem {
   label: string;
   icon: ComponentType<LucideProps>;
   end?: boolean;
-  group: "main" | "family" | "research" | "admin";
+  group: "main" | "family" | "records" | "research" | "admin";
 }
 
 export function TreeLayout() {
@@ -54,6 +58,9 @@ export function TreeLayout() {
       { to: `${base}/joint-family`, label: t("nav.jointFamily"), icon: LayoutGrid, group: "family" },
       { to: `${base}/branches`, label: t("nav.branches"), icon: Landmark, group: "family" },
       { to: `${base}/households`, label: t("nav.households"), icon: UsersRound, group: "family" },
+      { to: `${base}/documents`, label: t("nav.documents"), icon: FileText, group: "records" },
+      ...(ctx.can(Perm.PROPERTY_READ) || ctx.can(Perm.PROPERTY_WRITE) ? [{ to: `${base}/property`, label: t("nav.property"), icon: LandPlot, group: "records" as const }] : []),
+      ...(ctx.can(Perm.GEDCOM_IMPORT) || ctx.can(Perm.GEDCOM_EXPORT) ? [{ to: `${base}/import-export`, label: t("nav.importExport"), icon: ArrowDownUp, group: "records" as const }] : []),
       { to: `${base}/places`, label: t("nav.places"), icon: MapPin, group: "research" },
       { to: `${base}/sources`, label: t("nav.sources"), icon: BookOpen, group: "research" },
       { to: `${base}/search`, label: t("nav.search"), icon: Search, group: "research" },
@@ -63,6 +70,7 @@ export function TreeLayout() {
     if (ctx.can(Perm.MEMBERS_MANAGE)) list.push({ to: `${base}/admin/invitations`, label: t("nav.invitations"), icon: UserPlus, group: "admin" });
     list.push({ to: `${base}/admin/claims`, label: t("nav.claims"), icon: ClipboardList, group: "admin" });
     if (ctx.can(Perm.AUDIT_READ)) list.push({ to: `${base}/admin/audit`, label: t("nav.audit"), icon: ClipboardList, group: "admin" });
+    if (ctx.can(Perm.AUDIT_READ) && ctx.can(Perm.TREE_MANAGE)) list.push({ to: `${base}/admin/restore`, label: t("nav.restore"), icon: ArchiveRestore, group: "admin" });
     if (ctx.can(Perm.TREE_MANAGE)) list.push({ to: `${base}/admin/settings`, label: t("nav.settings"), icon: Settings, group: "admin" });
     return list;
   }, [ctx, t, treeId]);
@@ -78,6 +86,7 @@ export function TreeLayout() {
   const groups: { id: NavItem["group"]; label: string }[] = [
     { id: "main", label: t("nav.group.main") },
     { id: "family", label: t("nav.group.family") },
+    { id: "records", label: t("nav.group.records") },
     { id: "research", label: t("nav.group.research") },
     { id: "admin", label: t("nav.group.admin") },
   ];

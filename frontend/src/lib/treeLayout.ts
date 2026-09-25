@@ -70,13 +70,34 @@ export function layoutGraph(graph: GraphOut, collapsed: ReadonlySet<string> = ne
     layoutChildren.set(cur, kids);
   }
 
+  // In-law partners (node.partner) are not in the lineage; draw each beside the spouse it is
+  // united with, as one couple unit whose children are centred beneath the pair.
+  const partnersOf = new Map<string, string[]>();
+  const attached = new Set<string>();
+  for (const u of graph.unions ?? []) {
+    const a = String(u.a);
+    const b = String(u.b);
+    const na = byId.get(a);
+    const nb = byId.get(b);
+    if (!na || !nb) continue;
+    const [member, partner] = nb.partner && !na.partner ? [a, b] : na.partner && !nb.partner ? [b, a] : [null, null];
+    if (!member || !partner || attached.has(partner) || !seen.has(member)) continue;
+    attached.add(partner);
+    partnersOf.set(member, [...(partnersOf.get(member) ?? []), partner]);
+  }
+  const unitW = (id: string) => {
+    const k = partnersOf.get(id)?.length ?? 0;
+    return NODE_W * (1 + k) + H_GAP * k;
+  };
+
   const countBelow = (id: string): number => (layoutChildren.get(id) ?? []).reduce((s, c) => s + 1 + countBelow(c), 0);
 
   // subtree widths (collapsed nodes count as leaves)
   const width = new Map<string, number>();
   const measure = (id: string): number => {
     const kids = collapsed.has(id) ? [] : layoutChildren.get(id) ?? [];
-    const w = kids.length ? Math.max(NODE_W, kids.reduce((s, k) => s + measure(k), 0) + H_GAP * (kids.length - 1)) : NODE_W;
+    const own = unitW(id);
+    const w = kids.length ? Math.max(own, kids.reduce((s, k) => s + measure(k), 0) + H_GAP * (kids.length - 1)) : own;
     width.set(id, w);
     return w;
   };
@@ -89,7 +110,7 @@ export function layoutGraph(graph: GraphOut, collapsed: ReadonlySet<string> = ne
     const isCollapsed = collapsed.has(id);
     const kids = isCollapsed ? [] : layoutChildren.get(id) ?? [];
     const node = byId.get(id)!;
-    const x = left + (w - NODE_W) / 2;
+    const x = left + (w - unitW(id)) / 2;
     out.set(id, {
       node,
       x,
@@ -100,6 +121,10 @@ export function layoutGraph(graph: GraphOut, collapsed: ReadonlySet<string> = ne
     });
     const gen = node.generation;
     rows.set(gen, [...(rows.get(gen) ?? []), id]);
+    (partnersOf.get(id) ?? []).forEach((pid, i) => {
+      out.set(pid, { node: byId.get(pid)!, x: x + (NODE_W + H_GAP) * (i + 1), y: depth, children: [], collapsed: false, hiddenDescendants: 0 });
+      rows.set(gen, [...(rows.get(gen) ?? []), pid]);
+    });
     let cursor = left;
     for (const k of kids) {
       place(k, cursor, depth + 1);
@@ -125,7 +150,7 @@ export function layoutGraph(graph: GraphOut, collapsed: ReadonlySet<string> = ne
     nodes: out,
     edges,
     couples,
-    width: width.get(rootId) ?? NODE_W,
+    width: Math.max(width.get(rootId) ?? NODE_W, ...[...out.values()].map((n) => n.x + NODE_W)),
     height: (maxDepth + 1) * ROW_H - (ROW_H - NODE_H),
     rows,
     rootId,

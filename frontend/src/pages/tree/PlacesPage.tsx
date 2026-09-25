@@ -26,14 +26,16 @@ export function PlacesPage() {
   const debounced = useDebounced(q.trim(), 250);
   const places = usePlaces(treeId, debounced);
   const [editing, setEditing] = useState<PlaceOut | "new" | null>(null);
-  const canWrite = can(Perm.PERSON_WRITE);
+  // Researchers (source.write) may add places but not edit canonical ones (server SEC-8).
+  const canCreate = can(Perm.PERSON_WRITE) || can(Perm.PROPERTY_WRITE) || can(Perm.SOURCE_WRITE);
+  const canWrite = can(Perm.PERSON_WRITE) || can(Perm.PROPERTY_WRITE);
   return (
     <div>
       <PageHeader
         title={t("places.title")}
         subtitle={t("places.subtitle")}
         actions={
-          canWrite ? (
+          canCreate ? (
             <Button icon={<Plus className="size-4" aria-hidden />} onClick={() => setEditing("new")}>
               {t("places.create")}
             </Button>

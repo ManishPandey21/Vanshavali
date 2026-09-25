@@ -2,8 +2,8 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Landmark, Plus, Trash2, Users, Wand2 } from "lucide-react";
-import type { DescentRule, PersonSummary } from "../../api/types";
-import { useAddBranchMembers, useBranch, useBranches, useCreateBranch, useDeleteBranch, useDeriveBranch, useRemoveBranchMember } from "../../api/hooks/family";
+import type { BranchOut, DescentRule, PersonSummary } from "../../api/types";
+import { useAddBranchMembers, useBranch, useBranches, useCreateBranch, useDeleteBranch, useDeriveBranch, useRemoveBranchMember, useUpdateBranch } from "../../api/hooks/family";
 import { usePerson } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
@@ -147,6 +147,7 @@ export function BranchDetailPage() {
   const [tab, setTab] = useState("members");
   const [adding, setAdding] = useState<PersonSummary | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editing, setEditing] = useState(false);
   const canWrite = can(Perm.FAMILY_WRITE);
   if (branch.isLoading) return <Spinner />;
   if (!branch.data) return <ErrorAlert error={branch.error} />;
@@ -165,6 +166,9 @@ export function BranchDetailPage() {
                   {t("branches.derive")}
                 </Button>
               )}
+              <Button variant="secondary" onClick={() => setEditing(true)}>
+                {t("common.edit")}
+              </Button>
               <Button variant="ghost" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setConfirmDelete(true)}>
                 {t("common.delete")}
               </Button>
@@ -226,6 +230,7 @@ export function BranchDetailPage() {
           <HeritageProfile subject={{ kind: "branch", id: b.id }} canWrite={canWrite} />
         )}
       </Tabs>
+      {editing && <EditBranchDialog branch={b} founder={founder.data ?? null} onClose={() => setEditing(false)} />}
       <ConfirmDialog
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
@@ -239,5 +244,77 @@ export function BranchDetailPage() {
         <ErrorAlert error={del.error} />
       </ConfirmDialog>
     </div>
+  );
+}
+
+function EditBranchDialog({ branch, founder, onClose }: { branch: BranchOut; founder: PersonSummary | null; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { treeId } = useTreeCtx();
+  const branches = useBranches(treeId);
+  const update = useUpdateBranch(treeId, branch.id);
+  const [name, setName] = useState(branch.name);
+  const [description, setDescription] = useState(branch.description ?? "");
+  const [rule, setRule] = useState<DescentRule>(branch.descent_rule);
+  const [f, setF] = useState<PersonSummary | null>(founder);
+  const [parent, setParent] = useState(branch.parent_branch_id ?? "");
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      title={t("branches.editTitle")}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            loading={update.isPending}
+            disabled={!name.trim()}
+            onClick={() =>
+              update.mutate(
+                { name: name.trim(), description: description.trim() || null, descent_rule: rule, founder_person_id: f?.id ?? null, parent_branch_id: parent || null },
+                { onSuccess: onClose },
+              )
+            }
+          >
+            {t("common.save")}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        <Field label={t("branches.name")} required>
+          {(p) => <TextInput {...p} value={name} onChange={(e) => setName(e.target.value)} />}
+        </Field>
+        <Field label={t("branches.descentRule")} hint={t(`branches.ruleHint.${rule}`)}>
+          {(p) => (
+            <Select {...p} value={rule} onChange={(e) => setRule(e.target.value as DescentRule)}>
+              {DESCENT_RULES.map((r) => (
+                <option key={r} value={r}>
+                  {t(`enum.descentRule.${r}`)}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Field>
+        <PersonPicker treeId={treeId} label={t("branches.founder")} value={f} onChange={setF} />
+        <Field label={t("branches.parentBranch")}>
+          {(p) => (
+            <Select {...p} value={parent} onChange={(e) => setParent(e.target.value)}>
+              <option value="">{t("common.none")}</option>
+              {branches.data
+                ?.filter((x) => x.id !== branch.id)
+                .map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.name}
+                  </option>
+                ))}
+            </Select>
+          )}
+        </Field>
+        <Field label={t("branches.description")}>{(p) => <TextArea {...p} value={description} onChange={(e) => setDescription(e.target.value)} />}</Field>
+        <ErrorAlert error={update.error} />
+      </div>
+    </Dialog>
   );
 }

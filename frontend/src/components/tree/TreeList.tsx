@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { GraphOut, GraphNode } from "../../api/types";
 import { PrivatePersonPlaceholder } from "../person/badges";
+import { lifespan } from "../../lib/dates";
 
 /**
  * Text alternative to the chart (PRS §50): generations as headed lists, each person linking to
@@ -42,11 +43,8 @@ export function TreeList({ graph, personHref }: { graph: GraphOut; personHref: (
                   ) : (
                     <PrivatePersonPlaceholder />
                   )}
-                  {n.person && (n.person.birth_year || n.person.death_year) && (
-                    <span className="ml-1 text-ink-muted">
-                      ({n.person.birth_year ?? "?"}–{n.person.death_year ?? ""})
-                    </span>
-                  )}
+                  {n.person && lifespan(n.person, t) && <span className="ml-1 text-ink-muted">({lifespan(n.person, t)})</span>}
+                  {n.partner && <span className="ml-1 text-xs text-ink-muted">· {t("treeView.partnerNode")}</span>}
                   {links.length > 0 && (
                     <p className="text-xs text-ink-muted">
                       {graph.direction === "ancestors" ? t("treeView.parentsAre") : t("treeView.childrenAre")}{" "}

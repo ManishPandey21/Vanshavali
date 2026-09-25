@@ -2,7 +2,8 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Check, Copy, Globe2, Trash2, UserPlus, X } from "lucide-react";
-import type { InvitationOut, MemberOut, PrivacyLevel, PublicMode, Role } from "../../api/types";
+import type { InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, Role } from "../../api/types";
+import { PersonPicker } from "../../components/pickers";
 import {
   useAudit,
   useClaims,
@@ -17,7 +18,7 @@ import {
 } from "../../api/hooks/trees";
 import { useBranches } from "../../api/hooks/family";
 import { useMe } from "../../api/hooks/auth";
-import { usePerson } from "../../api/hooks/people";
+import { usePerson, useRestorePerson } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
 import { PRIVACY_LEVELS } from "../../components/person/PersonForm";
@@ -160,17 +161,26 @@ function LinkedPerson({ personId }: { personId: string }) {
 
 function EditMemberDialog({ member, onClose }: { member: MemberOut; onClose: () => void }) {
   const { t } = useTranslation();
-  const { treeId } = useTreeCtx();
+  const { treeId, isAdmin } = useTreeCtx();
+  const me = useMe();
   const update = useUpdateMember(treeId);
   const branches = useBranches(treeId);
+  const linked = usePerson(treeId, member.linked_person_id ?? undefined);
   const [roles, setRoles] = useState<Role[]>(member.roles);
   const [branch, setBranch] = useState(member.branch_id ?? "");
+  const [person, setPerson] = useState<PersonSummary | null | undefined>(undefined);
+  // Only admins may link a member to a person, and never on their own membership (self-linking
+  // goes through a profile claim that another admin reviews).
+  const canLink = isAdmin && member.user_id !== me.data?.id;
+  const currentLinked = person === undefined ? (linked.data ?? null) : person;
   const submit = () => {
     if (!roles.length) return;
-    update.mutate(
-      { id: member.id, body: { roles, branch_id: branch || null, clear_branch: !branch && !!member.branch_id } },
-      { onSuccess: onClose },
-    );
+    const body: MemberUpdate = { roles, branch_id: branch || null, clear_branch: !branch && !!member.branch_id };
+    if (canLink && person !== undefined) {
+      if (person) body.linked_person_id = person.id;
+      else body.clear_linked_person = true;
+    }
+    update.mutate({ id: member.id, body }, { onSuccess: onClose });
   };
   return (
     <Dialog
@@ -203,6 +213,7 @@ function EditMemberDialog({ member, onClose }: { member: MemberOut; onClose: () 
             </Select>
           )}
         </Field>
+        {canLink && <PersonPicker treeId={treeId} label={t("members.linkedPerson")} value={currentLinked} onChange={setPerson} hint={t("members.linkedPersonHint")} />}
         <ErrorAlert error={update.error} />
       </div>
     </Dialog>
@@ -530,5 +541,65 @@ function ClaimPerson({ personId }: { personId: string }) {
     </Link>
   ) : (
     <span className="italic text-ink-muted">{t("person.privatePerson")}</span>
+  );
+}
+
+/**
+ * Recycle bin for people (tree admins). The API has no "list deleted people" endpoint, so removed
+ * people are found from the audit log (person.deleted minus later person.restored); names are
+ * not recoverable until restored because deleted people are hidden from every read.
+ */
+export function RestorePeoplePage() {
+  const { t, i18n } = useTranslation();
+  const { treeId, can } = useTreeCtx();
+  const allowed = can(Perm.TREE_MANAGE) && can(Perm.AUDIT_READ);
+  const deleted = useAudit(treeId, "person.deleted");
+  const restored = useAudit(treeId, "person.restored");
+  const restore = useRestorePerson(treeId);
+  const [done, setDone] = useState<Record<string, string>>({});
+  if (!allowed) return <Navigate to={`/t/${treeId}`} replace />;
+  const lastRestore = new Map<string, string>();
+  for (const e of restored.data?.pages.flatMap((p) => p.items) ?? []) {
+    if (e.target_id && (!lastRestore.has(e.target_id) || lastRestore.get(e.target_id)! < e.created_at)) lastRestore.set(e.target_id, e.created_at);
+  }
+  const seen = new Set<string>();
+  const items = (deleted.data?.pages.flatMap((p) => p.items) ?? []).filter((e) => {
+    if (!e.target_id || seen.has(e.target_id)) return false;
+    seen.add(e.target_id);
+    const r = lastRestore.get(e.target_id);
+    return !r || r < e.created_at;
+  });
+  return (
+    <div className="mx-auto max-w-3xl">
+      <PageHeader title={t("restore.title")} subtitle={t("restore.subtitle")} />
+      {(deleted.isLoading || restored.isLoading) && <Spinner />}
+      <ErrorAlert error={deleted.error || restored.error || restore.error} />
+      {deleted.data && items.length === 0 && <EmptyState title={t("restore.none")} />}
+      <ul className="card divide-y divide-stone-100">
+        {items.map((e) => (
+          <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+            <span>
+              {done[e.target_id!] ? (
+                <Link className="font-medium text-kumkum-800 underline" to={`/t/${treeId}/people/${e.target_id}`}>
+                  {done[e.target_id!]}
+                </Link>
+              ) : (
+                <span className="font-medium">{t("restore.removedPerson")}</span>
+              )}
+              <span className="block text-xs text-ink-muted">
+                {t("restore.removedBy", { name: e.actor_name ?? t("audit.system"), date: new Date(e.created_at).toLocaleString(i18n.language) })} · <code>{e.target_id!.slice(0, 8)}</code>
+              </span>
+            </span>
+            {done[e.target_id!] ? (
+              <Badge tone="green">{t("restore.restored")}</Badge>
+            ) : (
+              <Button size="sm" loading={restore.isPending && restore.variables === e.target_id} onClick={() => restore.mutate(e.target_id!, { onSuccess: (p) => setDone((d) => ({ ...d, [p.id]: p.display_name })) })}>
+                {t("restore.restore")}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

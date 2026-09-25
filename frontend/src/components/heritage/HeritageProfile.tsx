@@ -139,7 +139,7 @@ function AttributeCard({
             {t("citations.count", { count: pref.citation_count ?? 0 })}
           </button>
         )}
-        {pref && cites && <CitationList targetType="assertion" targetId={pref.id} />}
+        {pref && cites && <CitationList targetType="assertion" targetId={pref.id} canEditTarget={canWrite} />}
         {alts.length > 0 && (
           <div className="mt-2">
             <button type="button" className="inline-flex items-center gap-1 text-xs font-medium text-kumkum-800" aria-expanded={showAlt} onClick={() => setShowAlt(!showAlt)}>

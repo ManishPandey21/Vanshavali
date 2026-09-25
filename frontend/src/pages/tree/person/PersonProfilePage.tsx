@@ -24,9 +24,11 @@ import { TimelineTab } from "./TimelineTab";
 import { FamilyTab } from "./FamilyTab";
 import { HouseholdsTab } from "./HouseholdsTab";
 import { PrivacyTab } from "./PrivacyTab";
+import { AstrologyTab } from "./AstrologyTab";
+import { DocumentsTab, PropertyInterestsSection } from "./DocumentsTab";
 import { ApiError } from "../../../api/client";
 
-const TABS = ["overview", "family", "timeline", "heritage", "sources", "households", "privacy"] as const;
+const TABS = ["overview", "family", "timeline", "heritage", "documents", "astrology", "property", "sources", "households", "privacy"] as const;
 type TabId = (typeof TABS)[number];
 
 export function PersonProfilePage() {
@@ -53,7 +55,8 @@ export function PersonProfilePage() {
   const isClaimant = !!me.data && p.claimed_by_user_id === me.data.id;
   const canPrivacy = can(Perm.PRIVACY_MANAGE) || isClaimant;
   const native = nativeScriptNames(p.names);
-  const visibleTabs = TABS.filter((id) => id !== "privacy" || canPrivacy);
+  const canProperty = can(Perm.PROPERTY_READ) || can(Perm.PROPERTY_WRITE);
+  const visibleTabs = TABS.filter((id) => (id !== "privacy" || canPrivacy) && (id !== "property" || canProperty));
   const redacted = p.redacted_fields ?? [];
 
   return (
@@ -132,7 +135,10 @@ export function PersonProfilePage() {
         {tab === "family" && <FamilyTab person={p} />}
         {tab === "timeline" && <TimelineTab person={p} />}
         {tab === "heritage" && <HeritageProfile subject={{ kind: "person", id: p.id }} canWrite={can(Perm.ASSERTION_WRITE)} />}
-        {tab === "sources" && <SourcesTab personId={p.id} />}
+        {tab === "documents" && <DocumentsTab person={p} />}
+        {tab === "astrology" && <AstrologyTab person={p} />}
+        {tab === "property" && canProperty && <PropertyInterestsSection personId={p.id} />}
+        {tab === "sources" && <SourcesTab personId={p.id} canEdit={!!p.can_edit} />}
         {tab === "households" && <HouseholdsTab person={p} />}
         {tab === "privacy" && canPrivacy && <PrivacyTab person={p} isClaimant={isClaimant} />}
       </Tabs>
@@ -161,7 +167,7 @@ export function PersonProfilePage() {
   );
 }
 
-function SourcesTab({ personId }: { personId: string }) {
+function SourcesTab({ personId, canEdit }: { personId: string; canEdit: boolean }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
   const events = usePersonEvents(treeId, personId);
@@ -170,7 +176,7 @@ function SourcesTab({ personId }: { personId: string }) {
       <h2 id="src-title" className="font-display text-lg font-semibold">
         {t("citations.forPerson")}
       </h2>
-      <CitationList targetType="person" targetId={personId} />
+      <CitationList targetType="person" targetId={personId} canEditTarget={canEdit} />
       <h3 className="font-display font-semibold">{t("citations.forEvents")}</h3>
       {events.isLoading && <Spinner />}
       <ul className="space-y-3">
@@ -184,7 +190,7 @@ function SourcesTab({ personId }: { personId: string }) {
                 </span>
               )}
             </p>
-            <CitationList targetType="event" targetId={e.id} />
+            <CitationList targetType="event" targetId={e.id} canEditTarget={canEdit} />
           </li>
         ))}
       </ul>

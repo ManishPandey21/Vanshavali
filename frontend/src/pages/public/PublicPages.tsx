@@ -11,6 +11,7 @@ import { PrivatePersonPlaceholder, RelTypeBadge, StatusBadge } from "../../compo
 import { TreeList } from "../../components/tree/TreeList";
 import { EmptyState, ErrorAlert, Spinner } from "../../components/ui/feedback";
 import type { ReactNode } from "react";
+import { lifespan } from "../../lib/dates";
 
 function PublicFrame({ slug, title, children }: { slug: string; title?: string; children: ReactNode }) {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export function PublicTreePage() {
               {p.display_name}
             </Link>
             <span className="text-xs text-ink-muted">
-              {p.birth_year ?? "?"}–{p.death_year ?? "?"}
+              {lifespan(p, t)}
             </span>
           </li>
         ))}
@@ -136,9 +137,9 @@ export function PublicPersonPage() {
           </h2>
           <h3 className="mt-2 text-xs font-semibold uppercase text-ink-muted">{t("family.parents")}</h3>
           <ul>{family.data.parents.map((r, i) => <PublicRelative key={i} slug={slug} rel={r} />)}</ul>
-          {family.data.unions.map((u) => (
-            <div key={u.relationship.id} className="mt-2">
-              <h3 className="text-xs font-semibold uppercase text-ink-muted">{t(`enum.relType.${u.relationship.type}`)}</h3>
+          {family.data.unions.map((u, i) => (
+            <div key={u.relationship?.id ?? `hidden-${i}`} className="mt-2">
+              <h3 className="text-xs font-semibold uppercase text-ink-muted">{u.relationship ? t(`enum.relType.${u.relationship.type}`) : t("family.unionN", { n: i + 1 })}</h3>
               <ul>
                 <PublicRelative slug={slug} rel={u.partner} />
               </ul>

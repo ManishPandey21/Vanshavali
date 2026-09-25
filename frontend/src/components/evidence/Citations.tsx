@@ -4,6 +4,7 @@ import { BookOpen, Plus, Trash2 } from "lucide-react";
 import type { CitationTarget, Confidence, SourceOut, SourceType } from "../../api/types";
 import { useAddCitation, useCitations, useCreateSource, useDeleteCitation, useSources } from "../../api/hooks/heritage";
 import { useTreeCtx } from "../../lib/tree-context";
+import { useMe } from "../../api/hooks/auth";
 import { Perm } from "../../lib/permissions";
 import { useDebounced } from "../../lib/useDebounced";
 import { Button } from "../ui/Button";
@@ -33,9 +34,14 @@ export const SOURCE_TYPES: SourceType[] = [
 ];
 const CONFIDENCES: Confidence[] = ["high", "medium", "low", "unknown"];
 
-export function CitationList({ targetType, targetId }: { targetType: CitationTarget; targetId: string }) {
+/**
+ * `canEditTarget`: whether the viewer may write the cited record (e.g. person.can_edit). Removing a
+ * citation needs that, or authorship of the citation; the server re-checks (403 is shown).
+ */
+export function CitationList({ targetType, targetId, canEditTarget = false }: { targetType: CitationTarget; targetId: string; canEditTarget?: boolean }) {
   const { t } = useTranslation();
   const { treeId, can } = useTreeCtx();
+  const me = useMe();
   const cites = useCitations(treeId, targetType, targetId);
   const del = useDeleteCitation(treeId);
   const [adding, setAdding] = useState(false);
@@ -66,7 +72,7 @@ export function CitationList({ targetType, targetId }: { targetType: CitationTar
               )}
               {c.text_excerpt && <span className="block text-xs italic text-ink-muted">“{c.text_excerpt}”</span>}
             </span>
-            {can(Perm.SOURCE_WRITE) && (
+            {(canEditTarget || (!!me.data && c.created_by === me.data.id)) && (
               <button type="button" className="rounded p-1 text-red-800 hover:bg-red-50" onClick={() => del.mutate(c.id)} aria-label={t("citations.remove", { title: c.source_title ?? "" })}>
                 <Trash2 className="size-3.5" aria-hidden />
               </button>

@@ -11,6 +11,7 @@ import {
   useEndHouseholdMember,
   useHousehold,
   useHouseholds,
+  useUpdateHousehold,
 } from "../../api/hooks/family";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
@@ -207,6 +208,7 @@ export function HouseholdDetail({ householdId, onDeleted }: { householdId: strin
   const [start, setStart] = useState<GenealogicalDate>(emptyDate());
   const [ending, setEnding] = useState<HouseholdMemberOut | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editingHh, setEditingHh] = useState(false);
   const canWrite = can(Perm.FAMILY_WRITE);
   if (hh.isLoading) return <Spinner />;
   if (!hh.data) return <ErrorAlert error={hh.error} />;
@@ -233,9 +235,14 @@ export function HouseholdDetail({ householdId, onDeleted }: { householdId: strin
           {h.notes && <p className="mt-1 whitespace-pre-wrap text-sm">{h.notes}</p>}
         </div>
         {canWrite && (
-          <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setConfirmDelete(true)}>
-            {t("common.delete")}
-          </Button>
+          <div className="flex gap-1">
+            <Button size="sm" variant="secondary" onClick={() => setEditingHh(true)}>
+              {t("common.edit")}
+            </Button>
+            <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setConfirmDelete(true)}>
+              {t("common.delete")}
+            </Button>
+          </div>
         )}
       </div>
       <MemberList title={t("households.currentMembers")} members={current} onEnd={canWrite ? setEnding : undefined} />
@@ -284,6 +291,7 @@ export function HouseholdDetail({ householdId, onDeleted }: { householdId: strin
           </Button>
         </form>
       )}
+      {editingHh && <EditHouseholdDialog household={h} onClose={() => setEditingHh(false)} />}
       {ending && <EndMembershipDialog householdId={householdId} member={ending} onClose={() => setEnding(null)} />}
       <ConfirmDialog
         open={confirmDelete}
@@ -494,5 +502,83 @@ function JointHousehold({ householdId }: { householdId: string }) {
       )}
       {(h.hidden_member_count ?? 0) > 0 && <p className="mt-1 text-xs text-ink-muted">{t("households.hiddenCount", { count: h.hidden_member_count })}</p>}
     </article>
+  );
+}
+
+function EditHouseholdDialog({ household, onClose }: { household: HouseholdOut; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { treeId } = useTreeCtx();
+  const branches = useBranches(treeId);
+  const update = useUpdateHousehold(treeId, household.id);
+  const [name, setName] = useState(household.name);
+  const [houseName, setHouseName] = useState(household.house_name ?? "");
+  const [branchId, setBranchId] = useState(household.branch_id ?? "");
+  const [place, setPlace] = useState<PlaceValue>(household.place_id ? { place_id: household.place_id, place_label: household.place_name ?? null, place_as_recorded: household.place_name ?? "" } : emptyPlace());
+  const [start, setStart] = useState<GenealogicalDate>((household.start_date as GenealogicalDate | null) ?? emptyDate());
+  const [end, setEnd] = useState<GenealogicalDate>((household.end_date as GenealogicalDate | null) ?? emptyDate());
+  const [notes, setNotes] = useState(household.notes ?? "");
+  const [submitted, setSubmitted] = useState(false);
+  const bad = (d: GenealogicalDate) => hasDate(d) && Object.keys(validateDate(d)).length > 0;
+  const placeUnlinked = !place.place_id && !!place.place_as_recorded.trim();
+  const save = () => {
+    setSubmitted(true);
+    if (!name.trim() || bad(start) || bad(end) || placeUnlinked) return;
+    update.mutate(
+      {
+        name: name.trim(),
+        house_name: houseName.trim() || null,
+        branch_id: branchId || null,
+        place_id: place.place_id,
+        start_date: hasDate(start) ? normalizeDate(start) : null,
+        end_date: hasDate(end) ? normalizeDate(end) : null,
+        notes: notes.trim() || null,
+      },
+      { onSuccess: onClose },
+    );
+  };
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      size="lg"
+      title={t("households.editTitle")}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+          <Button loading={update.isPending} onClick={save}>
+            {t("common.save")}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Field label={t("households.name")} required error={submitted && !name.trim() ? t("common.required") : null}>
+            {(p) => <TextInput {...p} value={name} onChange={(e) => setName(e.target.value)} />}
+          </Field>
+          <Field label={t("households.houseName")}>{(p) => <TextInput {...p} value={houseName} onChange={(e) => setHouseName(e.target.value)} />}</Field>
+          <Field label={t("households.branch")}>
+            {(p) => (
+              <Select {...p} value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+                <option value="">{t("common.none")}</option>
+                {branches.data?.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        </div>
+        <PlacePicker treeId={treeId} label={t("households.place")} value={place} onChange={setPlace} />
+        {submitted && placeUnlinked && <p className="field-error">{t("households.placeMustLink")}</p>}
+        <GenealogicalDateEditor legend={t("households.startDate")} value={start} onChange={setStart} showErrors={submitted && hasDate(start)} />
+        <GenealogicalDateEditor legend={t("households.endedOn")} value={end} onChange={setEnd} showErrors={submitted && hasDate(end)} />
+        <Field label={t("households.notes")}>{(p) => <TextArea {...p} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />}</Field>
+        <ErrorAlert error={update.error} />
+      </div>
+    </Dialog>
   );
 }

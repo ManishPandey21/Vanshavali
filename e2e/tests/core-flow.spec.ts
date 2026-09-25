@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test";
+import { PASSWORD, uniqueEmail } from "./helpers";
 
 /**
  * Critical flow 1 (docs/architecture/README.md): register → create tree → add person →
@@ -6,9 +7,8 @@ import { expect, test, type Locator } from "@playwright/test";
  * Runs against the real API; nothing is mocked.
  */
 
-const stamp = Date.now();
-const email = `e2e-${stamp}@example.com`;
-const password = "a-long-e2e-passphrase-42";
+const email = uniqueEmail("core");
+const password = PASSWORD;
 
 async function fillNewPerson(scope: Locator, given: string, surname: string, sex?: string) {
   const name1 = scope.getByRole("group", { name: "Name 1" });

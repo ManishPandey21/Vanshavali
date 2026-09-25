@@ -3,7 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Copy, Search } from "lucide-react";
 import { useDuplicates, useSearch } from "../../api/hooks/heritage";
-import type { SearchHit } from "../../api/types";
+import type { PersonSummary, SearchHit } from "../../api/types";
+import { Perm } from "../../lib/permissions";
+import { Button } from "../../components/ui/Button";
+import { MergeDialog, MergeHistory } from "./MergeDialog";
 import { useTreeCtx } from "../../lib/tree-context";
 import { useDebounced } from "../../lib/useDebounced";
 import { EmptyState, ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../components/ui/feedback";
@@ -107,7 +110,8 @@ export function SearchPage() {
 
 export function DuplicatesPage() {
   const { t } = useTranslation();
-  const { treeId } = useTreeCtx();
+  const { treeId, can } = useTreeCtx();
+  const [merging, setMerging] = useState<{ a: PersonSummary; b: PersonSummary } | null>(null);
   const [minScore, setMinScore] = useState(0.55);
   const dups = useDuplicates(treeId, minScore);
   const sliderId = useId();
@@ -124,6 +128,7 @@ export function DuplicatesPage() {
       {dups.isLoading && <Spinner />}
       <ErrorAlert error={dups.error} />
       {dups.data?.length === 0 && <EmptyState icon={<Copy className="size-10" aria-hidden />} title={t("duplicates.none")} />}
+      {merging && <MergeDialog a={merging.a} b={merging.b} onClose={() => setMerging(null)} />}
       <ul className="space-y-3">
         {dups.data?.map((d) => (
           <li key={`${d.person_a.id}-${d.person_b.id}`} className="card p-4">
@@ -146,12 +151,20 @@ export function DuplicatesPage() {
                 <li key={r}>{r}</li>
               ))}
             </ul>
-            <Link to={`/t/${treeId}/relationship?from=${d.person_a.id}&to=${d.person_b.id}`} className="mt-2 inline-block text-xs text-kumkum-800 underline">
-              {t("duplicates.compare")}
-            </Link>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <Link to={`/t/${treeId}/relationship?from=${d.person_a.id}&to=${d.person_b.id}`} className="text-xs text-kumkum-800 underline">
+                {t("duplicates.compare")}
+              </Link>
+              {can(Perm.TREE_MANAGE) && (
+                <Button size="sm" variant="secondary" onClick={() => setMerging({ a: d.person_a, b: d.person_b })}>
+                  {t("merge.open")}
+                </Button>
+              )}
+            </div>
           </li>
         ))}
       </ul>
+      <MergeHistory />
     </div>
   );
 }

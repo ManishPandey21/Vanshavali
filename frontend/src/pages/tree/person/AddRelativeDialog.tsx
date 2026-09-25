@@ -57,7 +57,8 @@ export function AddRelativeDialog({
   });
   const [relType, setRelType] = useState<RelationshipType>(relation === "spouse" ? "spouse" : "biological_parent");
   const [subtype, setSubtype] = useState("");
-  const visibleUnions = unions.filter((u) => !u.partner.hidden || u.relationship);
+  // Unions with a hidden partner carry no relationship id and cannot be chosen.
+  const visibleUnions = unions.filter((u): u is UnionOut & { relationship: NonNullable<UnionOut["relationship"]> } => !!u.relationship);
   const [unionId, setUnionId] = useState<string>(initialUnionId ?? visibleUnions[0]?.relationship.id ?? "");
   const [startDate, setStartDate] = useState<GenealogicalDate>(emptyDate());
   const [submitted, setSubmitted] = useState(false);

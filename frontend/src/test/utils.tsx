@@ -8,6 +8,14 @@ import type { TreeOut } from "../api/types";
 import { TreeContext, makeTreeCtx } from "../lib/tree-context";
 
 export const ALL_PERMS = [
+  "document.upload",
+  "document.manage",
+  "extraction.review",
+  "astrology.write",
+  "property.read",
+  "property.write",
+  "gedcom.import",
+  "gedcom.export",
   "tree.read",
   "tree.manage",
   "members.manage",

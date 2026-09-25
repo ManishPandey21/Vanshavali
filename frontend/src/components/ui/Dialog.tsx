@@ -3,6 +3,9 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 
+/** Open dialogs, innermost last: only the top one handles Escape/Tab (dialogs can nest). */
+const stack: symbol[] = [];
+
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -38,10 +41,13 @@ export function Dialog({
   useEffect(() => {
     if (!open) return;
     openerRef.current = document.activeElement;
+    const me = Symbol("dialog");
+    stack.push(me);
     const panel = panelRef.current;
     const first = panel?.querySelector<HTMLElement>("[autofocus], [data-autofocus]") ?? panel?.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? panel)?.focus();
     const onKey = (e: KeyboardEvent) => {
+      if (stack[stack.length - 1] !== me) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         onCloseRef.current();
@@ -64,7 +70,8 @@ export function Dialog({
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      stack.splice(stack.indexOf(me), 1);
+      if (stack.length === 0) document.body.style.overflow = prevOverflow;
       if (openerRef.current instanceof HTMLElement) openerRef.current.focus();
     };
   }, [open]);

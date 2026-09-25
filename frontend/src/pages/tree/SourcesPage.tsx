@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Plus, ScrollText } from "lucide-react";
 import type { GenealogicalDate, PrivacyLevel, SourceIn, SourceOut, SourceType, TraditionIn } from "../../api/types";
-import { useCreateSource, useSources } from "../../api/hooks/heritage";
+import { useCreateSource, useSources, useUpdateSource } from "../../api/hooks/heritage";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
 import { useDebounced } from "../../lib/useDebounced";
@@ -28,6 +28,7 @@ export function SourcesPage() {
   const debounced = useDebounced(q.trim(), 250);
   const sources = useSources(treeId, debounced, type || undefined);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<SourceOut | null>(null);
   const items = sources.data?.pages.flatMap((p) => p.items) ?? [];
   return (
     <div>
@@ -62,7 +63,7 @@ export function SourcesPage() {
       {sources.data && items.length === 0 && <EmptyState icon={<BookOpen className="size-10" aria-hidden />} title={t("sources.empty")}>{t("sources.emptyHint")}</EmptyState>}
       <ul className="space-y-3">
         {items.map((s) => (
-          <SourceCard key={s.id} s={s} />
+          <SourceCard key={s.id} s={s} onEdit={can(Perm.SOURCE_WRITE) ? () => setEditing(s) : undefined} />
         ))}
       </ul>
       {sources.hasNextPage && (
@@ -73,11 +74,12 @@ export function SourcesPage() {
         </div>
       )}
       {creating && <SourceDialog onClose={() => setCreating(false)} />}
+      {editing && <SourceDialog source={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
 
-function SourceCard({ s }: { s: SourceOut }) {
+function SourceCard({ s, onEdit }: { s: SourceOut; onEdit?: () => void }) {
   const { t } = useTranslation();
   const tradition = s.tradition as Record<string, string | null> | null;
   return (
@@ -130,29 +132,36 @@ function SourceCard({ s }: { s: SourceOut }) {
         </details>
       )}
       {s.notes && <p className="mt-1 text-xs text-ink-muted">{s.notes}</p>}
+      {onEdit && (
+        <Button size="sm" variant="ghost" className="mt-2" onClick={onEdit}>
+          {t("common.edit")}
+        </Button>
+      )}
     </li>
   );
 }
 
-function SourceDialog({ onClose }: { onClose: () => void }) {
+function SourceDialog({ onClose, source }: { onClose: () => void; source?: SourceOut }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
   const create = useCreateSource(treeId);
+  const update = useUpdateSource(treeId);
+  const mutation = source ? update : create;
   const [d, setD] = useState({
-    source_type: "traditional_register" as SourceType,
-    title: "",
-    issuing_authority: "",
-    repository: "",
-    record_number: "",
-    place_text: "",
-    url: "",
-    transcription: "",
-    translation: "",
-    notes: "",
-    privacy_level: "TREE_MEMBERS" as PrivacyLevel,
+    source_type: (source?.source_type ?? "traditional_register") as SourceType,
+    title: source?.title ?? "",
+    issuing_authority: source?.issuing_authority ?? "",
+    repository: source?.repository ?? "",
+    record_number: source?.record_number ?? "",
+    place_text: source?.place_text ?? "",
+    url: source?.url ?? "",
+    transcription: source?.transcription ?? "",
+    translation: source?.translation ?? "",
+    notes: source?.notes ?? "",
+    privacy_level: (source?.privacy_level ?? "TREE_MEMBERS") as PrivacyLevel,
   });
-  const [date, setDate] = useState<GenealogicalDate>(emptyDate());
-  const [tradition, setTradition] = useState<TraditionIn>({ tradition_type: "bahi" });
+  const [date, setDate] = useState<GenealogicalDate>((source?.date as GenealogicalDate | null) ?? emptyDate());
+  const [tradition, setTradition] = useState<TraditionIn>((source?.tradition as TraditionIn | null) ?? { tradition_type: "bahi" });
   const [submitted, setSubmitted] = useState(false);
   const isTraditional = d.source_type === "traditional_register" || d.source_type === "family_book";
   const urlInvalid = !!d.url.trim() && !/^https?:\/\//.test(d.url.trim());
@@ -163,7 +172,9 @@ function SourceDialog({ onClose }: { onClose: () => void }) {
     const body: SourceIn = { source_type: d.source_type, title: d.title.trim(), privacy_level: d.privacy_level };
     for (const k of ["issuing_authority", "repository", "record_number", "place_text", "url", "transcription", "translation", "notes"] as const) {
       const v = d[k].trim();
+      // On edit, send null so a cleared field is actually cleared.
       if (v) body[k] = v;
+      else if (source) body[k] = null;
     }
     if (hasDate(date)) body.date = normalizeDate(date);
     if (isTraditional) {
@@ -174,7 +185,8 @@ function SourceDialog({ onClose }: { onClose: () => void }) {
       }
       body.tradition = tr;
     }
-    create.mutate(body, { onSuccess: onClose });
+    if (source) update.mutate({ id: source.id, body }, { onSuccess: onClose });
+    else create.mutate(body, { onSuccess: onClose });
   };
   const text = (k: keyof typeof d, label: string, area = false) => (
     <Field label={label} className={area ? "sm:col-span-2" : ""}>
@@ -192,13 +204,13 @@ function SourceDialog({ onClose }: { onClose: () => void }) {
       open
       onClose={onClose}
       size="lg"
-      title={t("sources.create")}
+      title={source ? t("sources.editTitle") : t("sources.create")}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button type="submit" form="source-form" loading={create.isPending}>
+          <Button type="submit" form="source-form" loading={mutation.isPending}>
             {t("common.save")}
           </Button>
         </>
@@ -267,7 +279,7 @@ function SourceDialog({ onClose }: { onClose: () => void }) {
           {text("translation", t("sources.translation"), true)}
           {text("notes", t("sources.notes"), true)}
         </div>
-        <ErrorAlert error={create.error} />
+        <ErrorAlert error={mutation.error} />
       </form>
     </Dialog>
   );

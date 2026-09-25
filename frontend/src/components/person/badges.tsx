@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import type { EvidenceStatus, GenealogicalDate, PersonSummary, PrivacyLevel, RelationshipType } from "../../api/types";
 import { Badge, type Tone } from "../ui/Badge";
 import { dateQualifier } from "../../lib/dates";
+import { lifespan } from "../../lib/dates";
 
 export function StatusBadge({ status }: { status: PersonSummary["profile_status"] }) {
   const { t } = useTranslation();
@@ -148,10 +149,7 @@ export function RedactionNotice({ label }: { label?: string }) {
 
 export function PersonLink({ treeId, person, className = "" }: { treeId: string; person: PersonSummary; className?: string }) {
   const { t } = useTranslation();
-  const years =
-    person.birth_year || person.death_year
-      ? `${person.birth_year ?? "?"}–${person.death_year ?? (person.profile_status === "living" ? "" : "?")}`
-      : null;
+  const years = lifespan(person, t);
   return (
     <Link to={`/t/${treeId}/people/${person.id}`} className={`font-medium text-kumkum-800 underline-offset-2 hover:underline ${className}`}>
       {person.display_name}

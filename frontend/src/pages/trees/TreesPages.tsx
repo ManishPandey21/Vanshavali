@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Globe2, Plus, TreePine } from "lucide-react";
 import { useAcceptInvitation, useCreateTree, useInvitationPreview, useTrees } from "../../api/hooks/trees";
 import { useMe } from "../../api/hooks/auth";
+import { ApiError } from "../../api/client";
 import { Button, ButtonLink } from "../../components/ui/Button";
 import { EmptyState, ErrorAlert, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Field, TextArea, TextInput } from "../../components/ui/form";
@@ -119,11 +120,22 @@ export function AcceptInvitePage() {
             ))}
           </div>
           <p className="text-xs text-ink-muted">{t("invite.sentTo", { email: preview.data.email })}</p>
+          {me.data && preview.data.email.toLowerCase() !== me.data.email.toLowerCase() && (
+            <p role="alert" className="rounded-lg border border-haldi-300 bg-haldi-100 p-3 text-sm text-haldi-700">
+              {t("invite.otherEmail", { invited: preview.data.email, me: me.data.email })}
+            </p>
+          )}
           {preview.data.expired ? (
             <ErrorAlert error={new Error(t("invite.expired"))} />
           ) : (
             <>
-              <ErrorAlert error={accept.error} />
+              {accept.error instanceof ApiError && accept.error.code === "scope_conflict" ? (
+                <p role="alert" className="rounded-lg border border-haldi-300 bg-haldi-100 p-3 text-sm text-haldi-700">
+                  {t("invite.scopeConflict")}
+                </p>
+              ) : (
+                <ErrorAlert error={accept.error} />
+              )}
               <Button className="w-full" loading={accept.isPending} onClick={() => accept.mutate(token, { onSuccess: (tree) => navigate(`/t/${tree.id}`) })}>
                 {t("invite.accept")}
               </Button>

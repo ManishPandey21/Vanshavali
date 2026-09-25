@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import type { GraphOut } from "../../api/types";
 import { NODE_H, NODE_W, layoutGraph, neighbour, type Layout } from "../../lib/treeLayout";
+import { lifespan } from "../../lib/dates";
 
 function truncate(s: string, n: number) {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s;
@@ -184,10 +185,11 @@ export function TreeChart({
               const p = n.node.person;
               const hidden = !p;
               const isRoot = n.node.id === layout.rootId;
-              const years = p ? `${p.birth_year ?? "?"}–${p.death_year ?? (p.profile_status === "living" ? "" : "?")}` : "";
-              const label = p
-                ? t("treeView.nodeLabel", { name: p.display_name, years, generation: n.node.generation })
-                : t("treeView.hiddenNodeLabel", { generation: n.node.generation });
+              const years = p ? lifespan(p, t) ?? "" : "";
+              const label =
+                (p
+                  ? t("treeView.nodeLabel", { name: p.display_name, years: years || t("treeView.datesUnknown"), generation: n.node.generation })
+                  : t("treeView.hiddenNodeLabel", { generation: n.node.generation })) + (n.node.partner ? ` ${t("treeView.partnerNode")}.` : "");
               return (
                 <g
                   key={n.node.id}
@@ -210,7 +212,7 @@ export function TreeChart({
                     width={NODE_W}
                     height={NODE_H}
                     rx={10}
-                    fill={hidden ? "#f5f5f4" : isRoot ? "#fdf3ee" : "#ffffff"}
+                    fill={hidden ? "#f5f5f4" : isRoot ? "#fdf3ee" : n.node.partner ? "#fffaf0" : "#ffffff"}
                     stroke={isRoot ? "#9a3412" : hidden ? "#a8a29e" : "#d6c7ad"}
                     strokeWidth={isRoot ? 2 : 1}
                     strokeDasharray={hidden ? "4 3" : undefined}
@@ -221,7 +223,7 @@ export function TreeChart({
                   </text>
                   {p && (
                     <text x={14} y={46} fontSize={12} fill="#5c4b3b">
-                      {years !== "?–?" && years !== "?–" ? years : t("treeView.datesUnknown")}
+                      {years || t("treeView.datesUnknown")}
                       {p.is_minor ? ` · ${t("person.badge.minor")}` : ""}
                       {p.is_protected ? " · 🔒" : ""}
                     </text>

@@ -10,9 +10,12 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          data: ["@tanstack/react-query", "i18next", "react-i18next"],
+        manualChunks(id) {
+          if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(id)) return "react";
+          if (/node_modules\/(@tanstack|i18next|react-i18next)\//.test(id)) return "data";
+          if (/node_modules\/lucide-react\//.test(id)) return "icons";
+          if (/src\/i18n\/locales\//.test(id)) return "locales";
+          return undefined;
         },
       },
     },

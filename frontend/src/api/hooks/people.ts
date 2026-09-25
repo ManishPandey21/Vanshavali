@@ -96,6 +96,14 @@ export function useDeletePerson(treeId: string) {
   });
 }
 
+export function useRestorePerson(treeId: string) {
+  const invalidate = useInvalidateTree(treeId);
+  return useMutation({
+    mutationFn: (personId: string) => api.post<PersonOut>(`/trees/${treeId}/people/${personId}/restore`),
+    onSuccess: invalidate,
+  });
+}
+
 // ---- names
 export function useAddName(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
@@ -123,10 +131,11 @@ export function useDeleteName(treeId: string, personId: string) {
 }
 
 // ---- events
-export function usePersonEvents(treeId: string, personId: string) {
+export function usePersonEvents(treeId: string, personId: string, enabled = true) {
   return useQuery({
     queryKey: peopleKeys.events(treeId, personId),
     queryFn: () => api.get<EventOut[]>(`/trees/${treeId}/people/${personId}/events`),
+    enabled: enabled && !!personId,
   });
 }
 

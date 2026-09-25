@@ -1,5 +1,7 @@
 {
-  "app": { "name": "Vanshavali" },
+  "app": {
+    "name": "Vanshavali"
+  },
   "common": {
     "actions": "Actions",
     "add": "Add",
@@ -34,7 +36,13 @@
     "claims": "Profile claims",
     "currentTree": "Current tree",
     "duplicates": "Possible duplicates",
-    "group": { "admin": "Administration", "family": "Joint family", "main": "Family", "research": "Research" },
+    "group": {
+      "admin": "Administration",
+      "family": "Joint family",
+      "main": "Family",
+      "research": "Research",
+      "records": "Records"
+    },
     "households": "Households",
     "invitations": "Invitations",
     "jointFamily": "Joint family view",
@@ -52,7 +60,11 @@
     "sources": "Sources",
     "switchTree": "Switch tree",
     "treeNavigation": "Tree navigation",
-    "treeView": "Family tree"
+    "treeView": "Family tree",
+    "documents": "Documents",
+    "property": "Property",
+    "importExport": "Import / Export",
+    "restore": "Restore people"
   },
   "auth": {
     "createAccount": "Create account",
@@ -105,7 +117,9 @@
     "body": "You've been invited to join “{{tree}}”.",
     "expired": "This invitation has expired. Ask the tree admin for a new link.",
     "sentTo": "Invitation for {{email}}",
-    "title": "Family tree invitation"
+    "title": "Family tree invitation",
+    "scopeConflict": "You're already a member of this tree with a different branch scope. Ask a tree admin to change your membership instead of accepting this invitation.",
+    "otherEmail": "This invitation was sent to {{invited}}, but you are signed in as {{me}}. Sign in with the invited address to accept it."
   },
   "dashboard": {
     "browsePeople": "Browse everyone in the tree",
@@ -201,7 +215,10 @@
       "overview": "Overview",
       "privacy": "Privacy",
       "sources": "Sources",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "documents": "Documents",
+      "astrology": "Astrology",
+      "property": "Property"
     },
     "viewInTree": "View in tree",
     "vitals": "Life details"
@@ -276,7 +293,20 @@
     "preview": "Will show as",
     "rangeEnd": "End of range",
     "recordedAs": "recorded as",
-    "year": "Year"
+    "year": "Year",
+    "short": {
+      "circa": "c.",
+      "before": "bef.",
+      "after": "aft.",
+      "calendar": {
+        "vikram_samvat": "VS",
+        "shaka": "Śaka",
+        "julian": "Jul.",
+        "hijri": "AH",
+        "other": "(other cal.)",
+        "gregorian": ""
+      }
+    }
   },
   "time": {
     "display": {
@@ -332,7 +362,9 @@
     "visibleTo": "Visible to",
     "yearOnly": "Year only"
   },
-  "evidence": { "label": "Evidence status" },
+  "evidence": {
+    "label": "Evidence status"
+  },
   "events": {
     "add": "Add event",
     "addTitle": "Add a life event",
@@ -399,7 +431,12 @@
     "unlinkTitle": "Remove this relationship?"
   },
   "relatives": {
-    "add": { "child": "Add child", "parent": "Add parent", "sibling": "Add sibling", "spouse": "Add spouse" },
+    "add": {
+      "child": "Add child",
+      "parent": "Add parent",
+      "sibling": "Add sibling",
+      "spouse": "Add spouse"
+    },
     "desc": {
       "child": "Choose which marriage or partnership the child belongs to, so half-siblings are shown correctly.",
       "parent": "Biological, adoptive (e.g. dattak), step, foster parent or guardian.",
@@ -412,7 +449,12 @@
     "noUnion": "No union / other parent unknown",
     "pickPerson": "Choose a person from the tree.",
     "relType": "Relationship type",
-    "submit": { "child": "Add child", "parent": "Add parent", "sibling": "Add sibling", "spouse": "Add spouse" },
+    "submit": {
+      "child": "Add child",
+      "parent": "Add parent",
+      "sibling": "Add sibling",
+      "spouse": "Add spouse"
+    },
     "subtype": "Subtype",
     "subtypeHint": "e.g. dattak, vivah, nikah",
     "title": {
@@ -495,7 +537,9 @@
     "startDate": "Household established",
     "subtitle": "Who lived together, when — with the karta and changes over time",
     "title": "Households",
-    "until": "until"
+    "until": "until",
+    "editTitle": "Edit household",
+    "endedOn": "Household dissolved (optional)"
   },
   "jointFamily": {
     "empty": "Create branches and households to see the joint family.",
@@ -535,7 +579,8 @@
     },
     "sections": "Branch sections",
     "subtitle": "Lines of descent within the family",
-    "title": "Branches"
+    "title": "Branches",
+    "editTitle": "Edit branch"
   },
   "places": {
     "addName": "Add name",
@@ -590,7 +635,8 @@
     "translation": "Translation",
     "type": "Source type",
     "url": "Web address",
-    "urlInvalid": "Must start with http:// or https://"
+    "urlInvalid": "Must start with http:// or https://",
+    "editTitle": "Edit source"
   },
   "search": {
     "hint": "Search across people, places, branches and households. Each result explains why it matched.",
@@ -607,7 +653,7 @@
     "none": "No likely duplicates found",
     "score": "{{score}}% similar",
     "subtitle": "People who may have been entered twice",
-    "suggestionsOnly": "These are suggestions only. Nothing is merged automatically — review each pair, and edit or remove records yourself if they really are the same person.",
+    "suggestionsOnly": "These are suggestions only. Nothing is merged automatically. Tree admins can compare a pair side by side and merge it — every merge is recorded and can be undone.",
     "title": "Possible duplicates"
   },
   "relationship": {
@@ -636,7 +682,10 @@
     "spouse": "spouse",
     "wife": "wife"
   },
-  "lineage": { "all": "All lineages", "label": "Lineage" },
+  "lineage": {
+    "all": "All lineages",
+    "label": "Lineage"
+  },
   "treeView": {
     "ancestors": "Ancestors",
     "changeRoot": "Centre on someone else",
@@ -660,7 +709,10 @@
     "list": "List",
     "loadMore": "Load 2 more generations",
     "nodeLabel": "{{name}}, {{years}}, generation {{generation}}. Press Enter to open.",
-    "none": { "ancestors": "No ancestors recorded yet", "descendants": "No descendants recorded yet" },
+    "none": {
+      "ancestors": "No ancestors recorded yet",
+      "descendants": "No descendants recorded yet"
+    },
     "noneHint": "Add parents or children from the person's Family tab.",
     "parentsAre": "Parents:",
     "pickRoot": "Choose whose tree to show",
@@ -674,7 +726,8 @@
     "truncated": "This view is very large; only the nearest people are shown. Centre on someone further away to see more.",
     "viewMode": "View as",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    "zoomOut": "Zoom out",
+    "partnerNode": "(spouse / partner)"
   },
   "claim": {
     "button": "This is me",
@@ -733,7 +786,9 @@
     "subtitle": "Who can see and edit this tree",
     "title": "Members & roles",
     "wholeTree": "Whole tree",
-    "you": "You"
+    "you": "You",
+    "linkedPerson": "Linked to person in the tree",
+    "linkedPersonHint": "Admins link members to their own profile. Members link themselves by claiming a profile."
   },
   "invitations": {
     "accepted": "Accepted",
@@ -778,8 +833,17 @@
     "noPeople": "No one is shared publicly yet."
   },
   "enum": {
-    "profileStatus": { "deceased": "Deceased", "living": "Living", "unknown": "Status unknown" },
-    "sex": { "female": "Female", "intersex": "Intersex", "male": "Male", "unknown": "Unknown" },
+    "profileStatus": {
+      "deceased": "Deceased",
+      "living": "Living",
+      "unknown": "Status unknown"
+    },
+    "sex": {
+      "female": "Female",
+      "intersex": "Intersex",
+      "male": "Male",
+      "unknown": "Unknown"
+    },
     "privacy": {
       "CUSTOM": "Custom",
       "FAMILY_BRANCH": "Family branch",
@@ -798,7 +862,10 @@
       "PUBLIC_DECEASED_ONLY": "Tree members; and the public, if the tree's public view is on and the person has died.",
       "TREE_MEMBERS": "Every tree member except invited researchers."
     },
-    "publicMode": { "DECEASED_ONLY": "Public view (deceased only)", "OFF": "Private (invite-only)" },
+    "publicMode": {
+      "DECEASED_ONLY": "Public view (deceased only)",
+      "OFF": "Private (invite-only)"
+    },
     "role": {
       "BRANCH_ADMIN": "Branch admin",
       "CONTRIBUTOR": "Contributor",
@@ -828,7 +895,12 @@
       "SUPERSEDED": "Superseded",
       "USER_ASSERTION": "Unverified"
     },
-    "confidence": { "high": "High confidence", "low": "Low confidence", "medium": "Medium confidence", "unknown": "Confidence unknown" },
+    "confidence": {
+      "high": "High confidence",
+      "low": "Low confidence",
+      "medium": "Medium confidence",
+      "unknown": "Confidence unknown"
+    },
     "nameType": {
       "alias": "Alias",
       "birth": "Birth name",
@@ -903,8 +975,19 @@
       "spouse": "Spouse",
       "step_parent": "Step"
     },
-    "lineage": { "biological": "Biological", "legal": "Legal / adoptive", "ritual": "Ritual", "social": "Social (step / foster)" },
-    "siblingKind": { "adoptive": "Adoptive sibling", "explicit": "Sibling (parents unrecorded)", "full": "Full sibling", "half": "Half-sibling", "step": "Step-sibling" },
+    "lineage": {
+      "biological": "Biological",
+      "legal": "Legal / adoptive",
+      "ritual": "Ritual",
+      "social": "Social (step / foster)"
+    },
+    "siblingKind": {
+      "adoptive": "Adoptive sibling",
+      "explicit": "Sibling (parents unrecorded)",
+      "full": "Full sibling",
+      "half": "Half-sibling",
+      "step": "Step-sibling"
+    },
     "heritage": {
       "ancestral_house_name": "Ancestral house name",
       "ancestral_village": "Ancestral village (mool gaon)",
@@ -923,10 +1006,31 @@
       "temple": "Family temple",
       "tharavad_or_equivalent": "Tharavad / ancestral house"
     },
-    "valueStatus": { "known": "Known", "not_applicable": "Not applicable", "unknown": "Unknown", "withheld": "Withheld by the family" },
-    "householdRole": { "dependent": "Dependent", "head": "Head", "karta": "Karta", "member": "Member", "other": "Other", "reference_person": "Reference person" },
-    "descentRule": { "bilateral": "Bilateral", "custom": "Custom", "matrilineal": "Matrilineal", "patrilineal": "Patrilineal" },
-    "branchBasis": { "derived": "Derived", "founder": "Founder", "manual": "Added by hand" },
+    "valueStatus": {
+      "known": "Known",
+      "not_applicable": "Not applicable",
+      "unknown": "Unknown",
+      "withheld": "Withheld by the family"
+    },
+    "householdRole": {
+      "dependent": "Dependent",
+      "head": "Head",
+      "karta": "Karta",
+      "member": "Member",
+      "other": "Other",
+      "reference_person": "Reference person"
+    },
+    "descentRule": {
+      "bilateral": "Bilateral",
+      "custom": "Custom",
+      "matrilineal": "Matrilineal",
+      "patrilineal": "Patrilineal"
+    },
+    "branchBasis": {
+      "derived": "Derived",
+      "founder": "Founder",
+      "manual": "Added by hand"
+    },
     "placeType": {
       "city": "City",
       "country": "Country",
@@ -1002,9 +1106,693 @@
       "profile": "Basic profile",
       "religion": "Religion"
     },
-    "claimStatus": { "approved": "Approved", "rejected": "Rejected", "requested": "Awaiting review", "withdrawn": "Withdrawn" },
-    "searchKind": { "branch": "Branch", "document": "Document", "household": "Household", "person": "Person", "place": "Place", "property": "Property" },
-    "matchTier": { "contains": "contains", "exact": "exact", "phonetic": "sounds like", "prefix": "starts with", "trigram": "similar spelling" },
-    "dupOutcome": { "possible": "Possible duplicate", "probable": "Probable duplicate" }
+    "claimStatus": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "requested": "Awaiting review",
+      "withdrawn": "Withdrawn"
+    },
+    "searchKind": {
+      "branch": "Branch",
+      "document": "Document",
+      "household": "Household",
+      "person": "Person",
+      "place": "Place",
+      "property": "Property"
+    },
+    "matchTier": {
+      "contains": "contains",
+      "exact": "exact",
+      "phonetic": "sounds like",
+      "prefix": "starts with",
+      "trigram": "similar spelling"
+    },
+    "dupOutcome": {
+      "possible": "Possible duplicate",
+      "probable": "Probable duplicate"
+    },
+    "scanStatus": {
+      "pending": "pending",
+      "clean": "clean",
+      "infected": "malware found",
+      "error": "error"
+    },
+    "processingStatus": {
+      "not_requested": "not requested",
+      "pending": "queued",
+      "running": "running",
+      "completed": "done",
+      "failed": "failed",
+      "skipped": "skipped"
+    },
+    "docCategory": {
+      "photo": "Photograph",
+      "birth_certificate": "Birth certificate",
+      "death_certificate": "Death certificate",
+      "marriage_record": "Marriage record",
+      "kundli": "Kundli / janam patri",
+      "letter": "Letter",
+      "diary": "Diary",
+      "family_register": "Family register",
+      "traditional_register": "Traditional register (Bahi / Panda)",
+      "school_record": "School record",
+      "service_record": "Service record",
+      "obituary": "Obituary",
+      "identity_document": "Identity document",
+      "audio": "Audio recording",
+      "video": "Video",
+      "record_of_rights": "Record of rights",
+      "khatauni": "Khatauni",
+      "jamabandi": "Jamabandi",
+      "khasra": "Khasra",
+      "rtc": "RTC / Pahani",
+      "patta": "Patta",
+      "mutation_record": "Mutation record",
+      "cadastral_map": "Cadastral map",
+      "title_deed": "Title deed",
+      "sale_deed": "Sale deed",
+      "gift_deed": "Gift deed",
+      "partition_deed": "Partition deed",
+      "family_settlement": "Family settlement",
+      "relinquishment_deed": "Relinquishment deed",
+      "will": "Will",
+      "probate": "Probate",
+      "succession_certificate": "Succession certificate",
+      "revenue_order": "Revenue order",
+      "court_order": "Court order",
+      "tax_receipt": "Tax receipt",
+      "municipal_record": "Municipal record",
+      "encumbrance": "Encumbrance certificate",
+      "possession_record": "Possession record",
+      "historical_family_paper": "Historical family paper",
+      "gedcom": "GEDCOM file",
+      "other": "Other"
+    },
+    "linkTarget": {
+      "person": "Person",
+      "event": "Event",
+      "relationship": "Relationship",
+      "place": "Place",
+      "property": "Property",
+      "land_parcel": "Parcel",
+      "property_event": "Property event",
+      "source": "Source",
+      "household": "Household"
+    },
+    "grantPermission": {
+      "view": "View",
+      "download": "View & download"
+    },
+    "astroProvenance": {
+      "entered": "Entered",
+      "uploaded_chart": "From uploaded chart",
+      "calculated": "Calculated (external)",
+      "imported": "Imported"
+    },
+    "propertyType": {
+      "agricultural_land": "Agricultural land",
+      "residential_land": "Residential land",
+      "house": "House",
+      "commercial": "Commercial",
+      "ancestral_home": "Ancestral home",
+      "estate": "Estate",
+      "other": "Other"
+    },
+    "classification": {
+      "ancestral": "Ancestral",
+      "self_acquired": "Self-acquired",
+      "joint_family": "Joint family (HUF)",
+      "unknown": "Unclassified"
+    },
+    "holderType": {
+      "person": "Person",
+      "family_branch": "Family branch",
+      "trust": "Trust",
+      "entity": "Organisation",
+      "unknown": "Unknown"
+    },
+    "interestType": {
+      "owner": "Owner",
+      "co_owner": "Co-owner",
+      "tenant": "Tenant",
+      "cultivator": "Cultivator",
+      "life_interest": "Life interest",
+      "claimant": "Claimant",
+      "beneficiary": "Beneficiary",
+      "mortgagee": "Mortgagee",
+      "other": "Other"
+    },
+    "interestStatus": {
+      "asserted": "Asserted",
+      "documented": "Documented",
+      "disputed": "Disputed",
+      "relinquished": "Relinquished",
+      "transferred": "Transferred",
+      "unknown": "Unknown"
+    },
+    "propertyEventType": {
+      "purchase": "Purchase",
+      "inheritance": "Inheritance",
+      "succession": "Succession",
+      "partition": "Partition",
+      "family_settlement": "Family settlement",
+      "relinquishment": "Relinquishment",
+      "gift": "Gift",
+      "sale": "Sale",
+      "mutation": "Mutation",
+      "acquisition": "Acquisition",
+      "court_order": "Court order",
+      "mortgage": "Mortgage",
+      "lease": "Lease",
+      "consolidation": "Consolidation",
+      "subdivision": "Subdivision",
+      "merger": "Merger",
+      "boundary_change": "Boundary change",
+      "dispute": "Dispute",
+      "other": "Other"
+    },
+    "areaUnit": {
+      "bigha": "bigha",
+      "biswa": "biswa",
+      "kanal": "kanal",
+      "marla": "marla",
+      "guntha": "guntha",
+      "cent": "cent",
+      "acre": "acre",
+      "hectare": "hectare",
+      "sq_m": "m²",
+      "sq_ft": "sq ft",
+      "ground": "ground",
+      "other": "other"
+    },
+    "jobStatus": {
+      "pending": "Pending",
+      "running": "Analysing",
+      "ready": "Ready for review",
+      "committed": "Imported",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "documents": {
+    "title": "Title",
+    "subtitle": "The family's document vault — certificates, kundlis, deeds and letters",
+    "upload": "Upload document",
+    "uploadTitle": "Upload a document",
+    "uploadIntro": "Files are checked for type and malware, stored encrypted and never altered. Supported certificates and deeds are read by OCR; extracted values wait for your review.",
+    "uploadBirthCertificate": "Upload birth certificate",
+    "file": "File",
+    "fileHint": "PDF, JPEG, PNG, TIFF, audio or video. Up to 50 MB.",
+    "fileRequired": "Choose a file to upload.",
+    "category": "Category",
+    "date": "Date of the document",
+    "description": "Description",
+    "issuingAuthority": "Issuing authority",
+    "privacyHint": "Vault categories (certificates, deeds, kundlis) are restricted to admins and custodians regardless.",
+    "privacyDefault": "Default for this category",
+    "linkPersonOptional": "About a person (optional)",
+    "willLinkTo": "Will be linked to {{target}}.",
+    "vault": "Vault",
+    "vaultHint": "Stored in the encrypted vault: only admins, document custodians and explicit grants can open the file.",
+    "scan": "Scan",
+    "preview": "Preview",
+    "ocr": "OCR",
+    "pendingReview_one": "{{count}} value to review",
+    "pendingReview_other": "{{count}} values to review",
+    "inRecycleBin": "in recycle bin",
+    "search": "Search titles",
+    "aboutPerson": "About person",
+    "aboutProperty": "About property",
+    "showDeleted": "Show recycle bin",
+    "empty": "No documents",
+    "emptyHint": "Upload certificates, kundlis, land records, letters and photographs. Only the people allowed to see them will.",
+    "noContentAccess": "You can see this document's details, but not open the file itself.",
+    "sections": "Document sections",
+    "details": "Details",
+    "links": "Linked to",
+    "history": "Version history",
+    "ocrText": "OCR text",
+    "ocrNote": "Machine-read text. It may contain errors and is not a verified transcription.",
+    "pageN": "Page {{n}}",
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "download": "Download original",
+    "reprocess": "Re-run OCR",
+    "reprocessed_one": "Processing finished: {{count}} value to review.",
+    "reprocessed_other": "Processing finished: {{count}} values to review.",
+    "restore": "Restore",
+    "deleteTitle": "Move document to the recycle bin?",
+    "deleteBody": "The file is kept and can be restored by a document manager. Links and extracted values stay recorded.",
+    "noPreview": "No preview available.",
+    "previewAlt": "Preview of {{title}}",
+    "categoryChangeHint": "Changing between vault and standard categories may be refused: stored files never move.",
+    "versionedHint": "Metadata version {{v}}. Every edit keeps the previous version; the original file never changes.",
+    "savedVersion": "Saved as version {{v}}",
+    "versionN": "Version {{v}}",
+    "current": "current",
+    "field": {
+      "title": "Title",
+      "category": "Category",
+      "privacy_level": "Privacy",
+      "issuing_authority": "Authority",
+      "document_date": "Date"
+    },
+    "noLinks": "Not linked to anything yet.",
+    "removeLink": "Remove link",
+    "addLink": "Add link",
+    "linkType": "Link to",
+    "linkPerson": "Person",
+    "linkEvent": "Event",
+    "linkNote": "Note (optional)",
+    "aboutThisPerson": "Documents about this person",
+    "noneForPerson": "No documents linked to this person",
+    "noneForPersonHint": "Upload a birth certificate or kundli to extract details for review.",
+    "err": {
+      "malware_detected": "This file was flagged by the malware scanner and was not stored.",
+      "unsupported_type": "This file type isn't supported. Upload a PDF, image, audio or video file.",
+      "duplicate_document": "This exact file has already been uploaded to this tree (same checksum).",
+      "file_too_large": "The file is too large (limit 50 MB).",
+      "empty_file": "The file is empty.",
+      "encrypted_pdf": "Password-protected PDFs can't be stored. Remove the password and try again.",
+      "invalid_pdf": "The PDF appears to be damaged.",
+      "invalid_image": "The image appears to be damaged.",
+      "image_too_large": "The image dimensions are too large.",
+      "too_many_pages": "The PDF has too many pages.",
+      "unsafe_pdf": "The PDF contains active content (scripts or embedded files) and was refused.",
+      "scanner_unavailable": "The malware scanner is unavailable right now; nothing was stored. Try again later.",
+      "use_gedcom_import": "GEDCOM files are imported from Import / Export, not uploaded as documents.",
+      "invalid_media": "The audio or video file is damaged or contains unsupported content."
+    }
+  },
+  "extraction": {
+    "title": "Extracted values",
+    "pendingCount_one": "{{count}} awaiting review",
+    "pendingCount_other": "{{count}} awaiting review",
+    "neverOverwrites": "Accepting a value records a new claim cited to this document (e.g. a new birth record). Existing facts are never overwritten; disagreements are kept side by side.",
+    "applyTo": "Apply accepted values to",
+    "applyToHint": "This document isn't linked to a person. Choose who the values are about.",
+    "none": "No values extracted",
+    "noneHint": "OCR may still be running, the category may not support extraction, or nothing was recognised. You can re-run OCR.",
+    "confidence": "{{pct}}% confidence",
+    "location": "page {{page}}, line {{line}}",
+    "appliedTo": "applied to {{target}}",
+    "accept": "Accept",
+    "edit": "Edit",
+    "reject": "Reject",
+    "acceptNamed": "Accept {{field}}",
+    "editNamed": "Edit {{field}} before accepting",
+    "rejectNamed": "Reject {{field}}",
+    "note": "Review note (optional)",
+    "saveAndAccept": "Save & accept",
+    "conflictTitle": "Not applied: the record already holds a different value",
+    "conflictBody": "Nothing was overwritten. Reject this proposal, or edit it to match — and record the disagreement as a separate claim (e.g. an alternative birth event) if both sources matter.",
+    "label": {
+      "extracted": "Extracted",
+      "source-verified": "Source-verified",
+      "user-confirmed": "User-confirmed",
+      "rejected": "Rejected"
+    },
+    "err": {
+      "date": "Enter a valid date for the chosen precision.",
+      "time": "Enter a valid time; a verbal or unknown-source time can't be exact.",
+      "pada": "Pada is a number from 1 to 4.",
+      "area": "Enter a non-negative number.",
+      "empty": "Enter a value."
+    }
+  },
+  "astrology": {
+    "title": "Astrology profiles",
+    "add": "Add astrology profile",
+    "editTitle": "Edit astrology profile",
+    "deleteTitle": "Delete this astrology profile?",
+    "noCalculation": "Vanshavali records chart details as entered, uploaded or imported. It never calculates a chart or derives one value from another (e.g. rashi from nakshatra).",
+    "none": "No astrology profile recorded",
+    "preferred": "Preferred profile",
+    "padaN": "pada {{n}}",
+    "chartBirth": "Birth details on the chart",
+    "chartBirthDate": "Birth date (as on the chart)",
+    "chartBirthTime": "Birth time (as on the chart)",
+    "calcMeta": "Calculated with {{system}} · ephemeris {{eph}}",
+    "calcRequired": "Calculated values must record the calculation system and ephemeris version.",
+    "origin": "Origin: {{origin}}",
+    "provenance": "Where do these values come from?",
+    "provHint": {
+      "entered": "Typed in by a family member.",
+      "uploaded_chart": "Read from an uploaded kundli.",
+      "calculated": "Calculated elsewhere — record the software and ephemeris.",
+      "imported": "Imported (e.g. from GEDCOM)."
+    },
+    "vocabHint": "Spellings in any script are recognised.",
+    "privacyHint": "Astrology is admin-only by default for living people.",
+    "f": {
+      "nakshatra": "Nakshatra",
+      "nakshatra_pada": "Pada",
+      "rashi": "Rashi (moon sign)",
+      "lagna": "Lagna (ascendant)",
+      "tithi": "Tithi",
+      "paksha": "Paksha",
+      "lunar_month": "Lunar month",
+      "ayanamsha": "Ayanamsha",
+      "calculation_system": "Calculation system / software",
+      "ephemeris_version": "Ephemeris version",
+      "chart_birth_place": "Birth place (as on the chart)"
+    },
+    "conflictsTitle": "Birth details: all claims",
+    "conflictsIntro": "Every recorded birth date, time and place — from certificates, kundlis and family memory — with where it came from. Disagreements are shown, never merged.",
+    "disagreements": "Disagreements",
+    "noConflicts": "The recorded claims agree.",
+    "noClaims": "No birth details recorded yet.",
+    "withheld": "Some claims are hidden by privacy settings ({{fields}}).",
+    "claims": "Birth claims",
+    "claim": "Claim",
+    "sourceProvenance": "Evidence & source",
+    "conflictField": {
+      "date": "Date",
+      "time": "Time",
+      "place": "Place"
+    },
+    "claimType": {
+      "event": "Birth record",
+      "astrology_profile": "Kundli / chart"
+    }
+  },
+  "grants": {
+    "title": "Access grants",
+    "intro": "Custom privacy: tree admins plus the members listed here can see this.",
+    "notCustom": "Grants apply only when the privacy level is Custom.",
+    "none": "No one has been granted access.",
+    "member": "Member",
+    "permission": "Access",
+    "expires": "Expires (optional)",
+    "add": "Grant access",
+    "revoke": "Revoke access for {{name}}",
+    "until": "until {{date}}"
+  },
+  "restore": {
+    "title": "Restore people",
+    "subtitle": "People removed from the tree can be restored with all their records",
+    "none": "No removed people",
+    "removedPerson": "Removed person",
+    "removedBy": "Removed by {{name}} on {{date}}",
+    "restore": "Restore",
+    "restored": "Restored"
+  },
+  "merge": {
+    "open": "Compare & merge",
+    "title": "Compare and merge",
+    "description": "Merging moves every name, event, relationship, document link and claim to the person you keep. It can be undone from the merge history.",
+    "whichKeeps": "Which record should be kept?",
+    "keeps": "Kept",
+    "mergedInto": "Merged into the kept record",
+    "whatMoves": "What will change",
+    "refs": "{{count}} × {{kind}} moved",
+    "relsMoved": "{{count}} relationships moved",
+    "relsRemoved": "{{count}} relationships between the two removed",
+    "reversible": "Every change is recorded so the merge can be undone.",
+    "reason": "Reason (optional)",
+    "confirm": "Merge these records",
+    "done": "Merged into {{name}}.",
+    "history": "Merge history",
+    "noHistory": "No merges yet.",
+    "changes": "{{count}} changes",
+    "reverted": "undone {{date}}",
+    "undo": "Undo"
+  },
+  "share": {
+    "hint": "Exact fraction, e.g. 1/3 or 1 for the whole.",
+    "preview": "= {{value}} ({{pct}}, display only)",
+    "err": {
+      "required": "Enter a share.",
+      "format": "Write the share as a fraction like 1/3.",
+      "decimal": "Use a fraction (1/3), not a decimal — shares are kept exact.",
+      "zeroDen": "The denominator can't be 0.",
+      "tooLarge": "That number is too large.",
+      "overWhole": "A share can't be more than the whole (1)."
+    }
+  },
+  "partition": {
+    "open": "Record partition",
+    "title": "Record a partition of {{name}}",
+    "steps": "Steps",
+    "step": {
+      "details": "Deed details",
+      "ending": "Shares being divided",
+      "allocations": "New shares",
+      "documents": "Documents"
+    },
+    "back": "Back",
+    "next": "Next",
+    "record": "Record partition",
+    "date": "Date of partition",
+    "dateHint": "A partition needs a date with at least a year.",
+    "scope": "What is being divided?",
+    "scopeHint": "The whole property, or one parcel.",
+    "registration": "Registration number",
+    "endingLegend": "Current ownership shares ended by this partition",
+    "noneEligible": "No current ownership shares in this scope. You can still record a partial deed.",
+    "endedTotal": "Total being divided",
+    "allocIntro": "Allocate the {{ended}} being divided among the new holders (people or family branches).",
+    "allocationN": "Allocation {{n}}",
+    "removeAllocation": "Remove allocation {{n}}",
+    "addAllocation": "Add holder",
+    "totals": "Allocated {{allocated}} of {{ended}}",
+    "allowPartial": "This deed is partial",
+    "allowPartialHint": "Allow allocations that don't add up to the shares ended (e.g. only some co-owners' shares were divided).",
+    "warnPartial": "Partial deed: {{allocated}} allocated against {{ended}} ended. The difference stays unaccounted for in the record.",
+    "err": {
+      "date": "Give the partition date (at least a year).",
+      "noAllocations": "Add at least one holder.",
+      "holder": "Choose a holder for every allocation.",
+      "share": "Every allocation needs a valid share such as 1/3.",
+      "zeroShare": "An allocation of 0 isn't meaningful.",
+      "overWhole": "Allocations add up to more than the whole.",
+      "nothingEnded": "No shares are being ended. Select shares, or mark the deed as partial.",
+      "unbalanced": "Allocations ({{allocated}}) must add up exactly to the shares being divided ({{ended}}), or mark the deed as partial."
+    },
+    "documentsLegend": "Link documents (e.g. the partition deed)",
+    "noDocuments": "No documents linked to this property yet.",
+    "uploadDeed": "Upload partition deed",
+    "summary": "Summary",
+    "summaryBody": "{{count}} new holdings totalling {{allocated}} of {{ended}}; {{docs}} documents linked."
+  },
+  "property": {
+    "title": "Property register",
+    "subtitle": "Ancestral land and houses — parcels, holders and how they passed down",
+    "eyebrow": "Property",
+    "legalNoticeFallback": "Genealogical/documentary record only — not a legal title opinion.",
+    "create": "New property",
+    "search": "Search properties",
+    "empty": "No properties recorded",
+    "emptyHint": "Record ancestral land, houses and estates with their parcels and the family members who held them.",
+    "parcelCount_one": "{{count}} parcel",
+    "parcelCount_other": "{{count}} parcels",
+    "name": "Name",
+    "type": "Type",
+    "classification": "Classification",
+    "classificationHint": "As the family or documents describe it — not a legal finding.",
+    "place": "Place",
+    "address": "Address / location",
+    "description": "Description",
+    "currentStatus": "Current status",
+    "editTitle": "Edit property",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteBody": "The property record, its parcels, interests and events will be deleted. Documents stay in the vault.",
+    "sections": "Property sections",
+    "tab": {
+      "overview": "Overview",
+      "parcels": "Parcels",
+      "interests": "Holders & shares",
+      "timeline": "Timeline",
+      "lineage": "Lineage",
+      "documents": "Documents"
+    },
+    "record": "Record",
+    "count": {
+      "parcels": "Parcels",
+      "events": "Events",
+      "interests": "Interests (all time)",
+      "current_interests": "Current interests",
+      "documents": "Documents",
+      "citations": "Citations"
+    },
+    "currentHolders": "Current holders",
+    "pastHolders_one": "{{count}} past holding",
+    "pastHolders_other": "{{count}} past holdings",
+    "documentedTotal": "Documented ownership recorded",
+    "overlapping": "Recorded ownership claims add up to more than the whole — some claims conflict.",
+    "noInterests": "No holders recorded",
+    "interests": "Holders & shares",
+    "addInterest": "Add holder",
+    "holder": "Holder",
+    "holderType": "Held by",
+    "holderName": "Name",
+    "holderRequired": "Choose who holds this interest.",
+    "share": "Share",
+    "interestType": "Interest",
+    "status": "Status",
+    "statusHint": "Documented = supported by a record; asserted = family knowledge.",
+    "parcelScope": "Applies to",
+    "wholeProperty": "Whole property",
+    "heldFrom": "Held from",
+    "heldUntil": "Held until",
+    "endInterest": "End holding",
+    "deleteInterest": "Delete holding",
+    "deleteInterestTitle": "Delete this holding?",
+    "deleteInterestBody": "Use this only to correct a mistake. To record that a holding ended, use “End holding”.",
+    "present": "present",
+    "current": "Current",
+    "ended": "Ended",
+    "created": "Created",
+    "from": "from {{date}}",
+    "until": "until {{date}}",
+    "interestsOfPerson": "Property interests",
+    "noInterestsForPerson": "No property interests recorded for this person (or none you may see).",
+    "parcels": "Parcels",
+    "parcel": {
+      "add": "Add parcel",
+      "editTitle": "Edit parcel",
+      "intro": "Record land-record identifiers exactly as they appear (khasra, khata, survey…). Add any state-specific keys as extra identifiers.",
+      "none": "No parcels recorded",
+      "noneHint": "Add each plot or survey number separately.",
+      "area": "Area",
+      "areaUnit": "Unit",
+      "unitHint": "Local units (bigha, guntha…) vary by region and are kept as recorded.",
+      "areaInvalid": "Area must be a non-negative number.",
+      "unitRequired": "Choose the unit for this area.",
+      "ulpinHint": "Unique Land Parcel ID (Bhu-Aadhaar): 14 letters/digits.",
+      "ulpinInvalid": "ULPIN must be exactly 14 letters or digits.",
+      "parent": "Subdivided from",
+      "extras": "Extra identifiers",
+      "extrasHint": "State-specific keys, e.g. “Bhulekh ID” or “RoR no.”.",
+      "extraKey": "Name",
+      "extraValue": "Value",
+      "extraKeyInvalid": "Identifier names may use letters, digits, spaces and _ . - (up to 60).",
+      "addExtra": "Add identifier",
+      "lineage": "Lineage",
+      "ancestors": "Derived from",
+      "siblings": "Sibling parcels",
+      "descendants": "Divided into",
+      "subdivide": "Subdivide",
+      "subdivideTitle": "Subdivide {{label}}",
+      "addChild": "Add sub-parcel",
+      "recordEvent": "Record a subdivision event in the timeline",
+      "delete": "Delete parcel {{label}}",
+      "deleteTitle": "Delete this parcel?",
+      "f": {
+        "state_or_ut": "State / UT",
+        "district": "District",
+        "tehsil_taluk": "Tehsil / taluk",
+        "village": "Village",
+        "revenue_village_code": "Revenue village code",
+        "survey_number": "Survey no.",
+        "khasra_or_gata_number": "Khasra / gata no.",
+        "khata_number": "Khata no.",
+        "khatauni_number": "Khatauni no.",
+        "patta_number": "Patta no.",
+        "plot_number": "Plot no.",
+        "subdivision_number": "Subdivision no.",
+        "land_use": "Land use",
+        "cadastral_map_reference": "Cadastral map ref.",
+        "state_portal_reference": "State portal ref."
+      }
+    },
+    "timeline": "History",
+    "recordEvent": "Record event",
+    "eventType": "Event",
+    "eventDate": "Date",
+    "mutationNumber": "Mutation number",
+    "parcelsAffected": "Parcels affected",
+    "endsInterests": "Holdings ended by this event",
+    "createsInterests": "New holdings created",
+    "addCreatedInterest": "Add new holding",
+    "holdersAt": "Who held it on",
+    "holdersAtHint": "Pick a date to see the holders recorded at that time.",
+    "clearDate": "Clear",
+    "holdersOn": "Holders on {{date}}",
+    "noHoldersAt": "No holdings recorded on that date.",
+    "noEvents": "No events recorded",
+    "noEventsHint": "Record acquisitions, inheritance, partitions and mutations to build the history.",
+    "regNo": "Reg. no. {{n}}",
+    "mutationNo": "Mutation no. {{n}}",
+    "hiddenDocs_one": "{{count}} document hidden by privacy",
+    "hiddenDocs_other": "{{count}} documents hidden by privacy",
+    "propertyDocuments": "Documents about the property",
+    "noDocuments": "No documents linked to this property.",
+    "lineage": "Lineage",
+    "firstAcquirers": "First recorded holders",
+    "noneRecorded": "None recorded",
+    "chainsToCurrent": "How the current holders received it",
+    "transfersOut": "Given up or transferred",
+    "parcelGroups": "Parcel subdivisions"
+  },
+  "gedcom": {
+    "title": "Import / Export",
+    "subtitle": "Move your tree in and out with GEDCOM 7, or download a full family archive",
+    "exportTitle": "Export GEDCOM",
+    "exportIntro": "A GEDCOM 7 file of what you can see, readable by other genealogy software. Indian details use documented _IND extensions.",
+    "excludeLiving": "Exclude living people",
+    "excludeLivingHint": "Recommended when sharing outside the family.",
+    "includeSensitive": "Include sensitive details",
+    "includeSensitiveHint": "Birth times, astrology, contact and address (admins only). The export is audited.",
+    "download": "Download GEDCOM",
+    "confirmSensitiveTitle": "Include sensitive details?",
+    "confirmSensitiveBody": "The file will contain birth times, astrology, addresses and contact details. Anyone who gets the file can read them. The download is recorded in the audit log.",
+    "confirmSensitive": "Yes, include them",
+    "importTitle": "Import GEDCOM",
+    "importIntro": "Upload a GEDCOM 5.5.1 or 7 file. Nothing is added until you review the report and choose what to do with each person.",
+    "file": "GEDCOM file",
+    "upload": "Upload & analyse",
+    "history": "Imports",
+    "open": "Open",
+    "report": "Import report",
+    "count": {
+      "people": "People",
+      "families": "Families",
+      "events": "Events",
+      "names": "Names",
+      "places": "Places",
+      "sources": "Sources",
+      "citations": "Citations",
+      "media_refs": "Media refs",
+      "notes": "Notes",
+      "repositories": "Repositories",
+      "preserved_structures": "Preserved structures"
+    },
+    "errors_one": "{{count}} error",
+    "errors_other": "{{count}} errors",
+    "warnings_one": "{{count}} warning",
+    "warnings_other": "{{count}} warnings",
+    "line": "line {{n}}",
+    "unsupportedTags": "Unsupported tags",
+    "unknownExtensions": "Unknown extension tags",
+    "preservedHint": "Kept verbatim so a later export can include them.",
+    "preview": "People in the file ({{shown}} of {{total}})",
+    "previewCaption": "People to import, possible duplicates and your decision",
+    "previewLimited": "Only the first people are listed; the rest are created by default.",
+    "person": "Person",
+    "lifeDates": "Life dates",
+    "possibleDuplicates": "Possible duplicates in this tree",
+    "decision": "Decision",
+    "decisionFor": "Decision for {{name}}",
+    "create": "Create new person",
+    "skip": "Skip",
+    "attachTo": "Same as {{name}}",
+    "events_one": "{{count}} event",
+    "events_other": "{{count}} events",
+    "commit": "Import: {{create}} new, {{attach}} matched, {{skip}} skipped",
+    "cancel": "Cancel import",
+    "committed": "Import committed"
+  },
+  "archive": {
+    "title": "Download full family archive",
+    "intro": "A ZIP with the GEDCOM file, a readable summary and your documents — exactly what you are allowed to see, nothing more.",
+    "personalData": "The archive contains personal data about your family. Store it securely and share it only with people who should see it.",
+    "includeVault": "Include vault documents",
+    "includeVaultHint": "Certificates, deeds and kundlis (admins only).",
+    "download": "Download archive",
+    "confirmTitle": "Include sensitive data in the archive?",
+    "confirmBody": "The archive will include sensitive fields and/or vault documents such as certificates and deeds. Anyone with the file can read them. The export is recorded in the audit log.",
+    "confirm": "Yes, include and download"
   }
 }

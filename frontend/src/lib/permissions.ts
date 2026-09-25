@@ -15,6 +15,15 @@ export const Perm = {
   FAMILY_WRITE: "family.write",
   PRIVACY_MANAGE: "privacy.manage",
   AUDIT_READ: "audit.read",
+  DOCUMENT_UPLOAD: "document.upload",
+  DOCUMENT_MANAGE: "document.manage",
+  DOCUMENT_VAULT: "document.vault",
+  EXTRACTION_REVIEW: "extraction.review",
+  ASTROLOGY_WRITE: "astrology.write",
+  PROPERTY_READ: "property.read",
+  PROPERTY_WRITE: "property.write",
+  GEDCOM_IMPORT: "gedcom.import",
+  GEDCOM_EXPORT: "gedcom.export",
 } as const;
 
 export type PermValue = (typeof Perm)[keyof typeof Perm];

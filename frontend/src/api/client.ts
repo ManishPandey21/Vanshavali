@@ -80,6 +80,8 @@ export type QueryValue = string | number | boolean | null | undefined | (string 
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
+  /** Multipart body (file uploads). The browser sets the boundary header itself. */
+  form?: FormData;
   query?: Record<string, QueryValue>;
   signal?: AbortSignal;
   /** Don't trigger the global 401 redirect (used by `/auth/me` probing and login). */
@@ -102,7 +104,7 @@ export function buildUrl(path: string, query?: Record<string, QueryValue>): stri
 export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const method = opts.method ?? "GET";
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.body !== undefined && !opts.form) headers["Content-Type"] = "application/json";
   if (UNSAFE.has(method)) {
     const token = readCookie(CSRF_COOKIE);
     if (token) headers[CSRF_HEADER] = token;
@@ -113,7 +115,7 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
       method,
       headers,
       credentials: "include",
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      body: opts.form ?? (opts.body !== undefined ? JSON.stringify(opts.body) : undefined),
       signal: opts.signal,
     });
   } catch (e) {
@@ -152,6 +154,48 @@ export function toApiError(status: number, data: unknown): ApiError {
   return new ApiError(status, "http_error", `Request failed (${status})`);
 }
 
+/**
+ * Fetch binary content (signed file URLs, GEDCOM export). Errors are parsed like JSON calls.
+ * `url` may be an API path ("/exports/gedcom") or an absolute/same-origin URL returned by the API.
+ */
+export async function apiBlob(url: string, query?: Record<string, QueryValue>): Promise<{ blob: Blob; filename: string | null }> {
+  const full = url.startsWith("/api/") || /^https?:/.test(url) ? url : buildUrl(url, query);
+  let res: Response;
+  try {
+    res = await fetch(full, { credentials: "include" });
+  } catch {
+    throw new ApiError(0, "network_error", "Could not reach the server. Check your connection and try again.");
+  }
+  if (!res.ok) {
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch {
+      data = undefined;
+    }
+    const err = toApiError(res.status, data);
+    if (err.status === 401 && onUnauthenticated) onUnauthenticated(err);
+    throw err;
+  }
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const star = /filename\*=UTF-8''([^;]+)/i.exec(cd);
+  const plain = /filename="?([^";]+)"?/i.exec(cd);
+  const filename = star ? decodeURIComponent(star[1]) : plain ? plain[1] : null;
+  return { blob: await res.blob(), filename };
+}
+
+/** Trigger a browser download of a blob. */
+export function saveBlob(blob: Blob, filename: string) {
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 10_000);
+}
+
 export const api = {
   get: <T>(path: string, query?: RequestOptions["query"], signal?: AbortSignal) =>
     apiRequest<T>(path, { query, signal }),
@@ -159,4 +203,5 @@ export const api = {
   put: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: "PUT", body }),
   patch: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: "PATCH", body }),
   del: <T>(path: string) => apiRequest<T>(path, { method: "DELETE" }),
+  upload: <T>(path: string, form: FormData) => apiRequest<T>(path, { method: "POST", form }),
 };

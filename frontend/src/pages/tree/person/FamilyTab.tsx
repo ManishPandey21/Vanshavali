@@ -144,7 +144,8 @@ export function FamilyPanel({
   onUnlink?: (relationshipId: string) => void;
 }) {
   const { t } = useTranslation();
-  const unions = [...family.unions].sort((a, b) => (a.relationship.union_order ?? 99) - (b.relationship.union_order ?? 99));
+  // A union whose partner is hidden from the viewer has relationship=null (no details at all).
+  const unions = [...family.unions].sort((a, b) => (a.relationship?.union_order ?? 99) - (b.relationship?.union_order ?? 99));
   const empty = !family.parents.length && !unions.length && !family.other_children.length && !family.siblings.length;
   if (empty) return <EmptyState title={t("family.empty")}>{t("family.emptyHint")}</EmptyState>;
   return (
@@ -183,7 +184,7 @@ export function FamilyPanel({
         <h3 className="font-display font-semibold">{t("family.unions")}</h3>
         {unions.length === 0 && <p className="text-sm text-ink-muted">{t("family.noneRecorded")}</p>}
         {unions.map((u, i) => (
-          <UnionCard key={u.relationship.id} union={u} index={i} canWrite={canWrite} onAddChild={onAddChild} onUnlink={onUnlink} />
+          <UnionCard key={u.relationship?.id ?? `hidden-${i}`} union={u} index={i} canWrite={canWrite} onAddChild={onAddChild} onUnlink={onUnlink} />
         ))}
         {family.other_children.length > 0 && (
           <div className="card p-4">
@@ -215,6 +216,26 @@ function UnionCard({
 }) {
   const { t } = useTranslation();
   const r = union.relationship;
+  if (!r) {
+    return (
+      <article className="card border-l-4 border-l-stone-300 p-4" aria-label={t("family.unionN", { n: index + 1 })}>
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+          <HeartHandshake className="size-4" aria-hidden />
+          {t("family.unionN", { n: index + 1 })}
+        </p>
+        <div className="py-2">
+          <PrivatePersonPlaceholder />
+        </div>
+        {(union.children ?? []).length > 0 && (
+          <ul className="mt-2 divide-y divide-stone-200 rounded-lg bg-parchment p-3">
+            {union.children!.map((c, i) => (
+              <RelativeRow key={c.relationship_id ?? i} rel={c} canUnlink={false} />
+            ))}
+          </ul>
+        )}
+      </article>
+    );
+  }
   return (
     <article className="card border-l-4 border-l-haldi-500 p-4" aria-label={t("family.unionN", { n: index + 1 })}>
       <div className="flex flex-wrap items-center justify-between gap-2">

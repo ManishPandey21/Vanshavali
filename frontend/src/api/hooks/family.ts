@@ -110,6 +110,14 @@ export function useCreateHousehold(treeId: string) {
   });
 }
 
+export function useUpdateHousehold(treeId: string, id: string) {
+  const invalidate = useInvalidateTree(treeId);
+  return useMutation({
+    mutationFn: (body: Partial<HouseholdIn>) => api.patch<HouseholdOut>(`/trees/${treeId}/households/${id}`, body),
+    onSuccess: invalidate,
+  });
+}
+
 export function useDeleteHousehold(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({

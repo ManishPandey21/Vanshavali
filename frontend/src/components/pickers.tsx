@@ -5,6 +5,7 @@ import { usePeople, usePlaces } from "../api/hooks/people";
 import type { PersonSummary, PlaceOut } from "../api/types";
 import { useDebounced } from "../lib/useDebounced";
 import { Combobox } from "./ui/Combobox";
+import { lifespan } from "../lib/dates";
 
 /** Search-as-you-type picker over people the viewer can see (server-filtered). */
 export function PersonPicker({
@@ -37,7 +38,7 @@ export function PersonPicker({
         <span className="flex items-center justify-between gap-2">
           <span>{p.display_name}</span>
           <span className="text-xs text-ink-muted">
-            {p.birth_year ?? "?"}–{p.death_year ?? (p.profile_status === "living" ? "" : "?")}
+            {lifespan(p, t)}
           </span>
         </span>
       ),

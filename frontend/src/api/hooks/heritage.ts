@@ -83,6 +83,14 @@ export function useCreateSource(treeId: string) {
   });
 }
 
+export function useUpdateSource(treeId: string) {
+  const invalidate = useInvalidateTree(treeId);
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Partial<SourceIn> }) => api.patch<SourceOut>(`/trees/${treeId}/sources/${id}`, body),
+    onSuccess: invalidate,
+  });
+}
+
 export function useCitations(treeId: string, targetType: CitationTarget, targetId: string, enabled = true) {
   return useQuery({
     queryKey: ["tree", treeId, "citations", targetType, targetId],

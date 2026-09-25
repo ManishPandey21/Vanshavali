@@ -282,3 +282,37 @@ export function formatTime(time: GenealogicalTime | Record<string, unknown> | nu
 export function emptyDate(): GenealogicalDate {
   return { calendar: "gregorian", precision: "exact" };
 }
+
+// ------------------------------------------------------------------ compact (lists, tree nodes)
+const SHORT_PREFIX: Partial<Record<DatePrecision, string>> = { circa: "date.short.circa", before: "date.short.before", after: "date.short.after" };
+
+/**
+ * Short year-level form for dense places (lists, tree boxes): keeps the qualifier ("c.", "bef.")
+ * and a calendar tag so "c. 1840 Śaka" is never shown as a bare "1840".
+ */
+export function compactDate(d: GenealogicalDate | Record<string, unknown> | null | undefined, t: TFunction): string | null {
+  if (!d) return null;
+  const g = d as GenealogicalDate;
+  const p = (g.precision ?? "exact") as DatePrecision;
+  if (p === "unknown" || g.year == null) return null;
+  let text = String(g.year);
+  if (p === "range" && g.end_year != null && g.end_year !== g.year) text = `${g.year}/${g.end_year}`;
+  const prefix = SHORT_PREFIX[p];
+  if (prefix) text = `${t(prefix)} ${text}`;
+  if (g.calendar && g.calendar !== "gregorian") text = `${text} ${t(`date.short.calendar.${g.calendar}`)}`;
+  return text;
+}
+
+interface LifeDates {
+  birth_date?: Record<string, unknown> | null;
+  death_date?: Record<string, unknown> | null;
+  profile_status: string;
+}
+
+/** "1921–1990", "c. 1840 Śaka–?", "1950–" (living). Null when nothing is known. */
+export function lifespan(p: LifeDates, t: TFunction): string | null {
+  const b = compactDate(p.birth_date, t);
+  const dd = compactDate(p.death_date, t);
+  if (!b && !dd) return null;
+  return `${b ?? "?"}–${dd ?? (p.profile_status === "living" ? "" : "?")}`;
+}

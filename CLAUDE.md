@@ -4,24 +4,41 @@ Indian family-tree / joint-family / ancestral-property application.
 
 ## Current state (read before changing anything)
 
-- Frontend only: Vite 6 + React 18 + TypeScript (strict) + Tailwind 4.
-- All data is in-memory sample data (`src/data/sampleData.ts`); nothing persists.
-- Navigation is a `Page` state switch in `src/App.tsx`, not a router
-  (`react-router-dom` is installed but unused; so is `@supabase/supabase-js`).
-- No backend, no auth, no tests yet.
-- Target architecture, domain model and decisions: `docs/architecture/`.
-- Security and privacy baselines: `docs/security/`.
+Modular monolith (ADR-0001):
+
+- `backend/` — FastAPI + SQLAlchemy 2 + Alembic on PostgreSQL 16, Redis/RQ jobs (`JOB_MODE=sync`
+  runs them inline). Domain modules in `backend/app/modules/*` (identity, trees, genealogy, heritage,
+  family, evidence, documents, extraction, astrology, property, gedcom, merge, archive, search,
+  consent, public). All authorisation and field redaction live in `backend/app/authz`; the server is
+  the authority. API under `/api/v1`, structured errors `{error: {code, message, details}}`.
+- `frontend/` — Vite 6 + React 18 + TypeScript (strict) SPA: React Router, TanStack Query,
+  i18next (`src/i18n/locales/en.json`, `hi.json`, kept key-identical by a test), Tailwind 4.
+  API types are generated from OpenAPI (`npm run gen:api` → `src/api/schema.d.ts`); the fetch
+  wrapper (`src/api/client.ts`) sends cookies and the `X-CSRF-Token` double-submit header.
+  UI permission checks (`my_permissions`, `can_edit`) only hide controls; 403s are handled.
+  `src/data/masterData/*` are typing-aid vocabularies only — never used to infer values.
+- `e2e/` — Playwright specs against the real stack (own `vsh_e2e` database, API :8100, SPA :3100).
+- Architecture, domain model and decisions: `docs/architecture/`. Security/privacy: `docs/security/`.
 
 ## Commands
 
 ```
+# backend (from backend/)
+uv sync && uv run alembic upgrade head
+uv run uvicorn app.main:app --port 8000
+uv run pytest -q
+
+# frontend (from frontend/; dev server proxies /api → :8000)
 npm ci
-npm run typecheck   # tsc --noEmit
-npm run build       # vite build
 npm run dev         # http://localhost:3000
+npm run lint && npm run typecheck && npm test && npm run build
+npm run gen:api     # regenerate openapi.json + src/api/schema.d.ts after API changes
+
+# end-to-end (from e2e/; starts backend + frontend itself)
+npm ci && npx playwright test
 ```
 
-Run `typecheck` and `build` before every push.
+Run lint, typecheck, tests and build before every push; `make check` runs the whole set.
 
 ## Working rules
 

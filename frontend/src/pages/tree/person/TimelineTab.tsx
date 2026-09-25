@@ -114,7 +114,7 @@ export function TimelineTab({ person }: { person: PersonOut }) {
                     )}
                   </div>
                 </div>
-                {openCites === e.id && <CitationList targetType="event" targetId={e.id} />}
+                {openCites === e.id && <CitationList targetType="event" targetId={e.id} canEditTarget={!!person.can_edit} />}
               </article>
             </li>
           );

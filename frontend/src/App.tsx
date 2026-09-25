@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect, type ReactNode } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -22,8 +22,19 @@ import { HouseholdsPage, JointFamilyPage } from "./pages/tree/HouseholdsPages";
 import { PlacesPage } from "./pages/tree/PlacesPage";
 import { SourcesPage } from "./pages/tree/SourcesPage";
 import { DuplicatesPage, SearchPage } from "./pages/tree/SearchPages";
-import { AuditPage, ClaimsPage, InvitationsPage, MembersPage, SettingsPage } from "./pages/tree/AdminPages";
+import { AuditPage, ClaimsPage, InvitationsPage, MembersPage, RestorePeoplePage, SettingsPage } from "./pages/tree/AdminPages";
 import { PublicPersonPage, PublicTreePage } from "./pages/public/PublicPages";
+
+// Records modules (documents, property, GEDCOM) are loaded on demand to keep the first load small.
+const DocumentsPage = lazy(() => import("./pages/tree/documents/DocumentsPage").then((m) => ({ default: m.DocumentsPage })));
+const DocumentDetailPage = lazy(() => import("./pages/tree/documents/DocumentDetailPage").then((m) => ({ default: m.DocumentDetailPage })));
+const PropertyListPage = lazy(() => import("./pages/tree/property/PropertyListPage").then((m) => ({ default: m.PropertyListPage })));
+const PropertyDetailPage = lazy(() => import("./pages/tree/property/PropertyDetailPage").then((m) => ({ default: m.PropertyDetailPage })));
+const ImportExportPage = lazy(() => import("./pages/tree/ImportExportPage").then((m) => ({ default: m.ImportExportPage })));
+
+function Lazy({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<Spinner />}>{children}</Suspense>;
+}
 
 /** Sends any 401 from the API to the login page (keeping where the user was). */
 function AuthRedirector() {
@@ -96,6 +107,12 @@ export default function App() {
             <Route path="sources" element={<SourcesPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="duplicates" element={<DuplicatesPage />} />
+            <Route path="documents" element={<Lazy><DocumentsPage /></Lazy>} />
+            <Route path="documents/:documentId" element={<Lazy><DocumentDetailPage /></Lazy>} />
+            <Route path="property" element={<Lazy><PropertyListPage /></Lazy>} />
+            <Route path="property/:propertyId" element={<Lazy><PropertyDetailPage /></Lazy>} />
+            <Route path="import-export" element={<Lazy><ImportExportPage /></Lazy>} />
+            <Route path="admin/restore" element={<RestorePeoplePage />} />
             <Route path="admin/members" element={<MembersPage />} />
             <Route path="admin/invitations" element={<InvitationsPage />} />
             <Route path="admin/claims" element={<ClaimsPage />} />

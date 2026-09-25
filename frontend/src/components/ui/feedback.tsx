@@ -18,7 +18,8 @@ export function useErrorMessage() {
   const { t } = useTranslation();
   return (error: unknown): string => {
     if (error instanceof ApiError) {
-      if (error.status === 403) return error.message && error.code !== "forbidden" ? error.message : t("errors.forbidden");
+      // Keep specific server explanations; replace only the generic default with translated text.
+      if (error.status === 403) return error.message && !/^You do not have permission/.test(error.message) ? error.message : t("errors.forbidden");
       if (error.status === 404) return t("errors.notFound");
       if (error.status === 0) return t("errors.network");
       if (error.status === 429) return t("errors.rateLimited");

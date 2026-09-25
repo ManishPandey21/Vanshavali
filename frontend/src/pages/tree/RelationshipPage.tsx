@@ -82,7 +82,7 @@ export function RelationshipPage() {
               {pathPeople.length > 1 && (
                 <ol className="mt-4 flex flex-wrap items-center gap-1 text-sm" aria-label={t("relationship.path")}>
                   {pathPeople.map((id, i) => (
-                    <li key={id} className="flex items-center gap-1">
+                    <li key={`${id ?? "hidden"}-${i}`} className="flex items-center gap-1">
                       <PathPerson id={id} />
                       {i < pathPeople.length - 1 && (
                         <span className="flex items-center gap-1 text-xs text-ink-muted">
@@ -104,11 +104,12 @@ export function RelationshipPage() {
   );
 }
 
-function PathPerson({ id }: { id: string }) {
+/** A person on the path; `null` = someone the viewer may not see (the API withholds the id). */
+function PathPerson({ id }: { id: string | null }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
-  const p = usePerson(treeId, id);
-  if (p.error) return <span className="italic text-ink-muted">{t("person.privatePerson")}</span>;
+  const p = usePerson(treeId, id ?? undefined);
+  if (!id || p.error) return <span className="italic text-ink-muted">{t("person.privatePerson")}</span>;
   return (
     <Link to={`/t/${treeId}/people/${id}`} className="rounded-full bg-parchment-deep px-2 py-0.5 text-kumkum-800 hover:underline">
       {p.data?.display_name ?? "…"}

@@ -124,6 +124,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/mfa/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mfa Setup */
+        post: operations["mfa_setup_api_v1_auth_mfa_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/mfa/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mfa Enable */
+        post: operations["mfa_enable_api_v1_auth_mfa_enable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/mfa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mfa Disable */
+        post: operations["mfa_disable_api_v1_auth_mfa_disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/close-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Account
+         * @description Close the account (PRS §54): deactivate, sign out everywhere, leave all trees.
+         *
+         *     Refused while the user is the only owner of a tree (transfer ownership or delete the tree first).
+         *     Family data the user added stays with the tree (it belongs to the family archive).
+         */
+        post: operations["close_account_api_v1_auth_close_account_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees": {
         parameters: {
             query?: never;
@@ -365,6 +439,26 @@ export interface paths {
         /** Set Privacy */
         put: operations["set_privacy_api_v1_trees__tree_id__people__person_id__privacy_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/erase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Erase Person
+         * @description Irreversible privacy erasure; the person remains as an anonymous placeholder.
+         */
+        post: operations["erase_person_api_v1_trees__tree_id__people__person_id__erase_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1159,6 +1253,707 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/merges/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview */
+        get: operations["preview_api_v1_trees__tree_id__merges_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/merges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Merges */
+        get: operations["list_merges_api_v1_trees__tree_id__merges_get"];
+        put?: never;
+        /** Merge */
+        post: operations["merge_api_v1_trees__tree_id__merges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/merges/{merge_id}/revert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revert */
+        post: operations["revert_api_v1_trees__tree_id__merges__merge_id__revert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Properties */
+        get: operations["list_properties_api_v1_trees__tree_id__properties_get"];
+        put?: never;
+        /** Create Property */
+        post: operations["create_property_api_v1_trees__tree_id__properties_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Property */
+        get: operations["get_property_api_v1_trees__tree_id__properties__property_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Property */
+        delete: operations["delete_property_api_v1_trees__tree_id__properties__property_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Property */
+        patch: operations["update_property_api_v1_trees__tree_id__properties__property_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/parcels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Parcels */
+        get: operations["list_parcels_api_v1_trees__tree_id__properties__property_id__parcels_get"];
+        put?: never;
+        /** Create Parcel */
+        post: operations["create_parcel_api_v1_trees__tree_id__properties__property_id__parcels_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/parcels/{parcel_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Parcel */
+        delete: operations["delete_parcel_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Parcel */
+        patch: operations["update_parcel_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/parcels/{parcel_id}/subdivide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Subdivide Parcel */
+        post: operations["subdivide_parcel_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__subdivide_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/parcels/{parcel_id}/lineage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Parcel Lineage
+         * @description Subdivision lineage: ancestors (nearest first), siblings sharing the parent, descendants.
+         */
+        get: operations["parcel_lineage_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__lineage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/interests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Interests */
+        get: operations["list_interests_api_v1_trees__tree_id__properties__property_id__interests_get"];
+        put?: never;
+        /** Create Interest */
+        post: operations["create_interest_api_v1_trees__tree_id__properties__property_id__interests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/interests/{interest_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Interest */
+        delete: operations["delete_interest_api_v1_trees__tree_id__properties__property_id__interests__interest_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Interest */
+        patch: operations["update_interest_api_v1_trees__tree_id__properties__property_id__interests__interest_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/interests/{interest_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End Interest */
+        post: operations["end_interest_api_v1_trees__tree_id__properties__property_id__interests__interest_id__end_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Event */
+        post: operations["record_event_api_v1_trees__tree_id__properties__property_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Event */
+        get: operations["get_event_api_v1_trees__tree_id__properties__property_id__events__event_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Event */
+        patch: operations["update_event_api_v1_trees__tree_id__properties__property_id__events__event_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/partition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Partition */
+        post: operations["record_partition_api_v1_trees__tree_id__properties__property_id__partition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timeline */
+        get: operations["timeline_api_v1_trees__tree_id__properties__property_id__timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/properties/{property_id}/lineage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lineage */
+        get: operations["lineage_api_v1_trees__tree_id__properties__property_id__lineage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/property-interests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Person Property Interests */
+        get: operations["person_property_interests_api_v1_trees__tree_id__people__person_id__property_interests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Documents
+         * @description Documents visible to the caller. ``target_type``+``target_id`` → "documents about X".
+         */
+        get: operations["list_documents_api_v1_trees__tree_id__documents_get"];
+        put?: never;
+        /** Upload Document */
+        post: operations["upload_document_api_v1_trees__tree_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Document */
+        get: operations["get_document_api_v1_trees__tree_id__documents__document_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Document */
+        delete: operations["delete_document_api_v1_trees__tree_id__documents__document_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Document */
+        patch: operations["update_document_api_v1_trees__tree_id__documents__document_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metadata Versions */
+        get: operations["metadata_versions_api_v1_trees__tree_id__documents__document_id__versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Document */
+        post: operations["restore_document_api_v1_trees__tree_id__documents__document_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Link */
+        post: operations["add_link_api_v1_trees__tree_id__documents__document_id__links_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/links/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Link */
+        delete: operations["remove_link_api_v1_trees__tree_id__documents__document_id__links__link_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Download Url */
+        post: operations["download_url_api_v1_trees__tree_id__documents__document_id__download_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/files/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Serve File
+         * @description Serve decrypted bytes for a signed, short-lived token.
+         *
+         *     The token is bound to (document, tree, user, variant, expiry). The session user must be the
+         *     user the token was issued to, and authorisation is evaluated again now, so revoked access
+         *     or a deleted document fails even while the token has not expired.
+         */
+        get: operations["serve_file_api_v1_files__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/ocr-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ocr Text */
+        get: operations["ocr_text_api_v1_trees__tree_id__documents__document_id__ocr_text_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proposals */
+        get: operations["list_proposals_api_v1_trees__tree_id__documents__document_id__proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/reprocess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reprocess */
+        post: operations["reprocess_api_v1_trees__tree_id__documents__document_id__reprocess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/extraction-proposals/{proposal_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Review
+         * @description Accept, edit or reject one proposal. Only this endpoint turns extracted values into facts.
+         */
+        post: operations["review_api_v1_trees__tree_id__extraction_proposals__proposal_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/astrology": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Profiles */
+        get: operations["list_profiles_api_v1_trees__tree_id__people__person_id__astrology_get"];
+        put?: never;
+        /** Create Profile */
+        post: operations["create_profile_api_v1_trees__tree_id__people__person_id__astrology_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/astrology/{profile_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Profile */
+        get: operations["get_profile_api_v1_trees__tree_id__astrology__profile_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Profile */
+        delete: operations["delete_profile_api_v1_trees__tree_id__astrology__profile_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Profile */
+        patch: operations["update_profile_api_v1_trees__tree_id__astrology__profile_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/birth-conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Birth Conflicts
+         * @description All birth claims (events + chart details) with provenance, and where they disagree.
+         */
+        get: operations["birth_conflicts_api_v1_trees__tree_id__people__person_id__birth_conflicts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Imports */
+        get: operations["list_imports_api_v1_trees__tree_id__imports_get"];
+        put?: never;
+        /** Upload Gedcom */
+        post: operations["upload_gedcom_api_v1_trees__tree_id__imports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/imports/{import_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Import */
+        get: operations["get_import_api_v1_trees__tree_id__imports__import_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/imports/{import_id}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Commit Import */
+        post: operations["commit_import_api_v1_trees__tree_id__imports__import_id__commit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/imports/{import_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Import */
+        post: operations["cancel_import_api_v1_trees__tree_id__imports__import_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/exports/gedcom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Gedcom */
+        get: operations["export_gedcom_api_v1_trees__tree_id__exports_gedcom_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/exports/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Archive
+         * @description Download a complete family archive generated from the caller's privacy view.
+         */
+        get: operations["export_archive_api_v1_trees__tree_id__exports_archive_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1180,6 +1975,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AllocationIn */
+        AllocationIn: {
+            /**
+             * Share Numerator
+             * @default 1
+             */
+            share_numerator?: number;
+            /**
+             * Share Denominator
+             * @default 1
+             */
+            share_denominator?: number;
+            holder_type: components["schemas"]["HolderType"];
+            /** Holder Person Id */
+            holder_person_id?: string | null;
+            /** Holder Branch Id */
+            holder_branch_id?: string | null;
+            /** Holder Name */
+            holder_name?: string | null;
+            /** Parcel Id */
+            parcel_id?: string | null;
+            interest_type?: components["schemas"]["InterestType"] | null;
+        };
+        /**
+         * AreaUnit
+         * @enum {string}
+         */
+        AreaUnit: "bigha" | "biswa" | "kanal" | "marla" | "guntha" | "cent" | "acre" | "hectare" | "sq_m" | "sq_ft" | "ground" | "other";
         /** AssertionIn */
         AssertionIn: {
             attribute: components["schemas"]["HeritageAttribute"];
@@ -1267,6 +2090,215 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** AstrologyIn */
+        AstrologyIn: {
+            /** Nakshatra */
+            nakshatra?: string | null;
+            /** Nakshatra Pada */
+            nakshatra_pada?: number | null;
+            /** Rashi */
+            rashi?: string | null;
+            /** Lagna */
+            lagna?: string | null;
+            /** Tithi */
+            tithi?: string | null;
+            /** Paksha */
+            paksha?: string | null;
+            /** Yoga */
+            yoga?: string | null;
+            /** Karana */
+            karana?: string | null;
+            /** Lunar Month */
+            lunar_month?: string | null;
+            /** Ayanamsha */
+            ayanamsha?: string | null;
+            /** Calculation System */
+            calculation_system?: string | null;
+            /** Ephemeris Version */
+            ephemeris_version?: string | null;
+            chart_birth_date?: components["schemas"]["GenealogicalDate"] | null;
+            chart_birth_time?: components["schemas"]["GenealogicalTime"] | null;
+            /** Chart Birth Place */
+            chart_birth_place?: string | null;
+            /** Place Latitude */
+            place_latitude?: number | null;
+            /** Place Longitude */
+            place_longitude?: number | null;
+            /** Timezone Id */
+            timezone_id?: string | null;
+            /** Utc Offset Minutes */
+            utc_offset_minutes?: number | null;
+            /** Calculation Timestamp */
+            calculation_timestamp?: string | null;
+            /** Birth Event Id */
+            birth_event_id?: string | null;
+            /** Document Id */
+            document_id?: string | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /** Notes */
+            notes?: string | null;
+            /** @default entered */
+            provenance_kind?: components["schemas"]["AstrologyProvenance"];
+            /** Is Preferred */
+            is_preferred?: boolean | null;
+            /** @default USER_ASSERTION */
+            evidence_status?: components["schemas"]["EvidenceStatus"];
+            /** @default unknown */
+            confidence?: components["schemas"]["Confidence"];
+        };
+        /** AstrologyOut */
+        AstrologyOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            provenance_kind: components["schemas"]["AstrologyProvenance"];
+            /** Nakshatra */
+            nakshatra: string | null;
+            /** Nakshatra Pada */
+            nakshatra_pada: number | null;
+            /** Rashi */
+            rashi: string | null;
+            /** Lagna */
+            lagna: string | null;
+            /** Tithi */
+            tithi: string | null;
+            /** Paksha */
+            paksha: string | null;
+            /** Yoga */
+            yoga: string | null;
+            /** Karana */
+            karana: string | null;
+            /** Lunar Month */
+            lunar_month: string | null;
+            /** Ayanamsha */
+            ayanamsha: string | null;
+            /** Calculation System */
+            calculation_system: string | null;
+            /** Ephemeris Version */
+            ephemeris_version: string | null;
+            /** Chart Birth Date */
+            chart_birth_date: {
+                [key: string]: unknown;
+            } | null;
+            /** Chart Birth Date Display */
+            chart_birth_date_display?: string | null;
+            /** Chart Birth Time */
+            chart_birth_time: {
+                [key: string]: unknown;
+            } | null;
+            /** Chart Birth Place */
+            chart_birth_place: string | null;
+            /** Place Latitude */
+            place_latitude: number | null;
+            /** Place Longitude */
+            place_longitude: number | null;
+            /** Timezone Id */
+            timezone_id: string | null;
+            /** Utc Offset Minutes */
+            utc_offset_minutes: number | null;
+            /** Calculation Timestamp */
+            calculation_timestamp: string | null;
+            /** Birth Event Id */
+            birth_event_id: string | null;
+            /** Document Id */
+            document_id: string | null;
+            /** Is Preferred */
+            is_preferred: boolean;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            evidence_status: components["schemas"]["EvidenceStatus"];
+            confidence: components["schemas"]["Confidence"];
+            /** Notes */
+            notes: string | null;
+            provenance?: components["schemas"]["ProvenanceOut"] | null;
+            /**
+             * Citation Count
+             * @default 0
+             */
+            citation_count?: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * AstrologyProvenance
+         * @enum {string}
+         */
+        AstrologyProvenance: "entered" | "uploaded_chart" | "calculated" | "imported";
+        /** AstrologyUpdate */
+        AstrologyUpdate: {
+            /** Nakshatra */
+            nakshatra?: string | null;
+            /** Nakshatra Pada */
+            nakshatra_pada?: number | null;
+            /** Rashi */
+            rashi?: string | null;
+            /** Lagna */
+            lagna?: string | null;
+            /** Tithi */
+            tithi?: string | null;
+            /** Paksha */
+            paksha?: string | null;
+            /** Yoga */
+            yoga?: string | null;
+            /** Karana */
+            karana?: string | null;
+            /** Lunar Month */
+            lunar_month?: string | null;
+            /** Ayanamsha */
+            ayanamsha?: string | null;
+            /** Calculation System */
+            calculation_system?: string | null;
+            /** Ephemeris Version */
+            ephemeris_version?: string | null;
+            chart_birth_date?: components["schemas"]["GenealogicalDate"] | null;
+            chart_birth_time?: components["schemas"]["GenealogicalTime"] | null;
+            /** Chart Birth Place */
+            chart_birth_place?: string | null;
+            /** Place Latitude */
+            place_latitude?: number | null;
+            /** Place Longitude */
+            place_longitude?: number | null;
+            /** Timezone Id */
+            timezone_id?: string | null;
+            /** Utc Offset Minutes */
+            utc_offset_minutes?: number | null;
+            /** Calculation Timestamp */
+            calculation_timestamp?: string | null;
+            /** Birth Event Id */
+            birth_event_id?: string | null;
+            /** Document Id */
+            document_id?: string | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /** Notes */
+            notes?: string | null;
+            provenance_kind?: components["schemas"]["AstrologyProvenance"] | null;
+            /** Is Preferred */
+            is_preferred?: boolean | null;
+            evidence_status?: components["schemas"]["EvidenceStatus"] | null;
+            confidence?: components["schemas"]["Confidence"] | null;
+        };
+        /** AttachDecision */
+        AttachDecision: {
+            /**
+             * Attach
+             * Format: uuid
+             */
+            attach: string;
+        };
         /** AuditEventOut */
         AuditEventOut: {
             /**
@@ -1295,6 +2327,102 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** BirthClaim */
+        BirthClaim: {
+            /** Claim Type */
+            claim_type: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Preferred */
+            is_preferred: boolean;
+            /** Date */
+            date?: {
+                [key: string]: unknown;
+            } | null;
+            /** Date Display */
+            date_display?: string | null;
+            /** Time */
+            time?: {
+                [key: string]: unknown;
+            } | null;
+            /** Time Display */
+            time_display?: string | null;
+            /** Place */
+            place?: string | null;
+            evidence_status: components["schemas"]["EvidenceStatus"];
+            confidence: components["schemas"]["Confidence"];
+            provenance: components["schemas"]["ProvenanceOut"];
+            provenance_kind?: components["schemas"]["AstrologyProvenance"] | null;
+            /**
+             * Sources
+             * @default []
+             */
+            sources?: components["schemas"]["ClaimSource"][];
+        };
+        /** BirthConflict */
+        BirthConflict: {
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
+            /** Values */
+            values: components["schemas"]["ConflictValue"][];
+        };
+        /** BirthConflictsOut */
+        BirthConflictsOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Claims */
+            claims: components["schemas"]["BirthClaim"][];
+            /** Conflicts */
+            conflicts: components["schemas"]["BirthConflict"][];
+            /** Has Conflicts */
+            has_conflicts: boolean;
+            /**
+             * Withheld Fields
+             * @default []
+             */
+            withheld_fields?: string[];
+        };
+        /** Body_upload_document_api_v1_trees__tree_id__documents_post */
+        Body_upload_document_api_v1_trees__tree_id__documents_post: {
+            /**
+             * File
+             * @description The document (PDF, image, audio or video)
+             */
+            file: string;
+            category: components["schemas"]["DocumentCategory"];
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Document Date
+             * @description GenealogicalDate as JSON
+             */
+            document_date?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Issuing Authority */
+            issuing_authority?: string | null;
+            link_target_type?: components["schemas"]["DocumentLinkTarget"] | null;
+            /** Link Target Id */
+            link_target_id?: string | null;
+        };
+        /** Body_upload_gedcom_api_v1_trees__tree_id__imports_post */
+        Body_upload_gedcom_api_v1_trees__tree_id__imports_post: {
+            /** File */
+            file: string;
         };
         /** BranchDetailOut */
         BranchDetailOut: {
@@ -1505,16 +2633,54 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /** ClaimSource */
+        ClaimSource: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Source Type */
+            source_type: string;
+            /** Document Id */
+            document_id?: string | null;
+        };
         /**
          * ClaimStatus
          * @enum {string}
          */
         ClaimStatus: "requested" | "approved" | "rejected" | "withdrawn";
+        /** CloseAccountIn */
+        CloseAccountIn: {
+            /** Password */
+            password: string;
+        };
+        /** CommitIn */
+        CommitIn: {
+            /** Decisions */
+            decisions?: {
+                [key: string]: ("create" | "skip") | components["schemas"]["AttachDecision"];
+            };
+        };
         /**
          * Confidence
          * @enum {string}
          */
         Confidence: "high" | "medium" | "low" | "unknown";
+        /** ConflictValue */
+        ConflictValue: {
+            /** Claim Type */
+            claim_type: string;
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Value */
+            value: string;
+        };
         /**
          * ConsentBasis
          * @enum {string}
@@ -1598,10 +2764,196 @@ export interface components {
          * @enum {string}
          */
         DescentRule: "patrilineal" | "matrilineal" | "bilateral" | "custom";
+        /**
+         * DocumentCategory
+         * @enum {string}
+         */
+        DocumentCategory: "photo" | "birth_certificate" | "death_certificate" | "marriage_record" | "kundli" | "letter" | "diary" | "family_register" | "traditional_register" | "school_record" | "service_record" | "obituary" | "identity_document" | "audio" | "video" | "record_of_rights" | "khatauni" | "jamabandi" | "khasra" | "rtc" | "patta" | "mutation_record" | "cadastral_map" | "title_deed" | "sale_deed" | "gift_deed" | "partition_deed" | "family_settlement" | "relinquishment_deed" | "will" | "probate" | "succession_certificate" | "revenue_order" | "court_order" | "tax_receipt" | "municipal_record" | "encumbrance" | "possession_record" | "historical_family_paper" | "gedcom" | "other";
+        /** DocumentLinkIn */
+        DocumentLinkIn: {
+            target_type: components["schemas"]["DocumentLinkTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Note */
+            note?: string | null;
+        };
+        /** DocumentLinkOut */
+        DocumentLinkOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            target_type: components["schemas"]["DocumentLinkTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * DocumentLinkTarget
+         * @enum {string}
+         */
+        DocumentLinkTarget: "person" | "event" | "relationship" | "place" | "property" | "land_parcel" | "property_event" | "source" | "household";
+        /** DocumentOut */
+        DocumentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            category: components["schemas"]["DocumentCategory"];
+            storage_class: components["schemas"]["StorageClass"];
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Original Filename */
+            original_filename: string;
+            /** Mime Type */
+            mime_type: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Checksum Sha256 */
+            checksum_sha256: string;
+            /** Document Date */
+            document_date: {
+                [key: string]: unknown;
+            } | null;
+            /** Language */
+            language: string | null;
+            /** Script */
+            script: string | null;
+            /** Issuing Authority */
+            issuing_authority: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            scan_status: components["schemas"]["ScanStatus"];
+            /** Page Count */
+            page_count: number | null;
+            ocr_status: components["schemas"]["ProcessingStatus"];
+            extraction_status: components["schemas"]["ProcessingStatus"];
+            preview_status: components["schemas"]["ProcessingStatus"];
+            /** Metadata Version */
+            metadata_version: number;
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Deleted At */
+            deleted_at: string | null;
+            /**
+             * Links
+             * @default []
+             */
+            links?: components["schemas"]["DocumentLinkOut"][];
+            /**
+             * Can Access Content
+             * @default false
+             */
+            can_access_content?: boolean;
+            /**
+             * Variants
+             * @default []
+             */
+            variants?: string[];
+            /**
+             * Has Ocr Text
+             * @default false
+             */
+            has_ocr_text?: boolean;
+            /**
+             * Pending Proposals
+             * @default 0
+             */
+            pending_proposals?: number;
+        };
+        /**
+         * DocumentRef
+         * @description Linked document metadata only — never file bytes or storage keys.
+         */
+        DocumentRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            category: components["schemas"]["DocumentCategory"];
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            linked_to: components["schemas"]["DocumentLinkTarget"];
+            /**
+             * Linked Id
+             * Format: uuid
+             */
+            linked_id: string;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * DocumentUpdate
+         * @description Metadata edit. Every change snapshots the previous metadata; original bytes never change.
+         */
+        DocumentUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            category?: components["schemas"]["DocumentCategory"] | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            document_date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Language */
+            language?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Issuing Authority */
+            issuing_authority?: string | null;
+        };
+        /** DownloadUrlOut */
+        DownloadUrlOut: {
+            /** Url */
+            url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Variant */
+            variant: string;
+        };
         /** DuplicateCandidate */
         DuplicateCandidate: {
             person_a: components["schemas"]["PersonSummary"];
             person_b: components["schemas"]["PersonSummary"];
+            /** Score */
+            score: number;
+            /** Outcome */
+            outcome: string;
+            /** Reasons */
+            reasons: string[];
+        };
+        /** DuplicateMatch */
+        DuplicateMatch: {
+            person: components["schemas"]["PersonSummary"];
             /** Score */
             score: number;
             /** Outcome */
@@ -1617,6 +2969,13 @@ export interface components {
              * @default false
              */
             delete?: boolean;
+        };
+        /** EraseIn */
+        EraseIn: {
+            /** Reason */
+            reason: string;
+            /** Confirm */
+            confirm: boolean;
         };
         /** EventIn */
         EventIn: {
@@ -1657,6 +3016,43 @@ export interface components {
              */
             is_preferred?: boolean;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /**
+         * EventInterestIn
+         * @description An interest created by a property event; ``valid_from`` defaults to the event date.
+         */
+        EventInterestIn: {
+            /**
+             * Share Numerator
+             * @default 1
+             */
+            share_numerator?: number;
+            /**
+             * Share Denominator
+             * @default 1
+             */
+            share_denominator?: number;
+            holder_type: components["schemas"]["HolderType"];
+            /** Holder Person Id */
+            holder_person_id?: string | null;
+            /** Holder Branch Id */
+            holder_branch_id?: string | null;
+            /** Holder Name */
+            holder_name?: string | null;
+            /** Parcel Id */
+            parcel_id?: string | null;
+            /** @default owner */
+            interest_type?: components["schemas"]["InterestType"];
+            valid_from?: components["schemas"]["GenealogicalDate"] | null;
+            valid_to?: components["schemas"]["GenealogicalDate"] | null;
+            /** @default documented */
+            status?: components["schemas"]["InterestStatus"];
+            /** @default USER_ASSERTION */
+            evidence_status?: components["schemas"]["EvidenceStatus"];
+            /** @default unknown */
+            confidence?: components["schemas"]["Confidence"];
+            /** Notes */
+            notes?: string | null;
         };
         /** EventOut */
         EventOut: {
@@ -1894,6 +3290,11 @@ export interface components {
             hidden?: boolean;
             /** Generation */
             generation: number;
+            /**
+             * Partner
+             * @default false
+             */
+            partner?: boolean;
         };
         /** GraphOut */
         GraphOut: {
@@ -1961,6 +3362,52 @@ export interface components {
              * @default []
              */
             withheld_attributes?: string[];
+        };
+        /** HolderOut */
+        HolderOut: {
+            type: components["schemas"]["HolderType"];
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+            /** Person Id */
+            person_id?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            person?: components["schemas"]["PersonSummary"] | null;
+        };
+        /**
+         * HolderType
+         * @enum {string}
+         */
+        HolderType: "person" | "family_branch" | "trust" | "entity" | "unknown";
+        /** HoldersAtOut */
+        HoldersAtOut: {
+            /**
+             * At
+             * Format: date
+             */
+            at: string;
+            /**
+             * Interests
+             * @default []
+             */
+            interests?: components["schemas"]["InterestOut"][];
+            /**
+             * Documented Share Total
+             * @default 0/1
+             */
+            documented_share_total?: string;
+            /**
+             * Has Overlapping Claims
+             * @default false
+             */
+            has_overlapping_claims?: boolean;
         };
         /** HouseholdDetailOut */
         HouseholdDetailOut: {
@@ -2123,6 +3570,225 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** ImportJobOut */
+        ImportJobOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["JobStatus"];
+            /** Original Filename */
+            original_filename: string | null;
+            /** Detected Version */
+            detected_version: string | null;
+            /** Detected Encoding */
+            detected_encoding: string | null;
+            /**
+             * Counts
+             * @default {}
+             */
+            counts?: {
+                [key: string]: number;
+            };
+            /** Error */
+            error?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Committed At */
+            committed_at?: string | null;
+            /**
+             * Report
+             * @default {}
+             */
+            report?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Preview
+             * @default []
+             */
+            preview?: components["schemas"]["StagedPersonPreview"][];
+            /**
+             * Preview Total
+             * @default 0
+             */
+            preview_total?: number;
+            /** Commit Result */
+            commit_result?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ImportJobSummary */
+        ImportJobSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["JobStatus"];
+            /** Original Filename */
+            original_filename: string | null;
+            /** Detected Version */
+            detected_version: string | null;
+            /** Detected Encoding */
+            detected_encoding: string | null;
+            /**
+             * Counts
+             * @default {}
+             */
+            counts?: {
+                [key: string]: number;
+            };
+            /** Error */
+            error?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Committed At */
+            committed_at?: string | null;
+        };
+        /** InterestEndIn */
+        InterestEndIn: {
+            valid_to: components["schemas"]["GenealogicalDate"];
+            /**
+             * Status
+             * @default transferred
+             * @enum {string}
+             */
+            status?: "transferred" | "relinquished";
+            /** Notes */
+            notes?: string | null;
+        };
+        /** InterestIn */
+        InterestIn: {
+            /**
+             * Share Numerator
+             * @default 1
+             */
+            share_numerator?: number;
+            /**
+             * Share Denominator
+             * @default 1
+             */
+            share_denominator?: number;
+            holder_type: components["schemas"]["HolderType"];
+            /** Holder Person Id */
+            holder_person_id?: string | null;
+            /** Holder Branch Id */
+            holder_branch_id?: string | null;
+            /** Holder Name */
+            holder_name?: string | null;
+            /** Parcel Id */
+            parcel_id?: string | null;
+            /** @default owner */
+            interest_type?: components["schemas"]["InterestType"];
+            valid_from?: components["schemas"]["GenealogicalDate"] | null;
+            valid_to?: components["schemas"]["GenealogicalDate"] | null;
+            /** @default asserted */
+            status?: components["schemas"]["InterestStatus"];
+            /** @default USER_ASSERTION */
+            evidence_status?: components["schemas"]["EvidenceStatus"];
+            /** @default unknown */
+            confidence?: components["schemas"]["Confidence"];
+            /** Notes */
+            notes?: string | null;
+        };
+        /** InterestOut */
+        InterestOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Property Id
+             * Format: uuid
+             */
+            property_id: string;
+            /** Parcel Id */
+            parcel_id: string | null;
+            holder: components["schemas"]["HolderOut"];
+            interest_type: components["schemas"]["InterestType"];
+            /** Share Numerator */
+            share_numerator: number;
+            /** Share Denominator */
+            share_denominator: number;
+            /** Share */
+            share: string;
+            /** Share Percent */
+            share_percent: number;
+            /** Valid From */
+            valid_from: {
+                [key: string]: unknown;
+            } | null;
+            /** Valid From Display */
+            valid_from_display?: string | null;
+            /** Valid To */
+            valid_to: {
+                [key: string]: unknown;
+            } | null;
+            /** Valid To Display */
+            valid_to_display?: string | null;
+            status: components["schemas"]["InterestStatus"];
+            /** Is Current */
+            is_current: boolean;
+            /** Counts Toward Whole */
+            counts_toward_whole: boolean;
+            evidence_status: components["schemas"]["EvidenceStatus"];
+            confidence: components["schemas"]["Confidence"];
+            /** Created By Event Id */
+            created_by_event_id: string | null;
+            /** Ended By Event Id */
+            ended_by_event_id: string | null;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Citation Count
+             * @default 0
+             */
+            citation_count?: number;
+            provenance?: components["schemas"]["ProvenanceOut"] | null;
+        };
+        /**
+         * InterestStatus
+         * @enum {string}
+         */
+        InterestStatus: "asserted" | "documented" | "disputed" | "relinquished" | "transferred" | "unknown";
+        /**
+         * InterestType
+         * @enum {string}
+         */
+        InterestType: "owner" | "co_owner" | "tenant" | "cultivator" | "life_interest" | "claimant" | "beneficiary" | "mortgagee" | "other";
+        /** InterestUpdate */
+        InterestUpdate: {
+            /** Parcel Id */
+            parcel_id?: string | null;
+            /** Holder Name */
+            holder_name?: string | null;
+            interest_type?: components["schemas"]["InterestType"] | null;
+            /** Share Numerator */
+            share_numerator?: number | null;
+            /** Share Denominator */
+            share_denominator?: number | null;
+            valid_from?: components["schemas"]["GenealogicalDate"] | null;
+            valid_to?: components["schemas"]["GenealogicalDate"] | null;
+            status?: components["schemas"]["InterestStatus"] | null;
+            evidence_status?: components["schemas"]["EvidenceStatus"] | null;
+            confidence?: components["schemas"]["Confidence"] | null;
+            /** Notes */
+            notes?: string | null;
+        };
         /** InvitationCreate */
         InvitationCreate: {
             /**
@@ -2184,10 +3850,73 @@ export interface components {
             expired: boolean;
         };
         /**
+         * JobStatus
+         * @enum {string}
+         */
+        JobStatus: "pending" | "running" | "ready" | "committed" | "completed" | "failed" | "cancelled";
+        /**
          * Lineage
          * @enum {string}
          */
         Lineage: "biological" | "legal" | "ritual" | "social";
+        /** LineageChain */
+        LineageChain: {
+            interest: components["schemas"]["InterestOut"];
+            /**
+             * Steps
+             * @default []
+             */
+            steps?: components["schemas"]["PropertyEventOut"][];
+            /**
+             * Origin Interests
+             * @default []
+             */
+            origin_interests?: components["schemas"]["InterestOut"][];
+            /**
+             * First Acquirers
+             * @default []
+             */
+            first_acquirers?: components["schemas"]["HolderOut"][];
+        };
+        /** LineageOut */
+        LineageOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            property: components["schemas"]["PropertyOut"];
+            /**
+             * Chains
+             * @default []
+             */
+            chains?: components["schemas"]["LineageChain"][];
+            /**
+             * First Acquirers
+             * @default []
+             */
+            first_acquirers?: components["schemas"]["HolderOut"][];
+            /**
+             * First Acquisition Events
+             * @default []
+             */
+            first_acquisition_events?: components["schemas"]["PropertyEventOut"][];
+            /**
+             * Partitions
+             * @default []
+             */
+            partitions?: components["schemas"]["PropertyEventOut"][];
+            /**
+             * Transfers Out
+             * @default []
+             */
+            transfers_out?: components["schemas"]["TransferOut"][];
+            /**
+             * Parcel Groups
+             * @default []
+             */
+            parcel_groups?: components["schemas"]["ParcelGroupOut"][];
+        };
         /** LoginIn */
         LoginIn: {
             /**
@@ -2197,6 +3926,8 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+            /** Mfa Code */
+            mfa_code?: string | null;
         };
         /** MemberOut */
         MemberOut: {
@@ -2245,10 +3976,96 @@ export interface components {
              */
             clear_linked_person?: boolean;
         };
+        /** MergeIn */
+        MergeIn: {
+            /**
+             * Survivor Id
+             * Format: uuid
+             */
+            survivor_id: string;
+            /**
+             * Merged Id
+             * Format: uuid
+             */
+            merged_id: string;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** MergeOut */
+        MergeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Survivor Id
+             * Format: uuid
+             */
+            survivor_id: string;
+            /**
+             * Merged Id
+             * Format: uuid
+             */
+            merged_id: string;
+            /** Reason */
+            reason: string | null;
+            /** Change Count */
+            change_count: number;
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Reverted At */
+            reverted_at: string | null;
+        };
         /** Message */
         Message: {
             /** Message */
             message: string;
+        };
+        /** MetadataVersionOut */
+        MetadataVersionOut: {
+            /** Version */
+            version: number;
+            /** Snapshot */
+            snapshot: {
+                [key: string]: unknown;
+            };
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Current
+             * @default false
+             */
+            current?: boolean;
+        };
+        /** MfaCodeIn */
+        MfaCodeIn: {
+            /** Code */
+            code: string;
+        };
+        /** MfaDisableIn */
+        MfaDisableIn: {
+            /** Password */
+            password: string;
+            /** Code */
+            code: string;
+        };
+        /** MfaSetupOut */
+        MfaSetupOut: {
+            /** Secret */
+            secret: string;
+            /** Otpauth Uri */
+            otpauth_uri: string;
         };
         /** NameIn */
         NameIn: {
@@ -2382,10 +4199,58 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             confidence?: components["schemas"]["Confidence"] | null;
         };
+        /** OcrLineOut */
+        OcrLineOut: {
+            /** Line No */
+            line_no: number;
+            /** Text */
+            text: string;
+            /** Confidence */
+            confidence: number;
+        };
+        /** OcrPageOut */
+        OcrPageOut: {
+            /** Page */
+            page: number;
+            /** Lines */
+            lines: components["schemas"]["OcrLineOut"][];
+        };
+        /** OcrTextOut */
+        OcrTextOut: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            status: components["schemas"]["ProcessingStatus"];
+            /** Engine */
+            engine: string | null;
+            /** Confidence */
+            confidence?: number | null;
+            /** Text */
+            text?: string | null;
+            /**
+             * Pages
+             * @default []
+             */
+            pages?: components["schemas"]["OcrPageOut"][];
+            /**
+             * Note
+             * @default Machine-read text. It may contain errors and is not a verified transcription.
+             */
+            note?: string;
+        };
         /** Page[AuditEventOut] */
         Page_AuditEventOut_: {
             /** Items */
             items: components["schemas"]["AuditEventOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[DocumentOut] */
+        Page_DocumentOut_: {
+            /** Items */
+            items: components["schemas"]["DocumentOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -2409,6 +4274,252 @@ export interface components {
             items: components["schemas"]["SourceOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
+        };
+        /** ParcelGroupOut */
+        ParcelGroupOut: {
+            parent: components["schemas"]["ParcelRef"];
+            /**
+             * Children
+             * @default []
+             */
+            children?: components["schemas"]["ParcelRef"][];
+        };
+        /** ParcelIn */
+        ParcelIn: {
+            /** Place Id */
+            place_id?: string | null;
+            /** State Or Ut */
+            state_or_ut?: string | null;
+            /** District */
+            district?: string | null;
+            /** Tehsil Taluk */
+            tehsil_taluk?: string | null;
+            /** Village */
+            village?: string | null;
+            /** Revenue Village Code */
+            revenue_village_code?: string | null;
+            /** Survey Number */
+            survey_number?: string | null;
+            /** Khasra Or Gata Number */
+            khasra_or_gata_number?: string | null;
+            /** Khata Number */
+            khata_number?: string | null;
+            /** Khatauni Number */
+            khatauni_number?: string | null;
+            /** Patta Number */
+            patta_number?: string | null;
+            /** Plot Number */
+            plot_number?: string | null;
+            /** Subdivision Number */
+            subdivision_number?: string | null;
+            /**
+             * Ulpin
+             * @description Unique Land Parcel Identification Number (14 chars)
+             */
+            ulpin?: string | null;
+            /** Area */
+            area?: number | string | null;
+            area_unit?: components["schemas"]["AreaUnit"] | null;
+            /** Land Use */
+            land_use?: string | null;
+            /** Latitude */
+            latitude?: number | string | null;
+            /** Longitude */
+            longitude?: number | string | null;
+            /** Cadastral Map Reference */
+            cadastral_map_reference?: string | null;
+            /** State Portal Reference */
+            state_portal_reference?: string | null;
+            /** Extra Identifiers */
+            extra_identifiers?: {
+                [key: string]: unknown;
+            } | null;
+            /** Notes */
+            notes?: string | null;
+            /** Parent Parcel Id */
+            parent_parcel_id?: string | null;
+        };
+        /** ParcelLineageOut */
+        ParcelLineageOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            parcel: components["schemas"]["ParcelOut"];
+            /**
+             * Ancestors
+             * @default []
+             */
+            ancestors?: components["schemas"]["ParcelRef"][];
+            /**
+             * Siblings
+             * @default []
+             */
+            siblings?: components["schemas"]["ParcelRef"][];
+            /**
+             * Descendants
+             * @default []
+             */
+            descendants?: components["schemas"]["ParcelNode"][];
+        };
+        /** ParcelNode */
+        ParcelNode: {
+            parcel: components["schemas"]["ParcelRef"];
+            /** Depth */
+            depth: number;
+        };
+        /** ParcelOut */
+        ParcelOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Property Id
+             * Format: uuid
+             */
+            property_id: string;
+            /** Parent Parcel Id */
+            parent_parcel_id: string | null;
+            /** Label */
+            label: string;
+            /** Place Id */
+            place_id: string | null;
+            /** State Or Ut */
+            state_or_ut: string | null;
+            /** District */
+            district: string | null;
+            /** Tehsil Taluk */
+            tehsil_taluk: string | null;
+            /** Village */
+            village: string | null;
+            /** Revenue Village Code */
+            revenue_village_code: string | null;
+            /** Survey Number */
+            survey_number: string | null;
+            /** Khasra Or Gata Number */
+            khasra_or_gata_number: string | null;
+            /** Khata Number */
+            khata_number: string | null;
+            /** Khatauni Number */
+            khatauni_number: string | null;
+            /** Patta Number */
+            patta_number: string | null;
+            /** Plot Number */
+            plot_number: string | null;
+            /** Subdivision Number */
+            subdivision_number: string | null;
+            /** Ulpin */
+            ulpin: string | null;
+            /** Area */
+            area: string | null;
+            /** Area Unit */
+            area_unit: string | null;
+            /** Area Sq M */
+            area_sq_m?: string | null;
+            /** Area Conversion Note */
+            area_conversion_note?: string | null;
+            /** Land Use */
+            land_use: string | null;
+            /** Latitude */
+            latitude: number | null;
+            /** Longitude */
+            longitude: number | null;
+            /** Cadastral Map Reference */
+            cadastral_map_reference: string | null;
+            /** State Portal Reference */
+            state_portal_reference: string | null;
+            /** Extra Identifiers */
+            extra_identifiers: {
+                [key: string]: unknown;
+            };
+            /** Notes */
+            notes: string | null;
+            /**
+             * Child Count
+             * @default 0
+             */
+            child_count?: number;
+            provenance?: components["schemas"]["ProvenanceOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ParcelRef */
+        ParcelRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Parent Parcel Id */
+            parent_parcel_id?: string | null;
+        };
+        /** ParcelUpdate */
+        ParcelUpdate: {
+            /** Place Id */
+            place_id?: string | null;
+            /** State Or Ut */
+            state_or_ut?: string | null;
+            /** District */
+            district?: string | null;
+            /** Tehsil Taluk */
+            tehsil_taluk?: string | null;
+            /** Village */
+            village?: string | null;
+            /** Revenue Village Code */
+            revenue_village_code?: string | null;
+            /** Survey Number */
+            survey_number?: string | null;
+            /** Khasra Or Gata Number */
+            khasra_or_gata_number?: string | null;
+            /** Khata Number */
+            khata_number?: string | null;
+            /** Khatauni Number */
+            khatauni_number?: string | null;
+            /** Patta Number */
+            patta_number?: string | null;
+            /** Plot Number */
+            plot_number?: string | null;
+            /** Subdivision Number */
+            subdivision_number?: string | null;
+            /**
+             * Ulpin
+             * @description Unique Land Parcel Identification Number (14 chars)
+             */
+            ulpin?: string | null;
+            /** Area */
+            area?: number | string | null;
+            area_unit?: components["schemas"]["AreaUnit"] | null;
+            /** Land Use */
+            land_use?: string | null;
+            /** Latitude */
+            latitude?: number | string | null;
+            /** Longitude */
+            longitude?: number | string | null;
+            /** Cadastral Map Reference */
+            cadastral_map_reference?: string | null;
+            /** State Portal Reference */
+            state_portal_reference?: string | null;
+            /** Extra Identifiers */
+            extra_identifiers?: {
+                [key: string]: unknown;
+            } | null;
+            /** Notes */
+            notes?: string | null;
+            /** Parent Parcel Id */
+            parent_parcel_id?: string | null;
         };
         /** ParticipantIn */
         ParticipantIn: {
@@ -2440,6 +4551,37 @@ export interface components {
          * @enum {string}
          */
         ParticipantRole: "principal" | "spouse" | "parent" | "witness" | "officiant" | "informant" | "other";
+        /** PartitionIn */
+        PartitionIn: {
+            date: components["schemas"]["GenealogicalDate"];
+            /** Description */
+            description?: string | null;
+            /** Registration Number */
+            registration_number?: string | null;
+            registration_date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Related Event Id */
+            related_event_id?: string | null;
+            /** Parcel Ids */
+            parcel_ids?: string[] | null;
+            /** Allocations */
+            allocations: components["schemas"]["AllocationIn"][];
+            /** Ends Interest Ids */
+            ends_interest_ids?: string[] | null;
+            /** Document Ids */
+            document_ids?: string[];
+            /**
+             * Allow Partial
+             * @description Accept allocations that do not add up to the ended shares (e.g. a partial deed).
+             * @default false
+             */
+            allow_partial?: boolean;
+            /** @default documented */
+            status?: components["schemas"]["InterestStatus"];
+            /** @default USER_ASSERTION */
+            evidence_status?: components["schemas"]["EvidenceStatus"];
+            /** @default unknown */
+            confidence?: components["schemas"]["Confidence"];
+        };
         /** PasswordChangeIn */
         PasswordChangeIn: {
             /** Current Password */
@@ -2510,6 +4652,18 @@ export interface components {
             birth_year?: number | null;
             /** Death Year */
             death_year?: number | null;
+            /** Birth Date */
+            birth_date?: {
+                [key: string]: unknown;
+            } | null;
+            /** Birth Display */
+            birth_display?: string | null;
+            /** Death Date */
+            death_date?: {
+                [key: string]: unknown;
+            } | null;
+            /** Death Display */
+            death_display?: string | null;
             /**
              * Is Minor
              * @default false
@@ -2571,6 +4725,29 @@ export interface components {
             /** Updated At */
             updated_at?: string | null;
         };
+        /** PersonPropertyInterestOut */
+        PersonPropertyInterestOut: {
+            property: components["schemas"]["PropertyOut"];
+            interest: components["schemas"]["InterestOut"];
+        };
+        /** PersonPropertyInterestsOut */
+        PersonPropertyInterestsOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Items
+             * @default []
+             */
+            items?: components["schemas"]["PersonPropertyInterestOut"][];
+        };
         /** PersonSummary */
         PersonSummary: {
             /**
@@ -2586,6 +4763,18 @@ export interface components {
             birth_year?: number | null;
             /** Death Year */
             death_year?: number | null;
+            /** Birth Date */
+            birth_date?: {
+                [key: string]: unknown;
+            } | null;
+            /** Birth Display */
+            birth_display?: string | null;
+            /** Death Date */
+            death_date?: {
+                [key: string]: unknown;
+            } | null;
+            /** Death Display */
+            death_display?: string | null;
             /**
              * Is Minor
              * @default false
@@ -2732,6 +4921,11 @@ export interface components {
             } | null;
         };
         /**
+         * ProcessingStatus
+         * @enum {string}
+         */
+        ProcessingStatus: "not_requested" | "pending" | "running" | "completed" | "failed" | "skipped";
+        /**
          * ProfileStatus
          * @enum {string}
          */
@@ -2743,6 +4937,404 @@ export interface components {
             /** Preferred Language */
             preferred_language?: string | null;
         };
+        /**
+         * PropertyClassification
+         * @enum {string}
+         */
+        PropertyClassification: "ancestral" | "self_acquired" | "joint_family" | "unknown";
+        /** PropertyCounts */
+        PropertyCounts: {
+            /**
+             * Parcels
+             * @default 0
+             */
+            parcels?: number;
+            /**
+             * Events
+             * @default 0
+             */
+            events?: number;
+            /**
+             * Interests
+             * @default 0
+             */
+            interests?: number;
+            /**
+             * Current Interests
+             * @default 0
+             */
+            current_interests?: number;
+            /**
+             * Documents
+             * @default 0
+             */
+            documents?: number;
+            /**
+             * Citations
+             * @default 0
+             */
+            citations?: number;
+        };
+        /** PropertyDetailOut */
+        PropertyDetailOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            property_type: components["schemas"]["PropertyType"];
+            classification: components["schemas"]["PropertyClassification"];
+            /** Display Name */
+            display_name: string;
+            /** Description */
+            description: string | null;
+            /** Place Id */
+            place_id: string | null;
+            /** Place Name */
+            place_name?: string | null;
+            /** Address Text */
+            address_text: string | null;
+            /** Current Status */
+            current_status: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /**
+             * Parcel Count
+             * @default 0
+             */
+            parcel_count?: number;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit?: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Parcels
+             * @default []
+             */
+            parcels?: components["schemas"]["ParcelOut"][];
+            /**
+             * Current Interests
+             * @default []
+             */
+            current_interests?: components["schemas"]["InterestOut"][];
+            /**
+             * Documented Share Total
+             * @default 0/1
+             */
+            documented_share_total?: string;
+            /**
+             * Has Overlapping Claims
+             * @default false
+             */
+            has_overlapping_claims?: boolean;
+            /**
+             * @default {
+             *       "parcels": 0,
+             *       "events": 0,
+             *       "interests": 0,
+             *       "current_interests": 0,
+             *       "documents": 0,
+             *       "citations": 0
+             *     }
+             */
+            counts?: components["schemas"]["PropertyCounts"];
+        };
+        /** PropertyEventIn */
+        PropertyEventIn: {
+            type: components["schemas"]["PropertyEventType"];
+            date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Description */
+            description?: string | null;
+            /** Registration Number */
+            registration_number?: string | null;
+            registration_date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Mutation Number */
+            mutation_number?: string | null;
+            /** Consideration */
+            consideration?: string | null;
+            /** Related Event Id */
+            related_event_id?: string | null;
+            /** Parcel Ids */
+            parcel_ids?: string[];
+            /** Ends Interest Ids */
+            ends_interest_ids?: string[];
+            /** End Status */
+            end_status?: ("transferred" | "relinquished") | null;
+            /** Creates Interests */
+            creates_interests?: components["schemas"]["EventInterestIn"][];
+            /** Document Ids */
+            document_ids?: string[];
+            /** @default USER_ASSERTION */
+            evidence_status?: components["schemas"]["EvidenceStatus"];
+            /** @default unknown */
+            confidence?: components["schemas"]["Confidence"];
+        };
+        /** PropertyEventOut */
+        PropertyEventOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Property Id
+             * Format: uuid
+             */
+            property_id: string;
+            type: components["schemas"]["PropertyEventType"];
+            /** Date */
+            date: {
+                [key: string]: unknown;
+            } | null;
+            /** Date Display */
+            date_display?: string | null;
+            /** Date Sort From */
+            date_sort_from: string | null;
+            /** Description */
+            description: string | null;
+            /** Registration Number */
+            registration_number: string | null;
+            /** Registration Date */
+            registration_date: {
+                [key: string]: unknown;
+            } | null;
+            /** Mutation Number */
+            mutation_number: string | null;
+            /** Consideration */
+            consideration: string | null;
+            related_event?: components["schemas"]["RelatedEventOut"] | null;
+            /**
+             * Parcels
+             * @default []
+             */
+            parcels?: components["schemas"]["ParcelRef"][];
+            /**
+             * Interests Ended
+             * @default []
+             */
+            interests_ended?: components["schemas"]["InterestOut"][];
+            /**
+             * Interests Created
+             * @default []
+             */
+            interests_created?: components["schemas"]["InterestOut"][];
+            /**
+             * Documents
+             * @default []
+             */
+            documents?: components["schemas"]["DocumentRef"][];
+            /**
+             * Hidden Document Count
+             * @default 0
+             */
+            hidden_document_count?: number;
+            /**
+             * Citation Count
+             * @default 0
+             */
+            citation_count?: number;
+            evidence_status: components["schemas"]["EvidenceStatus"];
+            confidence: components["schemas"]["Confidence"];
+            provenance?: components["schemas"]["ProvenanceOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * PropertyEventType
+         * @enum {string}
+         */
+        PropertyEventType: "purchase" | "inheritance" | "succession" | "partition" | "family_settlement" | "relinquishment" | "gift" | "sale" | "mutation" | "acquisition" | "court_order" | "mortgage" | "lease" | "consolidation" | "subdivision" | "merger" | "boundary_change" | "dispute" | "other";
+        /** PropertyEventUpdate */
+        PropertyEventUpdate: {
+            /** Description */
+            description?: string | null;
+            /** Registration Number */
+            registration_number?: string | null;
+            registration_date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Mutation Number */
+            mutation_number?: string | null;
+            /** Consideration */
+            consideration?: string | null;
+            /** Related Event Id */
+            related_event_id?: string | null;
+            evidence_status?: components["schemas"]["EvidenceStatus"] | null;
+            confidence?: components["schemas"]["Confidence"] | null;
+        };
+        /** PropertyIn */
+        PropertyIn: {
+            property_type: components["schemas"]["PropertyType"];
+            /** @default unknown */
+            classification?: components["schemas"]["PropertyClassification"];
+            /** Display Name */
+            display_name: string;
+            /** Description */
+            description?: string | null;
+            /** Place Id */
+            place_id?: string | null;
+            /** Address Text */
+            address_text?: string | null;
+            /** Current Status */
+            current_status?: string | null;
+            /** @default PRIVATE_TREE_ADMINS */
+            privacy_level?: components["schemas"]["PrivacyLevel"];
+        };
+        /** PropertyOut */
+        PropertyOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            property_type: components["schemas"]["PropertyType"];
+            classification: components["schemas"]["PropertyClassification"];
+            /** Display Name */
+            display_name: string;
+            /** Description */
+            description: string | null;
+            /** Place Id */
+            place_id: string | null;
+            /** Place Name */
+            place_name?: string | null;
+            /** Address Text */
+            address_text: string | null;
+            /** Current Status */
+            current_status: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /**
+             * Parcel Count
+             * @default 0
+             */
+            parcel_count?: number;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit?: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * PropertyType
+         * @enum {string}
+         */
+        PropertyType: "agricultural_land" | "residential_land" | "house" | "commercial" | "ancestral_home" | "estate" | "other";
+        /** PropertyUpdate */
+        PropertyUpdate: {
+            property_type?: components["schemas"]["PropertyType"] | null;
+            classification?: components["schemas"]["PropertyClassification"] | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Place Id */
+            place_id?: string | null;
+            /** Address Text */
+            address_text?: string | null;
+            /** Current Status */
+            current_status?: string | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /** ProposalOut */
+        ProposalOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Subject Person Id */
+            subject_person_id: string | null;
+            /** Subject Property Id */
+            subject_property_id: string | null;
+            /** Extractor */
+            extractor: string;
+            /** Extractor Version */
+            extractor_version: string;
+            /** Engine */
+            engine: string | null;
+            /** Field */
+            field: string;
+            /** Label */
+            label: string;
+            /** Proposed Value */
+            proposed_value: unknown;
+            /** Display Value */
+            display_value: string;
+            /** Confidence */
+            confidence: number;
+            /** Source Location */
+            source_location: {
+                [key: string]: unknown;
+            } | null;
+            status: components["schemas"]["ProposalStatus"];
+            /** Final Value */
+            final_value: unknown | null;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Review Note */
+            review_note: string | null;
+            /** Applied Target Type */
+            applied_target_type: string | null;
+            /** Applied Target Id */
+            applied_target_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Value Label
+             * @default extracted
+             */
+            value_label?: string;
+        };
+        /**
+         * ProposalStatus
+         * @enum {string}
+         */
+        ProposalStatus: "pending" | "accepted" | "edited" | "rejected";
         /**
          * ProvenanceOrigin
          * @enum {string}
@@ -2796,6 +5388,23 @@ export interface components {
              * @default en
              */
             preferred_language?: string;
+        };
+        /** RelatedEventOut */
+        RelatedEventOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+            type?: components["schemas"]["EventType"] | null;
+            /** Date Display */
+            date_display?: string | null;
+            principal?: components["schemas"]["PersonSummary"] | null;
         };
         /** RelatedPerson */
         RelatedPerson: {
@@ -2910,7 +5519,7 @@ export interface components {
              * Path
              * @default []
              */
-            path?: string[];
+            path?: (string | null)[];
             /**
              * Common Ancestor Ids
              * @default []
@@ -2978,11 +5587,47 @@ export interface components {
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
         };
+        /** ReprocessOut */
+        ReprocessOut: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            preview_status: components["schemas"]["ProcessingStatus"];
+            ocr_status: components["schemas"]["ProcessingStatus"];
+            extraction_status: components["schemas"]["ProcessingStatus"];
+            /** Pending Proposals */
+            pending_proposals: number;
+        };
+        /** ReviewIn */
+        ReviewIn: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "accept" | "edit" | "reject";
+            /** Value */
+            value?: unknown | null;
+            /** Note */
+            note?: string | null;
+            /** Target Person Id */
+            target_person_id?: string | null;
+            /** Target Property Id */
+            target_property_id?: string | null;
+            /** Target Parcel Id */
+            target_parcel_id?: string | null;
+        };
         /**
          * Role
          * @enum {string}
          */
         Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN";
+        /**
+         * ScanStatus
+         * @enum {string}
+         */
+        ScanStatus: "pending" | "clean" | "infected" | "error";
         /** SearchHit */
         SearchHit: {
             /** Kind */
@@ -3174,6 +5819,143 @@ export interface components {
             tradition?: components["schemas"]["TraditionIn"] | null;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
         };
+        /** StagedPersonPreview */
+        StagedPersonPreview: {
+            /** Xref */
+            xref: string;
+            /** Display Name */
+            display_name: string;
+            /** Sex */
+            sex?: string | null;
+            /** Profile Status */
+            profile_status: string;
+            /** Birth */
+            birth?: string | null;
+            /** Death */
+            death?: string | null;
+            /**
+             * Names
+             * @default []
+             */
+            names?: string[];
+            /**
+             * Event Count
+             * @default 0
+             */
+            event_count?: number;
+            /**
+             * Heritage
+             * @default []
+             */
+            heritage?: string[];
+            /**
+             * Has Astrology
+             * @default false
+             */
+            has_astrology?: boolean;
+            /**
+             * Preserved Tags
+             * @default []
+             */
+            preserved_tags?: string[];
+            /**
+             * Duplicates
+             * @default []
+             */
+            duplicates?: components["schemas"]["DuplicateMatch"][];
+        };
+        /**
+         * StorageClass
+         * @enum {string}
+         */
+        StorageClass: "STANDARD" | "VAULT";
+        /** SubdivideIn */
+        SubdivideIn: {
+            /** Children */
+            children: components["schemas"]["SubdivisionChildIn"][];
+            date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Record Event
+             * @default true
+             */
+            record_event?: boolean;
+            /** Document Ids */
+            document_ids?: string[];
+            /** @default USER_ASSERTION */
+            evidence_status?: components["schemas"]["EvidenceStatus"];
+        };
+        /** SubdivideOut */
+        SubdivideOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            parent: components["schemas"]["ParcelOut"];
+            /** Children */
+            children: components["schemas"]["ParcelOut"][];
+            event?: components["schemas"]["PropertyEventOut"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings?: string[];
+        };
+        /** SubdivisionChildIn */
+        SubdivisionChildIn: {
+            /** Place Id */
+            place_id?: string | null;
+            /** State Or Ut */
+            state_or_ut?: string | null;
+            /** District */
+            district?: string | null;
+            /** Tehsil Taluk */
+            tehsil_taluk?: string | null;
+            /** Village */
+            village?: string | null;
+            /** Revenue Village Code */
+            revenue_village_code?: string | null;
+            /** Survey Number */
+            survey_number?: string | null;
+            /** Khasra Or Gata Number */
+            khasra_or_gata_number?: string | null;
+            /** Khata Number */
+            khata_number?: string | null;
+            /** Khatauni Number */
+            khatauni_number?: string | null;
+            /** Patta Number */
+            patta_number?: string | null;
+            /** Plot Number */
+            plot_number?: string | null;
+            /** Subdivision Number */
+            subdivision_number?: string | null;
+            /**
+             * Ulpin
+             * @description Unique Land Parcel Identification Number (14 chars)
+             */
+            ulpin?: string | null;
+            /** Area */
+            area?: number | string | null;
+            area_unit?: components["schemas"]["AreaUnit"] | null;
+            /** Land Use */
+            land_use?: string | null;
+            /** Latitude */
+            latitude?: number | string | null;
+            /** Longitude */
+            longitude?: number | string | null;
+            /** Cadastral Map Reference */
+            cadastral_map_reference?: string | null;
+            /** State Portal Reference */
+            state_portal_reference?: string | null;
+            /** Extra Identifiers */
+            extra_identifiers?: {
+                [key: string]: unknown;
+            } | null;
+            /** Notes */
+            notes?: string | null;
+        };
         /**
          * TimePrecision
          * @enum {string}
@@ -3184,6 +5966,36 @@ export interface components {
          * @enum {string}
          */
         TimeSource: "birth_certificate" | "hospital_record" | "kundli" | "family_recorded" | "verbal" | "approximate" | "unknown";
+        /** TimelineOut */
+        TimelineOut: {
+            /**
+             * Legal Notice
+             * @default Genealogical/documentary record only — not a legal title opinion.
+             */
+            legal_notice?: string;
+            property: components["schemas"]["PropertyOut"];
+            /**
+             * Events
+             * @default []
+             */
+            events?: components["schemas"]["PropertyEventOut"][];
+            /**
+             * Current Interests
+             * @default []
+             */
+            current_interests?: components["schemas"]["InterestOut"][];
+            holders_at?: components["schemas"]["HoldersAtOut"] | null;
+            /**
+             * Documents
+             * @default []
+             */
+            documents?: components["schemas"]["DocumentRef"][];
+            /**
+             * Hidden Document Count
+             * @default 0
+             */
+            hidden_document_count?: number;
+        };
         /**
          * TraditionIn
          * @description Traditional genealogy record details (Bahi / Panda / temple register; PRS §20).
@@ -3203,6 +6015,20 @@ export interface components {
             family_origin_place?: string | null;
             /** Verification Status */
             verification_status?: string | null;
+        };
+        /** TransferOut */
+        TransferOut: {
+            event: components["schemas"]["PropertyEventOut"];
+            /**
+             * From Holders
+             * @default []
+             */
+            from_holders?: components["schemas"]["HolderOut"][];
+            /**
+             * To Holders
+             * @default []
+             */
+            to_holders?: components["schemas"]["HolderOut"][];
         };
         /** TreeCreate */
         TreeCreate: {
@@ -3257,7 +6083,7 @@ export interface components {
         };
         /** UnionOut */
         UnionOut: {
-            relationship: components["schemas"]["RelationshipOut"];
+            relationship: components["schemas"]["RelationshipOut"] | null;
             partner: components["schemas"]["RelatedPerson"];
             /**
              * Children
@@ -3283,6 +6109,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Mfa Enabled
+             * @default false
+             */
+            mfa_enabled?: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -3555,6 +6386,125 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PasswordChangeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mfa_setup_api_v1_auth_mfa_setup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaSetupOut"];
+                };
+            };
+        };
+    };
+    mfa_enable_api_v1_auth_mfa_enable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaCodeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mfa_disable_api_v1_auth_mfa_disable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaDisableIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_account_api_v1_auth_close_account_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseAccountIn"];
             };
         };
         responses: {
@@ -4314,6 +7264,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    erase_person_api_v1_trees__tree_id__people__person_id__erase_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EraseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Validation Error */
@@ -6531,6 +9517,1878 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClaimOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_v1_trees__tree_id__merges_preview_get: {
+        parameters: {
+            query: {
+                survivor: string;
+                merged: string;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_merges_api_v1_trees__tree_id__merges_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergeOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    merge_api_v1_trees__tree_id__merges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revert_api_v1_trees__tree_id__merges__merge_id__revert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                merge_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_properties_api_v1_trees__tree_id__properties_get: {
+        parameters: {
+            query?: {
+                type?: components["schemas"]["PropertyType"] | null;
+                classification?: components["schemas"]["PropertyClassification"] | null;
+                q?: string | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_property_api_v1_trees__tree_id__properties_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_property_api_v1_trees__tree_id__properties__property_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_property_api_v1_trees__tree_id__properties__property_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_property_api_v1_trees__tree_id__properties__property_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_parcels_api_v1_trees__tree_id__properties__property_id__parcels_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParcelOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_parcel_api_v1_trees__tree_id__properties__property_id__parcels_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParcelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParcelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_parcel_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                parcel_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_parcel_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                parcel_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParcelUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParcelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subdivide_parcel_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__subdivide_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                parcel_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubdivideIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubdivideOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parcel_lineage_api_v1_trees__tree_id__properties__property_id__parcels__parcel_id__lineage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                parcel_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParcelLineageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_interests_api_v1_trees__tree_id__properties__property_id__interests_get: {
+        parameters: {
+            query?: {
+                current_only?: boolean;
+            };
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterestOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_interest_api_v1_trees__tree_id__properties__property_id__interests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_interest_api_v1_trees__tree_id__properties__property_id__interests__interest_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                interest_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_interest_api_v1_trees__tree_id__properties__property_id__interests__interest_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                interest_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterestUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    end_interest_api_v1_trees__tree_id__properties__property_id__interests__interest_id__end_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                interest_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterestEndIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_event_api_v1_trees__tree_id__properties__property_id__events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyEventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyEventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_api_v1_trees__tree_id__properties__property_id__events__event_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                event_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyEventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_event_api_v1_trees__tree_id__properties__property_id__events__event_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                event_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyEventUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyEventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_partition_api_v1_trees__tree_id__properties__property_id__partition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartitionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyEventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    timeline_api_v1_trees__tree_id__properties__property_id__timeline_get: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM-DD */
+                at?: string | null;
+            };
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimelineOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lineage_api_v1_trees__tree_id__properties__property_id__lineage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                property_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    person_property_interests_api_v1_trees__tree_id__people__person_id__property_interests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonPropertyInterestsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_documents_api_v1_trees__tree_id__documents_get: {
+        parameters: {
+            query?: {
+                category?: components["schemas"]["DocumentCategory"] | null;
+                target_type?: components["schemas"]["DocumentLinkTarget"] | null;
+                target_id?: string | null;
+                q?: string | null;
+                deleted?: boolean;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_DocumentOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_document_api_v1_trees__tree_id__documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_document_api_v1_trees__tree_id__documents_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_document_api_v1_trees__tree_id__documents__document_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_document_api_v1_trees__tree_id__documents__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_document_api_v1_trees__tree_id__documents__document_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metadata_versions_api_v1_trees__tree_id__documents__document_id__versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetadataVersionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_document_api_v1_trees__tree_id__documents__document_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_link_api_v1_trees__tree_id__documents__document_id__links_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentLinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_link_api_v1_trees__tree_id__documents__document_id__links__link_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                link_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_url_api_v1_trees__tree_id__documents__document_id__download_url_post: {
+        parameters: {
+            query?: {
+                variant?: string;
+            };
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    serve_file_api_v1_files__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ocr_text_api_v1_trees__tree_id__documents__document_id__ocr_text_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OcrTextOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proposals_api_v1_trees__tree_id__documents__document_id__proposals_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ProposalStatus"] | null;
+            };
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reprocess_api_v1_trees__tree_id__documents__document_id__reprocess_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReprocessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_api_v1_trees__tree_id__extraction_proposals__proposal_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_profiles_api_v1_trees__tree_id__people__person_id__astrology_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AstrologyOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_profile_api_v1_trees__tree_id__people__person_id__astrology_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AstrologyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AstrologyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_profile_api_v1_trees__tree_id__astrology__profile_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AstrologyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_profile_api_v1_trees__tree_id__astrology__profile_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_profile_api_v1_trees__tree_id__astrology__profile_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AstrologyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AstrologyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    birth_conflicts_api_v1_trees__tree_id__people__person_id__birth_conflicts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthConflictsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_imports_api_v1_trees__tree_id__imports_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_gedcom_api_v1_trees__tree_id__imports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_gedcom_api_v1_trees__tree_id__imports_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_import_api_v1_trees__tree_id__imports__import_id__get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                import_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    commit_import_api_v1_trees__tree_id__imports__import_id__commit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommitIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_import_api_v1_trees__tree_id__imports__import_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_gedcom_api_v1_trees__tree_id__exports_gedcom_get: {
+        parameters: {
+            query?: {
+                exclude_living?: boolean;
+                include_sensitive?: boolean;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description GEDCOM 7.0 file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_archive_api_v1_trees__tree_id__exports_archive_get: {
+        parameters: {
+            query?: {
+                exclude_living?: boolean;
+                include_sensitive?: boolean;
+                include_vault_documents?: boolean;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Family archive ZIP (PRS §43) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": unknown;
                 };
             };
             /** @description Validation Error */
