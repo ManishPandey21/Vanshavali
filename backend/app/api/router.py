@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from app.modules.archive.router import router as archive_router
 from app.modules.astrology.router import router as astrology_router
 from app.modules.consent.router import router as consent_router
 from app.modules.documents.router import files_router as document_files_router
@@ -38,3 +39,4 @@ api_router.include_router(document_files_router)
 api_router.include_router(extraction_router)
 api_router.include_router(astrology_router)
 api_router.include_router(gedcom_router)
+api_router.include_router(archive_router)
