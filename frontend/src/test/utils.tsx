@@ -58,3 +58,12 @@ export function renderWithProviders(ui: ReactElement, { tree = makeTree(), route
 export function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
+
+/**
+ * Wraps a fetch mock so the family-data attestation check (ADR-0011) answers "already confirmed";
+ * every other request goes to `inner`.
+ */
+export function attested(inner: (...args: [RequestInfo | URL, RequestInit?]) => unknown) {
+  return (url: RequestInfo | URL, init?: RequestInit) =>
+    String(url).includes("/attestation") ? Promise.resolve(jsonResponse({ attested: true, current_version: "v1", attestation: null })) : inner(url, init);
+}

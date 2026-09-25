@@ -72,6 +72,8 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Need | Implementation |
 |---|---|
 | Claim own profile | `POST /people/{id}/claims`, then admin approval. Links the profile. **Grants no extra roles.** |
+| Claim via a shared link (ADR-0011) | A member creates a single-use link (`/claim#<token>`, shared via WhatsApp or anything else). The relative signs in, reads a plain-language notice and gives their own consent (server-owned text, 18+ confirmation). This files a claim. Only admin approval creates a membership (the offered role, never wider than the inviter's scope) and writes a `consent_record` with basis `self`. |
+| Family-data attestation (ADR-0011) | Before adding anyone, each contributor confirms: "I agree to add my family members' names to this private tree, and I confirm I have their permission to do so." Enforced by the server, recorded in `family_data_attestation`, withdrawable. It is an accountability record, **not** the relatives' consent. |
 | Control own privacy | Claimant may `PUT /people/{id}/privacy` |
 | Consent ledger | `consent_record` (grant, purpose, categories, basis incl. parent/guardian, expiry, withdrawal) |
 | Remove a fact / unlink a relationship | Delete event, assertion or relationship (audited) |
@@ -81,6 +83,9 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Delete uploaded file | Document soft delete plus retention (restore available) |
 | Close account | `POST /auth/close-account`: deactivates, revokes sessions, leaves trees. Refused for a sole tree owner. |
 | Export own data / tree | GEDCOM export (the full archival package is tracked in `IMPLEMENTATION_STATUS.md`) |
+
+**Open (Q13):** the lawful basis for living relatives who never claim their profile, and legal review of
+the onboarding wording and its Hindi translation.
 
 **DEFERRED:** a formal data-subject-request inbox with SLAs and a grievance officer contact
 (DPDP Rules commencement is phased, so this is tracked as a legal workstream). Age-verification and

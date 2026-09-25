@@ -28,7 +28,7 @@ export function TreesListPage() {
       {trees.isLoading && <Spinner />}
       <ErrorAlert error={trees.error} />
       {trees.data && trees.data.length === 0 && (
-        <EmptyState icon={<TreePine className="size-10" aria-hidden />} title={t("trees.emptyTitle")} action={<ButtonLink to="/trees/new">{t("trees.create")}</ButtonLink>}>
+        <EmptyState icon={<TreePine className="size-10" aria-hidden />} title={t("trees.emptyTitle")} action={<ButtonLink to="/welcome">{t("onboarding.start")}</ButtonLink>}>
           {t("trees.emptyBody")}
         </EmptyState>
       )}

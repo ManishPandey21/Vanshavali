@@ -34,11 +34,18 @@ export interface Seeded {
   userEmail: string;
 }
 
-/** Registers a fresh user (signed in on this context) and creates a tree. */
+/** Confirms the family-data statement for a tree (ADR-0011) so people can be added to it. */
+export async function attest(ctx: BrowserContext, baseURL: string, treeId: string): Promise<void> {
+  const stmt = await api<{ version: string; language: string }>(ctx, "GET", "/consent-statements/family_data?lang=en", undefined, baseURL);
+  await api(ctx, "POST", `/trees/${treeId}/attestation`, { statement_version: stmt.version, language: stmt.language }, baseURL);
+}
+
+/** Registers a fresh user (signed in on this context), creates a tree and confirms the family-data statement for it. */
 export async function registerWithTree(ctx: BrowserContext, baseURL: string, treeName: string, displayName = "E2E Owner"): Promise<Seeded> {
   const userEmail = uniqueEmail("owner");
   await api(ctx, "POST", "/auth/register", { email: userEmail, password: PASSWORD, display_name: displayName, preferred_language: "en" }, baseURL);
   const tree = await api<{ id: string }>(ctx, "POST", "/trees", { name: treeName }, baseURL);
+  await attest(ctx, baseURL, tree.id);
   return { treeId: tree.id, userEmail };
 }
 

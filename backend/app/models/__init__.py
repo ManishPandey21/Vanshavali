@@ -16,7 +16,7 @@ from app.models.genealogy import Event, EventParticipant, MergeRecord, NameRecor
 from app.models.heritage import Assertion
 from app.models.identity import User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
-from app.models.privacy import ConsentRecord, ProfileClaim
+from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClaim, ProfileClaimInvite
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
 from app.models.tree import AccessGrant, Tree, TreeInvitation, TreeMembership
 
@@ -38,6 +38,7 @@ __all__ = [
     "ExportJob",
     "ExtractionProposal",
     "FamilyBranch",
+    "FamilyDataAttestation",
     "GedcomExtension",
     "Household",
     "HouseholdMembership",
@@ -48,6 +49,7 @@ __all__ = [
     "Person",
     "Place",
     "ProfileClaim",
+    "ProfileClaimInvite",
     "Property",
     "PropertyEvent",
     "PropertyEventParcel",

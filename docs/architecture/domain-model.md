@@ -58,6 +58,9 @@ erDiagram
 
   PERSON ||--o{ CONSENT_RECORD : "subject of"
   PERSON ||--o{ PROFILE_CLAIM : "claimed by user"
+  PERSON ||--o{ PROFILE_CLAIM_INVITE : "shareable claim link (ADR-0011)"
+  PROFILE_CLAIM_INVITE |o--o| PROFILE_CLAIM : "accepted as"
+  TREE ||--o{ FAMILY_DATA_ATTESTATION : "contributor confirmed permission (ADR-0011)"
   PERSON ||--o{ MERGE_RECORD : "survivor / merged"
   TREE ||--o{ IMPORT_JOB : "GEDCOM imports"
   PERSON ||--o{ GEDCOM_EXTENSION : "preserved unknown tags"

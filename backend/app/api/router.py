@@ -6,6 +6,8 @@ from fastapi import APIRouter
 
 from app.modules.archive.router import router as archive_router
 from app.modules.astrology.router import router as astrology_router
+from app.modules.consent.attestation import router as attestation_router
+from app.modules.consent.claim_invites import router as claim_invites_router
 from app.modules.consent.router import router as consent_router
 from app.modules.documents.router import files_router as document_files_router
 from app.modules.documents.router import router as documents_router
@@ -32,6 +34,8 @@ api_router.include_router(heritage_router)
 api_router.include_router(family_router)
 api_router.include_router(search_router)
 api_router.include_router(consent_router)
+api_router.include_router(attestation_router)
+api_router.include_router(claim_invites_router)
 api_router.include_router(merge_router)
 api_router.include_router(property_router)
 api_router.include_router(documents_router)

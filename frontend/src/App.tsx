@@ -11,6 +11,8 @@ import { Spinner } from "./components/ui/feedback";
 import { LoginPage, RegisterPage } from "./pages/auth/AuthPages";
 import { AcceptInvitePage, CreateTreePage, TreesListPage } from "./pages/trees/TreesPages";
 import { AccountPage } from "./pages/AccountPage";
+import { WelcomePage } from "./pages/onboarding/WelcomePage";
+import { ClaimInvitePage } from "./pages/onboarding/ClaimInvitePage";
 import { DashboardPage } from "./pages/tree/DashboardPage";
 import { PeoplePage } from "./pages/tree/PeoplePage";
 import { AddPersonPage } from "./pages/tree/AddPersonPage";
@@ -83,12 +85,14 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/invite/:token" element={<AcceptInvitePage />} />
+        <Route path="/claim" element={<ClaimInvitePage />} />
         <Route path="/p/:slug" element={<PublicTreePage />} />
         <Route path="/p/:slug/people/:personId" element={<PublicPersonPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
             <Route index element={<TreesListPage />} />
             <Route path="/trees/new" element={<CreateTreePage />} />
+            <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/account" element={<AccountPage />} />
           </Route>
           <Route path="/t/:treeId" element={<TreeLayout />}>

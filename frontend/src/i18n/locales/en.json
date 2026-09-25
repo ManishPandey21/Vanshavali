@@ -20,7 +20,8 @@
     "required": "This field is required",
     "save": "Save",
     "saved": "Saved",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "opensInNewTab": "(opens in a new tab)"
   },
   "errors": {
     "forbidden": "You don't have permission to do that in this tree.",
@@ -779,7 +780,9 @@
     "reviewNote": "Note",
     "subtitleAdmin": "Review requests from members who say a profile is theirs",
     "subtitleMine": "Your requests to claim profiles",
-    "title": "Profile claims"
+    "title": "Profile claims",
+    "claimant": "Requested by {{name}}",
+    "viaInvite": "Came through an invite link. Check it is really them before approving."
   },
   "consent": {
     "active": "Active",
@@ -1839,5 +1842,95 @@
     "reasonHint": "For example, the person's own erasure request.",
     "typeName": "Type the name “{{name}}” to confirm",
     "submit": "Erase permanently"
+  },
+  "onboarding": {
+    "title": "Start your family tree",
+    "start": "Start your family tree",
+    "stepOf": "Step {{n}} of {{total}}",
+    "progress": "Progress",
+    "done": "done",
+    "current": "current step",
+    "later": "Maybe later",
+    "steps": {
+      "notice": "How we protect your family",
+      "tree": "Name your tree",
+      "family": "Add your family",
+      "invite": "Invite relatives"
+    },
+    "notice": {
+      "intro": "Vanshavali keeps your family's history. Before you begin, here is what happens to the names and details you add.",
+      "private": "Your tree is private. Only people you invite can see it, and it is never listed or searchable publicly.",
+      "living": "Living relatives are protected by default. Birth dates, contact details and addresses stay hidden even from most tree members.",
+      "claim": "Relatives can claim their own profile, and then they decide who sees their details.",
+      "control": "You and your relatives can correct, hide or permanently erase a profile at any time.",
+      "noSale": "We don't sell your data or show ads. Family data is used only to run your tree.",
+      "next": "I understand, continue"
+    },
+    "tree": {
+      "create": "Create my private tree"
+    },
+    "family": {
+      "intro": "Start with yourself and your parents. You can add everyone else later.",
+      "you": "You",
+      "father": "Father",
+      "mother": "Mother",
+      "optional": "Optional. Leave blank to skip.",
+      "given": "Given name",
+      "surname": "Surname / family name",
+      "status": "Living or passed away?",
+      "living": "Living",
+      "deceased": "Passed away",
+      "save": "Save and continue",
+      "skip": "Skip for now"
+    },
+    "consent": {
+      "required": "Please tick the box to continue.",
+      "why": "We ask because this tree holds other people's information. Each relative can later claim their profile, change who sees it, or ask for it to be removed.",
+      "gateTitle": "Before you add family members",
+      "gateBody": "Please confirm this once for this tree. Every member who adds people is asked the same.",
+      "confirm": "Confirm and continue"
+    },
+    "invite": {
+      "intro": "Send each living relative a private link so they can claim their own profile and add their side of the family.",
+      "safety": "Each link works once and expires in 7 days. Opening it doesn't show your tree: you approve each request first.",
+      "none": "No living relatives to invite yet. You can invite anyone later from their profile.",
+      "finish": "Go to my tree"
+    }
+  },
+  "claimInvite": {
+    "button": "Invite to claim",
+    "title": "Invite {{name}} to claim their profile",
+    "description": "Send a private link. After they sign in and confirm it's them, a tree admin approves the request before they can see the tree.",
+    "create": "Create a private link for {{name}}",
+    "letThemContribute": "Let them add relatives too",
+    "letThemContributeHint": "They join as a contributor instead of a viewer. Only tree admins can offer this.",
+    "whatsapp": "Share on WhatsApp",
+    "shareOther": "Share another way",
+    "copyLink": "Copy link",
+    "ready": "Invite link ready to share",
+    "linkFacts": "Works once, until {{date}}. Anyone who has the link can ask to claim this profile, so send it only to them. You'll approve before they see anything.",
+    "message": "Namaste! I've started our family tree on Vanshavali. Open this private link to claim your own profile and add your side of the family: {{url}}"
+  },
+  "claimLink": {
+    "title": "Claim your family profile",
+    "signInFirst": "A relative invited you to a private family tree. Sign in or create a free account to continue.",
+    "badLink": "This link isn't valid. It may be incomplete or have been cancelled. Ask the relative who sent it for a new one.",
+    "used": "This link has already been used. Ask the relative who sent it for a new one.",
+    "expired": "This link has expired. Ask the relative who sent it for a new one.",
+    "invitedBy": "{{inviter}} added you as “{{person}}” in the private family tree “{{tree}}”.",
+    "invited": "You were added as “{{person}}” in the private family tree “{{tree}}”.",
+    "noticeTitle": "What happens next",
+    "noticePrivate": "The tree is private and invite-only. Nothing about you is public.",
+    "noticeReview": "A tree admin checks your request before you can see the tree.",
+    "noticeControl": "Once approved, you decide who in the family can see your details.",
+    "noticeErase": "You can withdraw your consent or ask for your profile to be erased at any time.",
+    "adult": "I am 18 or older",
+    "adultHint": "A parent or guardian manages profiles of children.",
+    "adultRequired": "You need to be 18 or older to claim a profile yourself.",
+    "submit": "Claim my profile",
+    "submitted": "Thank you. Your request was sent to the tree admins. You'll see the tree here once they approve it.",
+    "home": "Go to my trees",
+    "notYou": "Not you, or don't want to join?",
+    "leave": "Leave without claiming"
   }
 }

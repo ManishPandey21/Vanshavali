@@ -88,6 +88,8 @@ These must pass end to end before a feature counts as done:
 2. Upload Birth Certificate → Process → Review Extracted Values → Accept/Reject Fields
 3. Create Property → Add Parcel → Link Ancestor → Upload Partition Deed → Add Partition Event → View Property Timeline
 4. Viewer attempts an unauthorised edit → the UI denies it → a direct API request is denied too (403/404)
+5. Register → onboarding notice → Create Tree → Add yourself and parents behind the family-data consent →
+   share a claim link via WhatsApp → relative signs up from the link and consents → admin approves → relative sees the tree (ADR-0011)
 
 ## 4. Suggested build order
 

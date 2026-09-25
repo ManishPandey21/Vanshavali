@@ -25,6 +25,7 @@ from app.models import (
     NameRecord,
     Person,
     Place,
+    ProfileClaimInvite,
     Relationship,
 )
 from app.models.enums import (
@@ -456,6 +457,9 @@ def delete_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
 # ---------------------------------------------------------------- persons
 def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
     ctx.require(Permission.PERSON_WRITE)
+    from app.modules.consent.attestation import require_attestation
+
+    require_attestation(ctx)  # ADR-0011
     person = Person(
         tree_id=ctx.tree_id,
         profile_status=body.profile_status,
@@ -967,6 +971,15 @@ def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
     ):
         m.linked_person_id = None
     person.claimed_by_user_id = None
+    # Outstanding claim invites would still show the erased name to whoever holds the link.
+    for inv in db.scalars(
+        select(ProfileClaimInvite).where(
+            ProfileClaimInvite.tree_id == ctx.tree_id,
+            ProfileClaimInvite.person_id == person.id,
+            ProfileClaimInvite.revoked_at.is_(None),
+        )
+    ):
+        inv.revoked_at = dt.datetime.now(dt.UTC)
     db.execute(
         sa_delete(NameRecord).where(NameRecord.tree_id == ctx.tree_id, NameRecord.person_id == person.id)
     )
