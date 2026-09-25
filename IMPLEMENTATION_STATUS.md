@@ -37,7 +37,7 @@ Last verified: 2026-09-25.
 | Family view, ancestors/descendants (CTE), relationship calculator | VERIFIED | `test_genealogy.py`, `test_privacy.py` | Closure tables DEFERRED until load tests |
 | Sources, citations, evidence status, traditional registers | VERIFIED | `test_heritage_family.py` | |
 | Search (transliteration, trigram, phonetic, match reasons) | VERIFIED | `test_search_consent.py` | OpenSearch DEFERRED (ADR-0007) |
-| Frontend: auth, trees, people, add person/relatives, profile, tree viewer, relationship calculator, admin screens | VERIFIED | Vitest (43), Playwright core flow | |
+| Frontend: auth, trees, people, add person/relatives, profile, tree viewer, relationship calculator, admin screens | VERIFIED | Vitest, Playwright `core-flow.spec.ts`, `viewer-denied.spec.ts` | |
 
 ## Phase 2: Indian family model
 
@@ -55,21 +55,21 @@ Last verified: 2026-09-25.
 | Document vault (upload pipeline, vault class, previews, versions, links, signed downloads, soft delete/restore) | VERIFIED | `test_documents.py` (17) | Streaming large downloads, retention purge and watermarking DEFERRED |
 | OCR (PDF text layer, Tesseract eng+hin) + extractors (birth certificate, Kundli, land record) + Aadhaar masking | VERIFIED | `test_extraction.py` (15) | Handwriting / other Indic OCR languages DEFERRED |
 | Proposal review → new claims with citation + provenance | VERIFIED | `test_extraction.py` | |
-| Frontend: document vault, extraction review | IN_PROGRESS | — | Second frontend pass |
+| Frontend: document vault, extraction review | VERIFIED | Vitest; Playwright `birth-certificate.spec.ts` | |
 
 ## Phase 4: Astrology
 
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Astrology profiles, provenance, privacy, birth-conflict report | VERIFIED | `test_astrology.py` (5), `test_extraction.py` | Ephemeris calculation engine DEFERRED |
-| Frontend: astrology tab, conflicts | IN_PROGRESS | — | |
+| Frontend: astrology tab, conflicts | VERIFIED | Vitest | |
 
 ## Phase 5: Ancestral property
 
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Property, parcels (Indian identifiers, ULPIN, units), interests (exact shares), events, partition, timeline, lineage | VERIFIED | `test_property.py` (12) | Event undo, and interest carry-over on subdivision, DEFERRED |
-| Frontend: property register and timeline | IN_PROGRESS | — | |
+| Frontend: property register and timeline | VERIFIED | Vitest; Playwright `property-partition.spec.ts` | |
 
 ## Phase 6: GEDCOM
 
@@ -78,20 +78,25 @@ Last verified: 2026-09-25.
 | GEDCOM 5.5/5.5.1/7 import (staging, report, duplicates, decisions, extension preservation) | VERIFIED | `test_gedcom.py` (17) | GEDZIP/media import DEFERRED; large imports run synchronously |
 | GEDCOM 7 export (SCHMA `_IND_*` URIs, privacy-filtered) | VERIFIED | `test_gedcom.py` incl. round trip | |
 | Full archival ZIP (manifest, checksums, GEDCOM, canonical JSON, property, documents) | VERIFIED | `test_archive.py` | Built synchronously; a background job for very large archives is DEFERRED |
-| Frontend: import/export | IN_PROGRESS | — | |
+| Frontend: import/export (GEDCOM + archive) | VERIFIED | Vitest | |
 
 ## Phase 7: Search and discovery
 
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Duplicate candidates | VERIFIED | `test_search_consent.py` | |
-| Reversible merge (preview, admin approval, undo) | VERIFIED | `test_merge.py` | Frontend merge dialog IN_PROGRESS |
+| Reversible merge (preview, admin approval, undo) | VERIFIED | `test_merge.py`, Vitest | |
 
 ## Privacy and compliance
 
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Consent ledger, profile claims, erasure, account closure | VERIFIED | `test_search_consent.py`, `test_privacy.py` | Formal data-subject-request inbox and grievance contact DEFERRED (legal workstream) |
+
+## Security audit
+| Item | Status | Tests | Notes |
+|---|---|---|---|
+| Adversarial audit (13 findings) and remediation | VERIFIED | `test_security_audit.py` | SEC-12 (account enumeration) is an accepted risk until email verification; see threat model |
 
 ## Phase 8: Hardening (not yet started unless noted)
 
