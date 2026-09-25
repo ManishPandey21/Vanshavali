@@ -7,7 +7,6 @@ from sqlalchemy import select
 
 from app.api.deps import TreeCtx
 from app.api.schemas import Message, Page, decode_cursor, encode_cursor
-from app.authz.permissions import Permission
 from app.core import audit
 from app.models import Citation, Source
 from app.models.enums import CitationTarget, SourceType
@@ -80,9 +79,9 @@ def list_citations(ctx: TreeCtx, target_type: CitationTarget, target_id: uuid.UU
 
 @router.delete("/citations/{citation_id}", response_model=Message)
 def delete_citation(citation_id: uuid.UUID, ctx: TreeCtx) -> Message:
-    ctx.require(Permission.SOURCE_WRITE)
     c = lookup.get_in_tree(ctx, Citation, citation_id, "Citation")
     service.get_source(ctx, c.source_id)
+    service.require_citation_delete(ctx, c)
     ctx.db.delete(c)
     audit.log(ctx, "citation.removed", target_type=c.target_type.value, target_id=c.target_id)
     return Message(message="Citation removed")

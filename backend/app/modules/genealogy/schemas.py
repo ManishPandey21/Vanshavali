@@ -454,7 +454,7 @@ class RelatedPerson(ApiModel):
 
 
 class UnionOut(ApiModel):
-    relationship: RelationshipOut
+    relationship: RelationshipOut | None  # None when the partner is hidden from the viewer
     partner: RelatedPerson
     children: list[RelatedPerson] = []
 

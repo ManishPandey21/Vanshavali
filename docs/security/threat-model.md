@@ -55,6 +55,33 @@ sharing, uploads, downloads, exports, admin or public features change.
 | T17 | S / T | Forged property shares presented as title | `legal_notice` on every property response. The documented-share invariant is ≤ 1. Status distinguishes asserted, documented and disputed. | `test_property.py` |
 | T18 | I | Analytics/log leakage | No analytics SDK. Audit `details` hold field names only. Documents are never logged. | code review |
 
+| T19 | I | Account enumeration via registration (`email_taken`) | Per-IP rate limiting. **Accepted risk** until email verification exists (needs an email provider). | `test_security_audit.py::test_registration_enumerates_accounts` (strict xfail) |
+
+## 4a. Security audit, 25 Sep 2026
+An adversarial audit found 13 issues (3 High, 6 Medium, 4 Low). Each was proven with a failing test,
+and every one except SEC-12 is fixed. `backend/tests/test_security_audit.py` keeps them as
+regression tests.
+
+| ID | Sev | Issue | Fix |
+|---|---|---|---|
+| SEC-1 | High | Branch-scoped members could pull outsiders into their branch (and so edit them), and could write to any household | Branch membership, founder and derive changes, and household writes are restricted to people and households inside the caller's scope |
+| SEC-2 | High | A scoped invitation merged into an unscoped membership, widening the branch admin's grant | Scope conflict now returns 409. Scope is never widened silently. |
+| SEC-3 | High | Self-set `linked_person_id` made the caller "self" for hidden people. The member list leaked hidden linked ids. | Only admins link members (never themselves). "Self" comes only from approved claims. Hidden linked ids are blanked. Branch admins see only their branch's emails. |
+| SEC-4 | Med | Family view exposed a hidden partner through the union relationship | Union relationship is `null` when the partner is hidden |
+| SEC-5 | Med | User-created source bound to a vault document could capture extracted vault values | Binding requires content access. Extraction uses a system-marked source at the document's privacy level. |
+| SEC-6 | Med | PDF script filter bypass (name escapes); arbitrary bytes accepted as MP4/audio | Every reachable PDF object is walked (pypdf) for JS/AA/Launch/EmbeddedFile/XFA…. MP4/MP3/OGG/WAV/WebM get structural validation. |
+| SEC-7 | Med | Citation delete checked only `source.write` | Needs write rights on the cited record, or authorship |
+| SEC-8 | Low | Researchers could rename canonical places; place edits unaudited | Person/property writers only. Create and update audited. |
+| SEC-9 | Med | Public family view exposed relationship notes and provenance | Public unions omit notes, legal status and provenance |
+| SEC-10 | Low | Duplicate-upload 409 revealed hidden documents | Dedupe only against visible documents; the checksum index is no longer unique (migration 880d1a5976ec) |
+| SEC-11 | Med | Erasure left GEDCOM extensions, proposals, links, relationship notes and claim/link fields | All cleared by erasure |
+| SEC-12 | Low | Registration enumerates accounts | Accepted risk (T19) |
+| SEC-13 | Low | Reading vault-derived extraction proposals was not audited | `document.proposals_viewed` audited |
+
+Noted but not changed: login/register are exempt from CSRF, so an attacker could sign a victim into
+the attacker's account. The impact is limited to the victim acting in the attacker's own empty account.
+SameSite=Lax cookies apply.
+
 ## 5. Residual risks and deferred controls
 - **Row-level security** as a second isolation barrier: DEFERRED (Phase 8). Current controls: the
   service layer plus composite FKs plus route-isolation tests.

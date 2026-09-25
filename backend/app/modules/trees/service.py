@@ -133,8 +133,17 @@ def accept_invitation(db: Session, user: User, token: str, info: RequestInfo) ->
         select(TreeMembership).where(TreeMembership.tree_id == inv.tree_id, TreeMembership.user_id == user.id)
     )
     if existing is not None:
-        merged = sorted(set(existing.roles) | set(inv.roles))
-        existing.roles = merged
+        # Never silently change scope (SEC-2): a branch-scoped invitation cannot merge into a
+        # membership with a different (or no) scope. An unscoped invitation comes from an admin
+        # (only admins can issue them) and deliberately replaces the scope.
+        if inv.branch_id is not None and existing.branch_id != inv.branch_id:
+            raise Conflict(
+                "You are already a member of this tree with a different scope; ask a tree admin to change "
+                "your roles instead",
+                code="scope_conflict",
+            )
+        existing.roles = sorted(set(existing.roles) | set(inv.roles))
+        existing.branch_id = inv.branch_id
         membership = existing
     else:
         membership = TreeMembership(
@@ -221,13 +230,16 @@ def update_member(
     if clear_linked_person:
         m.linked_person_id = None
     elif linked_person_id is not None:
-        if (
-            ctx.db.scalar(
-                select(Person.id).where(Person.tree_id == ctx.tree_id, Person.id == linked_person_id)
-            )
-            is None
-        ):
-            raise NotFound("Person not found")
+        # SEC-3: linking a member to a person affects branch visibility, so only admins may do it,
+        # never on their own membership, and only to people they can see. (Self-access to a
+        # profile comes from an approved profile claim, not from this link.)
+        if not ctx.is_admin:
+            raise Forbidden("Only tree admins can link a member to a person")
+        if m.user_id == ctx.user_id:
+            raise Forbidden("Link your own profile through a profile claim instead")
+        from app.modules.genealogy import lookup
+
+        lookup.get_person(ctx, linked_person_id)
         m.linked_person_id = linked_person_id
     ctx.db.flush()
     audit.log(

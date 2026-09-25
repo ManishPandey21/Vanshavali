@@ -84,6 +84,14 @@ def list_proposals(
     if status is not None:
         stmt = stmt.where(ExtractionProposal.status == status)
     rows = ctx.db.scalars(stmt.order_by(ExtractionProposal.created_at, ExtractionProposal.id)).all()
+    # SEC-13: proposals carry document content (DOB, registration numbers) — reads are audited like OCR text
+    audit.log(
+        ctx,
+        "document.proposals_viewed",
+        target_type="document",
+        target_id=doc.id,
+        details={"count": len(rows)},
+    )
     return [proposal_out(p) for p in rows]
 
 

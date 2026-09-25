@@ -13,7 +13,6 @@ import uuid
 from typing import Any
 
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
@@ -274,12 +273,7 @@ def upload(
     doc.ocr_status = ProcessingStatus.PENDING if ocr else ProcessingStatus.NOT_REQUESTED
     doc.extraction_status = ProcessingStatus.PENDING if ocr else ProcessingStatus.NOT_REQUESTED
     ctx.db.add(doc)
-    try:
-        with ctx.db.begin_nested():
-            ctx.db.flush()
-    except IntegrityError:
-        _reject_duplicate(ctx, checksum)
-        raise Conflict("This file has already been uploaded to this tree", code="duplicate_document")
+    ctx.db.flush()
     # the row is flushed first so a failed write rolls the whole upload back
     get_store().put_immutable(key, data, key_id=storage_class.value)
     if link is not None:
@@ -300,20 +294,24 @@ def upload(
 
 
 def _reject_duplicate(ctx: TreeContext, checksum: str) -> None:
-    existing = ctx.db.scalar(
+    """Refuse re-uploading a file the caller can already see.
+
+    SEC-10: documents hidden from the caller are ignored, so an upload never reveals that a hidden
+    file with the same content exists (the other copy is stored independently).
+    """
+    for existing in ctx.db.scalars(
         select(Document).where(
             Document.tree_id == ctx.tree_id,
             Document.checksum_sha256 == checksum,
             Document.deleted_at.is_(None),
         )
-    )
-    if existing is not None:
-        details = (
-            {"existing_document_id": str(existing.id)} if access.can_view_document(ctx, existing) else None
-        )
-        raise Conflict(
-            "This file has already been uploaded to this tree", code="duplicate_document", details=details
-        )
+    ):
+        if access.can_view_document(ctx, existing):
+            raise Conflict(
+                "This file has already been uploaded to this tree",
+                code="duplicate_document",
+                details={"existing_document_id": str(existing.id)},
+            )
 
 
 def schedule_processing(ctx: TreeContext, doc: Document, *, force_ocr: bool = False) -> None:

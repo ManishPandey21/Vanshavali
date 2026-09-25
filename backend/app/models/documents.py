@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from typing import Any
 
-from sqlalchemy import BigInteger, DateTime, Index, Integer, String, Text, UniqueConstraint, text
+from sqlalchemy import BigInteger, DateTime, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,13 +25,9 @@ class Document(TreeScopedMixin, Base):
     __tablename__ = "document"
     __table_args__ = (
         tree_unique("document"),
-        Index(
-            "uq_document_tree_checksum_live",
-            "tree_id",
-            "checksum_sha256",
-            unique=True,
-            postgresql_where=text("deleted_at IS NULL"),
-        ),
+        # Not unique: identical files may exist independently when one is hidden from the uploader
+        # (SEC-10). Duplicate uploads of *visible* files are refused in the service layer.
+        Index("ix_document_tree_checksum", "tree_id", "checksum_sha256"),
     )
 
     category: Mapped[DocumentCategory] = mapped_column(enum_column(DocumentCategory))

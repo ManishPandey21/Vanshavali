@@ -51,6 +51,7 @@ def create_branch(ctx: TreeContext, body: BranchIn) -> FamilyBranch:
             raise Unprocessable("You can only create sub-branches of your own branch")
     if body.founder_person_id:
         lookup.get_person(ctx, body.founder_person_id)
+        _require_in_scope(ctx, body.founder_person_id)
     _check_parent_branch(ctx, None, body.parent_branch_id)
     b = FamilyBranch(tree_id=ctx.tree_id, created_by=ctx.user_id, **body.model_dump())
     ctx.db.add(b)
@@ -67,6 +68,22 @@ def create_branch(ctx: TreeContext, body: BranchIn) -> FamilyBranch:
         )
     audit.log(ctx, "branch.created", target_type="branch", target_id=b.id)
     return b
+
+
+def _require_in_scope(ctx: TreeContext, person_id: uuid.UUID) -> None:
+    """Branch-scoped callers may only act on people already inside their branch (SEC-1)."""
+    if not ctx.is_admin and ctx.branch_scope is not None and person_id not in ctx.branch_people():
+        from app.core.errors import Forbidden
+
+        raise Forbidden("This person is outside the family branch you manage")
+
+
+def _require_household_write(ctx: TreeContext, h: Household) -> None:
+    ctx.require(Permission.FAMILY_WRITE)
+    if not ctx.is_admin and ctx.branch_scope is not None and h.branch_id != ctx.branch_scope:
+        from app.core.errors import Forbidden
+
+        raise Forbidden("You can only manage households of your own family branch")
 
 
 def _require_branch_write(ctx: TreeContext, b: FamilyBranch) -> None:
@@ -88,6 +105,7 @@ def update_branch(ctx: TreeContext, branch_id: uuid.UUID, body: BranchUpdate) ->
     fields = body.model_fields_set
     if "founder_person_id" in fields and body.founder_person_id:
         lookup.get_person(ctx, body.founder_person_id)
+        _require_in_scope(ctx, body.founder_person_id)
     if "parent_branch_id" in fields:
         if body.parent_branch_id == b.id:
             raise Unprocessable("A branch cannot be its own parent")
@@ -126,6 +144,7 @@ def add_branch_members(
     added = 0
     for pid in dict.fromkeys(person_ids):
         lookup.get_person(ctx, pid)
+        _require_in_scope(ctx, pid)
         if pid in existing:
             continue
         ctx.db.add(
@@ -205,6 +224,8 @@ def derive_members(ctx: TreeContext, branch_id: uuid.UUID) -> tuple[int, int]:
                 seen.add(c)
                 found.append(c)
                 q.append(c)
+    if not ctx.is_admin and ctx.branch_scope is not None:
+        found = [p for p in found if p in ctx.branch_people()]  # never pull outsiders into scope
     visible = lookup.visible_subjects(ctx, found)
     added = add_branch_members(ctx, b.id, [p for p in found if p in visible], basis="derived")
     total = int(
@@ -225,6 +246,10 @@ def get_household(ctx: TreeContext, household_id: uuid.UUID) -> Household:
 
 def create_household(ctx: TreeContext, body: HouseholdIn) -> Household:
     ctx.require(Permission.FAMILY_WRITE)
+    if not ctx.is_admin and ctx.branch_scope is not None and body.branch_id != ctx.branch_scope:
+        from app.core.errors import Forbidden
+
+        raise Forbidden("Households you create must belong to your own family branch")
     if body.place_id:
         lookup.get_place(ctx, body.place_id)
     if body.branch_id:
@@ -247,8 +272,13 @@ def create_household(ctx: TreeContext, body: HouseholdIn) -> Household:
 
 
 def update_household(ctx: TreeContext, household_id: uuid.UUID, body: HouseholdUpdate) -> Household:
-    ctx.require(Permission.FAMILY_WRITE)
     h = get_household(ctx, household_id)
+    _require_household_write(ctx, h)
+    if "branch_id" in body.model_fields_set and not ctx.is_admin and ctx.branch_scope is not None:
+        if body.branch_id != ctx.branch_scope:
+            from app.core.errors import Forbidden
+
+            raise Forbidden("Households must stay in your own family branch")
     for f in body.model_fields_set:
         v = getattr(body, f)
         if f in ("start_date", "end_date"):
@@ -264,8 +294,8 @@ def update_household(ctx: TreeContext, household_id: uuid.UUID, body: HouseholdU
 
 
 def delete_household(ctx: TreeContext, household_id: uuid.UUID) -> None:
-    ctx.require(Permission.FAMILY_WRITE)
     h = get_household(ctx, household_id)
+    _require_household_write(ctx, h)
     ctx.db.execute(
         sa_delete(HouseholdMembership).where(
             HouseholdMembership.tree_id == ctx.tree_id, HouseholdMembership.household_id == h.id
@@ -278,9 +308,10 @@ def delete_household(ctx: TreeContext, household_id: uuid.UUID) -> None:
 def add_household_member(
     ctx: TreeContext, household_id: uuid.UUID, body: HouseholdMemberIn
 ) -> HouseholdMembership:
-    ctx.require(Permission.FAMILY_WRITE)
     h = get_household(ctx, household_id)
+    _require_household_write(ctx, h)
     lookup.get_person(ctx, body.person_id)
+    _require_in_scope(ctx, body.person_id)
     overlapping = ctx.db.scalar(
         select(HouseholdMembership.id).where(
             HouseholdMembership.tree_id == ctx.tree_id,
@@ -315,8 +346,8 @@ def end_household_member(
     end_date: GenealogicalDate | None,
     delete: bool,
 ) -> None:
-    ctx.require(Permission.FAMILY_WRITE)
     h = get_household(ctx, household_id)
+    _require_household_write(ctx, h)
     m = lookup.get_in_tree(ctx, HouseholdMembership, membership_id, "Membership")
     if m.household_id != h.id:
         from app.core.errors import NotFound

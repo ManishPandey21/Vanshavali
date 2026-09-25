@@ -55,6 +55,9 @@ _PROPERTY_TARGETS = {
 }
 
 
+SYSTEM_SOURCE_MARKER = "Vanshavali document vault"
+
+
 def can_view_source(ctx: TreeContext, s: Source) -> bool:
     return level_allows(ctx, s.privacy_level)
 
@@ -71,9 +74,10 @@ def create_source(ctx: TreeContext, body: SourceIn) -> Source:
     if body.place_id:
         lookup.get_place(ctx, body.place_id)
     if body.document_id:
-        from app.models import Document
+        # SEC-5: binding a source to a document requires the right to read that document's content
+        from app.modules.documents import access as doc_access
 
-        lookup.get_in_tree(ctx, Document, body.document_id, "Document")
+        doc_access.require_content(ctx, doc_access.get_document(ctx, body.document_id))
     data = body.model_dump(mode="json", exclude={"date", "tradition", "place_id", "document_id"})
     s = Source(
         tree_id=ctx.tree_id,
@@ -120,18 +124,30 @@ def ensure_document_source(
     source_type: SourceType,
     issuing_authority: str | None = None,
 ) -> Source:
-    """One Source per uploaded document (created lazily when a fact cites it)."""
-    s = ctx.db.scalar(select(Source).where(Source.tree_id == ctx.tree_id, Source.document_id == document_id))
-    if s is None:
-        from app.models import Document
+    """The system source for an uploaded document (created lazily when a fact cites it).
 
-        doc = lookup.get_in_tree(ctx, Document, document_id, "Document")
+    SEC-5: only a source created by this function (``repository`` marker) at the document's own
+    privacy level is reused — never a user-created source that merely points at the document.
+    """
+    from app.models import Document
+
+    doc = lookup.get_in_tree(ctx, Document, document_id, "Document")
+    s = ctx.db.scalar(
+        select(Source).where(
+            Source.tree_id == ctx.tree_id,
+            Source.document_id == document_id,
+            Source.repository == SYSTEM_SOURCE_MARKER,
+            Source.privacy_level == doc.privacy_level,
+        )
+    )
+    if s is None:
         s = Source(
             tree_id=ctx.tree_id,
             source_type=source_type,
             title=title,
             issuing_authority=issuing_authority,
             document_id=document_id,
+            repository=SYSTEM_SOURCE_MARKER,
             privacy_level=doc.privacy_level,
             created_by=ctx.user_id,
         )
@@ -208,3 +224,30 @@ def citation_count(ctx: TreeContext, source_id: uuid.UUID) -> int:
         )
         or 0
     )
+
+
+_TARGET_WRITE = {
+    CitationTarget.PROPERTY: Permission.PROPERTY_WRITE,
+    CitationTarget.LAND_PARCEL: Permission.PROPERTY_WRITE,
+    CitationTarget.PROPERTY_INTEREST: Permission.PROPERTY_WRITE,
+    CitationTarget.PROPERTY_EVENT: Permission.PROPERTY_WRITE,
+    CitationTarget.HOUSEHOLD: Permission.FAMILY_WRITE,
+    CitationTarget.ASSERTION: Permission.ASSERTION_WRITE,
+    CitationTarget.ASTROLOGY_PROFILE: Permission.ASTROLOGY_WRITE,
+}
+
+
+def require_citation_delete(ctx: TreeContext, c: Citation) -> None:
+    """SEC-7: removing evidence needs write rights on the cited record (or authorship of the citation)."""
+    ctx.require(Permission.SOURCE_WRITE)
+    _check_target_visible(ctx, c.target_type, c.target_id)
+    if c.created_by is not None and c.created_by == ctx.user_id:
+        return
+    perm = _TARGET_WRITE.get(c.target_type, Permission.PERSON_WRITE)
+    person_id = None
+    if perm in (Permission.PERSON_WRITE, Permission.ASSERTION_WRITE, Permission.ASTROLOGY_WRITE):
+        model = _TARGET_MODELS[c.target_type]
+        stmt: Any = select(model).where(model.tree_id == ctx.tree_id, model.id == c.target_id)  # type: ignore[attr-defined]
+        obj: Any = ctx.db.scalar(stmt)
+        person_id = getattr(obj, "person_id", None) if c.target_type != CitationTarget.PERSON else c.target_id
+    ctx.require(perm, person_id=person_id)

@@ -188,9 +188,8 @@ def load_subjects(ctx: TreeContext, persons: Iterable[Person]) -> dict[uuid.UUID
 def _is_self(ctx: TreeContext, subject: Subject | None) -> bool:
     if subject is None or ctx.user is None:
         return False
-    if subject.person.claimed_by_user_id == ctx.user.id:
-        return True
-    return bool(ctx.membership and ctx.membership.linked_person_id == subject.id)
+    # Only an admin-approved profile claim makes someone "self" (SEC-3); a membership link does not.
+    return subject.person.claimed_by_user_id == ctx.user.id
 
 
 def level_allows(

@@ -106,7 +106,15 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
         used_children |= {c.id for c in child_edges if c.union_id == u.id}
         if ctx.public and partner not in summaries:
             continue
-        unions.append(UnionOut(relationship=relationship_out(u), partner=related(partner, u), children=kids))
+        if partner not in summaries:
+            rel_out = None  # SEC-4: never reveal a hidden partner's id, dates or notes
+        elif ctx.public:
+            rel_out = relationship_out(u).model_copy(
+                update={"notes": None, "legal_status": None, "provenance": None}
+            )  # SEC-9: public pages carry no notes or provenance
+        else:
+            rel_out = relationship_out(u)
+        unions.append(UnionOut(relationship=rel_out, partner=related(partner, u), children=kids))
     other_children = [related(c.person_b_id, c) for c in child_edges if c.id not in used_children]
 
     # sibling classification

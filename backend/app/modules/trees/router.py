@@ -105,16 +105,29 @@ def list_members(ctx: TreeCtx) -> list[MemberOut]:
         .where(TreeMembership.tree_id == ctx.tree_id)
         .order_by(TreeMembership.created_at)
     ).all()
-    show_email = ctx.has(Permission.MEMBERS_MANAGE)
+    from app.modules.genealogy import lookup
+
+    linked_visible = set(
+        lookup.visible_subjects(ctx, [m.linked_person_id for m, _ in rows if m.linked_person_id])
+    )
+
+    def show_email(m: TreeMembership, u: User) -> bool:
+        if u.id == ctx.user_id or ctx.is_admin:
+            return True
+        # branch admins manage (and see contact details of) their own branch's members only
+        return (
+            ctx.has(Permission.MEMBERS_MANAGE) and m.branch_id is not None and m.branch_id == ctx.branch_scope
+        )
+
     return [
         MemberOut(
             id=m.id,
             user_id=u.id,
-            email=u.email if show_email or u.id == ctx.user_id else "",
+            email=u.email if show_email(m, u) else "",
             display_name=u.display_name,
             roles=[Role(r) for r in m.roles],
             branch_id=m.branch_id,
-            linked_person_id=m.linked_person_id,
+            linked_person_id=m.linked_person_id if m.linked_person_id in linked_visible else None,
             created_at=m.created_at,
         )
         for m, u in rows

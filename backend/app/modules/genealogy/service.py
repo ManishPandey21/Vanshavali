@@ -86,15 +86,13 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
     place.search_text = _place_search(place)
     ctx.db.add(place)
     ctx.db.flush()
+    audit.log(ctx, "place.created", target_type="place", target_id=place.id)
     return place
 
 
 def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Place:
-    if not (
-        ctx.has(Permission.PERSON_WRITE)
-        or ctx.has(Permission.PROPERTY_WRITE)
-        or ctx.has(Permission.SOURCE_WRITE)
-    ):
+    # SEC-8: canonical place records are edited by genealogy/property writers only (not researchers)
+    if not (ctx.has(Permission.PERSON_WRITE) or ctx.has(Permission.PROPERTY_WRITE)):
         raise Forbidden()
     place = lookup.get_place(ctx, place_id)
     changes = body.model_dump(mode="json", exclude_unset=True)
@@ -124,6 +122,9 @@ def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Pl
         setattr(place, k, v)
     place.updated_by = ctx.user_id
     place.search_text = _place_search(place)
+    audit.log(
+        ctx, "place.changed", target_type="place", target_id=place.id, details={"fields": sorted(changes)}
+    )
     return place
 
 
@@ -928,6 +929,44 @@ def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
             Citation.target_id == person.id,
         )
     )
+    # SEC-11: every other person-referencing store that can hold personal data
+    from app.models import DocumentLink, ExtractionProposal, GedcomExtension, Relationship, TreeMembership
+    from app.models.enums import DocumentLinkTarget
+
+    db.execute(
+        sa_delete(GedcomExtension).where(
+            GedcomExtension.tree_id == ctx.tree_id, GedcomExtension.person_id == person.id
+        )
+    )
+    db.execute(
+        sa_delete(ExtractionProposal).where(
+            ExtractionProposal.tree_id == ctx.tree_id, ExtractionProposal.subject_person_id == person.id
+        )
+    )
+    db.execute(
+        sa_delete(DocumentLink).where(
+            DocumentLink.tree_id == ctx.tree_id,
+            DocumentLink.target_type == DocumentLinkTarget.PERSON,
+            DocumentLink.target_id == person.id,
+        )
+    )
+    for rel in db.scalars(
+        select(Relationship).where(
+            Relationship.tree_id == ctx.tree_id,
+            (Relationship.person_a_id == person.id) | (Relationship.person_b_id == person.id),
+        )
+    ):
+        rel.notes = None
+        rel.legal_status = None
+        rel.start_date = None
+        rel.end_date = None
+    for m in db.scalars(
+        select(TreeMembership).where(
+            TreeMembership.tree_id == ctx.tree_id, TreeMembership.linked_person_id == person.id
+        )
+    ):
+        m.linked_person_id = None
+    person.claimed_by_user_id = None
     db.execute(
         sa_delete(NameRecord).where(NameRecord.tree_id == ctx.tree_id, NameRecord.person_id == person.id)
     )
