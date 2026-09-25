@@ -20,6 +20,8 @@ class ImportJob(TreeScopedMixin, Base):
     status: Mapped[JobStatus] = mapped_column(enum_column(JobStatus), default=JobStatus.PENDING)
     document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     original_filename: Mapped[str | None] = mapped_column(String(400))
+    # immutable encrypted copy of the uploaded file (object store key; ADR-0008 "keep the original")
+    original_storage_key: Mapped[str | None] = mapped_column(String(500))
     detected_version: Mapped[str | None] = mapped_column(String(20))
     detected_encoding: Mapped[str | None] = mapped_column(String(40))
     report: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
