@@ -5,9 +5,10 @@ tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, 
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
 Last verified: 2026-09-25.
-- Backend: `uv run pytest` 143 passed; ruff and mypy clean.
-- Frontend: lint, typecheck, Vitest and build green.
-- Playwright: core flow green.
+- Backend: `uv run pytest` 160 passed, 1 xfailed (SEC-12, an accepted risk); ruff and mypy clean.
+- Frontend: lint, typecheck, Vitest (69) and build green.
+- Playwright: 5 specs green (core flow, birth certificate review, property partition, viewer denied,
+  MFA). CI runs the same gates.
 
 ## Platform / Phase 0
 
@@ -17,7 +18,7 @@ Last verified: 2026-09-25.
 | Config (12-factor, prod safety checks) | VERIFIED | indirect | Production refuses dev keys, the test scanner or insecure cookies |
 | DB + Alembic (3 migrations, composite tree FKs, append-only audit trigger) | VERIFIED | `test_migrations.py` | upgrade → check → downgrade → upgrade |
 | Auth: register/login/logout, Argon2id, server sessions, CSRF, rate limits, session revocation, password change | VERIFIED | `test_auth.py` (13) | Email verification and password reset DEFERRED (needs an email provider) |
-| MFA (TOTP) | VERIFIED | `test_auth.py` | RFC 6238 vectors |
+| MFA (TOTP) | VERIFIED | `test_auth.py`, Playwright `mfa.spec.ts` | RFC 6238 vectors |
 | Trees, memberships, roles, invitations, grants, audit API | VERIFIED | `test_trees.py` (12) | Invitation email = console outbox (ASSUMPTION) |
 | Authorisation (deny by default, branch scope, 404 isolation) | VERIFIED | `test_route_isolation.py` (every tree route), `test_privacy.py` | RLS as a second barrier DEFERRED (Phase 8) |
 | Privacy engine (levels, field groups, living/minor rules, public mode) | VERIFIED | `test_privacy.py` (12) | |
