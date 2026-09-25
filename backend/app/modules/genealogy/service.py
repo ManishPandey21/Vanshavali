@@ -763,9 +763,10 @@ def add_relative(
     anchor = lookup.get_person(ctx, anchor_id)
     if body.new_person is not None:
         other = create_person(ctx, body.new_person)
-    else:
-        assert body.existing_person_id is not None
+    elif body.existing_person_id is not None:
         other = lookup.get_person(ctx, body.existing_person_id)
+    else:
+        raise Unprocessable("provide exactly one of existing_person_id or new_person")
     rels: list[Relationship] = []
     common = {"start_date": body.start_date, "subtype": body.subtype}
     if body.relation == "parent":

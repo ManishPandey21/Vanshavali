@@ -97,7 +97,8 @@ def authenticate(
 
 
 def mfa_secret(user: User) -> str:
-    assert user.mfa_secret_enc is not None
+    if user.mfa_secret_enc is None:
+        raise ApiError("Two-factor authentication is not set up", code="mfa_not_started", status_code=400)
     return storage.decrypt(base64.b64decode(user.mfa_secret_enc), aad=f"mfa:{user.id}").decode()
 
 

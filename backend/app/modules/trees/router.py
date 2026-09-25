@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DbDep, TreeCtx, request_info
 from app.api.schemas import Message, Page, decode_cursor, encode_cursor
+from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
@@ -29,6 +30,12 @@ from app.modules.trees.schemas import (
 )
 
 router = APIRouter(tags=["trees"])
+
+
+def _require_membership(ctx: TreeContext) -> TreeMembership:
+    if ctx.membership is None:
+        raise NotFound("Tree not found")
+    return ctx.membership
 
 
 def _tree_out(tree: Tree, m: TreeMembership) -> TreeOut:
@@ -55,8 +62,8 @@ def create_tree(body: TreeCreate, request: Request, user: CurrentUser, db: DbDep
 
 @router.get("/trees/{tree_id}", response_model=TreeOut)
 def get_tree(ctx: TreeCtx) -> TreeOut:
-    assert ctx.membership is not None
-    return _tree_out(ctx.tree, ctx.membership)
+    membership = _require_membership(ctx)
+    return _tree_out(ctx.tree, membership)
 
 
 @router.patch("/trees/{tree_id}", response_model=TreeOut)
@@ -76,8 +83,8 @@ def update_tree(body: TreeUpdate, ctx: TreeCtx) -> TreeOut:
     audit.log(
         ctx, "tree.updated", target_type="tree", target_id=ctx.tree_id, details={"fields": sorted(changed)}
     )
-    assert ctx.membership is not None
-    return _tree_out(ctx.tree, ctx.membership)
+    membership = _require_membership(ctx)
+    return _tree_out(ctx.tree, membership)
 
 
 @router.delete("/trees/{tree_id}", response_model=Message)
@@ -126,7 +133,8 @@ def update_member(membership_id: uuid.UUID, body: MemberUpdate, ctx: TreeCtx) ->
         clear_linked_person=body.clear_linked_person,
     )
     u = ctx.db.get(User, m.user_id)
-    assert u is not None
+    if u is None:
+        raise NotFound("Member not found")
     return MemberOut(
         id=m.id,
         user_id=u.id,
@@ -188,7 +196,8 @@ def revoke_invitation(invitation_id: uuid.UUID, ctx: TreeCtx) -> Message:
 def preview_invitation(token: str, user: CurrentUser, db: DbDep) -> InvitationPreview:
     inv = service.find_invitation(db, token)
     tree = db.get(Tree, inv.tree_id)
-    assert tree is not None
+    if tree is None:
+        raise NotFound("Tree not found")
     return InvitationPreview(
         tree_id=tree.id,
         tree_name=tree.name,
@@ -202,7 +211,8 @@ def preview_invitation(token: str, user: CurrentUser, db: DbDep) -> InvitationPr
 def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep) -> TreeOut:
     m = service.accept_invitation(db, user, token, request_info(request))
     tree = db.get(Tree, m.tree_id)
-    assert tree is not None
+    if tree is None:
+        raise NotFound("Tree not found")
     return _tree_out(tree, m)
 
 
