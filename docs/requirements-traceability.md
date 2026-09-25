@@ -52,7 +52,8 @@ or `frontend/`.
 | 21, 22 | GEDCOM 7 import (staging, report, duplicates, confirm, extensions preserved) and export (SCHMA URIs, privacy) | `import_job`, `gedcom_extension` | `/t/imports…`, `/t/exports/gedcom` | GEDCOM page | `test_gedcom.py` | VERIFIED (API); UI IN_PROGRESS |
 | 26 | Visualisations: ancestor, descendant (✓); joint family/household/branch views (✓); fan chart, migration map, property lineage view, timeline | graph endpoints | `/t/people/{p}/ancestors|descendants` | Tree viewer | frontend + `e2e` flow 1 | PARTIAL (fan chart, maps DEFERRED) |
 | 26.2 | Large trees (progressive loading, collapse, keyboard access) | depth-capped CTE, 500-node cap | same | Progressive tree | load test DEFERRED | PARTIAL |
-| 42, 43 | Reports, PDF charts, full archival ZIP with manifest | — | — | — | — | DEFERRED (Phase 8; GEDCOM export available) |
+| 43 | Full archival ZIP with manifest, checksums, GEDCOM, canonical JSON, documents (sensitive opt-in) | export_job | `/t/exports/archive` | Import / Export page | `test_archive.py` | VERIFIED (API) |
+| 42 | Reports, PDF charts | — | — | — | — | DEFERRED (Phase 8) |
 | 49 | Performance targets (p95 < 500 ms, 10k people) | indexes | — | — | load tests DEFERRED | PARTIAL |
 | 50 | WCAG 2.2 AA | — | — | keyboard nav, labels, text alternative for tree | frontend tests | PARTIAL (formal audit DEFERRED Phase 8) |
 | 51 | English + Hindi UI; data independent of UI language | — | `/auth/me` preferred_language | i18next en/hi | frontend tests | IMPLEMENTED |

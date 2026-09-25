@@ -5,7 +5,7 @@ tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, 
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
 Last verified: 2026-09-25.
-- Backend: `uv run pytest` 142 passed; ruff and mypy clean.
+- Backend: `uv run pytest` 143 passed; ruff and mypy clean.
 - Frontend: lint, typecheck, Vitest and build green.
 - Playwright: core flow green.
 
@@ -77,7 +77,7 @@ Last verified: 2026-09-25.
 |---|---|---|---|
 | GEDCOM 5.5/5.5.1/7 import (staging, report, duplicates, decisions, extension preservation) | VERIFIED | `test_gedcom.py` (17) | GEDZIP/media import DEFERRED; large imports run synchronously |
 | GEDCOM 7 export (SCHMA `_IND_*` URIs, privacy-filtered) | VERIFIED | `test_gedcom.py` incl. round trip | |
-| Full archival ZIP (manifest, media, JSON) | DEFERRED | — | Phase 8 (PRS §43) |
+| Full archival ZIP (manifest, checksums, GEDCOM, canonical JSON, property, documents) | VERIFIED | `test_archive.py` | Built synchronously; a background job for very large archives is DEFERRED |
 | Frontend: import/export | IN_PROGRESS | — | |
 
 ## Phase 7: Search and discovery
