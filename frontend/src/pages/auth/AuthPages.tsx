@@ -10,10 +10,23 @@ import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import i18n, { normalizeLanguage } from "../../i18n";
 
-/** Only allow same-origin, path-only redirects after login (no open redirect). */
+/**
+ * Only allow same-origin, path-only redirects after login (no open redirect).
+ * Rejects protocol-relative ("//x"), backslash variants ("/\\x", which browsers normalise to "//x"),
+ * control characters, and anything that resolves to another origin.
+ */
 export function safeNext(next: string | null): string {
   if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
-  return next;
+  // eslint-disable-next-line no-control-regex
+  if (/[\\\u0000-\u001f\u007f]/.test(next)) return "/";
+  try {
+    const base = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    const url = new URL(next, base);
+    if (url.origin !== base) return "/";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/";
+  }
 }
 
 function AuthFrame({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode }) {
