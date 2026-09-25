@@ -1,0 +1,32 @@
+# ZAP rules for .github/workflows/dast.yml (baseline + API scan). Format: <rule id>TAB<IGNORE|INFO|WARN|FAIL>TAB<note>.
+# Lines starting with # are ignored by the ZAP scripts. Anything not listed keeps ZAP's default (WARN).
+#
+# Policy: an IGNORE needs a written justification that holds for PRODUCTION, not just for CI.
+# Expected WARNs that we deliberately do NOT ignore (so a regression still shows up in the report):
+#   10010 Cookie No HttpOnly Flag  - expected ONLY for vsh_csrf (double-submit token read by the SPA);
+#                                    any other cookie in this alert is a bug (vsh_session must be HttpOnly).
+#   10055 CSP: style-src 'unsafe-inline' - known weakness of the SPA CSP; tracked, not accepted.
+#   90004 Insufficient Site Isolation (COEP/CORP) - not yet decided; tracked.
+#
+# ---- justified IGNOREs
+10035	IGNORE	(Strict-Transport-Security Header Not Set) CI scans plain HTTP on localhost. In production TLS terminates at the load balancer and the API sets HSTS whenever VSH_COOKIE_SECURE=true, which VSH_ENV=production enforces (config.validate_production).
+10011	IGNORE	(Cookie Without Secure Flag) Same reason: CI is plain HTTP so VSH_COOKIE_SECURE=false; production refuses to start without VSH_COOKIE_SECURE=true.
+10109	IGNORE	(Modern Web Application) Informational only: the frontend is a React SPA by design (ADR-0001), which just tells ZAP to use the AJAX spider.
+10049	IGNORE	(Storable and Cacheable Content / Non-Storable Content) Informational: hashed /assets/* are deliberately cacheable (immutable); HTML shell and every API response are deliberately Cache-Control: no-store.
+#
+# ---- escalations: these fail the workflow
+10020	FAIL	(Anti-clickjacking header missing) X-Frame-Options DENY / frame-ancestors 'none' must be on every response.
+10021	FAIL	(X-Content-Type-Options missing) nosniff must be on every response.
+10038	FAIL	(Content Security Policy header not set) CSP must be on every HTML and API response.
+10098	FAIL	(Cross-Domain Misconfiguration) CORS must stay limited to VSH_CORS_ORIGINS with credentials.
+40012	FAIL	(Cross Site Scripting, reflected)
+40014	FAIL	(Cross Site Scripting, persistent)
+40018	FAIL	(SQL Injection)
+40019	FAIL	(SQL Injection - MySQL)
+40022	FAIL	(SQL Injection - PostgreSQL)
+40024	FAIL	(SQL Injection - SQLite)
+40027	FAIL	(SQL Injection - MsSQL)
+90019	FAIL	(Server Side Code Injection)
+90020	FAIL	(Remote OS Command Injection)
+6	FAIL	(Path Traversal)
+7	FAIL	(Remote File Inclusion)
