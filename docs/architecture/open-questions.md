@@ -1,5 +1,13 @@
 # Open questions (requirements review)
 
+> **Update (PRS v1.0 received):** Q1 (FastAPI + Alembic + PostgreSQL), Q2 (invite-only, public is
+> deceased-only), Q3 (multiple unions, adoption incl. *dattak*), Q4 (jati optional and highly
+> private), Q5 (matrilineal/bilateral descent rules), Q7 (no external AI by default), Q9 (Kundli
+> as evidence, calculation deferred), Q10 (no Aadhaar storage) and Q11 (10k people per tree) are
+> now **resolved** by the PRS and ADRs 0001–0010. **Still open:** Q6 (which regional calendars
+> beyond Gregorian/Julian/Vikram Samvat/Shaka), Q8 (UI languages beyond en/hi), Q12 (hosting
+> region and RPO/RTO). None of these block development.
+
 These came out of a grill-me style review at project start. Each one blocks or shapes an ADR.
 Record the owner's answer here and update the ADR it affects.
 

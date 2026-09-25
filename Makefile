@@ -1,0 +1,34 @@
+# Developer shortcuts. See README.md for the full setup.
+.PHONY: backend-install backend-test backend-lint migrate seed api frontend-install frontend-test frontend-build e2e check
+
+backend-install:
+	cd backend && uv sync
+
+backend-lint:
+	cd backend && uv run ruff check app tests && uv run ruff format --check app tests && uv run mypy app
+
+backend-test:
+	cd backend && uv run pytest -q
+
+migrate:
+	cd backend && uv run alembic upgrade head
+
+seed:
+	cd backend && uv run python -m app.cli.seed_demo
+
+api:
+	cd backend && uv run uvicorn app.main:app --reload --port 8000
+
+frontend-install:
+	cd frontend && npm ci
+
+frontend-test:
+	cd frontend && npm run lint && npm run typecheck && npm test
+
+frontend-build:
+	cd frontend && npm run build
+
+e2e:
+	cd e2e && npx playwright test
+
+check: backend-lint backend-test frontend-test frontend-build

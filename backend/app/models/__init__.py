@@ -12,7 +12,7 @@ from app.models.documents import (
 )
 from app.models.evidence import Citation, Source
 from app.models.family import BranchMembership, FamilyBranch, Household, HouseholdMembership
-from app.models.genealogy import Event, EventParticipant, NameRecord, Person, Place, Relationship
+from app.models.genealogy import Event, EventParticipant, MergeRecord, NameRecord, Person, Place, Relationship
 from app.models.heritage import Assertion
 from app.models.identity import User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
@@ -43,6 +43,7 @@ __all__ = [
     "HouseholdMembership",
     "ImportJob",
     "LandParcel",
+    "MergeRecord",
     "NameRecord",
     "Person",
     "Place",

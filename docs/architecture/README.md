@@ -1,15 +1,22 @@
 # Architecture
 
 Status: **baseline written at project start**. It records what exists today, the proposed
-target, and the decisions still open. ADRs in `adr/` are *Proposed* until the owner accepts them.
+target, and the decisions still open. ADRs are listed in `adr/README.md`.
 
 | Doc | Purpose |
 |---|---|
-| [domain-model.md](domain-model.md) | Entity graph (Mermaid) for Person, Relationship, Household, FamilyBranch, Event, Place, Source, Citation, Document, Property, LandParcel, PropertyInterest, PropertyEvent |
-| [open-questions.md](open-questions.md) | Requirements review (grill-me output): decisions the owner must make |
-| [adr/](adr/) | Architecture Decision Records |
-| [../security/threat-model.md](../security/threat-model.md) | STRIDE threat model and required negative tests |
-| [../security/privacy-model.md](../security/privacy-model.md) | Living-person, child and sensitive-field privacy rules |
+| [implementation-plan.md](implementation-plan.md) | Architecture, stack, phases, assumptions, risks |
+| [domain-model.md](domain-model.md) | Entity graph (Mermaid) and domain rules |
+| [data-model.md](data-model.md) | Generated table-by-table schema (from the ORM, which the migrations match) |
+| [adr/](adr/) | Architecture Decision Records 0001–0010 |
+| [open-questions.md](open-questions.md) | Requirements review. Answered by the PRS and ADRs; remaining ones marked |
+| [../security/threat-model.md](../security/threat-model.md) | STRIDE threats → controls → tests |
+| [../security/privacy-model.md](../security/privacy-model.md) | Privacy levels, field groups, enforcement points |
+| [../requirements-traceability.md](../requirements-traceability.md) | PRS requirement → model → migration → API → UI → tests |
+| [../../IMPLEMENTATION_STATUS.md](../../IMPLEMENTATION_STATUS.md) | Module status |
+
+> Sections 1–2 below record the **project-start** assessment of the original prototype. They are
+> kept for history. The current architecture is described in `implementation-plan.md`.
 
 ## 1. Current state (repository exploration)
 
@@ -71,13 +78,7 @@ flowchart TB
   Q --> Export --> OBJ
 ```
 
-The main decisions are in the ADRs:
-
-- [ADR-0001](adr/0001-record-architecture-decisions.md): record decisions as ADRs.
-- [ADR-0002](adr/0002-canonical-relational-store-and-tree-isolation.md): PostgreSQL is the canonical store and every row carries `tree_id`.
-- [ADR-0003](adr/0003-relationships-as-typed-edges.md): relationships are typed, dated, sourced edges.
-- [ADR-0004](adr/0004-document-pipeline-and-provenance.md): document pipeline, with OCR output only ever proposed.
-- [ADR-0005](adr/0005-property-modelling.md): ancestral property is modelled as parcels, interests and events.
+See [adr/README.md](adr/README.md) for the decision index.
 
 ## 3. Critical browser (Playwright) flows
 

@@ -44,7 +44,7 @@ from app.models.enums import (
 
 class Person(TreeScopedMixin, Base):
     __tablename__ = "person"
-    __table_args__ = (tree_unique("person"),)
+    __table_args__ = (tree_unique("person"), tree_fk(["merged_into_id"], "person", ondelete="SET NULL"))
 
     profile_status: Mapped[ProfileStatus] = mapped_column(
         enum_column(ProfileStatus), default=ProfileStatus.UNKNOWN, server_default=ProfileStatus.UNKNOWN.value
@@ -69,6 +69,25 @@ class Person(TreeScopedMixin, Base):
     contact_info: Mapped[str | None] = mapped_column(Text)
     residential_address: Mapped[str | None] = mapped_column(Text)
     deleted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    merged_into_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+
+
+class MergeRecord(TreeScopedMixin, Base):
+    """A reversible person merge (PRS §53): every row change is recorded so it can be undone."""
+
+    __tablename__ = "merge_record"
+    __table_args__ = (
+        tree_unique("merge_record"),
+        tree_fk(["survivor_id"], "person"),
+        tree_fk(["merged_id"], "person"),
+    )
+
+    survivor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    merged_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    reason: Mapped[str | None] = mapped_column(Text)
+    changes: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list, server_default="[]")
+    reverted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    reverted_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
 
 
 class NameRecord(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):

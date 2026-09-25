@@ -1,0 +1,62 @@
+# Requirements traceability
+
+Maps the important PRS v1.0 requirements (`Indian_Ancestry_Family_Heritage_Platform_Requirements.md`)
+to domain model → database → migration → API → frontend → tests → status. Status values follow
+`IMPLEMENTATION_STATUS.md`: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERIFIED`
+(automated tests pass), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
+
+Abbreviations. Migrations live in `backend/alembic/versions/`: **M1** is the initial schema, **M2**
+the document/property/GEDCOM/merge/MFA additions. API paths are under `/api/v1`, and `/trees/{t}`
+is abbreviated `/t`. Test file names are relative to `backend/tests/` unless prefixed with `e2e/`
+or `frontend/`.
+
+| PRS § | Requirement | Domain / DB | API | Frontend | Tests | Status |
+|---|---|---|---|---|---|---|
+| 2.2, 14 | Flexible lineage; no fixed father/mother/spouse columns | `relationship` typed edges + `union_id` + `lineage` (M1) | `/t/relationships`, `/t/people/{p}/relatives` | Person family panel, add-relative dialogs | `test_genealogy.py` | VERIFIED |
+| 14 | Biological, adoptive (incl. dattak), step, foster, guardian; multiple and sequential unions; former spouse/partner | `RelationshipType`, `union_order` | same | same | `test_genealogy.py::test_biological_and_adoptive…`, `::test_multiple_spouses…` | VERIFIED |
+| 14 | Lineage toggles (biological / legal / ritual / all) | `relationship.lineage` | `?lineage=` on family/ancestors/descendants/path | Tree viewer toggles | `test_genealogy.py` | VERIFIED |
+| 25 | Relationship engine (siblings/half, cousins removed, uncle/aunt, in-laws, step, adoptive) | engine over edges | `/t/relationship-path` | Relationship calculator (hi kinship terms) | `test_genealogy.py::test_cousins_and_uncles` | VERIFIED |
+| 2.3, 13 | No cultural inference from surname/place/relatives | no inference code path | — | no auto-fill | `test_heritage_family.py::test_gotra_is_never_inferred_from_surname` | VERIFIED |
+| 13 | Heritage profile (gotra, pravara, kula/vamsha, community, jati, ancestral village, house, tharavad, kuladevata/kuladevi, temple, traditions) with unknown/NA/withheld/disputed; branch-level profiles | `assertion` (M1) | `/t/people/{p}/heritage`, `/t/branches/{b}/heritage`, `/t/assertions/{id}` | Heritage tab | `test_heritage_family.py` | VERIFIED |
+| 7.1 | Person identity (status, display name, optional sex, private gender identity, languages/scripts, privacy) | `person` | `/t/people` | Add/Edit person | `test_genealogy.py`, `test_privacy.py` | VERIFIED |
+| 7.2 | Flexible names; name kept exactly as recorded; multiple scripts | `name_record` | `/t/people/{p}/names` | Names editor | `test_genealogy.py::test_names_multilingual_and_search` | VERIFIED |
+| 8, 52 | Event-based vitals; incomplete dates (year-only, circa, before/after, range); calendars | `event` + `GenealogicalDate` JSONB + sort columns | `/t/events`, person `birth`/`death` | Date editor with precision | `test_genealogy.py::test_incomplete_dates_are_not_padded` | VERIFIED |
+| 9 | Birth details: date, **time + precision + source**, city/district/state/country (place hierarchy), historical name, coordinates, timezone, UTC offset, sources | `event.time`, `timezone_id`, `utc_offset_minutes`, `place_id` + `place_as_recorded`, lat/long | person create, `/t/events` | Birth Details section | `test_genealogy.py::test_approximate_time_cannot_be_marked_exact`, `test_core_flow…` | VERIFIED |
+| 9, 58 | Approximate time never shown as exact | `GenealogicalTime` validator; display qualifiers | — | Badges | `test_genealogy.py` + frontend tests | VERIFIED |
+| 12, 38 | Place model with local/historical names, hierarchy, coordinates; place as recorded preserved | `place` | `/t/places` | Places page | `test_genealogy.py::test_place_history_preserved_on_rename`, `test_search_consent.py::test_historical_place_name_search` | VERIFIED |
+| 39 | Migration events (origin, destination, date, reason, narrative) | `event.type=migration`, `origin_place_id` | `/t/events` | Event editor | `test_genealogy.py::test_migration_event` | VERIFIED (migration **map** DEFERRED, Phase 7+) |
+| 15 | Household first-class, membership over time, roles (karta/head) | `household`, `household_membership` | `/t/households…` | Joint Family / Households | `test_heritage_family.py::test_household_membership…` | VERIFIED |
+| 16 | Family branches (family-defined names, founder, parent branch, descent rule; derive members) | `family_branch`, `branch_membership` | `/t/branches…/derive-members` | Branches page | `test_heritage_family.py::test_branch_derivation_follows_descent_rule` | VERIFIED |
+| 18 | Sources, citations, evidence states | `source`, `citation`, `evidence_status` on claims | `/t/sources`, `/t/citations` | Sources page, citations on events | `test_heritage_family.py::test_sources_and_citations` | VERIFIED |
+| 18 | Conflicting facts preserved (not overwritten) | multiple events/assertions + `is_preferred` | — | Disputed badges | `test_genealogy.py::test_competing_birth_claims_are_preserved`, `test_heritage_family.py::test_assertions_preferred…` | VERIFIED |
+| 20 | Traditional genealogy record type (Bahi/Panda/temple register) reserved | `source.source_type=traditional_register` + `tradition` JSONB | `/t/sources` | Source form | `test_heritage_family.py::test_sources_and_citations` | VERIFIED (indexing/partnerships DEFERRED P2) |
+| 35 | Provenance on extracted/calculated/imported values | `ProvenanceMixin` columns | `provenance` in outputs | Provenance labels | `test_extraction.py`, `test_gedcom.py` | see Phase 3/6 rows |
+| 5, 32 | Roles and deny-by-default RBAC; branch-scoped roles; system admin without content access | `tree_membership.roles`, `branch_id` | all routes (`ctx.require`) | Permission-aware UI | `test_trees.py`, `test_privacy.py`, `test_route_isolation.py` | VERIFIED |
+| 6 | Privacy levels + field-level overrides; always-restricted defaults | `person.privacy_level`, `field_privacy`, `authz/privacy.py` | `/t/people/{p}/privacy` | Privacy panel | `test_privacy.py` | VERIFIED |
+| 30 | Minor protection (no public profile, no public exact DOB) | age-aware `Subject.is_minor` | all | Minor badge | `test_privacy.py::test_minor_is_protected…` | VERIFIED |
+| 58 | Public deceased-only tree leaks nothing through API / search / hydration | public read models | `/public/trees/{slug}/…` | `/p/:slug` pages (no data in HTML shell) | `test_privacy.py::test_public_tree_never_exposes…` | VERIFIED |
+| 28 | Invitations (email/link, branch-scoped), role assignment | `tree_invitation` | `/t/invitations`, `/invitations/{token}/accept` | Members & invitations | `test_trees.py` | VERIFIED (email delivery = console outbox, ASSUMPTION) |
+| 28 | Change proposals, comments, source requests, notification centre | — | — | — | — | DEFERRED (post-MVP collaboration) |
+| 29 | Claim-your-profile (request → admin approval; no automatic tree access) | `profile_claim`, `person.claimed_by_user_id` | `/t/people/{p}/claims`, `/t/claims/{id}/approve` | Claim button | `test_search_consent.py::test_claim_profile…` | VERIFIED (identity verification step = admin judgement) |
+| 31 | Consent records (grant, purpose, categories, basis incl. guardian, expiry, withdrawal) | `consent_record` | `/t/people/{p}/consents`, `/t/consents/{id}/withdraw` | Consents panel | `test_search_consent.py::test_consent_ledger` | VERIFIED |
+| 54 | Deletion semantics: remove fact, unlink, hide, remove from tree (restorable), erase, close account | soft delete, erase, close | `/t/people/{p}` DELETE/restore/erase, `/auth/close-account` | Person actions | `test_genealogy.py::test_soft_delete…`, `test_privacy.py::test_privacy_erasure…`, `::test_close_account` | VERIFIED |
+| 53 | Merge: side-by-side preview, retain sources/names/conflicts, privileged approval, reversible | `merge_record`, `person.merged_into_id` (M2) | `/t/merges/preview`, `/t/merges`, `/t/merges/{id}/revert` | Duplicates page (merge UI DEFERRED) | `test_merge.py` | VERIFIED (API) |
+| 24 | Duplicate candidates (possible/probable, never auto-merge; cultural fields not identity proof) | scoring over names, birth year, parents, spouse | `/t/duplicates` | Duplicates page | `test_search_consent.py::test_duplicate_candidates…` | VERIFIED |
+| 23 | Search: exact, prefix, fuzzy, phonetic, transliteration-aware, alias, historical names; match reasons; privacy | `name_record.search_text/phonetic` (trigram GIN) | `/t/search`, `/t/people?q=` | Search page | `test_search_consent.py`, `test_genealogy.py` | VERIFIED |
+| 33 | Security baseline (TLS at LB, sessions, CSRF, rate limit, MFA option, session revocation, headers, IDOR tests) | `user_session`, `app_user.mfa_*` (M2) | `/auth/*` | Login + MFA | `test_auth.py`, `test_route_isolation.py` | VERIFIED (DAST, RLS DEFERRED Phase 8) |
+| 34 | Append-only audit trail of sensitive actions | `audit_event` + trigger | `/t/audit` | Audit log page | `test_trees.py::test_audit_table_is_append_only` | VERIFIED |
+| 10 | Birth-certificate upload → scan → checksum → immutable private storage → preview → OCR → proposals → review → facts | `document*`, `extraction_proposal` | `/t/documents`, `/t/extraction-proposals/{id}/review` | Document vault, review screen | `test_documents.py`, `test_extraction.py`, `e2e` flow 2 | see IMPLEMENTATION_STATUS |
+| 11 | Astrology profile + Kundli upload + conflict review | `astrology_profile` | `/t/people/{p}/astrology`, `/t/people/{p}/birth-conflicts` | Astrology tab | `test_astrology.py` | see IMPLEMENTATION_STATUS |
+| 17, 37 | Property, parcels (extensible IDs, ULPIN), interests (exact shares), events (partition…), timeline, lineage, not-a-title-opinion | `property*`, `land_parcel` | `/t/properties…` | Property register & timeline | `test_property.py`, `e2e` flow 3 | see IMPLEMENTATION_STATUS |
+| 19 | Document vault: immutable original, checksum, versioned metadata, previews, RBAC, download audit, soft delete + restore | `document*` | `/t/documents…`, `/files/{token}` | Document vault | `test_documents.py` | see IMPLEMENTATION_STATUS |
+| 21, 22 | GEDCOM 7 import (staging, report, duplicates, confirm, extensions preserved) and export (SCHMA URIs, privacy) | `import_job`, `gedcom_extension` | `/t/imports…`, `/t/exports/gedcom` | GEDCOM page | `test_gedcom.py` | see IMPLEMENTATION_STATUS |
+| 26 | Visualisations: ancestor, descendant (✓); joint family/household/branch views (✓); fan chart, migration map, property lineage view, timeline | graph endpoints | `/t/people/{p}/ancestors|descendants` | Tree viewer | frontend + `e2e` flow 1 | PARTIAL (fan chart, maps DEFERRED) |
+| 26.2 | Large trees (progressive loading, collapse, keyboard access) | depth-capped CTE, 500-node cap | same | Progressive tree | load test DEFERRED | PARTIAL |
+| 42, 43 | Reports, PDF charts, full archival ZIP with manifest | — | — | — | — | DEFERRED (Phase 8; GEDCOM export available) |
+| 49 | Performance targets (p95 < 500 ms, 10k people) | indexes | — | — | load tests DEFERRED | PARTIAL |
+| 50 | WCAG 2.2 AA | — | — | keyboard nav, labels, text alternative for tree | frontend tests | PARTIAL (formal audit DEFERRED Phase 8) |
+| 51 | English + Hindi UI; data independent of UI language | — | `/auth/me` preferred_language | i18next en/hi | frontend tests | IMPLEMENTED |
+| 55 | Backups, PITR, restore drills | ops runbook | — | — | — | PARTIAL (runbook; drills DEFERRED) |
+| 56 | Analytics without family content | no analytics SDK | — | — | — | IMPLEMENTED (by omission) |
+| 41 | Matrimonial biodata | — | — | removed prototype screen | — | DEFERRED (P2, out of MVP scope per PRS §4) |
+| 4 | Out of scope: DNA, legal title determination, caste determination, portal scraping, face recognition | — | — | — | — | NOT PLANNED for MVP |

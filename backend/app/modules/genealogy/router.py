@@ -4,10 +4,11 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query, status
+from pydantic import Field
 from sqlalchemy import select
 
 from app.api.deps import TreeCtx
-from app.api.schemas import Message, Page, decode_cursor, encode_cursor
+from app.api.schemas import ApiModel, Message, Page, decode_cursor, encode_cursor
 from app.authz.privacy import can_view_person, load_subjects
 from app.core.textnorm import search_key
 from app.models import Person, Place
@@ -135,6 +136,22 @@ def set_privacy(person_id: uuid.UUID, body: PrivacyUpdate, ctx: TreeCtx) -> Pers
 def delete_person(person_id: uuid.UUID, ctx: TreeCtx) -> Message:
     service.delete_person(ctx, person_id)
     return Message(message="Person removed from the tree (restorable by a tree admin)")
+
+
+class EraseIn(ApiModel):
+    reason: str = Field(min_length=3, max_length=500)
+    confirm: bool
+
+
+@router.post("/people/{person_id}/erase", response_model=Message)
+def erase_person(person_id: uuid.UUID, body: EraseIn, ctx: TreeCtx) -> Message:
+    """Irreversible privacy erasure; the person remains as an anonymous placeholder."""
+    if not body.confirm:
+        from app.core.errors import Unprocessable
+
+        raise Unprocessable("Set confirm=true to erase this person's data permanently")
+    service.erase_person(ctx, person_id, body.reason)
+    return Message(message="Personal data erased; an anonymous placeholder keeps the tree structure intact")
 
 
 @router.post("/people/{person_id}/restore", response_model=PersonOut)

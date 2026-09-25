@@ -25,6 +25,9 @@ class User(Base):
     password_changed_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    # TOTP secret, encrypted with the SYSTEM data key; MFA is active only when mfa_enabled_at is set.
+    mfa_secret_enc: Mapped[str | None] = mapped_column(String(400))
+    mfa_enabled_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class UserSession(Base):

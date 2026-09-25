@@ -207,3 +207,53 @@ def test_minor_is_protected_even_if_marked_public(owner, tree, member_factory):
     body = viewer.get(f"/trees/{t}/people/{kid['id']}").json()
     assert body["is_minor"] is True
     assert body["birth"]["date"]["precision"] == "year_only"
+
+
+def test_privacy_erasure_keeps_structure(owner, tree, member_factory):
+    t = tree["id"]
+    parent = create_person(owner, t, "Parent")
+    p = _living(owner, t)
+    link(owner, t, parent["id"], p["id"], "biological_parent")
+    owner.post(f"/trees/{t}/people/{p['id']}/heritage", json={"attribute": "gotra", "value_text": "Atri"})
+    contrib = member_factory(["CONTRIBUTOR"])
+    assert (
+        contrib.post(
+            f"/trees/{t}/people/{p['id']}/erase", json={"reason": "request", "confirm": True}
+        ).status_code
+        == 403
+    )
+    assert (
+        owner.post(
+            f"/trees/{t}/people/{p['id']}/erase", json={"reason": "DPDP request", "confirm": True}
+        ).status_code
+        == 200
+    )
+    body = owner.get(f"/trees/{t}/people/{p['id']}").text
+    for leak in ("Priya", "Secret", "04:17", "Atri", "98xxxxxx"):
+        assert leak not in body
+    assert (
+        owner.get(f"/trees/{t}/people/{parent['id']}/family").json()["other_children"][0]["person"][
+            "display_name"
+        ]
+        == "Erased person"
+    )
+
+
+def test_close_account(owner, tree, make_client):
+    # sole owner cannot close
+    r = owner.post("/auth/close-account", json={"password": owner.user["password"]})
+    assert r.status_code == 409
+    other = make_client()
+    other.register(email="leaver@example.com")
+    join_tree(owner, other, tree["id"], ["VIEWER"])
+    assert other.post("/auth/close-account", json={"password": "wrong password!"}).status_code == 400
+    assert other.post("/auth/close-account", json={"password": other.user["password"]}).status_code == 200
+    assert other.get("/trees").status_code == 401
+    anon = make_client()
+    assert (
+        anon.post(
+            "/auth/login", json={"email": "leaver@example.com", "password": other.user["password"]}
+        ).status_code
+        == 401
+    )
+    assert len(owner.get(f"/trees/{tree['id']}/members").json()) == 1

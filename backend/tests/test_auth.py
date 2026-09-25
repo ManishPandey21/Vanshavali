@@ -119,3 +119,45 @@ def test_security_headers_present(client):
     assert r.headers["x-content-type-options"] == "nosniff"
     assert r.headers["x-frame-options"] == "DENY"
     assert r.headers["cache-control"] == "no-store"
+
+
+def test_totp_mfa_enrolment_and_login(client, make_client):
+    from app.core import totp
+
+    client.register(email="mfa@example.com")
+    setup = client.post("/auth/mfa/setup").json()
+    secret = setup["secret"]
+    assert setup["otpauth_uri"].startswith("otpauth://totp/")
+    assert client.post("/auth/mfa/enable", json={"code": "000000"}).status_code == 400
+    r = client.post("/auth/mfa/enable", json={"code": totp.now_code(secret)})
+    assert r.status_code == 200 and r.json()["mfa_enabled"] is True
+
+    other = make_client()
+    creds = {"email": "mfa@example.com", "password": "correct horse battery"}
+    r = other.post("/auth/login", json=creds)
+    assert r.status_code == 401 and r.json()["error"]["code"] == "mfa_required"
+    r = other.post(
+        "/auth/login", json={**creds, "mfa_code": "123456" if totp.now_code(secret) != "123456" else "654321"}
+    )
+    assert r.json()["error"]["code"] == "mfa_invalid"
+    r = other.post("/auth/login", json={**creds, "mfa_code": totp.now_code(secret)})
+    assert r.status_code == 200
+    # secret is stored encrypted
+    from sqlalchemy import select
+
+    from app.core.db import get_sessionmaker
+    from app.models import User
+
+    with get_sessionmaker()() as db:
+        u = db.scalar(select(User).where(User.email == "mfa@example.com"))
+        assert secret not in (u.mfa_secret_enc or "")
+
+
+def test_totp_rfc6238_vector():
+    import base64
+
+    from app.core import totp
+
+    secret = base64.b32encode(b"12345678901234567890").decode()
+    assert totp.now_code(secret, at=59) == "287082"
+    assert totp.now_code(secret, at=1111111109) == "081804"

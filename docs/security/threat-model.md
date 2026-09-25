@@ -1,40 +1,67 @@
 # Threat model
 
-Status: baseline written at project start (STRIDE). Revisit whenever auth, authz, sharing,
-uploads, downloads, exports or admin features change.
+Status: STRIDE model, kept in step with the implementation. Revisit whenever auth, authorisation,
+sharing, uploads, downloads, exports, admin or public features change.
 
 ## 1. Assets
-Living people's and children's personal data; caste and religious data; Kundli and birth details;
-property documents and land parcels (fraud and litigation value); account credentials; the
-integrity of the tree itself (forged lineage used to claim property).
+- Living people's and children's personal data (DOB, birth time, contact, address).
+- Caste, community and religion data.
+- Kundli and astrology data.
+- Birth certificates, wills, deeds and land records (identity-bearing, and valuable for fraud and
+  litigation).
+- Property interest records: a forged lineage or forged shares could be used to support claims.
+- Account credentials and sessions.
+- Integrity of the archive itself.
+- Encryption and signing keys.
 
-## 2. Actors and roles
-Anonymous visitor · share-link holder · tree `viewer` · `contributor` (proposes edits) · `editor` ·
-`property_manager` · `owner` · platform admin · OCR worker (a service) · malicious insider (a family
-member acting in bad faith).
+## 2. Actors
+- Anonymous visitor.
+- Public-page reader.
+- Tree `VIEWER`, `RESEARCHER`, `CONTRIBUTOR`, `BRANCH_ADMIN`, `DOCUMENT_CUSTODIAN`,
+  `PROPERTY_CUSTODIAN`, `FAMILY_ADMIN`, `OWNER`.
+- Platform `SYSTEM_ADMIN` (no tree access).
+- A malicious insider, e.g. a relative in a property dispute.
+- Background worker.
+- A compromised dependency.
 
 ## 3. Trust boundaries
-Browser ↔ API · API ↔ Postgres (RLS) · API ↔ object storage (signed URLs) · queue ↔ OCR worker ·
-worker ↔ any external AI provider.
+- Browser ↔ nginx/API (TLS, cookie session, CSRF).
+- API ↔ PostgreSQL.
+- API/worker ↔ object storage (ciphertext only).
+- API ↔ clamd.
+- Queue ↔ worker.
+- Import files (untrusted GEDCOM and documents) ↔ parsers and OCR.
 
-## 4. Threats and required controls
+## 4. Threats, controls and tests
 
-| # | STRIDE | Threat | Control | Required negative test |
+| # | STRIDE | Threat | Control (implemented) | Test |
 |---|---|---|---|---|
-| T1 | Elevation / Info disclosure | **IDOR/BOLA:** requesting `/persons/{id}` or `/documents/{id}` from another tree | Every lookup is `WHERE tree_id = :authorised AND id = :id`, plus RLS. Unknown and forbidden both return **404**. | A user in tree A requests every resource type in tree B and gets 404. RLS test runs as the app role with the service filter bypassed. |
-| T2 | Elevation | A viewer or contributor edits directly through the API | A role check on each handler, deny by default, one central policy table | Each mutating endpoint is called by each role below the one it requires and returns 403 (UI flow 4 in the README) |
-| T3 | Elevation | A member gives themselves or someone else a higher role | Only `owner` can change roles. The last owner can't be demoted. | An editor tries to promote themselves, then demote the owner. Both are denied. |
-| T4 | Info disclosure | A living person or minor leaks through the public view, search, export, share link or tree image | Privacy serialisers (privacy-model §3), plus a living and minor check at render time | A fixture with a living adult and a minor, checked against the public tree, search, GEDCOM public export and share link. Their names must be absent. |
-| T5 | Info disclosure | A signed URL is reused, lasts too long or is guessable | Signed only after authorisation, TTL ≤ 5 min, single object, private bucket, keys that can't be guessed | An expired URL gets 403. A URL for doc X can't read doc Y. Anonymous bucket listing is denied. |
-| T6 | Tampering / Elevation | Malicious upload: polyglot file, PDF with JS, zip bomb, SVG with XSS, huge image | ADR-0004 validation, quarantine and scan. No SVG/HTML uploads. `Content-Disposition: attachment` and `X-Content-Type-Options: nosniff`. | EICAR, a mislabelled mime type, an oversize file and a PDF with JS are each rejected or quarantined. |
-| T7 | Tampering | OCR/AI output (or prompt injection inside a document) silently changes canonical data | The worker can only insert proposals. Accepting requires a human. | The worker's DB role can't write to `person` or `relationship`. A proposal alone changes nothing. |
-| T8 | Repudiation | A disputed lineage or property edit | An append-only audit log (who, when, before and after) for canonical and property tables | Every mutation writes one audit row, and the audit table rejects UPDATE and DELETE. |
-| T9 | Spoofing | Credential stuffing, stolen session | Argon2id, rate limits, optional TOTP, httpOnly SameSite cookies, CSRF tokens, session rotation | Login lockout test, and a CSRF-less POST is rejected. |
-| T10 | Info disclosure | Enumerating people via sequential IDs or search | UUIDv7 IDs, authenticated search, rate limits | — |
-| T11 | Elevation | A platform admin reads tree content | Admin tools see metadata only. Reading content requires break-glass access that is audited. | An admin endpoint response contains no person fields. |
-| T12 | Info disclosure | Export used to take everything out at once | Exports are role-scoped, rate-limited and audited, and download links expire | A viewer's export contains no S2 or S3 data. |
-| T13 | DoS | A deep recursive query or a huge tree render | Depth limits, pagination, statement timeouts | Ancestors endpoint with depth > max returns 400. |
+| T1 | I / E | **IDOR/BOLA**, cross-tree access to any resource | Tree context resolves membership, and non-members get **404**. Every lookup uses `tree_id` (`lookup.get_in_tree`). Composite `(tree_id, id)` FKs make cross-tree references impossible in the DB. | `test_route_isolation.py` (every `/trees/{tree_id}` route, stranger and anonymous), `test_privacy.py::test_cross_tree_access_is_404`, `test_heritage_family.py::test_citation_cannot_target_other_tree` |
+| T2 | E | Viewer or researcher edits through the API | Deny-by-default permission matrix and `ctx.require()` on every mutation. Branch scope limits branch-scoped roles. | `test_privacy.py::test_viewer_cannot_modify_anything_via_api`, `::test_branch_scoped_contributor`, Playwright flow 4 |
+| T3 | E | Self-promotion, or removing the last owner | Only an OWNER grants or removes OWNER/FAMILY_ADMIN. No self-role change. The last owner can't be removed. Invitations are bound to an email and single-use. | `test_trees.py` |
+| T4 | I | Living person or minor leaks via API, search, public page, graph, export, hydration or HTML | Central privacy evaluation plus serialiser redaction. Hidden relatives become placeholders. Public mode shows deceased people only. The SPA shell has no data. `noindex` is set. | `test_privacy.py` (DOB/time/contact never in raw JSON; public pages; minors), `test_search_consent.py`, `test_gedcom.py` |
+| T5 | I | Download URL reuse, expiry bypass or guessing | HMAC-signed token bound to document, user, variant and expiry (≤300 s). Authorisation is re-checked at download time. `no-store`. Private bucket; app-level encryption. | `test_documents.py` |
+| T6 | T / E | Malicious upload (polyglot, PDF JS, zip/decompression bomb, SVG XSS, EICAR) | Magic-byte allowlist (no SVG/HTML). PDF JS, launch and encryption rejected. Page and pixel caps. clamd scan before storing (fail-closed). `attachment` + `nosniff`. EXIF stripped from previews. | `test_documents.py` |
+| T7 | T | OCR/AI output (or prompt text inside a document) silently changes facts | Extraction writes `extraction_proposal` rows only. Canonical changes need `review` by a user with `extraction.review`, and create *new* claims with citation and provenance. | `test_extraction.py` |
+| T8 | R | Disputed edits to lineage or property | Append-only `audit_event` (a DB trigger blocks UPDATE and DELETE). All mutations audited without sensitive values. Reversible merge log. | `test_trees.py::test_audit_table_is_append_only`, `test_merge.py` |
+| T9 | S | Credential stuffing, session theft | Argon2id. Per-IP and per-email login rate limits. Generic errors and dummy-hash timing equalisation. Optional TOTP MFA. HttpOnly SameSite=Lax cookies; `Secure` in production. Server-side sessions with idle and absolute expiry. Revoke others / password change revokes. | `test_auth.py` |
+| T10 | T | CSRF | Double-submit token required on every unsafe method for cookie-authenticated routes | `test_auth.py::test_csrf_required_for_unsafe_methods` |
+| T11 | I | Enumeration of people or trees | UUIDv7 ids, 404 for everything not visible, no counts of hidden rows | `test_route_isolation.py` |
+| T12 | E | System admin browses family content | `is_system_admin` grants no tree permissions (not referenced by authorisation at all) | code review, ADR-0006 |
+| T13 | I | Export exfiltration | Export requires `gedcom.export`, applies the exporter's privacy view, excludes living people by default. Sensitive export needs `privacy.manage`. Audited. | `test_gedcom.py` |
+| T14 | D | Deep or wide traversal, huge uploads, pathological GEDCOM | Depth caps (≤25), node cap (500), upload size cap, parser record caps, statement timeouts (Phase 8) | `test_genealogy.py`, `test_gedcom.py` |
+| T15 | T | Tampering with stored originals | Write-once keys (local `O_EXCL`, S3 `If-None-Match`). SHA-256 recorded. AES-GCM authentication detects modified ciphertext. | `test_documents.py` |
+| T16 | I | Key compromise / bucket leak | Separate STANDARD and VAULT keys. Keys only from a secret manager (production config refuses dev keys). | `core/config.py` validator |
+| T17 | S / T | Forged property shares presented as title | `legal_notice` on every property response. The documented-share invariant is ≤ 1. Status distinguishes asserted, documented and disputed. | `test_property.py` |
+| T18 | I | Analytics/log leakage | No analytics SDK. Audit `details` hold field names only. Documents are never logged. | code review |
 
-## 5. Current prototype exposure
-There is no backend, so the only real risk today is shipping sample data with realistic personal
-details to a public host. `sampleData.ts` holds fictional people only, and must stay that way.
+## 5. Residual risks and deferred controls
+- **Row-level security** as a second isolation barrier: DEFERRED (Phase 8). Current controls: the
+  service layer plus composite FKs plus route-isolation tests.
+- **DAST** and a scheduled penetration test: DEFERRED (Phase 8). CI runs SAST (ruff `S` rules) and
+  dependency audits.
+- **Password reset and email verification:** deferred until an email provider exists. Until then,
+  admins re-invite.
+- **clamd availability:** scanning fails closed (uploads rejected while clamd is down), which trades
+  availability for safety.
+- **Watermarking of downloaded documents:** DEFERRED.

@@ -10,6 +10,7 @@ from app.modules.family.router import router as family_router
 from app.modules.genealogy.router import router as genealogy_router
 from app.modules.heritage.router import router as heritage_router
 from app.modules.identity.router import router as auth_router
+from app.modules.merge.router import router as merge_router
 from app.modules.public.router import router as public_router
 from app.modules.search.router import router as search_router
 from app.modules.trees.router import router as trees_router
@@ -24,3 +25,4 @@ api_router.include_router(heritage_router)
 api_router.include_router(family_router)
 api_router.include_router(search_router)
 api_router.include_router(consent_router)
+api_router.include_router(merge_router)

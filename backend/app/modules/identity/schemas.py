@@ -18,6 +18,7 @@ class RegisterIn(ApiModel):
 class LoginIn(ApiModel):
     email: EmailStr
     password: str = Field(max_length=256)
+    mfa_code: str | None = Field(default=None, max_length=10)
 
 
 class UserOut(ApiModel):
@@ -26,6 +27,21 @@ class UserOut(ApiModel):
     display_name: str
     preferred_language: str
     created_at: dt.datetime
+    mfa_enabled: bool = False
+
+
+class MfaSetupOut(ApiModel):
+    secret: str
+    otpauth_uri: str
+
+
+class MfaCodeIn(ApiModel):
+    code: str = Field(min_length=6, max_length=10)
+
+
+class MfaDisableIn(ApiModel):
+    password: str = Field(max_length=256)
+    code: str = Field(min_length=6, max_length=10)
 
 
 class SessionOut(ApiModel):
@@ -45,3 +61,7 @@ class PasswordChangeIn(ApiModel):
 class ProfileUpdateIn(ApiModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=200)
     preferred_language: str | None = Field(default=None, pattern=r"^[a-z]{2}(-[A-Z]{2})?$")
+
+
+class PasswordConfirmIn(ApiModel):
+    password: str = Field(max_length=256)

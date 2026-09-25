@@ -34,6 +34,7 @@ from app.models.enums import (
     EventType,
     EvidenceStatus,
     ParticipantRole,
+    PrivacyLevel,
     ProfileStatus,
     RelationshipType,
 )
@@ -870,3 +871,84 @@ def relationships_of(ctx: TreeContext, person_id: uuid.UUID) -> list[Relationshi
             )
         )
     )
+
+
+def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
+    """Privacy erasure (PRS §54): remove personal data but keep a placeholder so the tree's shape holds.
+
+    Names, events, heritage/astrology claims, notes and contact data are deleted; relationships are
+    kept (they describe *other* people's ancestry) but the person is shown as "Erased person".
+    Irreversible by design — audited.
+    """
+    from app.models import Assertion, AstrologyProfile, Citation
+    from app.models.enums import CitationTarget
+
+    ctx.require(Permission.TREE_MANAGE)
+    person = lookup.get_in_tree(ctx, Person, person_id, "Person")
+    db = ctx.db
+    ev_ids = list(
+        db.scalars(
+            select(EventParticipant.event_id).where(
+                EventParticipant.tree_id == ctx.tree_id,
+                EventParticipant.person_id == person.id,
+                EventParticipant.role == ParticipantRole.PRINCIPAL,
+            )
+        )
+    )
+    db.execute(
+        sa_delete(EventParticipant).where(
+            EventParticipant.tree_id == ctx.tree_id, EventParticipant.person_id == person.id
+        )
+    )
+    if ev_ids:
+        db.execute(
+            sa_delete(Citation).where(
+                Citation.tree_id == ctx.tree_id,
+                Citation.target_type == CitationTarget.EVENT,
+                Citation.target_id.in_(ev_ids),
+            )
+        )
+        db.execute(
+            sa_delete(EventParticipant).where(
+                EventParticipant.tree_id == ctx.tree_id, EventParticipant.event_id.in_(ev_ids)
+            )
+        )
+        db.execute(sa_delete(Event).where(Event.tree_id == ctx.tree_id, Event.id.in_(ev_ids)))
+    for model in (Assertion, AstrologyProfile):
+        db.execute(sa_delete(model).where(model.tree_id == ctx.tree_id, model.person_id == person.id))  # type: ignore[attr-defined]
+    db.execute(
+        sa_delete(Citation).where(
+            Citation.tree_id == ctx.tree_id,
+            Citation.target_type == CitationTarget.PERSON,
+            Citation.target_id == person.id,
+        )
+    )
+    db.execute(
+        sa_delete(NameRecord).where(NameRecord.tree_id == ctx.tree_id, NameRecord.person_id == person.id)
+    )
+    db.add(
+        NameRecord(
+            tree_id=ctx.tree_id,
+            person_id=person.id,
+            full_name_as_recorded="Erased person",
+            is_preferred=True,
+            search_text="",
+            search_phonetic="",
+            created_by=ctx.user_id,
+        )
+    )
+    person.preferred_display_name = "Erased person"
+    person.sex_at_birth = None
+    person.gender_identity = None
+    person.notes = None
+    person.contact_info = None
+    person.residential_address = None
+    person.occupation = None
+    person.scripts_used = []
+    person.privacy_level = PrivacyLevel.PRIVATE_TREE_ADMINS
+    person.field_privacy = {}
+    db.flush()
+    audit.log(
+        ctx, "person.erased", target_type="person", target_id=person.id, details={"reason": reason[:200]}
+    )
+    return person
