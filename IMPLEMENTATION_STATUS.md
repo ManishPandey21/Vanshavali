@@ -5,12 +5,12 @@ tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, 
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
 Last verified: 2026-09-26.
-- Backend: `uv run pytest` 242 passed, run as the RLS-restricted app role, including the migration
+- Backend: `uv run pytest` 281 passed, run as the RLS-restricted app role, including the migration
   roundtrip; ruff, ruff `S` and mypy clean.
-- Frontend: lint, typecheck, Vitest (104) and build green.
-- Playwright: 23 tests in 9 specs (core flow, birth certificate review, property partition, viewer
-  denied, MFA, password reset, onboarding + WhatsApp claim, claim link "not me" / "remove me",
-  accessibility). CI runs the same gates.
+- Frontend: lint, typecheck, Vitest (117) and build green.
+- Playwright: 25 tests in 11 specs (core flow, birth certificate review, property partition, viewer
+  denied, MFA, password reset, forced password change, landing page, onboarding + WhatsApp claim,
+  claim link "not me" / "remove me", accessibility). CI runs the same gates.
   In the dev sandbox, birth certificate review needs Tesseract installed.
 
 ## Platform / Phase 0
