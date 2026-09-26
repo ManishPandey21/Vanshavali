@@ -19,7 +19,8 @@ _CHUNK = 1024 * 1024
 
 
 def _read_capped(file: UploadFile) -> bytes:
-    limit = get_settings().max_upload_bytes
+    # a GEDCOM package (zip with photos) may be larger than a single file; the service re-checks
+    limit = max(get_settings().max_upload_bytes, get_settings().max_gedcom_package_bytes)
     buf = bytearray()
     while True:
         chunk = file.file.read(_CHUNK)

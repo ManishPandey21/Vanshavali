@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ImportJobOut } from "../../api/types";
 import { jsonResponse, renderWithProviders } from "../../test/utils";
 import i18n from "../../i18n";
-import { ImportExportPage, buildCommitBody, defaultDecisions, vitalText } from "./ImportExportPage";
+import { ImportExportPage, PhotosSummary, buildCommitBody, defaultDecisions, photosImportedText, vitalText } from "./ImportExportPage";
 
 describe("GEDCOM preview dates", () => {
   const t = i18n.t.bind(i18n);
@@ -14,6 +14,29 @@ describe("GEDCOM preview dates", () => {
     expect(vitalText(t, null, true, null)).toBe("date unknown");
     expect(vitalText(t, null, false, null)).toBeNull();
     expect(vitalText(t, undefined, undefined, undefined)).toBeNull();
+  });
+});
+
+describe("GEDCOM photos (ADR-0013)", () => {
+  const t = i18n.t.bind(i18n);
+  it("explains how to include photos when only a .ged was uploaded", () => {
+    renderWithProviders(<PhotosSummary t={t} photos={{ package: false, referenced: 24, matched: 0, missing: 0, ambiguous: 0 }} />);
+    expect(screen.getByText(/refers to 24 photos, but they weren't uploaded/)).toBeInTheDocument();
+  });
+
+  it("reports what the zip matched and lists the photos it will skip", async () => {
+    renderWithProviders(
+      <PhotosSummary t={t} photos={{ package: true, referenced: 5, matched: 4, missing: 1, ambiguous: 0, people_with_photos: 3, missing_files: ["P404_missing.jpg"] }} />,
+    );
+    expect(screen.getByText(/Photos: 4 of 5 found in the zip, for 3 people/)).toBeInTheDocument();
+    await userEvent.click(screen.getByText(/1 photo will be skipped/));
+    expect(screen.getByText("P404_missing.jpg")).toBeInTheDocument();
+  });
+
+  it("summarises imported and rejected photos after the import", () => {
+    renderWithProviders(<>{photosImportedText(t, { counts: { photos_imported: 3, photos_rejected: 1 } })}</>);
+    expect(screen.getByText(/3 photos imported and linked to people\. 1 file was rejected by the safety checks\./)).toBeInTheDocument();
+    expect(photosImportedText(t, { counts: { people_created: 2 } })).toBeNull();
   });
 });
 

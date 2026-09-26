@@ -171,10 +171,61 @@ export function vitalText(t: TFunction, date: string | null | undefined, recorde
   return place ? t("gedcom.placeDateUnknown", { place }) : t("gedcom.dateUnknown");
 }
 
+export interface PhotoReport {
+  package: boolean;
+  referenced: number;
+  matched: number;
+  missing: number;
+  ambiguous: number;
+  people_with_photos?: number;
+  missing_files?: string[];
+  ambiguous_files?: string[];
+}
+
+/** What the upload found about photos (ADR-0013): matched in the zip, missing, or not uploaded at all. */
+export function PhotosSummary({ photos, t }: { photos: PhotoReport; t: TFunction }) {
+  if (!photos.referenced) return null;
+  if (!photos.package) {
+    return <p className="rounded-lg border border-haldi-300 bg-haldi-100 p-2 text-sm text-haldi-700">{t("gedcom.photosNotUploaded", { count: photos.referenced })}</p>;
+  }
+  const skipped = [...(photos.missing_files ?? []), ...(photos.ambiguous_files ?? [])];
+  return (
+    <div className="rounded-lg bg-parchment p-2 text-sm">
+      <p>{t("gedcom.photosFound", { matched: photos.matched, count: photos.referenced, people: photos.people_with_photos ?? 0 })}</p>
+      {skipped.length > 0 && (
+        <details className="mt-1">
+          <summary className="cursor-pointer text-xs text-ink-muted">{t("gedcom.photosSkipped", { count: photos.missing + photos.ambiguous })}</summary>
+          <ul className="mt-1 list-inside list-disc text-xs">
+            {skipped.map((f, i) => (
+              <li key={i} className="break-all">
+                {f}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+export function photosImportedText(t: TFunction, commitResult: Record<string, unknown> | null | undefined) {
+  const counts = (commitResult?.counts ?? {}) as Record<string, number>;
+  const imported = counts.photos_imported ?? 0;
+  const rejected = counts.photos_rejected ?? 0;
+  if (!imported && !rejected) return null;
+  return (
+    <p>
+      {t("gedcom.photosImported", { count: imported })}
+      {rejected ? ` ${t("gedcom.photosRejected", { count: rejected })}` : ""}
+    </p>
+  );
+}
+
 function GedcomImport() {
   const { t, i18n } = useTranslation();
   const { treeId } = useTreeCtx();
   const fileId = useId();
+  const hintId = useId();
   const imports = useImports(treeId, true);
   const upload = useUploadGedcom(treeId);
   const [file, setFile] = useState<File | null>(null);
@@ -190,7 +241,17 @@ function GedcomImport() {
           <label htmlFor={fileId} className="label">
             {t("gedcom.file")}
           </label>
-          <input id={fileId} type="file" accept=".ged,.gedcom,.zip,text/plain" className="block text-sm" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input
+            id={fileId}
+            type="file"
+            accept=".ged,.gedcom,.zip,.gdz,application/zip,text/plain"
+            aria-describedby={hintId}
+            className="block text-sm"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+          <p id={hintId} className="hint">
+            {t("gedcom.photosHint")}
+          </p>
           <ErrorAlert error={upload.error} />
           <Button disabled={!file} loading={upload.isPending} onClick={() => file && upload.mutate(file, { onSuccess: (j) => setSelected(j.id) })}>
             {t("gedcom.upload")}
@@ -245,6 +306,7 @@ function ImportReview({ job, t }: { job: ImportJobOut; t: ReturnType<typeof useT
     unsupported_tags?: Record<string, number>;
     unknown_extension_tags?: Record<string, number>;
     extension_tags?: Record<string, number>;
+    photos?: PhotoReport;
   };
   const counts = { ...(report.counts ?? {}), ...(job.counts ?? {}) };
   const ready = job.status === "ready";
@@ -272,6 +334,7 @@ function ImportReview({ job, t }: { job: ImportJobOut; t: ReturnType<typeof useT
           </div>
         ))}
       </dl>
+      {report.photos && <PhotosSummary photos={report.photos} t={t} />}
       {(report.errors ?? []).length > 0 && (
         <details open className="rounded-lg border border-red-300 p-2 text-sm">
           <summary className="cursor-pointer font-semibold text-red-900">{t("gedcom.errors", { count: report.errors!.length })}</summary>
@@ -395,6 +458,7 @@ function ImportReview({ job, t }: { job: ImportJobOut; t: ReturnType<typeof useT
       {job.commit_result && (
         <div role="status" className="rounded-lg bg-leaf-50 p-3 text-sm text-leaf-700">
           <p className="font-semibold">{t("gedcom.committed")}</p>
+          {photosImportedText(t, job.commit_result)}
           <p className="font-mono text-xs">{JSON.stringify(job.commit_result)}</p>
         </div>
       )}

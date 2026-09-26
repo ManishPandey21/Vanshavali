@@ -70,6 +70,7 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | HTML and hydration | The SPA shell contains no data (ADR-0001). Nginx sets `X-Robots-Tag: noindex` | frontend build |
 | Heritage | Attribute → group mapping (jati, community, religion) plus per-assertion level | `test_heritage_family.py` |
 | Documents and property | Object level plus vault/property permissions (ADR-0004, ADR-0010) | module tests |
+| Photos imported with GEDCOM | Each photo becomes a document with its person's privacy level, the strictest of them when one photo shows several people; photos of people who are not imported, or of no one, are not stored (ADR-0013) | `test_gedcom_photos.py::test_photo_privacy_follows_the_person` |
 | Exports | GEDCOM export applies the exporter's view. Living people are excluded by default. Sensitive data needs `privacy.manage` and is audited. | `test_gedcom.py` |
 
 ## 5. Subject rights and deletion (PRS §29, §31, §54)
