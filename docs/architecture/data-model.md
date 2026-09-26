@@ -845,6 +845,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_consent_record_tree_id (t
 |---|---|---|---|
 | `person_id` | UUID | no | → person (composite, same tree) |
 | `user_id` | UUID | no | → app_user |
+| `kind` | enum(claim, removal) | no |  |
 | `status` | enum(requested, approved, rejected, withdrawn) | no |  |
 | `message` | TEXT | yes |  |
 | `reviewed_by` | UUID | yes |  |
@@ -855,6 +856,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_consent_record_tree_id (t
 | `consent_language` | VARCHAR(10) | yes |  |
 | `consent_sha256` | VARCHAR(64) | yes |  |
 | `consent_at` | DATETIME | yes |  |
+| `restore_privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -876,6 +878,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_profile_claim_tree_id (tr
 | `used_by` | UUID | yes | → app_user |
 | `used_at` | DATETIME | yes |  |
 | `revoked_at` | DATETIME | yes |  |
+| `declined_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |

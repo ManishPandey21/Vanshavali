@@ -185,6 +185,7 @@ def test_claim_invite_happy_path(owner, tree, make_client):
         "expires_at",
         "state",
         "claim_id",
+        "claim_kind",
     }
 
     r = _accept(rel, inv["token"], message="It's me")
@@ -422,3 +423,142 @@ def test_invite_creation_and_claims_are_audited_without_tokens(owner, tree, make
     with get_engine().connect() as c:
         stored = c.execute(text("SELECT token_hash FROM profile_claim_invite")).scalar_one()
     assert stored != inv["token"] and len(stored) == 64
+
+
+# ------------------------------------------------------------------ "this isn't me" / "remove me"
+def _remove_me(client: Any, token: str, **overrides: Any) -> Any:
+    return client.post(f"/claim-invites/{token}/request-removal", json={"confirm_is_me": True, **overrides})
+
+
+def test_not_me_cancels_the_link_and_changes_nothing(owner, tree, make_client):
+    t = tree["id"]
+    meera = _living(owner, t)
+    inv = _invite(owner, t, meera["id"]).json()
+    before = owner.get(f"/trees/{t}/people/{meera['id']}").json()
+    wrong = _relative(make_client, "Wrong Number")
+    r = wrong.post(f"/claim-invites/{inv['token']}/decline")
+    assert r.status_code == 200, r.text
+    # the link now shows nothing to anyone, including the person who declined it
+    for c in (wrong, _relative(make_client, "Someone Else")):
+        p = c.get(f"/claim-invites/{inv['token']}")
+        assert p.status_code == 410 and "Meera" not in p.text
+        assert _accept(c, inv["token"]).status_code == 410
+        assert _remove_me(c, inv["token"]).status_code == 410
+    assert wrong.post(f"/claim-invites/{inv['token']}/decline").status_code == 410
+    # the profile is untouched, no claim was filed, and the inviter can see what happened
+    after = owner.get(f"/trees/{t}/people/{meera['id']}").json()
+    assert after["privacy_level"] == before["privacy_level"] and after["display_name"] == "Meera Iyer"
+    assert owner.get(f"/trees/{t}/claims").json() == []
+    assert owner.get(f"/trees/{t}/claim-invites").json()[0]["state"] == "declined"
+    actions = [e["action"] for e in owner.get(f"/trees/{t}/audit").json()["items"]]
+    assert "profile.claim_invite_declined" in actions
+    # a fresh link can still be sent to the right person
+    assert _invite(owner, t, meera["id"]).status_code == 201
+
+
+def test_remove_me_hides_at_once_and_admin_erases(owner, tree, member_factory, make_client):
+    t = tree["id"]
+    meera = _living(owner, t, occupation="Teacher")
+    viewer = member_factory(["VIEWER"])
+    assert viewer.get(f"/trees/{t}/people/{meera['id']}").status_code == 200
+    inv = _invite(owner, t, meera["id"]).json()
+    spare = _invite(owner, t, meera["id"]).json()
+
+    rel = _relative(make_client)
+    r = _remove_me(rel, inv["token"], message="Please take me out")
+    assert r.status_code == 201, r.text
+    assert r.json()["kind"] == "removal" and r.json()["status"] == "requested"
+    # hidden from ordinary members straight away; the requester gets no access either
+    assert viewer.get(f"/trees/{t}/people/{meera['id']}").status_code == 404
+    assert rel.get(f"/trees/{t}").status_code == 404
+    preview = rel.get(f"/claim-invites/{inv['token']}").json()
+    assert preview["state"] == "used" and preview["claim_kind"] == "removal"
+    # other outstanding links are cancelled, and nobody can claim or re-invite meanwhile
+    assert rel.get(f"/claim-invites/{spare['token']}").status_code == 404
+    r = _invite(owner, t, meera["id"])
+    assert r.status_code == 409 and r.json()["error"]["code"] == "removal_pending"
+    r = viewer.post(f"/trees/{t}/people/{meera['id']}/claims", json={})
+    assert r.status_code == 404  # hidden from the viewer now
+    r = owner.post(f"/trees/{t}/people/{meera['id']}/claims", json={})
+    assert r.status_code == 409 and r.json()["error"]["code"] == "removal_pending"
+
+    claim = owner.get(f"/trees/{t}/claims").json()[0]
+    assert claim["kind"] == "removal" and claim["claimant_name"] == "Meera Iyer"
+    r = owner.post(f"/trees/{t}/claims/{claim['id']}/approve", json={})
+    assert r.status_code == 200, r.text
+    assert r.json()["message"] is None  # the request's free text goes with the profile
+    body = owner.get(f"/trees/{t}/people/{meera['id']}").text
+    assert "Meera" not in body and "Teacher" not in body and "Erased person" in body
+    assert rel.get("/trees").json() == []  # erasure never grants membership
+
+
+def test_declined_removal_restores_visibility(owner, tree, member_factory, make_client):
+    t = tree["id"]
+    meera = _living(owner, t)
+    viewer = member_factory(["VIEWER"])
+    inv = _invite(owner, t, meera["id"]).json()
+    _remove_me(_relative(make_client, "Prankster"), inv["token"])
+    assert viewer.get(f"/trees/{t}/people/{meera['id']}").status_code == 404
+    claim = owner.get(f"/trees/{t}/claims").json()[0]
+    r = owner.post(f"/trees/{t}/claims/{claim['id']}/reject", json={"note": "Not Meera; forwarded link"})
+    assert r.status_code == 200, r.text
+    person = viewer.get(f"/trees/{t}/people/{meera['id']}")
+    assert person.status_code == 200 and person.json()["display_name"] == "Meera Iyer"
+    actions = [e["action"] for e in owner.get(f"/trees/{t}/audit").json()["items"]]
+    assert "profile.removal_requested" in actions and "profile.removal_rejected" in actions
+    # invites work again once the request is closed
+    assert _invite(owner, t, meera["id"]).status_code == 201
+
+
+def test_declined_removal_keeps_an_already_private_profile_private(owner, tree, make_client):
+    t = tree["id"]
+    secret = create_person(owner, t, "Secret", status="living", privacy_level="PRIVATE_TREE_ADMINS")
+    inv = _invite(owner, t, secret["id"]).json()
+    _remove_me(_relative(make_client), inv["token"])
+    claim = owner.get(f"/trees/{t}/claims").json()[0]
+    owner.post(f"/trees/{t}/claims/{claim['id']}/reject", json={})
+    assert owner.get(f"/trees/{t}/people/{secret['id']}").json()["privacy_level"] == "PRIVATE_TREE_ADMINS"
+
+
+def test_remove_me_needs_confirmation_and_an_admin(owner, tree, member_factory, make_client):
+    t = tree["id"]
+    meera = _living(owner, t)
+    inv = _invite(owner, t, meera["id"]).json()
+    rel = _relative(make_client)
+    r = _remove_me(rel, inv["token"], confirm_is_me=False)
+    assert r.status_code == 422 and r.json()["error"]["code"] == "confirmation_required"
+    assert rel.get(f"/claim-invites/{inv['token']}").json()["state"] == "active"  # not used up
+    assert _remove_me(rel, inv["token"]).status_code == 201
+    assert _remove_me(rel, inv["token"]).status_code == 409
+    claim_id = owner.get(f"/trees/{t}/claims").json()[0]["id"]
+    # only owners / family admins decide; the requester and contributors cannot
+    contrib = member_factory(["CONTRIBUTOR"])
+    assert contrib.post(f"/trees/{t}/claims/{claim_id}/approve", json={}).status_code == 403
+    assert rel.post(f"/trees/{t}/claims/{claim_id}/approve", json={}).status_code == 404
+    assert owner.get(f"/trees/{t}/people/{meera['id']}").json()["display_name"] == "Meera Iyer"
+
+
+def test_remove_me_cannot_touch_a_claimed_profile(owner, tree, make_client):
+    t = tree["id"]
+    meera = _living(owner, t)
+    first = _invite(owner, t, meera["id"]).json()
+    stale = _invite(owner, t, meera["id"]).json()
+    owner_rel = _relative(make_client)
+    _accept(owner_rel, first["token"])
+    claim = owner.get(f"/trees/{t}/claims").json()[0]
+    owner.post(f"/trees/{t}/claims/{claim['id']}/approve", json={})
+    # an old link in someone else's hands cannot hide or erase the claimed profile
+    r = _remove_me(_relative(make_client, "Other"), stale["token"])
+    assert r.status_code == 409 and r.json()["error"]["code"] == "already_claimed"
+    assert owner.get(f"/trees/{t}/people/{meera['id']}").json()["privacy_level"] == "TREE_MEMBERS"
+
+
+def test_decline_and_removal_need_sign_in(owner, tree, client):
+    inv = _invite(owner, tree["id"], _living(owner, tree["id"])["id"]).json()
+    assert client.post(f"/claim-invites/{inv['token']}/decline").status_code == 401
+    assert (
+        client.post(
+            f"/claim-invites/{inv['token']}/request-removal", json={"confirm_is_me": True}
+        ).status_code
+        == 401
+    )

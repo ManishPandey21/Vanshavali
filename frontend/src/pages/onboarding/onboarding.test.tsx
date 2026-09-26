@@ -169,3 +169,56 @@ describe("ClaimInvitePage", () => {
     expect(screen.queryByText(/Meera/)).not.toBeInTheDocument();
   });
 });
+
+describe("ClaimInvitePage: this isn't me / remove me", () => {
+  const active = { tree_name: "Iyer parivar", person_name: "Meera Iyer", invited_by: "Asha Iyer", offered_role: "VIEWER", expires_at: "2026-10-01T00:00:00Z", state: "active", claim_id: null, claim_kind: null };
+
+  function mockWith(onPost: (url: string) => Response | undefined, afterPost: () => unknown = () => active) {
+    let posted = false;
+    return routed((url, init) => {
+      if (url.includes("/auth/me")) return jsonResponse(me);
+      if (url.includes("/consent-statements/profile_claim")) return jsonResponse({ kind: "profile_claim", version: "2026-09-v1", language: "en", text: CLAIM_TEXT });
+      if (init?.method === "POST") {
+        posted = true;
+        return onPost(url);
+      }
+      if (url.endsWith(`/claim-invites/${TOKEN}`)) return jsonResponse(posted ? afterPost() : active);
+      return undefined;
+    });
+  }
+
+  it("cancels the link after confirmation and saves nothing else", async () => {
+    const fetchMock = mockWith((url) => (url.endsWith(`/claim-invites/${TOKEN}/decline`) ? jsonResponse({ message: "ok" }) : undefined));
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithProviders(<ClaimInvitePage />, { tree: null, route: `/claim#${TOKEN}` });
+    await userEvent.click(await screen.findByRole("button", { name: "This isn't me" }));
+    const dialog = await screen.findByRole("dialog", { name: "You are not “Meera Iyer”?" });
+    expect(posts(fetchMock)).toEqual([]);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Yes, cancel this link" }));
+    expect((await screen.findAllByText(/This link no longer works, and nothing about you was added/)).length).toBeGreaterThan(0);
+    expect(posts(fetchMock).map((p) => p.url)).toEqual([`/api/v1/claim-invites/${TOKEN}/decline`]);
+    expect(screen.queryByText(/Meera/)).not.toBeInTheDocument();
+  });
+
+  it("asks the person to confirm it's them before hiding the profile and requesting removal", async () => {
+    const fetchMock = mockWith(
+      (url) => (url.endsWith(`/claim-invites/${TOKEN}/request-removal`) ? jsonResponse({ claim_id: "c1", kind: "removal", status: "requested", tree_name: "Iyer parivar", person_name: "Meera Iyer" }, 201) : undefined),
+      () => ({ ...active, state: "used", claim_id: "c1", claim_kind: "removal" }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithProviders(<ClaimInvitePage />, { tree: null, route: `/claim#${TOKEN}` });
+    await userEvent.click(await screen.findByRole("button", { name: "This is me, but remove me" }));
+    const dialog = await screen.findByRole("dialog", { name: "Remove me from this tree" });
+    const confirm = within(dialog).getByRole("button", { name: "Hide my profile and ask for removal" });
+    await userEvent.click(confirm);
+    expect(await within(dialog).findByText("Please confirm that this profile is about you.")).toBeInTheDocument();
+    expect(posts(fetchMock)).toEqual([]);
+
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /I am “Meera Iyer”/ }));
+    await userEvent.type(within(dialog).getByLabelText(/Message to the tree admins/), "Please take me out");
+    await userEvent.click(confirm);
+    await waitFor(() => expect(posts(fetchMock)).toHaveLength(1));
+    expect(posts(fetchMock)[0]!.body).toEqual({ confirm_is_me: true, message: "Please take me out" });
+    expect((await screen.findAllByText(/Your profile is now hidden from everyone except the tree admins/)).length).toBeGreaterThan(0);
+  });
+});

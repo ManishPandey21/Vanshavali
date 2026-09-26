@@ -1490,6 +1490,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claim-invites/{token}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Claim Invite
+         * @description Answer "this isn't me": cancel the link. No person data is read back or changed.
+         */
+        post: operations["decline_claim_invite_api_v1_claim_invites__token__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-invites/{token}/request-removal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Removal
+         * @description Answer "this is me, remove me": hide the profile now and ask a tree admin to erase it.
+         *
+         *     The link is a bearer token that may have been forwarded, so it never erases anything by itself:
+         *     hiding is immediate and reversible, erasure needs an admin (ADR-0011).
+         */
+        post: operations["request_removal_api_v1_claim_invites__token__request_removal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/merges/preview": {
         parameters: {
             query?: never;
@@ -2944,7 +2987,7 @@ export interface components {
              * @default active
              * @enum {string}
              */
-            state?: "active" | "used" | "expired" | "revoked";
+            state?: "active" | "used" | "declined" | "expired" | "revoked";
             /** Url */
             url: string;
             /** Token */
@@ -2984,7 +3027,7 @@ export interface components {
              * @default active
              * @enum {string}
              */
-            state?: "active" | "used" | "expired" | "revoked";
+            state?: "active" | "used" | "declined" | "expired" | "revoked";
         };
         /** ClaimInvitePreview */
         ClaimInvitePreview: {
@@ -3004,10 +3047,16 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "active" | "used" | "expired" | "revoked";
+            state: "active" | "used" | "declined" | "expired" | "revoked";
             /** Claim Id */
             claim_id?: string | null;
+            claim_kind?: components["schemas"]["ClaimKind"] | null;
         };
+        /**
+         * ClaimKind
+         * @enum {string}
+         */
+        ClaimKind: "claim" | "removal";
         /** ClaimOut */
         ClaimOut: {
             /**
@@ -3025,6 +3074,8 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+            /** @default claim */
+            kind?: components["schemas"]["ClaimKind"];
             status: components["schemas"]["ClaimStatus"];
             /** Message */
             message: string | null;
@@ -3080,6 +3131,8 @@ export interface components {
              * Format: uuid
              */
             claim_id: string;
+            /** @default claim */
+            kind?: components["schemas"]["ClaimKind"];
             status: components["schemas"]["ClaimStatus"];
             /** Tree Name */
             tree_name: string;
@@ -6037,6 +6090,13 @@ export interface components {
             person: components["schemas"]["PersonSummary"];
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
+        };
+        /** RemovalRequestIn */
+        RemovalRequestIn: {
+            /** Confirm Is Me */
+            confirm_is_me: boolean;
+            /** Message */
+            message?: string | null;
         };
         /** ReprocessOut */
         ReprocessOut: {
@@ -10443,6 +10503,72 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ClaimInviteAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimSubmitted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_claim_invite_api_v1_claim_invites__token__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_removal_api_v1_claim_invites__token__request_removal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovalRequestIn"];
             };
         };
         responses: {
