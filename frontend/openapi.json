@@ -6339,6 +6339,102 @@
     }
    }
   },
+  "/api/v1/claim-invites/{token}/decline": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Decline Claim Invite",
+    "description": "Answer \"this isn't me\": cancel the link. No person data is read back or changed.",
+    "operationId": "decline_claim_invite_api_v1_claim_invites__token__decline_post",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/claim-invites/{token}/request-removal": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Request Removal",
+    "description": "Answer \"this is me, remove me\": hide the profile now and ask a tree admin to erase it.\n\nThe link is a bearer token that may have been forwarded, so it never erases anything by itself:\nhiding is immediate and reversible, erasure needs an admin (ADR-0011).",
+    "operationId": "request_removal_api_v1_claim_invites__token__request_removal_post",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RemovalRequestIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ClaimSubmitted"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/merges/preview": {
    "get": {
     "tags": [
@@ -12420,6 +12516,7 @@
       "enum": [
        "active",
        "used",
+       "declined",
        "expired",
        "revoked"
       ],
@@ -12516,6 +12613,7 @@
       "enum": [
        "active",
        "used",
+       "declined",
        "expired",
        "revoked"
       ],
@@ -12570,6 +12668,7 @@
       "enum": [
        "active",
        "used",
+       "declined",
        "expired",
        "revoked"
       ],
@@ -12586,6 +12685,16 @@
        }
       ],
       "title": "Claim Id"
+     },
+     "claim_kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClaimKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -12598,6 +12707,14 @@
      "state"
     ],
     "title": "ClaimInvitePreview"
+   },
+   "ClaimKind": {
+    "type": "string",
+    "enum": [
+     "claim",
+     "removal"
+    ],
+    "title": "ClaimKind"
    },
    "ClaimOut": {
     "properties": {
@@ -12615,6 +12732,10 @@
       "type": "string",
       "format": "uuid",
       "title": "User Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ClaimKind",
+      "default": "claim"
      },
      "status": {
       "$ref": "#/components/schemas/ClaimStatus"
@@ -12782,6 +12903,10 @@
       "type": "string",
       "format": "uuid",
       "title": "Claim Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ClaimKind",
+      "default": "claim"
      },
      "status": {
       "$ref": "#/components/schemas/ClaimStatus"
@@ -22745,6 +22870,31 @@
      "relationships"
     ],
     "title": "RelativeOut"
+   },
+   "RemovalRequestIn": {
+    "properties": {
+     "confirm_is_me": {
+      "type": "boolean",
+      "title": "Confirm Is Me"
+     },
+     "message": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "confirm_is_me"
+    ],
+    "title": "RemovalRequestIn"
    },
    "ReprocessOut": {
     "properties": {

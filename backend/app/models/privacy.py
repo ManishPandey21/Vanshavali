@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TreeScopedMixin, enum_column, tree_fk, tree_unique
-from app.models.enums import ClaimStatus, ConsentBasis, Role
+from app.models.enums import ClaimKind, ClaimStatus, ConsentBasis, PrivacyLevel, Role
 
 
 class ConsentRecord(TreeScopedMixin, Base):
@@ -51,6 +51,9 @@ class ProfileClaim(TreeScopedMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE")
     )
+    kind: Mapped[ClaimKind] = mapped_column(
+        enum_column(ClaimKind), default=ClaimKind.CLAIM, server_default=ClaimKind.CLAIM.value
+    )
     status: Mapped[ClaimStatus] = mapped_column(
         enum_column(ClaimStatus), default=ClaimStatus.REQUESTED, server_default=ClaimStatus.REQUESTED.value
     )
@@ -65,6 +68,10 @@ class ProfileClaim(TreeScopedMixin, Base):
     consent_language: Mapped[str | None] = mapped_column(String(10))
     consent_sha256: Mapped[str | None] = mapped_column(String(64))
     consent_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    # Removal requests hide the profile at once; this is the level to restore if an admin declines.
+    restore_privacy_level: Mapped[PrivacyLevel | None] = mapped_column(
+        enum_column(PrivacyLevel, "restore_privacy_level")
+    )
 
 
 class FamilyDataAttestation(TreeScopedMixin, Base):
@@ -118,3 +125,5 @@ class ProfileClaimInvite(TreeScopedMixin, Base):
     )
     used_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    # "This isn't me": the link reached the wrong person. Nothing else changes.
+    declined_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
