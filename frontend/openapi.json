@@ -12,6 +12,7 @@
      "auth"
     ],
     "summary": "Register",
+    "description": "Always answers 202 with the same body, whether or not the email has an account (SEC-12).\n\nA new email gets a verification link; an existing account's owner gets a notice instead.\nNobody is signed in until the link is opened (``POST /auth/verify-email``).",
     "operationId": "register_api_v1_auth_register_post",
     "requestBody": {
      "content": {
@@ -24,12 +25,178 @@
      "required": true
     },
     "responses": {
-     "201": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/verify-email": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Verify Email",
+    "description": "Consume a verification link (single use), mark the email verified and sign the user in.",
+    "operationId": "verify_email_api_v1_auth_verify_email_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TokenIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
       "description": "Successful Response",
       "content": {
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/UserOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/resend-verification": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Resend Verification",
+    "operationId": "resend_verification_api_v1_auth_resend_verification_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EmailIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/password-reset/request": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Password Reset Request",
+    "operationId": "password_reset_request_api_v1_auth_password_reset_request_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EmailIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/password-reset/confirm": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Password Reset Confirm",
+    "description": "Set a new password from a reset link; every session is revoked, so the user signs in again.",
+    "operationId": "password_reset_confirm_api_v1_auth_password_reset_confirm_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PasswordResetConfirmIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
         }
        }
       }
@@ -5709,6 +5876,469 @@
     }
    }
   },
+  "/api/v1/consent-statements/{kind}": {
+   "get": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Get Statement",
+    "operationId": "get_statement_api_v1_consent_statements__kind__get",
+    "parameters": [
+     {
+      "name": "kind",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/StatementKind"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 10,
+       "default": "en",
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StatementOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/attestation": {
+   "get": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Get Attestation",
+    "operationId": "get_attestation_api_v1_trees__tree_id__attestation_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AttestationStatus"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Create Attestation",
+    "operationId": "create_attestation_api_v1_trees__tree_id__attestation_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AttestationIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AttestationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/attestation/withdraw": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Withdraw Attestation",
+    "operationId": "withdraw_attestation_api_v1_trees__tree_id__attestation_withdraw_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AttestationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/claim-invites": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Create Claim Invite",
+    "operationId": "create_claim_invite_api_v1_trees__tree_id__people__person_id__claim_invites_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ClaimInviteCreate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ClaimInviteCreated"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/claim-invites": {
+   "get": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "List Claim Invites",
+    "operationId": "list_claim_invites_api_v1_trees__tree_id__claim_invites_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ClaimInviteOut"
+         },
+         "title": "Response List Claim Invites Api V1 Trees  Tree Id  Claim Invites Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/claim-invites/{invite_id}": {
+   "delete": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Revoke Claim Invite",
+    "operationId": "revoke_claim_invite_api_v1_trees__tree_id__claim_invites__invite_id__delete",
+    "parameters": [
+     {
+      "name": "invite_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Invite Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/claim-invites/{token}": {
+   "get": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Preview Claim Invite",
+    "operationId": "preview_claim_invite_api_v1_claim_invites__token__get",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ClaimInvitePreview"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/claim-invites/{token}/accept": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Accept Claim Invite",
+    "operationId": "accept_claim_invite_api_v1_claim_invites__token__accept_post",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ClaimInviteAccept"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ClaimSubmitted"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/merges/preview": {
    "get": {
     "tags": [
@@ -9104,6 +9734,7 @@
      "platform"
     ],
     "summary": "Health",
+    "description": "Liveness: the process is serving requests. Does not touch dependencies.",
     "operationId": "health_api_v1_health_get",
     "responses": {
      "200": {
@@ -9117,6 +9748,26 @@
          "type": "object",
          "title": "Response Health Api V1 Health Get"
         }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/health/ready": {
+   "get": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Ready",
+    "description": "Readiness: database reachable, RLS in force (required in production), Redis if used.",
+    "operationId": "ready_api_v1_health_ready_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
        }
       }
      }
@@ -10627,6 +11278,100 @@
     ],
     "title": "AttachDecision"
    },
+   "AttestationIn": {
+    "properties": {
+     "statement_version": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Statement Version"
+     },
+     "language": {
+      "type": "string",
+      "maxLength": 10,
+      "minLength": 2,
+      "title": "Language"
+     }
+    },
+    "type": "object",
+    "required": [
+     "statement_version",
+     "language"
+    ],
+    "title": "AttestationIn"
+   },
+   "AttestationOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "statement_version": {
+      "type": "string",
+      "title": "Statement Version"
+     },
+     "language": {
+      "type": "string",
+      "title": "Language"
+     },
+     "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Accepted At"
+     },
+     "withdrawn_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Withdrawn At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "statement_version",
+     "language",
+     "accepted_at",
+     "withdrawn_at"
+    ],
+    "title": "AttestationOut"
+   },
+   "AttestationStatus": {
+    "properties": {
+     "attested": {
+      "type": "boolean",
+      "title": "Attested"
+     },
+     "current_version": {
+      "type": "string",
+      "title": "Current Version"
+     },
+     "attestation": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AttestationOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "attested",
+     "current_version",
+     "attestation"
+    ],
+    "title": "AttestationStatus"
+   },
    "AuditEventOut": {
     "properties": {
      "id": {
@@ -11555,6 +12300,305 @@
     "type": "object",
     "title": "ClaimIn"
    },
+   "ClaimInviteAccept": {
+    "properties": {
+     "consent_version": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Consent Version"
+     },
+     "language": {
+      "type": "string",
+      "maxLength": 10,
+      "minLength": 2,
+      "title": "Language"
+     },
+     "confirm_adult": {
+      "type": "boolean",
+      "title": "Confirm Adult"
+     },
+     "message": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "consent_version",
+     "language",
+     "confirm_adult"
+    ],
+    "title": "ClaimInviteAccept"
+   },
+   "ClaimInviteCreate": {
+    "properties": {
+     "offered_role": {
+      "type": "string",
+      "enum": [
+       "VIEWER",
+       "CONTRIBUTOR"
+      ],
+      "title": "Offered Role",
+      "default": "VIEWER"
+     }
+    },
+    "type": "object",
+    "title": "ClaimInviteCreate"
+   },
+   "ClaimInviteCreated": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "offered_role": {
+      "$ref": "#/components/schemas/Role"
+     },
+     "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires At"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "created_by": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created By"
+     },
+     "used_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Used At"
+     },
+     "revoked_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Revoked At"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "active",
+       "used",
+       "expired",
+       "revoked"
+      ],
+      "title": "State",
+      "default": "active"
+     },
+     "url": {
+      "type": "string",
+      "title": "Url"
+     },
+     "token": {
+      "type": "string",
+      "title": "Token"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "person_id",
+     "offered_role",
+     "expires_at",
+     "created_at",
+     "created_by",
+     "used_at",
+     "revoked_at",
+     "url",
+     "token"
+    ],
+    "title": "ClaimInviteCreated"
+   },
+   "ClaimInviteOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "offered_role": {
+      "$ref": "#/components/schemas/Role"
+     },
+     "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires At"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "created_by": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created By"
+     },
+     "used_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Used At"
+     },
+     "revoked_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Revoked At"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "active",
+       "used",
+       "expired",
+       "revoked"
+      ],
+      "title": "State",
+      "default": "active"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "person_id",
+     "offered_role",
+     "expires_at",
+     "created_at",
+     "created_by",
+     "used_at",
+     "revoked_at"
+    ],
+    "title": "ClaimInviteOut"
+   },
+   "ClaimInvitePreview": {
+    "properties": {
+     "tree_name": {
+      "type": "string",
+      "title": "Tree Name"
+     },
+     "person_name": {
+      "type": "string",
+      "title": "Person Name"
+     },
+     "invited_by": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Invited By"
+     },
+     "offered_role": {
+      "$ref": "#/components/schemas/Role"
+     },
+     "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires At"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "active",
+       "used",
+       "expired",
+       "revoked"
+      ],
+      "title": "State"
+     },
+     "claim_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Claim Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "tree_name",
+     "person_name",
+     "invited_by",
+     "offered_role",
+     "expires_at",
+     "state"
+    ],
+    "title": "ClaimInvitePreview"
+   },
    "ClaimOut": {
     "properties": {
      "id": {
@@ -11625,6 +12669,33 @@
       "type": "string",
       "format": "date-time",
       "title": "Created At"
+     },
+     "via_invite": {
+      "type": "boolean",
+      "title": "Via Invite",
+      "default": false
+     },
+     "claimant_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Claimant Name"
+     },
+     "claimant_email": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Claimant Email"
      }
     },
     "type": "object",
@@ -11704,6 +12775,34 @@
      "withdrawn"
     ],
     "title": "ClaimStatus"
+   },
+   "ClaimSubmitted": {
+    "properties": {
+     "claim_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Claim Id"
+     },
+     "status": {
+      "$ref": "#/components/schemas/ClaimStatus"
+     },
+     "tree_name": {
+      "type": "string",
+      "title": "Tree Name"
+     },
+     "person_name": {
+      "type": "string",
+      "title": "Person Name"
+     }
+    },
+    "type": "object",
+    "required": [
+     "claim_id",
+     "status",
+     "tree_name",
+     "person_name"
+    ],
+    "title": "ClaimSubmitted"
    },
    "CloseAccountIn": {
     "properties": {
@@ -12613,6 +13712,20 @@
      "reasons"
     ],
     "title": "DuplicateMatch"
+   },
+   "EmailIn": {
+    "properties": {
+     "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+     }
+    },
+    "type": "object",
+    "required": [
+     "email"
+    ],
+    "title": "EmailIn"
    },
    "EndMembershipIn": {
     "properties": {
@@ -18205,6 +19318,28 @@
     ],
     "title": "PasswordChangeIn"
    },
+   "PasswordResetConfirmIn": {
+    "properties": {
+     "token": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 10,
+      "title": "Token"
+     },
+     "new_password": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 10,
+      "title": "New Password"
+     }
+    },
+    "type": "object",
+    "required": [
+     "token",
+     "new_password"
+    ],
+    "title": "PasswordResetConfirmIn"
+   },
    "PersonCreate": {
     "properties": {
      "profile_status": {
@@ -20848,6 +21983,18 @@
       "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
       "title": "Preferred Language",
       "default": "en"
+     },
+     "next": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next"
      }
     },
     "type": "object",
@@ -22587,6 +23734,41 @@
     ],
     "title": "StagedPersonPreview"
    },
+   "StatementKind": {
+    "type": "string",
+    "enum": [
+     "family_data",
+     "profile_claim"
+    ],
+    "title": "StatementKind"
+   },
+   "StatementOut": {
+    "properties": {
+     "kind": {
+      "$ref": "#/components/schemas/StatementKind"
+     },
+     "version": {
+      "type": "string",
+      "title": "Version"
+     },
+     "language": {
+      "type": "string",
+      "title": "Language"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "version",
+     "language",
+     "text"
+    ],
+    "title": "StatementOut"
+   },
    "StorageClass": {
     "type": "string",
     "enum": [
@@ -23070,6 +24252,21 @@
     ],
     "title": "TimelineOut"
    },
+   "TokenIn": {
+    "properties": {
+     "token": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 10,
+      "title": "Token"
+     }
+    },
+    "type": "object",
+    "required": [
+     "token"
+    ],
+    "title": "TokenIn"
+   },
    "TraditionIn": {
     "properties": {
      "tradition_type": {
@@ -23411,6 +24608,11 @@
      "mfa_enabled": {
       "type": "boolean",
       "title": "Mfa Enabled",
+      "default": false
+     },
+     "email_verified": {
+      "type": "boolean",
+      "title": "Email Verified",
       "default": false
      }
     },

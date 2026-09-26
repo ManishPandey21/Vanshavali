@@ -3,7 +3,8 @@ name: vanshavali
 
 x-backend-env: &backend-env
   VSH_ENV: ${VSH_ENV:-development}
-  VSH_DATABASE_URL: postgresql+psycopg://vanshavali:${POSTGRES_PASSWORD:-vanshavali}@postgres:5432/vanshavali
+  # The API and worker connect as the non-owner role, which row-level security applies to (ADR-0002).
+  VSH_DATABASE_URL: postgresql+psycopg://vanshavali_app:${APP_DB_PASSWORD:-vanshavali-app}@postgres:5432/vanshavali
   VSH_REDIS_URL: redis://redis:6379/0
   VSH_JOB_MODE: rq
   VSH_RATE_LIMIT_BACKEND: redis
@@ -77,8 +78,13 @@ services:
 
   migrate:
     build: ./backend
-    environment: *backend-env
-    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *backend-env
+      # Migrations run as the schema owner, then (re)create the application role and its grants.
+      VSH_DATABASE_URL: postgresql+psycopg://vanshavali:${POSTGRES_PASSWORD:-vanshavali}@postgres:5432/vanshavali
+      VSH_APP_DB_ROLE: vanshavali_app
+      VSH_APP_DB_PASSWORD: ${APP_DB_PASSWORD:-vanshavali-app}
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.ensure_app_role"]
     depends_on: { postgres: { condition: service_healthy } }
 
   backend:

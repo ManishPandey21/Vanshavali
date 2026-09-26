@@ -8,8 +8,10 @@ reveals nothing. Backends: local filesystem (dev/tests) and S3-compatible (MinIO
 from __future__ import annotations
 
 import base64
+import datetime as dt
 import os
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 
@@ -70,6 +72,14 @@ class ObjectStore(ABC):
     @abstractmethod
     def delete(self, key: str) -> None: ...
 
+    def purge(self, key: str) -> None:
+        """Irreversibly remove an object, including any retained versions (retention purge)."""
+        self.delete(key)
+
+    @abstractmethod
+    def iter_objects(self) -> Iterator[tuple[str, dt.datetime]]:
+        """Yield ``(key, last_modified)`` for every stored object (maintenance only)."""
+
     def put_immutable(self, key: str, data: bytes, *, key_id: str) -> None:
         """Encrypt and store; refuses to overwrite (originals are immutable)."""
         if self.exists(key):
@@ -112,6 +122,14 @@ class LocalObjectStore(ObjectStore):
         if p.exists():
             os.chmod(p, 0o640)
             p.unlink()
+
+    def iter_objects(self) -> Iterator[tuple[str, dt.datetime]]:
+        for p in self.root.rglob("*"):
+            if p.is_file():
+                yield (
+                    p.relative_to(self.root).as_posix(),
+                    dt.datetime.fromtimestamp(p.stat().st_mtime, dt.UTC),
+                )
 
 
 class S3ObjectStore(ObjectStore):
@@ -159,6 +177,20 @@ class S3ObjectStore(ObjectStore):
 
     def delete(self, key: str) -> None:
         self.client.delete_object(Bucket=self.bucket, Key=key)
+
+    def purge(self, key: str) -> None:  # pragma: no cover - needs S3
+        # With bucket versioning a plain delete only adds a delete marker; remove every version.
+        # Object-lock retention on the bucket must be shorter than the purge window (ADR-0004).
+        pages = self.client.get_paginator("list_object_versions").paginate(Bucket=self.bucket, Prefix=key)
+        for page in pages:
+            for v in [*page.get("Versions", []), *page.get("DeleteMarkers", [])]:
+                if v["Key"] == key:
+                    self.client.delete_object(Bucket=self.bucket, Key=key, VersionId=v["VersionId"])
+
+    def iter_objects(self) -> Iterator[tuple[str, dt.datetime]]:  # pragma: no cover - needs S3
+        for page in self.client.get_paginator("list_objects_v2").paginate(Bucket=self.bucket):
+            for obj in page.get("Contents", []):
+                yield obj["Key"], obj["LastModified"]
 
 
 @lru_cache

@@ -25,6 +25,14 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://vanshavali:vanshavali@localhost:5432/vanshavali"
     redis_url: str = "redis://localhost:6379/0"
+    # Per-statement timeout for API/worker connections (0 disables); protects against runaway queries.
+    statement_timeout_ms: int = 15000
+
+    # Observability: "json" for log shippers (recommended in production), "text" for humans.
+    log_format: Literal["json", "text"] = "text"
+    log_level: str = "INFO"
+    # Bearer token for GET /metrics (Prometheus). Empty = the endpoint answers 404.
+    metrics_token: str = ""
 
     # Sessions / cookies
     session_cookie_name: str = "vsh_session"
@@ -46,6 +54,8 @@ class Settings(BaseSettings):
     # Storage
     storage_backend: Literal["local", "s3"] = "local"
     storage_local_path: str = "./var/storage"
+    # Soft-deleted documents stay restorable this long, then the maintenance purge removes them.
+    document_purge_after_days: int = 30
     s3_endpoint_url: str | None = None
     s3_bucket: str = "vanshavali"
     s3_region: str = "ap-south-1"
@@ -74,6 +84,22 @@ class Settings(BaseSettings):
     # GEDCOM
     gedcom_ext_base_uri: str = "https://vanshavali.app/gedcom/ext/v1/"
 
+    # Email (ADR-0005). console: log only (links shown in development only); file: write .eml/.json
+    # into mail_file_dir (tests, E2E); smtp: deliver via SMTP with STARTTLS (required in production).
+    mail_backend: Literal["console", "file", "smtp"] = "console"
+    mail_file_dir: str = "./var/mail"
+    mail_from: str = "Vanshavali <no-reply@localhost>"
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_starttls: bool = True
+    smtp_timeout_seconds: int = 20
+
+    # Email tokens
+    email_verify_ttl_hours: int = 48
+    password_reset_ttl_minutes: int = 60
+
     # Traversal limits
     max_traversal_depth: int = 25
 
@@ -87,6 +113,10 @@ class Settings(BaseSettings):
                 problems.append("data keys must be set from a secret manager in production")
             if self.signing_key == _DEV_SIGNING_KEY:
                 problems.append("VSH_SIGNING_KEY must be set in production")
+            if self.mail_backend != "smtp":
+                problems.append("VSH_MAIL_BACKEND must be 'smtp' in production")
+            elif not self.smtp_host or not self.smtp_starttls:
+                problems.append("VSH_SMTP_HOST must be set and STARTTLS enabled in production")
             if not self.cookie_secure:
                 problems.append("VSH_COOKIE_SECURE must be true in production")
             if problems:

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, RotateCcw } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, Plus, RotateCcw } from "lucide-react";
 import type { GraphOut } from "../../api/types";
 import { NODE_H, NODE_W, layoutGraph, neighbour, type Layout } from "../../lib/treeLayout";
 import { lifespan } from "../../lib/dates";
+
+const PAN_STEP = 120;
 
 function truncate(s: string, n: number) {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s;
@@ -61,6 +63,8 @@ export function TreeChart({
       return { k, x: px - ((px - v.x) * k) / v.k, y: py - ((py - v.y) * k) / v.k };
     });
   };
+
+  const pan = (dx: number, dy: number) => setView((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
 
   const onWheel = (e: WheelEvent) => {
     if (!e.ctrlKey && !e.metaKey) return; // plain wheel scrolls the page; ctrl/⌘ + wheel zooms
@@ -142,7 +146,7 @@ export function TreeChart({
 
   return (
     <div className="relative">
-      <div className="absolute right-2 top-2 z-10 flex gap-1 rounded-lg border border-stone-300 bg-white/95 p-1 shadow-sm">
+      <div className="absolute right-2 top-2 z-10 flex max-w-[calc(100%-1rem)] flex-wrap justify-end gap-1 rounded-lg border border-stone-300 bg-white/95 p-1 shadow-sm">
         <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={() => zoom(1.2)} aria-label={t("treeView.zoomIn")}>
           <Plus className="size-4" aria-hidden />
         </button>
@@ -152,6 +156,19 @@ export function TreeChart({
         <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={fit} aria-label={t("treeView.fit")}>
           <RotateCcw className="size-4" aria-hidden />
         </button>
+        {/* Single-pointer alternative to drag-panning (WCAG 2.5.7 Dragging Movements). */}
+        {(
+          [
+            ["panLeft", ArrowLeft, 1, 0],
+            ["panUp", ArrowUp, 0, 1],
+            ["panDown", ArrowDown, 0, -1],
+            ["panRight", ArrowRight, -1, 0],
+          ] as const
+        ).map(([key, Icon, dx, dy]) => (
+          <button key={key} type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={() => pan(dx * PAN_STEP, dy * PAN_STEP)} aria-label={t(`treeView.${key}`)}>
+            <Icon className="size-4" aria-hidden />
+          </button>
+        ))}
       </div>
       <div
         ref={containerRef}
@@ -186,10 +203,20 @@ export function TreeChart({
               const hidden = !p;
               const isRoot = n.node.id === layout.rootId;
               const years = p ? lifespan(p, t) ?? "" : "";
+              // Everything the box shows visually (status bar, minor, lock) is also in the accessible name.
+              const extras = p
+                ? [
+                    p.profile_status !== "unknown" ? t(`enum.profileStatus.${p.profile_status}`) : null,
+                    p.is_minor ? t("person.badge.minor") : null,
+                    p.is_protected ? t("person.badge.protected") : null,
+                  ].filter(Boolean)
+                : [];
               const label =
                 (p
                   ? t("treeView.nodeLabel", { name: p.display_name, years: years || t("treeView.datesUnknown"), generation: n.node.generation })
-                  : t("treeView.hiddenNodeLabel", { generation: n.node.generation })) + (n.node.partner ? ` ${t("treeView.partnerNode")}.` : "");
+                  : t("treeView.hiddenNodeLabel", { generation: n.node.generation })) +
+                (n.node.partner ? ` ${t("treeView.partnerNode")}.` : "") +
+                (extras.length ? ` ${extras.join(", ")}.` : "");
               return (
                 <g
                   key={n.node.id}
@@ -213,11 +240,19 @@ export function TreeChart({
                     height={NODE_H}
                     rx={10}
                     fill={hidden ? "#f5f5f4" : isRoot ? "#fdf3ee" : n.node.partner ? "#fffaf0" : "#ffffff"}
-                    stroke={isRoot ? "#9a3412" : hidden ? "#a8a29e" : "#d6c7ad"}
+                    stroke={isRoot ? "#9a3412" : hidden ? "#8a7f78" : "#9c8667" /* ≥ 3:1 on white (1.4.11) */}
                     strokeWidth={isRoot ? 2 : 1}
                     strokeDasharray={hidden ? "4 3" : undefined}
                   />
-                  {p && <rect width={5} height={NODE_H - 16} x={0} y={8} rx={2} fill={p.profile_status === "living" ? "#22643a" : p.profile_status === "deceased" ? "#8a7a66" : "#c9b89c"} />}
+                  {/* Status bar: shape as well as colour (WCAG 1.4.1) — solid = living, broken = deceased,
+                      outline = unknown. Explained in the legend under the chart. */}
+                  {p && p.profile_status === "living" && <rect width={5} height={NODE_H - 16} x={0} y={8} rx={2} fill="#22643a" />}
+                  {p && p.profile_status === "deceased" && (
+                    <line x1={2.5} y1={8} x2={2.5} y2={NODE_H - 8} stroke="#6b5d4d" strokeWidth={5} strokeDasharray="6 4" />
+                  )}
+                  {p && p.profile_status !== "living" && p.profile_status !== "deceased" && (
+                    <rect width={4} height={NODE_H - 17} x={0.5} y={8.5} rx={2} fill="none" stroke="#8a7a66" />
+                  )}
                   <text x={14} y={26} fontSize={14} fontWeight={600} fill={hidden ? "#57534e" : "#231a12"} fontStyle={hidden ? "italic" : undefined}>
                     {p ? truncate(p.display_name, 22) : t("person.privatePerson")}
                   </text>
@@ -235,15 +270,16 @@ export function TreeChart({
                   )}
                   {n.children.length > 0 && (
                     <g
-                      transform={`translate(${NODE_W - 22},${graph.direction === "ancestors" ? 4 : NODE_H - 22})`}
+                      transform={`translate(${NODE_W - 28},${graph.direction === "ancestors" ? 4 : NODE_H - 28})`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleCollapse(n.node.id);
                       }}
                       aria-hidden
                     >
-                      <rect width={18} height={18} rx={9} fill="#fbe3d6" stroke="#b4441c" />
-                      <text x={9} y={13} fontSize={13} textAnchor="middle" fill="#7c2d12">
+                      {/* 24 × 24: minimum pointer target inside the node's own target (WCAG 2.5.8). */}
+                      <rect width={24} height={24} rx={12} fill="#fbe3d6" stroke="#b4441c" />
+                      <text x={12} y={17} fontSize={15} textAnchor="middle" fill="#7c2d12">
                         {n.collapsed ? "+" : "−"}
                       </text>
                     </g>
@@ -254,7 +290,8 @@ export function TreeChart({
           </g>
         </svg>
       </div>
-      <p id="tree-kbd-help" className="mt-2 text-xs text-ink-muted">
+      <p className="mt-2 text-xs text-ink-muted">{t("treeView.statusLegend")}</p>
+      <p id="tree-kbd-help" className="mt-1 text-xs text-ink-muted">
         {t("treeView.keyboardHelp")}
       </p>
     </div>

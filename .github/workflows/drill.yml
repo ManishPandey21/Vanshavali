@@ -1,0 +1,83 @@
+# Backup/restore drill (PRS §55): seed -> encrypted pg_dump + object-store copy -> restore into a
+# fresh database and storage dir -> alembic upgrade head -> ops/backup/verify.py.
+# Runs nightly and on demand; not on pull requests. See docs/operations/backup-restore.md.
+name: Restore drill
+
+on:
+  workflow_dispatch:
+    inputs:
+      people:
+        description: Synthetic people to seed in the source database
+        default: "10000"
+      encryption:
+        description: age or openssl
+        default: age
+  schedule:
+    - cron: "41 2 * * *" # nightly 02:41 UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: restore-drill
+  cancel-in-progress: false
+
+jobs:
+  drill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vanshavali
+          POSTGRES_PASSWORD: vanshavali
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vanshavali" --health-interval 5s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGUSER: vanshavali
+      PGPASSWORD: vanshavali
+      DRILL_PEOPLE: ${{ inputs.people || '10000' }}
+      DRILL_ENCRYPTION: ${{ inputs.encryption || 'age' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: PostgreSQL 16 client tools and age
+        # Ubuntu 24.04 ships PostgreSQL 16, matching the postgres:16 service (pg_dump must be >= server)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client age
+          pg_dump --version
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - run: cd backend && uv sync --frozen
+      - name: Drill
+        run: |
+          echo "DRILL_WORK=$RUNNER_TEMP/drill" >> "$GITHUB_ENV"
+          export DRILL_WORK="$RUNNER_TEMP/drill"
+          # openssl mode needs a passphrase; a per-run random one exercises the same code path
+          DRILL_PASSPHRASE="$(openssl rand -hex 32)"
+          export DRILL_PASSPHRASE
+          ops/backup/drill.sh
+      - name: Timings
+        if: always()
+        run: |
+          {
+            echo '### Restore drill'
+            echo '```json'
+            cat "$DRILL_WORK/drill-report.json" 2>/dev/null || echo '{"error": "no report"}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: restore-drill-report
+          # reports only: the encrypted dump and key never leave the runner
+          path: |
+            ${{ runner.temp }}/drill/drill-report.json
+            ${{ runner.temp }}/drill/verify.json
+          if-no-files-found: warn

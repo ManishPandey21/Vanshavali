@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Flag, Network, Route, Trash2 } from "lucide-react";
+import { Flag, MessageCircle, Network, Route, Trash2 } from "lucide-react";
 import { useMe } from "../../../api/hooks/auth";
 import { useDeletePerson, usePerson, usePersonEvents } from "../../../api/hooks/people";
 import { useRequestClaim } from "../../../api/hooks/heritage";
 import { useTreeCtx } from "../../../lib/tree-context";
 import { Perm } from "../../../lib/permissions";
-import { nativeScriptNames, nameText } from "../../../lib/names";
+import { dirOfText, langOfText, nativeScriptNames, nameText } from "../../../lib/names";
 import { forgetPerson, rememberPerson } from "../../../lib/recent";
 import { PersonBadges, PrivacyBadge, RedactionNotice } from "../../../components/person/badges";
 import { DateText } from "../../../components/dates/DateText";
@@ -27,6 +27,7 @@ import { PrivacyTab } from "./PrivacyTab";
 import { AstrologyTab } from "./AstrologyTab";
 import { DocumentsTab, PropertyInterestsSection } from "./DocumentsTab";
 import { ApiError } from "../../../api/client";
+import { ClaimInviteDialog } from "../../../components/consent/ClaimInviteShare";
 
 const TABS = ["overview", "family", "timeline", "heritage", "documents", "astrology", "property", "sources", "households", "privacy"] as const;
 type TabId = (typeof TABS)[number];
@@ -40,6 +41,7 @@ export function PersonProfilePage() {
   const [params, setParams] = useSearchParams();
   const tab = (TABS as readonly string[]).includes(params.get("tab") ?? "") ? (params.get("tab") as TabId) : "overview";
   const [claimOpen, setClaimOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const del = useDeletePerson(treeId);
   const navigate = useNavigate();
@@ -64,7 +66,7 @@ export function PersonProfilePage() {
       <header className="mb-5 rounded-2xl border border-stone-200 bg-gradient-to-br from-white to-kumkum-50 p-4 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h1 id="person-name" className="font-display text-2xl font-bold sm:text-3xl">
+            <h1 id="person-name" lang={langOfText(p.display_name)} dir={dirOfText(p.display_name)} className="font-display text-2xl font-bold sm:text-3xl">
               {p.display_name}
             </h1>
             {native.length > 0 && (
@@ -112,6 +114,12 @@ export function PersonProfilePage() {
                 {t("claim.button")}
               </Button>
             )}
+            {/* Hint only: the server re-checks write access, living status and age (ADR-0011). */}
+            {!p.claimed_by_user_id && p.can_edit && p.profile_status !== "deceased" && (
+              <Button variant="secondary" size="sm" icon={<MessageCircle className="size-4" aria-hidden />} onClick={() => setInviteOpen(true)}>
+                {t("claimInvite.button")}
+              </Button>
+            )}
             {p.can_edit && (
               <Button variant="ghost" size="sm" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setDeleting(true)}>
                 {t("person.remove")}
@@ -143,6 +151,7 @@ export function PersonProfilePage() {
         {tab === "privacy" && canPrivacy && <PrivacyTab person={p} isClaimant={isClaimant} />}
       </Tabs>
 
+      {inviteOpen && <ClaimInviteDialog treeId={treeId} personId={p.id} personName={p.display_name} canOfferContributor={isAdmin} onClose={() => setInviteOpen(false)} />}
       {claimOpen && <ClaimDialog personId={p.id} name={p.display_name} onClose={() => setClaimOpen(false)} />}
       <ConfirmDialog
         open={deleting}

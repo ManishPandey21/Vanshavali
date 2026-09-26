@@ -36,7 +36,7 @@ sharing, uploads, downloads, exports, admin or public features change.
 
 | # | STRIDE | Threat | Control (implemented) | Test |
 |---|---|---|---|---|
-| T1 | I / E | **IDOR/BOLA**, cross-tree access to any resource | Tree context resolves membership, and non-members get **404**. Every lookup uses `tree_id` (`lookup.get_in_tree`). Composite `(tree_id, id)` FKs make cross-tree references impossible in the DB. | `test_route_isolation.py` (every `/trees/{tree_id}` route, stranger and anonymous), `test_privacy.py::test_cross_tree_access_is_404`, `test_heritage_family.py::test_citation_cannot_target_other_tree` |
+| T1 | I / E | **IDOR/BOLA**, cross-tree access to any resource | Tree context resolves membership, and non-members get **404**. Every lookup uses `tree_id` (`lookup.get_in_tree`). Composite `(tree_id, id)` FKs make cross-tree references impossible in the DB. **Postgres row-level security** (ADR-0002 §7) is a second barrier: the app role only sees and writes rows of the tree bound to the transaction. | `test_rls.py`, `test_route_isolation.py` (every `/trees/{tree_id}` route, stranger and anonymous), `test_privacy.py::test_cross_tree_access_is_404`, `test_heritage_family.py::test_citation_cannot_target_other_tree` |
 | T2 | E | Viewer or researcher edits through the API | Deny-by-default permission matrix and `ctx.require()` on every mutation. Branch scope limits branch-scoped roles. | `test_privacy.py::test_viewer_cannot_modify_anything_via_api`, `::test_branch_scoped_contributor`, Playwright flow 4 |
 | T3 | E | Self-promotion, or removing the last owner | Only an OWNER grants or removes OWNER/FAMILY_ADMIN. No self-role change. The last owner can't be removed. Invitations are bound to an email and single-use. | `test_trees.py` |
 | T4 | I | Living person or minor leaks via API, search, public page, graph, export, hydration or HTML | Central privacy evaluation plus serialiser redaction. Hidden relatives become placeholders. Public mode shows deceased people only. The SPA shell has no data. `noindex` is set. | `test_privacy.py` (DOB/time/contact never in raw JSON; public pages; minors), `test_search_consent.py`, `test_gedcom.py` |
@@ -49,17 +49,21 @@ sharing, uploads, downloads, exports, admin or public features change.
 | T11 | I | Enumeration of people or trees | UUIDv7 ids, 404 for everything not visible, no counts of hidden rows | `test_route_isolation.py` |
 | T12 | E | System admin browses family content | `is_system_admin` grants no tree permissions (not referenced by authorisation at all) | code review, ADR-0006 |
 | T13 | I | Export exfiltration | Export requires `gedcom.export`, applies the exporter's privacy view, excludes living people by default. Sensitive export needs `privacy.manage`. Audited. | `test_gedcom.py` |
-| T14 | D | Deep or wide traversal, huge uploads, pathological GEDCOM | Depth caps (≤25), node cap (500), upload size cap, parser record caps, statement timeouts (Phase 8) | `test_genealogy.py`, `test_gedcom.py` |
+| T14 | D | Deep or wide traversal, huge uploads, pathological GEDCOM | Depth caps (≤25), node cap (500), upload size cap, parser record caps, a per-statement timeout on every app connection (`VSH_STATEMENT_TIMEOUT_MS`, 15 s) | `test_genealogy.py`, `test_gedcom.py`, `test_observability.py::test_statement_timeout_applies_to_app_connections` |
 | T15 | T | Tampering with stored originals | Write-once keys (local `O_EXCL`, S3 `If-None-Match`). SHA-256 recorded. AES-GCM authentication detects modified ciphertext. | `test_documents.py` |
 | T16 | I | Key compromise / bucket leak | Separate STANDARD and VAULT keys. Keys only from a secret manager (production config refuses dev keys). | `core/config.py` validator |
 | T17 | S / T | Forged property shares presented as title | `legal_notice` on every property response. The documented-share invariant is ≤ 1. Status distinguishes asserted, documented and disputed. | `test_property.py` |
-| T18 | I | Analytics/log leakage | No analytics SDK. Audit `details` hold field names only. Documents are never logged. | code review |
-
-| T19 | I | Account enumeration via registration (`email_taken`) | Per-IP rate limiting. **Accepted risk** until email verification exists (needs an email provider). | `test_security_audit.py::test_registration_enumerates_accounts` (strict xfail) |
+| T18 | I | Analytics/log leakage | No analytics SDK. Audit `details` hold field names only. Documents are never logged. Access logs record the route template only, never the raw path or query string (signed download tokens), with Uvicorn's access log off. Metrics use route templates and need a bearer token. Purged documents are audited without their title. | `test_observability.py`, `test_retention.py` |
+| T19 | I | Account enumeration via registration, password reset or verification resend | **Closed (SEC-12).** Registration always answers `202` with one generic body and always hashes the password; an existing account's owner is emailed a "someone tried to register" notice instead of a verification link. Reset request and resend are always `202`. Unverified login is refused (`email_not_verified`) only after the correct password. All are rate limited per IP and per email. | `test_security_audit.py::test_registration_does_not_enumerate_accounts`, `test_email_auth.py` |
+| T20 | I / R | People added without any accountability for having their permission (DPDP) | Server-enforced family-data attestation per user and tree before any person is created (UI, relatives, GEDCOM). The server owns the wording; the version, language and SHA-256 of the exact text are stored. Unticked by default. Withdrawal is audited. This is **not** treated as the relatives' consent (ADR-0011). | `test_onboarding.py` (`test_adding_people_requires_attestation`, `…per_user_and_per_tree`, `…stale_or_unknown_wording`, `…withdrawal…`) |
+| T21 | S / E | A forwarded or leaked WhatsApp claim link is used by the wrong person | The link only files a claim; **no access until a tree admin approves**, and admins see the claimant's name and email. Single use (row lock), 7-day expiry, revocable, 256-bit token stored hashed. An existing member's roles are never widened. Contributors can offer VIEWER only. Branch scope is carried over. | `test_onboarding.py` (`test_claim_invite_happy_path`, `…single_use…`, `test_rejected_claim_gives_no_access`, `test_invite_permissions`, `test_approval_keeps_an_existing_members_roles`, `test_branch_scoped_inviter_cannot_widen_scope`) |
+| T22 | I | Claim links leak living-person data (logs, Referer, link previews, message text, used or expired links) | Token in the URL **fragment** (never sent to servers or crawlers). The SPA shell has no data. The share message contains only the link, and `wa.me` is used with no phone number. The preview needs sign-in and shows names only. Used, expired, revoked and erased links reveal nothing (410/404). Tokens never go into the audit log. | `test_onboarding.py` (`…leaks_nothing_once_used`, `test_expired_and_revoked_invites`, `test_erasure_revokes_outstanding_invites`, `…audited_without_tokens`), Vitest `onboarding.test.tsx`, Playwright `onboarding-whatsapp.spec.ts` |
+| T23 | E | Claim invites for minors, the deceased, hidden or cross-tree people | Refused for recorded minors, deceased/presumed-deceased and already-claimed profiles. The claimant must confirm they are 18+. Person lookup is visibility-checked and tree-scoped (404). | `test_onboarding.py` (`test_cannot_invite_for_deceased_minor_or_claimed_profiles`, `test_hidden_person_cannot_be_invited`, `test_claim_invites_are_tree_isolated`, `test_accept_requires_consent_and_adult_confirmation`) |
+| T24 | S / E | Emailed token theft or replay (verification, password reset) | 256-bit tokens, SHA-256 at rest, single use, 48 h / 1 h expiry, newer token kills older, password change kills reset links, reset revokes every session. Tokens are never audited and are redacted from console mail logs outside development. Links contain no third-party resources (no referrer leak) and the API sends `Referrer-Policy: no-referrer`. Where to continue after verifying (`next`) travels in the link's **fragment**, so a claim-invite token carried there (T22) never reaches a server or its logs. | `test_email_auth.py` (incl. `test_claim_link_token_in_next_never_reaches_a_server`), Playwright `onboarding-whatsapp.spec.ts` |
 
 ## 4a. Security audit, 25 Sep 2026
 An adversarial audit found 13 issues (3 High, 6 Medium, 4 Low). Each was proven with a failing test,
-and every one except SEC-12 is fixed. `backend/tests/test_security_audit.py` keeps them as
+and all are fixed (SEC-12 closed in Phase 8 by email verification). `backend/tests/test_security_audit.py` keeps them as
 regression tests.
 
 | ID | Sev | Issue | Fix |
@@ -75,7 +79,7 @@ regression tests.
 | SEC-9 | Med | Public family view exposed relationship notes and provenance | Public unions omit notes, legal status and provenance |
 | SEC-10 | Low | Duplicate-upload 409 revealed hidden documents | Dedupe only against visible documents; the checksum index is no longer unique (migration 880d1a5976ec) |
 | SEC-11 | Med | Erasure left GEDCOM extensions, proposals, links, relationship notes and claim/link fields | All cleared by erasure |
-| SEC-12 | Low | Registration enumerates accounts | Accepted risk (T19) |
+| SEC-12 | Low | Registration enumerates accounts | Fixed in Phase 8: generic `202` + email verification; existing owners get a notice email (T19) |
 | SEC-13 | Low | Reading vault-derived extraction proposals was not audited | `document.proposals_viewed` audited |
 
 Noted but not changed: login/register are exempt from CSRF, so an attacker could sign a victim into
@@ -83,12 +87,47 @@ the attacker's account. The impact is limited to the victim acting in the attack
 SameSite=Lax cookies apply.
 
 ## 5. Residual risks and deferred controls
-- **Row-level security** as a second isolation barrier: DEFERRED (Phase 8). Current controls: the
-  service layer plus composite FKs plus route-isolation tests.
-- **DAST** and a scheduled penetration test: DEFERRED (Phase 8). CI runs SAST (ruff `S` rules) and
+- **Row-level security** covers tree-scoped tables only. Identity and control tables (`tree`,
+  memberships, invitations, users, sessions, auth tokens, audit) rely on the service layer. The
+  barrier is lost if a deployment connects the app as the table owner or a superuser (ADR-0002 §7).
+- **DAST:** IMPLEMENTED, NOT YET EXECUTED. `.github/workflows/dast.yml` runs weekly (Mon 04:23 UTC)
+  and on `workflow_dispatch`, never on pull requests, because a live scan is slow and flakier than
+  unit tests. What the workflow does:
+  - starts Postgres 16 and Redis services, then migrates and seeds the demo tree as the owner;
+  - runs uvicorn as the non-owner `vanshavali_app` role, so RLS is in force, and gates on
+    `/api/v1/health/ready`. `VSH_METRICS_TOKEN` is unset, so `/api/v1/metrics` answers 404;
+  - serves the SPA with the **production nginx image** (`frontend/Dockerfile`), so the headers
+    scanned are the real ones;
+  - runs the ZAP baseline (passive, with AJAX spider) against the SPA;
+  - runs the ZAP API scan (active) from `/api/v1/openapi.json`, with the demo user's session
+    cookie (`ZAP_AUTH_HEADER`).
+
+  No CSRF header is supplied, so the active scan covers authenticated reads but cannot mutate data.
+  Unsafe methods and cross-tree/BOLA cases stay covered by the authz test suite. Rule policy is in
+  `.zap/rules.tsv`:
+  - it holds only IGNOREs that stay true in production (HSTS and `Secure` over CI's plain HTTP;
+    informational SPA/caching notices);
+  - clickjacking, nosniff, CSP, CORS, XSS, SQLi, injection and traversal alerts are escalated to
+    FAIL;
+  - known weaknesses (CSP `style-src 'unsafe-inline'`, COEP/CORP, the deliberately readable
+    `vsh_csrf` cookie) stay visible as WARN.
+
+  The workflow YAML passes `actionlint` (with shellcheck), but the workflow has **not run** yet,
+  because this sandbox has no Docker daemon. Its first run may need rule tuning, and any change to
+  the rules must keep a written justification.
+
+  While building it, a real gap was fixed: nginx drops server-level `add_header` in any `location`
+  that sets its own, so the SPA HTML (`/`) and `/assets/` were served **without** CSP,
+  X-Frame-Options and nosniff. The fix is a shared `frontend/nginx-security-headers.conf` included
+  per location, verified locally with nginx 1.24 and curl.
+
+  A scheduled external penetration test is still DEFERRED. CI also runs SAST (ruff `S` rules) and
   dependency audits.
-- **Password reset and email verification:** deferred until an email provider exists. Until then,
-  admins re-invite.
+- **Email verification pre-hijack:** someone can register a victim's address; the account stays
+  unusable until the victim clicks the verification link. The email tells recipients to ignore it if
+  they did not sign up, and a later reset replaces the password (ADR-0005).
+- **Reset timing in sync job mode:** with `JOB_MODE=sync` and SMTP, a reset for a real account is
+  slower (inline send). Production runs RQ, where every path only enqueues.
 - **clamd availability:** scanning fails closed (uploads rejected while clamd is down), which trades
   availability for safety.
 - **Watermarking of downloaded documents:** DEFERRED.

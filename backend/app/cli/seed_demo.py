@@ -7,6 +7,7 @@ All people are fictional.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import sys
 from typing import Any
 
@@ -26,6 +27,9 @@ from app.models.enums import (
     RelationshipType,
     SexAtBirth,
 )
+from app.modules.consent import statements
+from app.modules.consent.attestation import attest
+from app.modules.consent.statements import StatementKind
 from app.modules.family import service as family
 from app.modules.family.schemas import BranchIn, HouseholdIn, HouseholdMemberIn
 from app.modules.genealogy import service as genealogy
@@ -59,7 +63,12 @@ def seed(email: str, password: str) -> str:
     with Session() as db:
         user = db.scalar(select(User).where(User.email == email))
         if user is None:
-            user = User(email=email, password_hash=hash_password(password), display_name="Demo Owner")
+            user = User(
+                email=email,
+                password_hash=hash_password(password),
+                display_name="Demo Owner",
+                email_verified_at=dt.datetime.now(dt.UTC),
+            )
             db.add(user)
             db.flush()
         existing = db.scalar(
@@ -82,6 +91,9 @@ def seed(email: str, password: str) -> str:
             RequestInfo(ip="127.0.0.1", user_agent="seed"),
         )
         ctx = load_tree_context(db, tree.id, user, RequestInfo(ip="127.0.0.1", user_agent="seed"))
+        # The demo owner confirms the family-data statement like a real user would (ADR-0011).
+        stmt = statements.current(StatementKind.FAMILY_DATA, "en")
+        attest(ctx, stmt.version, stmt.language)
 
         kanchi = genealogy.create_place(
             ctx,

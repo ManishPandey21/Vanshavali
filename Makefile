@@ -1,5 +1,5 @@
 # Developer shortcuts. See README.md for the full setup.
-.PHONY: backend-install backend-test backend-lint migrate seed api frontend-install frontend-test frontend-build e2e check
+.PHONY: backend-install backend-test backend-lint migrate seed api frontend-install frontend-test frontend-build e2e a11y check
 
 backend-install:
 	cd backend && uv sync
@@ -30,5 +30,9 @@ frontend-build:
 
 e2e:
 	cd e2e && npx playwright test
+
+# Accessibility audit only (axe WCAG 2.2 A/AA + keyboard/semantics checks); see docs/accessibility/.
+a11y:
+	cd e2e && npx playwright test a11y
 
 check: backend-lint backend-test frontend-test frontend-build

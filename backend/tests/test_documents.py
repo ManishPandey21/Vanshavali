@@ -10,10 +10,10 @@ from PIL import Image
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.core.db import get_sessionmaker
 from app.core.security import sign_payload
 from app.core.storage import ObjectExists, get_store
 from app.models import AuditEvent, Document
+from tests.conftest import new_tree, owner_session
 from tests.doc_fixtures import (
     eicar_png,
     javascript_pdf,
@@ -31,14 +31,14 @@ def _png() -> bytes:
 
 
 def _row(doc_id: str) -> Document:
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         doc = db.get(Document, doc_id)
         assert doc is not None
         return doc
 
 
 def _audit_actions(tree_id: str) -> list[AuditEvent]:
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         return list(db.scalars(select(AuditEvent).where(AuditEvent.tree_id == tree_id)))
 
 
@@ -302,7 +302,7 @@ def test_cross_tree_access_is_404(owner, tree, make_client):
     doc = upload(owner, t, _png(), mime="image/png").json()
     other = make_client()
     other.register()
-    other_tree = other.post("/trees", json={"name": "Other"}).json()["id"]
+    other_tree = new_tree(other, "Other")["id"]
     assert other.get(f"/trees/{other_tree}/documents/{doc['id']}").status_code == 404
     assert other.post(f"/trees/{other_tree}/documents/{doc['id']}/download-url").status_code == 404
     assert other.get(f"/trees/{t}/documents/{doc['id']}").status_code == 404

@@ -1,4 +1,4 @@
-import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 export interface TabDef {
   id: string;
@@ -22,8 +22,21 @@ export function Tabs({
 }) {
   const base = useId();
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // The selection is mirrored locally so the roving tabindex updates within the key event. Callers
+  // often keep `active` in the URL, and router updates render in a transition: without this, a Tab
+  // pressed right after an arrow key could land on the previously selected tab.
+  const [current, setCurrent] = useState(active);
+  const [prevActive, setPrevActive] = useState(active);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    setCurrent(active);
+  }
+  const select = (id: string) => {
+    setCurrent(id);
+    onChange(id);
+  };
   const onKey = (e: KeyboardEvent) => {
-    const i = tabs.findIndex((t) => t.id === active);
+    const i = tabs.findIndex((t) => t.id === current);
     let next = -1;
     if (e.key === "ArrowRight") next = (i + 1) % tabs.length;
     else if (e.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
@@ -31,7 +44,7 @@ export function Tabs({
     else if (e.key === "End") next = tabs.length - 1;
     if (next >= 0) {
       e.preventDefault();
-      onChange(tabs[next].id);
+      select(tabs[next].id);
       refs.current[tabs[next].id]?.focus();
     }
   };
@@ -40,10 +53,10 @@ export function Tabs({
       <div
         role="tablist"
         aria-label={label}
-        className="-mx-4 flex gap-1 overflow-x-auto border-b border-stone-300 px-4 sm:mx-0 sm:px-0"
+        className="relative -mx-4 flex gap-1 overflow-x-auto border-b border-stone-300 px-4 sm:mx-0 sm:px-0"
       >
         {tabs.map((tab) => {
-          const selected = tab.id === active;
+          const selected = tab.id === current;
           return (
             <button
               key={tab.id}
@@ -56,7 +69,7 @@ export function Tabs({
               aria-selected={selected}
               aria-controls={`${base}-panel-${tab.id}`}
               tabIndex={selected ? 0 : -1}
-              onClick={() => onChange(tab.id)}
+              onClick={() => select(tab.id)}
               onKeyDown={onKey}
               className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium ${
                 selected ? "border-kumkum-700 text-kumkum-800" : "border-transparent text-ink-muted hover:text-ink"

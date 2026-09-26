@@ -44,9 +44,9 @@ describe("landing page", () => {
     expect(screen.queryByRole("heading", { level: 1, name: /Preserving the threads/ })).not.toBeInTheDocument();
   });
 
-  it("stays reachable at /welcome when signed in, pointing back to the user's trees", async () => {
+  it("stays reachable at /about when signed in, pointing back to the user's trees", async () => {
     stubApi(true);
-    renderWithProviders(<App />, { tree: null, route: "/welcome" });
+    renderWithProviders(<App />, { tree: null, route: "/about" });
     expect(await screen.findByRole("heading", { level: 1, name: /Preserving the threads/ })).toBeInTheDocument();
     expect((await screen.findAllByRole("link", { name: /Go to my family trees/ }))[0]).toHaveAttribute("href", "/");
     expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();

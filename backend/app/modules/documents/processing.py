@@ -11,7 +11,7 @@ import uuid
 
 from sqlalchemy import select
 
-from app.core.db import get_sessionmaker
+from app.core.db import bind_tree, get_sessionmaker
 from app.core.storage import StorageError, get_store
 from app.models import Document
 from app.models.enums import DerivativeKind, ProcessingStatus
@@ -25,6 +25,7 @@ def process_document(document_id: str, tree_id: str, force_ocr: bool = False) ->
     from app.modules.extraction.pipeline import ocr_and_extract
 
     with get_sessionmaker()() as db:
+        bind_tree(db, tree_id)  # jobs run outside a request: scope row-level security explicitly
         doc = db.scalar(
             select(Document).where(
                 Document.tree_id == uuid.UUID(tree_id), Document.id == uuid.UUID(document_id)

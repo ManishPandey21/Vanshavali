@@ -4,6 +4,8 @@ Run with the backend's environment:  uv run --project ../backend python scripts/
 Env:
   VSH_E2E_ADMIN_URL  admin connection (default postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres)
   VSH_E2E_DB         database name (default vsh_e2e)
+  VSH_E2E_APP_ROLE   non-owner role the backend connects as, so RLS applies (default vsh_app_e2e;
+                     its password equals its name - test-only)
 """
 
 from __future__ import annotations
@@ -34,4 +36,7 @@ target = make_url(admin_url).set(database=db_name).render_as_string(hide_passwor
 backend = Path(__file__).resolve().parents[2] / "backend"
 env = {**os.environ, "VSH_DATABASE_URL": target}
 subprocess.run(["uv", "run", "alembic", "upgrade", "head"], cwd=backend, env=env, check=True)
+app_role = os.environ.get("VSH_E2E_APP_ROLE", "vsh_app_e2e")
+role_env = {**env, "VSH_APP_DB_ROLE": app_role, "VSH_APP_DB_PASSWORD": app_role}
+subprocess.run(["uv", "run", "python", "-m", "app.cli.ensure_app_role"], cwd=backend, env=role_env, check=True)
 print(f"E2E database {db_name} ready")

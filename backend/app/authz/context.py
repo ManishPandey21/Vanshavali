@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.authz.permissions import ADMIN_ROLES, BRANCH_SCOPED_WRITES, Permission, permissions_for
+from app.core.db import bind_tree
 from app.core.errors import Forbidden, NotFound
 from app.models import AccessGrant, BranchMembership, Tree, TreeMembership, User
 from app.models.enums import GrantPermission, GrantResource, PublicMode, Role
@@ -151,6 +152,7 @@ def load_tree_context(
     )
     if membership is None:
         raise NotFound("Tree not found")
+    bind_tree(db, tree.id)  # row-level security: this session now only sees this tree's rows
     roles = frozenset(Role(r) for r in membership.roles)
     return TreeContext(
         db=db,
@@ -167,6 +169,7 @@ def load_public_context(db: Session, slug: str, request: RequestInfo | None = No
     tree = db.scalar(select(Tree).where(Tree.slug == slug, Tree.deleted_at.is_(None)))
     if tree is None or tree.public_mode != PublicMode.DECEASED_ONLY:
         raise NotFound("Tree not found")
+    bind_tree(db, tree.id)
     return TreeContext(
         db=db,
         tree=tree,

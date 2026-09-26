@@ -100,7 +100,9 @@ jobs:
       - run: cd backend && uv sync --frozen
       - run: cd frontend && npm ci
       - run: cd e2e && npm ci && npx playwright install --with-deps chromium
-      - name: Playwright
+      # Runs every spec, including tests/a11y.spec.ts: axe WCAG 2.2 A/AA scans (fail on serious or
+      # critical), keyboard-only and screen-reader-semantics checks. See docs/accessibility/.
+      - name: Playwright (end-to-end + accessibility)
         env:
           VSH_E2E_ADMIN_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres
         run: cd e2e && npx playwright test

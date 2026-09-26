@@ -104,3 +104,12 @@ export function strOrNull(v: string | null | undefined): string | null {
   const s = (v ?? "").trim();
   return s ? s : null;
 }
+
+/**
+ * After a failed submit, move focus to the first invalid control so keyboard and screen-reader
+ * users land on the problem (its error is read via aria-describedby). Runs after React re-renders
+ * the error state.
+ */
+export function focusFirstInvalid(root: HTMLElement | null | undefined) {
+  requestAnimationFrame(() => root?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+}

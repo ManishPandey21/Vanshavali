@@ -1,3 +1,5 @@
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 
 export const PASSWORD = "a-long-e2e-passphrase-42";
@@ -29,16 +31,78 @@ export async function api<T = unknown>(
   return (await res.json()) as T;
 }
 
+/** Where the backend's file mail backend writes (see playwright.config.ts). */
+export const MAIL_DIR = process.env.VSH_E2E_MAIL_DIR ?? path.resolve(process.cwd(), ".e2e-mail");
+
+export interface Mail {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  kind: string;
+}
+
+/** Newest email to `to` (optionally of one kind), polling briefly in case delivery lags the response. */
+export async function latestMail(to: string, kind?: string, timeoutMs = 10_000): Promise<Mail> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    let files: string[] = [];
+    try {
+      files = (await readdir(MAIL_DIR)).filter((f) => f.endsWith(".json")).sort().reverse();
+    } catch {
+      /* directory not created yet */
+    }
+    for (const f of files) {
+      const m = JSON.parse(await readFile(path.join(MAIL_DIR, f), "utf-8")) as Mail;
+      if (m.to.toLowerCase() === to.toLowerCase() && (!kind || m.kind === kind)) return m;
+    }
+    if (Date.now() > deadline) throw new Error(`no ${kind ?? ""} email for ${to} in ${MAIL_DIR}`);
+    await new Promise((r) => setTimeout(r, 200));
+  }
+}
+
+/** The same-site path (with query) of the first verification/reset link in an email. */
+export function linkPath(mail: Mail, kind: "verify-email" | "reset-password"): string {
+  const m = mail.text.match(new RegExp(`/${kind}/[A-Za-z0-9_-]+(?:[?#]\\S*)?`));
+  if (!m) throw new Error(`no ${kind} link in email "${mail.subject}"`);
+  return m[0];
+}
+
+/** Opens the newest verification link sent to `email` in `page` (which signs that page in). */
+export async function openVerificationLink(page: Page, email: string): Promise<void> {
+  const mail = await latestMail(email, "verify_email");
+  await page.goto(linkPath(mail, "verify-email"));
+}
+
 export interface Seeded {
   treeId: string;
   userEmail: string;
 }
 
-/** Registers a fresh user (signed in on this context) and creates a tree. */
+/**
+ * Registers a fresh user through the real email-verification flow: register (202, nobody signed in),
+ * read the newest verification email for the address, and redeem its token, which signs this
+ * context in.
+ */
+export async function registerVerified(ctx: BrowserContext, baseURL: string, email: string, displayName = "E2E Owner"): Promise<void> {
+  await api(ctx, "POST", "/auth/register", { email, password: PASSWORD, display_name: displayName, preferred_language: "en" }, baseURL);
+  const token = linkPath(await latestMail(email, "verify_email"), "verify-email").split("/")[2].split(/[?#]/)[0];
+  await api(ctx, "POST", "/auth/verify-email", { token }, baseURL);
+}
+
+
+/** Confirms the family-data statement for a tree (ADR-0011) so people can be added to it. */
+export async function attest(ctx: BrowserContext, baseURL: string, treeId: string): Promise<void> {
+  const stmt = await api<{ version: string; language: string }>(ctx, "GET", "/consent-statements/family_data?lang=en", undefined, baseURL);
+  await api(ctx, "POST", `/trees/${treeId}/attestation`, { statement_version: stmt.version, language: stmt.language }, baseURL);
+}
+
+/** Registers a fresh, verified user (signed in on this context), creates a tree and confirms the family-data statement for it. */
 export async function registerWithTree(ctx: BrowserContext, baseURL: string, treeName: string, displayName = "E2E Owner"): Promise<Seeded> {
   const userEmail = uniqueEmail("owner");
-  await api(ctx, "POST", "/auth/register", { email: userEmail, password: PASSWORD, display_name: displayName, preferred_language: "en" }, baseURL);
+  await registerVerified(ctx, baseURL, userEmail, displayName);
   const tree = await api<{ id: string }>(ctx, "POST", "/trees", { name: treeName }, baseURL);
+  await attest(ctx, baseURL, tree.id);
   return { treeId: tree.id, userEmail };
 }
 

@@ -21,7 +21,7 @@ import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import { TamboolScene } from "./TamboolScene";
 
 /**
- * Public landing page ("/" for signed-out visitors, "/welcome" for everyone). Static marketing
+ * Public landing page ("/" for signed-out visitors, "/about" for everyone). Static marketing
  * copy only — it reads no family data, so nothing here can leak a person's details.
  */
 
@@ -141,7 +141,7 @@ export function LandingPage() {
       <Toran />
       <header className="sticky top-0 z-40 border-b border-haldi-300/50 bg-parchment/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <BrandMark to={signedIn ? "/" : "/welcome"} />
+          <BrandMark to="/" />
           <nav aria-label={t("landing.nav.label")} className="hidden md:block">
             <ul className="flex items-center gap-6 text-sm font-medium text-ink-muted">
               {navLinks.map((l) => (
@@ -377,7 +377,7 @@ export function LandingPage() {
 
       <footer className="border-t border-haldi-300/60 bg-parchment-deep/70 px-4 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center">
-          <BrandMark to={signedIn ? "/" : "/welcome"} />
+          <BrandMark to="/" />
           <p className="flex items-center gap-1.5 text-sm text-ink">
             {t("landing.footer.builtWithA")}
             <Heart className="size-4 fill-kumkum-600 text-kumkum-600" aria-hidden />

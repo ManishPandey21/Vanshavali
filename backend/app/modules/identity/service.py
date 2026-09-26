@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.authz.context import RequestInfo
 from app.core import audit, storage, totp
 from app.core.config import get_settings
-from app.core.errors import ApiError, Conflict, Unauthorized, Unprocessable
+from app.core.errors import ApiError, Conflict, Forbidden, Unauthorized, Unprocessable
 from app.core.ratelimit import enforce
 from app.core.security import (
     DUMMY_HASH,
@@ -21,26 +21,60 @@ from app.core.security import (
     token_hash,
     verify_password,
 )
-from app.models import User, UserSession
+from app.models import AuthToken, AuthTokenPurpose, User, UserSession
+from app.modules.identity import emails
 
 
 def normalise_email(email: str) -> str:
     return email.strip().lower()
 
 
+REGISTER_ACCEPTED = "If this email can be registered, we've sent a link to it. Check your inbox to continue."
+EMAIL_SENT_IF_ACCOUNT = "If an account uses this email, we've sent a link to it. Check your inbox."
+TOKEN_INVALID = "This link is invalid or has expired. Request a new one."  # noqa: S105 - user-facing message, not a secret
+
+
 def register(
-    db: Session, *, email: str, password: str, display_name: str, language: str, info: RequestInfo
-) -> User:
+    db: Session,
+    *,
+    email: str,
+    password: str,
+    display_name: str,
+    language: str,
+    info: RequestInfo,
+    next_path: str | None = None,
+) -> None:
+    """Start registration without revealing whether the email already has an account (SEC-12).
+
+    The response is identical either way and the password is always hashed so timing matches:
+    a new email gets an unverified account plus a verification link; an existing account's owner
+    gets a "someone tried to register with your email" notice instead.
+    """
+    email = normalise_email(email)
     enforce(f"register:{info.ip}", 20)
     problems = password_problems(password)
     if problems:
         raise Unprocessable("; ".join(problems), code="weak_password")
-    email = normalise_email(email)
-    if db.scalar(select(User.id).where(User.email == email)):
-        raise Conflict("An account with this email already exists", code="email_taken")
+    password_hash = hash_password(password)
+    enforce(f"register-email:{email}", 5, 3600)
+    existing = db.scalar(select(User).where(User.email == email))
+    if existing is not None:
+        emails.send_existing_account_notice(
+            existing.email, existing.display_name, existing.preferred_language
+        )
+        audit.record(
+            db,
+            action="user.register_existing_email",
+            actor_user_id=None,
+            target_type="user",
+            target_id=existing.id,
+            ip=info.ip,
+            user_agent=info.user_agent,
+        )
+        return
     user = User(
         email=email,
-        password_hash=hash_password(password),
+        password_hash=password_hash,
         display_name=display_name.strip(),
         preferred_language=language,
     )
@@ -52,6 +86,136 @@ def register(
         actor_user_id=user.id,
         target_type="user",
         target_id=user.id,
+        ip=info.ip,
+        user_agent=info.user_agent,
+    )
+    token = issue_token(db, user.id, AuthTokenPurpose.VERIFY_EMAIL)
+    emails.send_verification(user.email, user.display_name, user.preferred_language, token, next_path)
+
+
+# ------------------------------------------------------------------ emailed single-use tokens
+
+
+def _token_ttl(purpose: AuthTokenPurpose) -> dt.timedelta:
+    s = get_settings()
+    if purpose is AuthTokenPurpose.PASSWORD_RESET:
+        return dt.timedelta(minutes=s.password_reset_ttl_minutes)
+    return dt.timedelta(hours=s.email_verify_ttl_hours)
+
+
+def invalidate_tokens(db: Session, user_id: uuid.UUID, purpose: AuthTokenPurpose | None = None) -> None:
+    """Mark the user's outstanding tokens (of one purpose, or all) as used."""
+    stmt = update(AuthToken).where(AuthToken.user_id == user_id, AuthToken.used_at.is_(None))
+    if purpose is not None:
+        stmt = stmt.where(AuthToken.purpose == purpose)
+    db.execute(stmt.values(used_at=dt.datetime.now(dt.UTC)))
+
+
+def issue_token(db: Session, user_id: uuid.UUID, purpose: AuthTokenPurpose) -> str:
+    """Create a single-use token (only its SHA-256 is stored); earlier ones of the same purpose die."""
+    invalidate_tokens(db, user_id, purpose)
+    token = new_token()
+    db.add(
+        AuthToken(
+            user_id=user_id,
+            purpose=purpose,
+            token_hash=token_hash(token),
+            expires_at=dt.datetime.now(dt.UTC) + _token_ttl(purpose),
+        )
+    )
+    db.flush()
+    return token
+
+
+def _consume_token(db: Session, token: str, purpose: AuthTokenPurpose) -> tuple[AuthToken, User]:
+    """Look up a live token and its active user (locked), or raise one generic error."""
+    row = db.scalar(select(AuthToken).where(AuthToken.token_hash == token_hash(token)).with_for_update())
+    now = dt.datetime.now(dt.UTC)
+    if row is None or row.purpose != purpose or row.used_at is not None or row.expires_at <= now:
+        raise ApiError(TOKEN_INVALID, code="token_invalid", status_code=400)
+    user = db.get(User, row.user_id)
+    if user is None or not user.is_active:
+        raise ApiError(TOKEN_INVALID, code="token_invalid", status_code=400)
+    # a password change after the link was issued kills it (belt and braces with invalidate_tokens)
+    if purpose is AuthTokenPurpose.PASSWORD_RESET and row.created_at < user.password_changed_at:
+        raise ApiError(TOKEN_INVALID, code="token_invalid", status_code=400)
+    return row, user
+
+
+def verify_email(db: Session, token: str, info: RequestInfo) -> User:
+    enforce(f"token-ip:{info.ip}", 30)
+    row, user = _consume_token(db, token, AuthTokenPurpose.VERIFY_EMAIL)
+    now = dt.datetime.now(dt.UTC)
+    row.used_at = now
+    if user.email_verified_at is None:
+        user.email_verified_at = now
+    invalidate_tokens(db, user.id, AuthTokenPurpose.VERIFY_EMAIL)
+    audit.record(
+        db,
+        action="user.email_verified",
+        actor_user_id=user.id,
+        target_type="user",
+        target_id=user.id,
+        ip=info.ip,
+        user_agent=info.user_agent,
+    )
+    return user
+
+
+def resend_verification(db: Session, email: str, info: RequestInfo) -> None:
+    """Always answers the same; only an active, unverified account gets a fresh link."""
+    email = normalise_email(email)
+    enforce(f"resend-ip:{info.ip}", 10)
+    enforce(f"resend-email:{email}", 3, 3600)
+    user = db.scalar(select(User).where(User.email == email))
+    if user is None or not user.is_active or user.email_verified_at is not None:
+        return
+    token = issue_token(db, user.id, AuthTokenPurpose.VERIFY_EMAIL)
+    emails.send_verification(user.email, user.display_name, user.preferred_language, token)
+
+
+def request_password_reset(db: Session, email: str, info: RequestInfo) -> None:
+    """Always answers the same; only an active account gets a reset link."""
+    email = normalise_email(email)
+    enforce(f"reset-ip:{info.ip}", 10)
+    enforce(f"reset-email:{email}", 5, 3600)
+    user = db.scalar(select(User).where(User.email == email))
+    if user is None or not user.is_active:
+        return
+    token = issue_token(db, user.id, AuthTokenPurpose.PASSWORD_RESET)
+    emails.send_password_reset(user.email, user.display_name, user.preferred_language, token)
+    audit.record(
+        db,
+        action="user.password_reset_requested",
+        actor_user_id=None,
+        target_type="user",
+        target_id=user.id,
+        ip=info.ip,
+        user_agent=info.user_agent,
+    )
+
+
+def confirm_password_reset(db: Session, token: str, new_password: str, info: RequestInfo) -> User:
+    enforce(f"token-ip:{info.ip}", 30)
+    row, user = _consume_token(db, token, AuthTokenPurpose.PASSWORD_RESET)
+    problems = password_problems(new_password)
+    if problems:
+        raise Unprocessable("; ".join(problems), code="weak_password")
+    now = dt.datetime.now(dt.UTC)
+    user.password_hash = hash_password(new_password)
+    user.password_changed_at = now
+    if user.email_verified_at is None:
+        user.email_verified_at = now  # the reset link proves control of the mailbox
+    row.used_at = now
+    invalidate_tokens(db, user.id, AuthTokenPurpose.PASSWORD_RESET)
+    revoked = revoke_all(db, user.id)
+    audit.record(
+        db,
+        action="user.password_reset",
+        actor_user_id=user.id,
+        target_type="user",
+        target_id=user.id,
+        details={"sessions_revoked": revoked},
         ip=info.ip,
         user_agent=info.user_agent,
     )
@@ -79,6 +243,12 @@ def authenticate(
             user_agent=info.user_agent,
         )
         raise Unauthorized("Invalid email or password", code="invalid_credentials")
+    if user.email_verified_at is None:
+        # Only after the correct password, so this reveals nothing to someone guessing emails.
+        raise Forbidden(
+            "Please confirm your email address first. We can send you a new link.",
+            code="email_not_verified",
+        )
     if user.mfa_enabled_at is not None:
         if not mfa_code:
             raise Unauthorized("Enter the 6-digit code from your authenticator app", code="mfa_required")
@@ -214,6 +384,7 @@ def change_password(
     user.password_hash = hash_password(new)
     user.password_changed_at = dt.datetime.now(dt.UTC)
     revoke_all(db, user.id, except_session=current_session)
+    invalidate_tokens(db, user.id, AuthTokenPurpose.PASSWORD_RESET)
     audit.record(
         db, action="user.password_changed", actor_user_id=user.id, target_type="user", target_id=user.id
     )
@@ -252,6 +423,7 @@ def close_account(db: Session, user: User, password: str) -> None:
         )
         db.delete(m)
     revoke_all(db, user.id)
+    invalidate_tokens(db, user.id)
     user.is_active = False
     user.mfa_secret_enc = None
     user.mfa_enabled_at = None

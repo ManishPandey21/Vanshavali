@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from itertools import pairwise
+
 from tests.helpers import create_person, exact, link, person_body
 
 
@@ -341,3 +343,41 @@ def test_deleted_people_listing_for_admins(owner, tree, member_factory):
     listed = owner.get(f"/trees/{t}/people/deleted").json()
     assert [x["id"] for x in listed] == [p["id"]] and listed[0]["display_name"] == "Removed Iyer"
     assert member_factory(["CONTRIBUTOR"]).get(f"/trees/{t}/people/deleted").status_code == 403
+
+
+def test_relationship_path_loads_only_the_neighbourhood(owner, tree, monkeypatch):
+    """Regression (load test): the calculator used to load every edge in the tree on each call."""
+    from app.modules.genealogy import engine
+
+    t = tree["id"]
+    gp = create_person(owner, t, "Grandpa", sex="male")
+    a = create_person(owner, t, "A", sex="male")
+    b = create_person(owner, t, "B", sex="male")
+    link(owner, t, gp["id"], a["id"], "biological_parent")
+    link(owner, t, gp["id"], b["id"], "biological_parent")
+    a1 = create_person(owner, t, "A1", sex="male")
+    b1 = create_person(owner, t, "B1", sex="female")
+    link(owner, t, a["id"], a1["id"], "biological_parent")
+    link(owner, t, b["id"], b1["id"], "biological_parent")
+    # an unrelated family elsewhere in the same tree
+    others = [create_person(owner, t, f"Other{i}") for i in range(4)]
+    for x, y in pairwise(others):
+        link(owner, t, x["id"], y["id"], "biological_parent")
+
+    loaded: set[str] = set()
+    orig = engine._LazyGraph.prefetch
+
+    def spy(self, ids):  # type: ignore[no-untyped-def]
+        ids = list(ids)
+        loaded.update(str(i) for i in ids)
+        return orig(self, ids)
+
+    monkeypatch.setattr(engine._LazyGraph, "prefetch", spy)
+    r = owner.get(f"/trees/{t}/relationship-path", params={"from": a1["id"], "to": b1["id"]}).json()
+    assert r["label"] == "first cousin" and r["path"][0] == a1["id"] and r["path"][-1] == b1["id"]
+    assert set(r["common_ancestor_ids"]) == {gp["id"]}
+    assert loaded and not loaded & {o["id"] for o in others}
+    # unconnected people: the search stops once the component is exhausted
+    loaded.clear()
+    r = owner.get(f"/trees/{t}/relationship-path", params={"from": a1["id"], "to": others[0]["id"]}).json()
+    assert r["found"] is False

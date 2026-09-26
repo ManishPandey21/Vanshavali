@@ -56,8 +56,8 @@ def optional_user(request: Request, db: DbDep) -> User | None:
     if sess is None:
         return None
     user = db.get(User, sess.user_id)
-    if user is None or not user.is_active:
-        return None
+    if user is None or not user.is_active or user.email_verified_at is None:
+        return None  # unverified accounts never get a session; this is defence in depth
     now = dt.datetime.now(dt.UTC)
     if (now - sess.last_seen_at).total_seconds() > 300:
         sess.last_seen_at = now

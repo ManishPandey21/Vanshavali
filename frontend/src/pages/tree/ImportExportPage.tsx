@@ -12,6 +12,7 @@ import { ConfirmDialog } from "../../components/ui/Dialog";
 import { ErrorAlert, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Checkbox } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
+import { FamilyConsentGate } from "../../components/consent/FamilyConsent";
 
 export type Decision = { kind: "create" } | { kind: "skip" } | { kind: "attach"; personId: string };
 
@@ -172,17 +173,19 @@ function GedcomImport() {
       <h2 id="imp-title" className="flex items-center gap-2 font-display text-xl font-semibold">
         <FileUp className="size-5 text-haldi-700" aria-hidden /> {t("gedcom.importTitle")}
       </h2>
-      <div className="card space-y-3 p-4">
-        <p className="text-sm text-ink-muted">{t("gedcom.importIntro")}</p>
-        <label htmlFor={fileId} className="label">
-          {t("gedcom.file")}
-        </label>
-        <input id={fileId} type="file" accept=".ged,.gedcom,.zip,text/plain" className="block text-sm" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <ErrorAlert error={upload.error} />
-        <Button disabled={!file} loading={upload.isPending} onClick={() => file && upload.mutate(file, { onSuccess: (j) => setSelected(j.id) })}>
-          {t("gedcom.upload")}
-        </Button>
-      </div>
+      <FamilyConsentGate treeId={treeId}>
+        <div className="card space-y-3 p-4">
+          <p className="text-sm text-ink-muted">{t("gedcom.importIntro")}</p>
+          <label htmlFor={fileId} className="label">
+            {t("gedcom.file")}
+          </label>
+          <input id={fileId} type="file" accept=".ged,.gedcom,.zip,text/plain" className="block text-sm" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <ErrorAlert error={upload.error} />
+          <Button disabled={!file} loading={upload.isPending} onClick={() => file && upload.mutate(file, { onSuccess: (j) => setSelected(j.id) })}>
+            {t("gedcom.upload")}
+          </Button>
+        </div>
+      </FamilyConsentGate>
       {imports.isLoading && <Spinner />}
       <ErrorAlert error={imports.error} />
       {(imports.data ?? []).length > 0 && (
@@ -298,7 +301,7 @@ function ImportReview({ job, t }: { job: ImportJobOut; t: ReturnType<typeof useT
       {(job.preview ?? []).length > 0 && (
         <div>
           <h4 className="mb-2 font-semibold">{t("gedcom.preview", { shown: job.preview!.length, total: job.preview_total ?? job.preview!.length })}</h4>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">{t("gedcom.previewCaption")}</caption>
               <thead className="text-left text-xs uppercase tracking-wide text-ink-muted">

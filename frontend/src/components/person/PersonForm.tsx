@@ -137,6 +137,7 @@ export function PersonForm({
   onChange,
   showErrors,
   compact = false,
+  headingLevel = 3,
   treeDefaultPrivacy,
 }: {
   treeId: string;
@@ -144,9 +145,12 @@ export function PersonForm({
   onChange: (d: PersonDraft) => void;
   showErrors: boolean;
   compact?: boolean;
+  /** 2 when the form sits directly under a page h1; 3 inside a dialog (whose title is an h2). */
+  headingLevel?: 2 | 3;
   treeDefaultPrivacy?: PrivacyLevel;
 }) {
   const { t } = useTranslation();
+  const H = headingLevel === 2 ? "h2" : "h3";
   const [birthOpen, setBirthOpen] = useState(!compact);
   const errors = showErrors ? validatePersonDraft(draft) : {};
   const set = (patch: Partial<PersonDraft>) => onChange({ ...draft, ...patch });
@@ -160,9 +164,9 @@ export function PersonForm({
   return (
     <div className="space-y-5">
       <section aria-labelledby="pf-names" className="space-y-3">
-        <h3 id="pf-names" className="font-display text-base font-semibold">
+        <H id="pf-names" className="font-display text-base font-semibold">
           {t("person.form.names")}
-        </h3>
+        </H>
         <p className="text-xs text-ink-muted">{t("person.form.namesHint")}</p>
         {draft.names.map((n, i) => (
           <NameFields
@@ -185,9 +189,9 @@ export function PersonForm({
       </section>
 
       <section aria-labelledby="pf-basic" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <h3 id="pf-basic" className="font-display text-base font-semibold sm:col-span-2">
+        <H id="pf-basic" className="font-display text-base font-semibold sm:col-span-2">
           {t("person.form.basics")}
-        </h3>
+        </H>
         <Field label={t("person.status")}>
           {(p) => (
             <Select {...p} value={draft.profile_status} onChange={(e) => set({ profile_status: e.target.value as ProfileStatus })}>
@@ -233,12 +237,12 @@ export function PersonForm({
       </section>
 
       <section aria-labelledby="pf-birth" className="space-y-3">
-        <h3 id="pf-birth" className="font-display text-base font-semibold">
+        <H id="pf-birth" className="font-display text-base font-semibold">
           <button type="button" className="inline-flex items-center gap-1" aria-expanded={birthOpen} onClick={() => setBirthOpen(!birthOpen)}>
             {birthOpen ? <ChevronDown className="size-4" aria-hidden /> : <ChevronRight className="size-4" aria-hidden />}
             {t("person.form.birthDetails")}
           </button>
-        </h3>
+        </H>
         {birthOpen && (
           <VitalFields treeId={treeId} value={draft.birth} onChange={(birth) => set({ birth })} withTime showErrors={showErrors} kind="birth" />
         )}
@@ -246,9 +250,9 @@ export function PersonForm({
 
       {draft.profile_status === "deceased" && (
         <section aria-labelledby="pf-death" className="space-y-3">
-          <h3 id="pf-death" className="font-display text-base font-semibold">
+          <H id="pf-death" className="font-display text-base font-semibold">
             {t("person.form.deathDetails")}
-          </h3>
+          </H>
           <VitalFields treeId={treeId} value={draft.death} onChange={(death) => set({ death })} withTime={false} showErrors={showErrors} kind="death" />
         </section>
       )}

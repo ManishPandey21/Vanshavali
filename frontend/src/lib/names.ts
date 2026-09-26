@@ -64,3 +64,20 @@ export function nameText(n: NameOut): string {
 export function nativeScriptNames(names: NameOut[] | undefined): NameOut[] {
   return (names ?? []).filter(isNonLatin);
 }
+
+/**
+ * `lang` for text shown outside a known-language context (display names, labels): the default
+ * language of its script when that is not Latin, so screen readers switch voice for Devanagari,
+ * Tamil, Urdu… names (WCAG 3.1.2). Latin text inherits the page language. Where a NameOut carries
+ * its own `language`, use that instead.
+ */
+export function langOfText(text: string | null | undefined): string | undefined {
+  const d = text ? detectScript(text) : null;
+  return d && d.script !== "Latn" ? d.language : undefined;
+}
+
+/** `dir` for text in a right-to-left script (Urdu / Arabic), else undefined. */
+export function dirOfText(text: string | null | undefined): "rtl" | undefined {
+  const d = text ? detectScript(text) : null;
+  return d && isRtl(d.script) ? "rtl" : undefined;
+}

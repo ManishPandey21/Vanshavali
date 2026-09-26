@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from tests.conftest import join_tree
+from tests.conftest import join_tree, new_tree
 from tests.helpers import create_person, exact, link, person_body
 
 SECRET_DOB = {"precision": "exact", "year": 1985, "month": 7, "day": 23}
@@ -120,7 +120,7 @@ def test_cross_tree_access_is_404(owner, tree, make_client):
     p = create_person(owner, t, "InTreeA")
     other = make_client()
     other.register()
-    tb = other.post("/trees", json={"name": "Tree B"}).json()["id"]
+    tb = new_tree(other, "Tree B")["id"]
     q = create_person(other, tb, "InTreeB")
     # person of tree A via tree B's URL
     assert other.get(f"/trees/{tb}/people/{p['id']}").status_code == 404
@@ -137,12 +137,12 @@ def test_cross_tree_access_is_404(owner, tree, make_client):
 
 def test_branch_scoped_contributor(owner, tree, make_client):
     t = tree["id"]
-    from app.core.db import get_sessionmaker
     from app.models import BranchMembership, FamilyBranch
+    from tests.conftest import owner_session
 
     inside = create_person(owner, t, "Inside")
     outside = create_person(owner, t, "Outside")
-    with get_sessionmaker()() as db:
+    with owner_session() as db:
         import uuid
 
         b = FamilyBranch(tree_id=uuid.UUID(t), name="Madurai branch")
