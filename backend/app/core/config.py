@@ -100,8 +100,26 @@ class Settings(BaseSettings):
     email_verify_ttl_hours: int = 48
     password_reset_ttl_minutes: int = 60
 
+    # Sign in with Google (OpenID Connect, ADR-0012). Off unless both id and secret are set.
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    # Where Google sends the browser back; defaults to <public_base_url><api_prefix>/auth/google/callback
+    # (the SPA origin proxies /api). Must match the URI registered in Google Cloud exactly.
+    google_redirect_uri: str | None = None
+    google_authorize_url: str = "https://accounts.google.com/o/oauth2/v2/auth"
+    google_token_url: str = "https://oauth2.googleapis.com/token"  # noqa: S105 - endpoint URL, not a secret
+    oidc_state_ttl_seconds: int = 600
+
     # Traversal limits
     max_traversal_depth: int = 25
+
+    @property
+    def google_enabled(self) -> bool:
+        return bool(self.google_client_id and self.google_client_secret)
+
+    @property
+    def google_callback_uri(self) -> str:
+        return self.google_redirect_uri or f"{self.public_base_url}{self.api_prefix}/auth/google/callback"
 
     @model_validator(mode="after")
     def validate_production(self) -> Settings:
@@ -119,6 +137,8 @@ class Settings(BaseSettings):
                 problems.append("VSH_SMTP_HOST must be set and STARTTLS enabled in production")
             if not self.cookie_secure:
                 problems.append("VSH_COOKIE_SECURE must be true in production")
+            if self.google_enabled and not self.google_callback_uri.startswith("https://"):
+                problems.append("the Google redirect URI must use https in production")
             if problems:
                 raise ValueError("; ".join(problems))
         return self

@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from enum import StrEnum
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -32,6 +32,30 @@ class User(Base):
     # Set when the user proves control of the mailbox (verification link or password reset).
     # Sign-in and invitation acceptance require it (ADR-0005).
     email_verified_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    # Set for accounts created with a temporary password (dev/demo seeding). While set, the session
+    # may only change the password or sign out; everything else answers 403 password_change_required.
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
+
+class ExternalIdentity(Base):
+    """A sign-in identity from an external OpenID Connect provider, linked to one account (ADR-0012).
+
+    Matched by the provider's stable subject id, never by email: an email is only used once, to link
+    a new identity to an existing account under the rules in ADR-0012.
+    """
+
+    __tablename__ = "external_identity"
+    __table_args__ = (UniqueConstraint("provider", "subject"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid7)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(32))
+    subject: Mapped[str] = mapped_column(String(255))
+    email_at_link: Mapped[str] = mapped_column(String(320))
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_used_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class UserSession(Base):

@@ -123,7 +123,8 @@ export function LandingPage() {
   const { t } = useTranslation();
   const me = useMe();
   const signedIn = !!me.data;
-  const startTo = signedIn ? "/" : "/register";
+  // Visitors start at sign-in, which also offers "Create account" (and Google, when configured).
+  const startTo = signedIn ? "/" : "/login";
   const startLabel = signedIn ? t("landing.cta.goToTrees") : t("landing.cta.start");
 
   const navLinks = [

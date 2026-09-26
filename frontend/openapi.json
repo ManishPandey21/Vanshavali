@@ -388,6 +388,7 @@
      "auth"
     ],
     "summary": "Change Password",
+    "description": "Change the password; also the only way out of a forced change (``must_change_password``).",
     "operationId": "change_password_api_v1_auth_password_post",
     "requestBody": {
      "content": {
@@ -554,6 +555,149 @@
         }
        }
       }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/providers": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Providers",
+    "description": "Which external sign-in options this server offers (the SPA shows only these).",
+    "operationId": "providers_api_v1_auth_providers_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProvidersOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/google/start": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Google Start",
+    "operationId": "google_start_api_v1_auth_google_start_get",
+    "parameters": [
+     {
+      "name": "next",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 2000
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Next"
+      }
+     }
+    ],
+    "responses": {
+     "303": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/google/callback": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Google Callback",
+    "description": "Finish the Google flow: check state + nonce, exchange the code, then find/link/create the account.",
+    "operationId": "google_callback_api_v1_auth_google_callback_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 2000
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Code"
+      }
+     },
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "State"
+      }
+     },
+     {
+      "name": "error",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Error"
+      }
+     }
+    ],
+    "responses": {
+     "303": {
+      "description": "Successful Response"
      },
      "422": {
       "description": "Validation Error",
@@ -21921,6 +22065,17 @@
     ],
     "title": "ProvenanceOut"
    },
+   "ProvidersOut": {
+    "properties": {
+     "google": {
+      "type": "boolean",
+      "title": "Google",
+      "default": false
+     }
+    },
+    "type": "object",
+    "title": "ProvidersOut"
+   },
    "PublicMode": {
     "type": "string",
     "enum": [
@@ -24613,6 +24768,11 @@
      "email_verified": {
       "type": "boolean",
       "title": "Email Verified",
+      "default": false
+     },
+     "must_change_password": {
+      "type": "boolean",
+      "title": "Must Change Password",
       "default": false
      }
     },

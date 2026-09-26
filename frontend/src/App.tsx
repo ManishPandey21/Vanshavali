@@ -8,7 +8,7 @@ import { normalizeLanguage, storedLanguage } from "./i18n";
 import { AppShell } from "./components/layout/AppShell";
 import { TreeLayout } from "./components/layout/TreeLayout";
 import { Spinner } from "./components/ui/feedback";
-import { LoginPage, RegisterPage } from "./pages/auth/AuthPages";
+import { ChangePasswordRequiredPage, LoginPage, RegisterPage } from "./pages/auth/AuthPages";
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/auth/EmailPages";
 import { AcceptInvitePage, CreateTreePage, TreesListPage } from "./pages/trees/TreesPages";
 import { AccountPage } from "./pages/AccountPage";
@@ -77,6 +77,8 @@ function RequireAuth() {
   // Signed-out visitors to the home page see the public landing page rather than a sign-in form.
   if (!me.data && location.pathname === "/") return <LandingPage />;
   if (!me.data) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  // A temporary password must be replaced first (the server refuses everything else anyway).
+  if (me.data.must_change_password) return <Navigate to="/change-password" replace />;
   return <Outlet />;
 }
 
@@ -88,6 +90,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/change-password" element={<ChangePasswordRequiredPage />} />
         <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />

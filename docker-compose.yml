@@ -19,6 +19,8 @@ x-backend-env: &backend-env
   VSH_PUBLIC_BASE_URL: ${VSH_PUBLIC_BASE_URL:-http://localhost:8080}
   VSH_CORS_ORIGINS: '["http://localhost:8080","http://localhost:3000"]'
   VSH_COOKIE_SECURE: ${VSH_COOKIE_SECURE:-false}
+  VSH_GOOGLE_CLIENT_ID: ${VSH_GOOGLE_CLIENT_ID:-}
+  VSH_GOOGLE_CLIENT_SECRET: ${VSH_GOOGLE_CLIENT_SECRET:-}
   VSH_STANDARD_DATA_KEY: ${VSH_STANDARD_DATA_KEY:-dmFuc2hhdmFsaS1kZXYtc3RhbmRhcmQta2V5LTMyYiE=}
   VSH_VAULT_DATA_KEY: ${VSH_VAULT_DATA_KEY:-dmFuc2hhdmFsaS1kZXYtdmF1bHQta2V5LTMyYnl0ZXM=}
   VSH_SIGNING_KEY: ${VSH_SIGNING_KEY:-vanshavali-dev-signing-key-change-me}

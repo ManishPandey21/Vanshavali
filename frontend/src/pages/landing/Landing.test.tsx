@@ -28,7 +28,7 @@ describe("landing page", () => {
     renderWithProviders(<App />, { tree: null, route: "/" });
     expect(await screen.findByRole("heading", { level: 1, name: /Preserving the threads of tradition/ })).toBeInTheDocument();
     expect(screen.getAllByText("॥ वसुधैव कुटुम्बकम् ॥").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/register");
+    expect(screen.getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
     expect(screen.getByText(/for preserving Indian family heritage/)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Tambool offering/ })).toBeInTheDocument();

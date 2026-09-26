@@ -204,6 +204,7 @@ def confirm_password_reset(db: Session, token: str, new_password: str, info: Req
     now = dt.datetime.now(dt.UTC)
     user.password_hash = hash_password(new_password)
     user.password_changed_at = now
+    user.must_change_password = False  # the reset replaced the temporary password
     if user.email_verified_at is None:
         user.email_verified_at = now  # the reset link proves control of the mailbox
     row.used_at = now
@@ -301,7 +302,9 @@ def mfa_disable(db: Session, user: User, password: str, code: str) -> None:
     audit.record(db, action="user.mfa_disabled", actor_user_id=user.id, target_type="user", target_id=user.id)
 
 
-def start_session(db: Session, user: User, response: Response, info: RequestInfo) -> UserSession:
+def start_session(
+    db: Session, user: User, response: Response, info: RequestInfo, *, method: str | None = None
+) -> UserSession:
     s = get_settings()
     now = dt.datetime.now(dt.UTC)
     token = new_token()
@@ -322,6 +325,7 @@ def start_session(db: Session, user: User, response: Response, info: RequestInfo
         actor_user_id=user.id,
         target_type="user",
         target_id=user.id,
+        details={"method": method} if method else None,
         ip=info.ip,
         user_agent=info.user_agent,
     )
@@ -381,12 +385,21 @@ def change_password(
     problems = password_problems(new)
     if problems:
         raise Unprocessable("; ".join(problems), code="weak_password")
+    if user.must_change_password and new == current:
+        raise Unprocessable("Choose a password different from the temporary one", code="password_reused")
+    was_forced = user.must_change_password
     user.password_hash = hash_password(new)
     user.password_changed_at = dt.datetime.now(dt.UTC)
+    user.must_change_password = False
     revoke_all(db, user.id, except_session=current_session)
     invalidate_tokens(db, user.id, AuthTokenPurpose.PASSWORD_RESET)
     audit.record(
-        db, action="user.password_changed", actor_user_id=user.id, target_type="user", target_id=user.id
+        db,
+        action="user.password_changed",
+        actor_user_id=user.id,
+        target_type="user",
+        target_id=user.id,
+        details={"forced": True} if was_forced else None,
     )
 
 

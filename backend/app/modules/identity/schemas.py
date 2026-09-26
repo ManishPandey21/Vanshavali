@@ -53,6 +53,12 @@ class UserOut(ApiModel):
     created_at: dt.datetime
     mfa_enabled: bool = False
     email_verified: bool = False
+    # A temporary password must be replaced before anything else works (POST /auth/password).
+    must_change_password: bool = False
+
+
+class ProvidersOut(ApiModel):
+    google: bool = False
 
 
 class MfaSetupOut(ApiModel):

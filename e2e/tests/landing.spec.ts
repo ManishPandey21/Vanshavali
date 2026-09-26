@@ -16,6 +16,8 @@ test("signed-out visitors land on the heritage page and can begin a tree from it
   await page.getByRole("combobox", { name: "भाषा" }).first().selectOption("en");
 
   await page.getByRole("link", { name: /Begin your family tree/ }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await page.getByRole("link", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/register$/);
   const email = uniqueEmail("landing");
   await page.getByLabel("Your name").fill("Landing Visitor");
