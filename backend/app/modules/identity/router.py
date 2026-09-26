@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import datetime as dt
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Query, Request, Response, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 
-from app.api.deps import CurrentUser, DbDep, optional_user, request_info
+from app.api.deps import CurrentUser, CurrentUserPendingPassword, DbDep, optional_user, request_info
 from app.api.schemas import Message
 from app.core import audit
-from app.core.errors import Unauthorized
+from app.core.config import get_settings
+from app.core.errors import NotFound, Unauthorized
+from app.core.ratelimit import enforce
 from app.models import User, UserSession
-from app.modules.identity import service
+from app.modules.identity import google, service
 from app.modules.identity.schemas import (
     EmailIn,
     LoginIn,
@@ -21,6 +24,7 @@ from app.modules.identity.schemas import (
     PasswordConfirmIn,
     PasswordResetConfirmIn,
     ProfileUpdateIn,
+    ProvidersOut,
     RegisterIn,
     SessionOut,
     TokenIn,
@@ -100,7 +104,7 @@ def login(body: LoginIn, request: Request, response: Response, db: DbDep) -> Use
 
 
 @router.post("/logout", response_model=Message)
-def logout(request: Request, response: Response, db: DbDep, user: CurrentUser) -> Message:
+def logout(request: Request, response: Response, db: DbDep, user: CurrentUserPendingPassword) -> Message:
     sid = getattr(request.state, "session_id", None)
     if sid:
         service.revoke_session(db, sid)
@@ -157,7 +161,10 @@ def revoke_others(request: Request, user: CurrentUser, db: DbDep) -> Message:
 
 
 @router.post("/password", response_model=Message)
-def change_password(body: PasswordChangeIn, request: Request, user: CurrentUser, db: DbDep) -> Message:
+def change_password(
+    body: PasswordChangeIn, request: Request, user: CurrentUserPendingPassword, db: DbDep
+) -> Message:
+    """Change the password; also the only way out of a forced change (``must_change_password``)."""
     service.change_password(
         db, user, body.current_password, body.new_password, getattr(request.state, "session_id", None)
     )
@@ -198,3 +205,82 @@ def close_account(
     service.close_account(db, user, body.password)
     service.clear_auth_cookies(response)
     return Message(message="Account closed")
+
+
+# ------------------------------------------------------------------ Sign in with Google (ADR-0012)
+
+
+@router.get("/providers", response_model=ProvidersOut)
+def providers() -> ProvidersOut:
+    """Which external sign-in options this server offers (the SPA shows only these)."""
+    return ProvidersOut(google=get_settings().google_enabled)
+
+
+def _require_google() -> None:
+    if not get_settings().google_enabled:
+        raise NotFound("Sign in with Google is not enabled on this server")
+
+
+def _login_error(code: str) -> RedirectResponse:
+    resp = RedirectResponse(f"/login?oauth_error={code}", status_code=status.HTTP_303_SEE_OTHER)
+    resp.delete_cookie(google.STATE_COOKIE, path=google.callback_path())
+    return resp
+
+
+@router.get("/google/start", response_class=RedirectResponse, status_code=status.HTTP_303_SEE_OTHER)
+def google_start(
+    request: Request, next_path: str | None = Query(default=None, alias="next", max_length=2000)
+) -> RedirectResponse:
+    _require_google()
+    enforce(f"oidc-start:{request_info(request).ip}", 20)
+    url, cookie = google.begin(next_path)
+    s = get_settings()
+    resp = RedirectResponse(url, status_code=status.HTTP_303_SEE_OTHER)
+    resp.set_cookie(
+        google.STATE_COOKIE,
+        cookie,
+        max_age=s.oidc_state_ttl_seconds,
+        httponly=True,
+        secure=s.cookie_secure,
+        samesite="lax",
+        path=google.callback_path(),
+    )
+    return resp
+
+
+@router.get("/google/callback", response_class=RedirectResponse, status_code=status.HTTP_303_SEE_OTHER)
+def google_callback(
+    request: Request,
+    db: DbDep,
+    code: str | None = Query(default=None, max_length=2000),
+    state: str | None = Query(default=None, max_length=200),
+    error: str | None = Query(default=None, max_length=200),
+) -> RedirectResponse:
+    """Finish the Google flow: check state + nonce, exchange the code, then find/link/create the account."""
+    _require_google()
+    info = request_info(request)
+    enforce(f"oidc-callback:{info.ip}", 20)
+    try:
+        if error:
+            raise google.OidcError("oauth_failed", "provider returned an error")
+        body = google.read_state(request.cookies.get(google.STATE_COOKIE), state)
+        if not code:
+            raise google.OidcError("oauth_failed", "missing code")
+        claims = google.validate_id_token(google.exchange_code(code, body["v"]), body["nonce"])
+        user = google.resolve_user(db, claims, info)
+    except google.OidcError as e:
+        db.rollback()
+        audit.record_detached(
+            action="user.oauth_failed",
+            actor_user_id=None,
+            target_type="user",
+            target_id=None,
+            details={"provider": google.PROVIDER, "reason": e.code},
+            ip=info.ip,
+            user_agent=info.user_agent,
+        )
+        return _login_error(e.code)
+    resp = RedirectResponse(google.safe_next(body.get("next")), status_code=status.HTTP_303_SEE_OTHER)
+    resp.delete_cookie(google.STATE_COOKIE, path=google.callback_path())
+    service.start_session(db, user, resp, info, method=google.PROVIDER)
+    return resp

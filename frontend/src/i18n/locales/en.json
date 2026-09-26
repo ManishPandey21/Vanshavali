@@ -115,7 +115,28 @@
     "requestNewReset": "Request a new reset link",
     "verifyTitle": "Confirm your email",
     "verifying": "Confirming your email…",
-    "verifyFailedHint": "The link may have been used already, or it has expired. Sign in and we'll offer to send a new one."
+    "verifyFailedHint": "The link may have been used already, or it has expired. Sign in and we'll offer to send a new one.",
+    "orDivider": "or",
+    "continueWithGoogle": "Continue with Google",
+    "oauthError": {
+      "oauth_failed": "Google sign-in didn't complete. Please try again.",
+      "oauth_state": "That Google sign-in link expired or came from another browser. Please start again.",
+      "email_unverified": "Google hasn't verified this email address, so we can't use it to sign you in.",
+      "link_requires_password": "An account already uses this email. Sign in with your password first.",
+      "mfa_enabled": "This account uses two-step verification. Sign in with your password and code instead.",
+      "account_inactive": "This account is closed."
+    },
+    "changePassword": {
+      "title": "Choose a new password",
+      "subtitle": "{{email}} was set up with a temporary password. Replace it before you continue.",
+      "current": "Temporary password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Save new password",
+      "mismatch": "The two passwords don't match.",
+      "reused": "Choose a password different from the temporary one.",
+      "wrongCurrent": "The temporary password is incorrect."
+    }
   },
   "account": {
     "changePassword": "Change password",

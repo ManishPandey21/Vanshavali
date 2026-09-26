@@ -16,7 +16,11 @@ Authoritative requirements: PRS §6, §30, §31, §32, §54, §58 ("Privacy" acc
    surnames, places, languages or relatives (`tests/test_heritage_family.py::test_gotra_is_never_inferred_from_surname`).
 5. **Data minimisation.** No government ID numbers are collected. Aadhaar-shaped numbers are masked
    in OCR output.
-6. **Subject control (DPDP Act 2023).** Claimed-profile owners control their own privacy settings.
+6. **Sign in with Google keeps the minimum** (ADR-0012): only Google's stable subject id and the
+   email at the time of linking are stored (`external_identity`), plus the name and email used to
+   create the account. No Google tokens, profile photo or contacts are requested or kept; the scopes
+   are `openid email profile`.
+7. **Subject control (DPDP Act 2023).** Claimed-profile owners control their own privacy settings.
    A consent ledger, erasure and account closure exist (see §5).
 
 ## 2. Privacy levels (PRS §6)

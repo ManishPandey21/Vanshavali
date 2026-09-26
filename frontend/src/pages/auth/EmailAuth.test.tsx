@@ -23,6 +23,7 @@ function setup(route: string, handlers: Record<string, Handler>) {
       const path = String(url).replace(/^.*\/api\/v1/, "").split("?")[0];
       const body = init?.body ? JSON.parse(String(init.body)) : undefined;
       if (path === "/auth/me") return unauth();
+      if (path === "/auth/providers") return jsonResponse({ google: false }); // background lookup, not a user action
       calls.push({ path, body });
       const h = handlers[path];
       return h ? h(body) : jsonResponse({});

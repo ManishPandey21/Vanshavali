@@ -102,3 +102,22 @@ export function useUpdateProfile() {
     onSuccess: (user) => qc.setQueryData(authKeys.me, user),
   });
 }
+
+/** External sign-in options this server offers (ADR-0012). Buttons for anything else stay hidden. */
+export function useAuthProviders() {
+  return useQuery({
+    queryKey: ["auth", "providers"] as const,
+    queryFn: () => apiRequest<components["schemas"]["ProvidersOut"]>("/auth/providers", { skipAuthRedirect: true }),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
+
+/** Changes the password; the way out of a forced change (``must_change_password``). */
+export function useChangePassword() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: components["schemas"]["PasswordChangeIn"]) => api.post<Message>("/auth/password", body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: authKeys.me }),
+  });
+}
