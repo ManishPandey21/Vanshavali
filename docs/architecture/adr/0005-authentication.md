@@ -57,7 +57,7 @@ remaining pre-hijack case — the victim clicks a verification link for an accou
 for — is mitigated only by the email's "if you did not create an account, ignore this" wording.
 
 ## Deferred
-OAuth/OIDC.
+OAuth/OIDC — now decided in [ADR-0012](0012-google-sign-in.md) (Sign in with Google).
 
 ## Alternatives rejected
 JWTs in localStorage (XSS exfiltration, and revocation is hard). Stateless JWT cookies (revocation

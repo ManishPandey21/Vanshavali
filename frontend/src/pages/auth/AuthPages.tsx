@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useLogin, useMe, useRegister, useResendVerification } from "../../api/hooks/auth";
+import { useChangePassword, useLogin, useMe, useRegister, useResendVerification } from "../../api/hooks/auth";
 import { ApiError } from "../../api/client";
 import { Button } from "../../components/ui/Button";
 import { ErrorAlert, LiveRegion, Spinner } from "../../components/ui/feedback";
 import { Field, TextInput } from "../../components/ui/form";
+import { GoogleSignIn, OAuthErrorNotice } from "../../components/auth/GoogleSignIn";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import i18n, { normalizeLanguage } from "../../i18n";
@@ -51,7 +52,7 @@ function AuthFrame({
   return (
     <div className="flex min-h-dvh flex-col bg-[radial-gradient(ellipse_at_top,_#fbe3d6,_#fbf7ef_60%)]">
       <header className="flex items-center justify-between px-4 py-3">
-        <BrandMark to="/login" />
+        <BrandMark to="/" />
         <LanguageSwitcher />
       </header>
       <main id="main" className="flex flex-1 items-start justify-center px-4 py-8 sm:items-center">
@@ -143,6 +144,7 @@ export function LoginPage() {
         )
       }
     >
+      {!mfaStep && <OAuthErrorNotice code={params.get("oauth_error")} />}
       {passwordReset && (
         <p role="status" className="mb-4 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-900">
           {t("auth.resetDone")}
@@ -197,6 +199,7 @@ export function LoginPage() {
           {mfaStep ? t("auth.mfaVerify") : t("auth.login")}
         </Button>
       </form>
+      {!mfaStep && <GoogleSignIn next={next} />}
     </AuthFrame>
   );
 }
@@ -304,6 +307,67 @@ export function RegisterPage() {
         <ErrorAlert error={register.error && !Object.keys(fieldErrors).length ? register.error : null} />
         <Button type="submit" className="w-full" loading={register.isPending}>
           {t("auth.createAccount")}
+        </Button>
+      </form>
+      <GoogleSignIn next={afterRegister} />
+    </AuthFrame>
+  );
+}
+
+/**
+ * Shown while the account still has a temporary password (``must_change_password``). The server
+ * refuses everything else until this succeeds; this page is only the way through.
+ */
+export function ChangePasswordRequiredPage() {
+  const { t } = useTranslation();
+  const me = useMe();
+  const change = useChangePassword();
+  const navigate = useNavigate();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  if (me.isLoading) return <Spinner />;
+  if (!me.data) return <Navigate to="/login" replace />;
+  if (!me.data.must_change_password) return <Navigate to="/" replace />;
+
+  const tooShort = next.length < 10;
+  const mismatch = next !== confirm;
+  const reused = next.length > 0 && next === current;
+  const e = change.error;
+  const err =
+    e instanceof ApiError && e.code === "invalid_credentials"
+      ? new Error(t("auth.changePassword.wrongCurrent"))
+      : e instanceof ApiError && e.code === "password_reused"
+        ? new Error(t("auth.changePassword.reused"))
+        : e;
+  const submit = (ev: FormEvent) => {
+    ev.preventDefault();
+    setSubmitted(true);
+    if (!current || tooShort || mismatch || reused) return;
+    change.mutate({ current_password: current, new_password: next }, { onSuccess: () => navigate("/", { replace: true }) });
+  };
+  return (
+    <AuthFrame title={t("auth.changePassword.title")} subtitle={t("auth.changePassword.subtitle", { email: me.data.email })}>
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        <Field label={t("auth.changePassword.current")} required error={submitted && !current ? t("common.required") : undefined}>
+          {(p) => <TextInput {...p} type="password" autoComplete="current-password" autoFocus value={current} onChange={(ev) => setCurrent(ev.target.value)} />}
+        </Field>
+        <Field
+          label={t("auth.changePassword.new")}
+          required
+          hint={t("auth.passwordHint")}
+          error={submitted && tooShort ? t("auth.passwordTooShort") : submitted && reused ? t("auth.changePassword.reused") : undefined}
+        >
+          {(p) => <TextInput {...p} type="password" autoComplete="new-password" value={next} onChange={(ev) => setNext(ev.target.value)} />}
+        </Field>
+        <Field label={t("auth.changePassword.confirm")} required error={submitted && mismatch ? t("auth.changePassword.mismatch") : undefined}>
+          {(p) => <TextInput {...p} type="password" autoComplete="new-password" value={confirm} onChange={(ev) => setConfirm(ev.target.value)} />}
+        </Field>
+        <ErrorAlert error={err} />
+        <Button type="submit" className="w-full" loading={change.isPending}>
+          {t("auth.changePassword.submit")}
         </Button>
       </form>
     </AuthFrame>

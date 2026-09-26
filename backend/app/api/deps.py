@@ -68,14 +68,27 @@ def optional_user(request: Request, db: DbDep) -> User | None:
     return user
 
 
-def current_user(request: Request, user: Annotated[User | None, Depends(optional_user)]) -> User:
+def current_user_any(request: Request, user: Annotated[User | None, Depends(optional_user)]) -> User:
+    """A signed-in user, even one who still has to replace a temporary password.
+
+    Only for the handlers such a user may reach: changing the password and signing out.
+    """
     if user is None:
         raise Unauthorized()
     verify_csrf(request)
     return user
 
 
+def current_user(user: Annotated[User, Depends(current_user_any)]) -> User:
+    if user.must_change_password:
+        raise ApiError(
+            "Choose a new password before continuing.", code="password_change_required", status_code=403
+        )
+    return user
+
+
 CurrentUser = Annotated[User, Depends(current_user)]
+CurrentUserPendingPassword = Annotated[User, Depends(current_user_any)]
 
 
 def tree_context(

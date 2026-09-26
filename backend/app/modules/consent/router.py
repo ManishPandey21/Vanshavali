@@ -15,7 +15,7 @@ from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Conflict, Forbidden
 from app.models import ConsentRecord, ProfileClaim, ProfileClaimInvite, TreeMembership, User
-from app.models.enums import ClaimStatus, ConsentBasis
+from app.models.enums import ClaimKind, ClaimStatus, ConsentBasis, PrivacyLevel
 from app.modules.genealogy import lookup
 
 router = APIRouter(prefix="/trees/{tree_id}", tags=["consent"])
@@ -132,6 +132,7 @@ class ClaimOut(ApiModel):
     id: uuid.UUID
     person_id: uuid.UUID
     user_id: uuid.UUID
+    kind: ClaimKind = ClaimKind.CLAIM
     status: ClaimStatus
     message: str | None
     reviewed_by: uuid.UUID | None
@@ -168,6 +169,10 @@ def request_claim(person_id: uuid.UUID, body: ClaimIn, ctx: TreeCtx) -> ClaimOut
     )
     if open_claim:
         raise Conflict("You already have a pending claim for this profile", code="claim_pending")
+    from app.modules.consent.claim_invites import pending_removal
+
+    if pending_removal(ctx.db, ctx.tree_id, person.id):
+        raise Conflict("This person has asked to be removed from the tree", code="removal_pending")
     claim = ProfileClaim(
         tree_id=ctx.tree_id,
         person_id=person.id,
@@ -248,6 +253,23 @@ def _complete_invited_claim(ctx, claim: ProfileClaim, person, membership: TreeMe
         )
 
 
+def _review_removal(ctx, claim: ProfileClaim, person, approve: bool) -> None:  # type: ignore[no-untyped-def]
+    """ADR-0011: approving a "remove me" request erases the profile; declining it restores visibility."""
+    from app.modules.genealogy import service as genealogy
+
+    if approve:
+        genealogy.erase_person(ctx, person.id, "Removal requested by the person through a claim link")
+        claim.message = None  # it may hold personal details, and the profile is now erased
+    elif claim.restore_privacy_level is not None and person.privacy_level == PrivacyLevel.PRIVATE_TREE_ADMINS:
+        person.privacy_level = claim.restore_privacy_level
+    audit.log(
+        ctx,
+        "profile.removal_approved" if approve else "profile.removal_rejected",
+        target_type="person",
+        target_id=person.id,
+    )
+
+
 def _review(ctx, claim_id: uuid.UUID, approve: bool, note: str | None) -> ProfileClaim:  # type: ignore[no-untyped-def]
     if not ctx.is_admin:
         raise Forbidden("Only tree admins can review profile claims")
@@ -259,6 +281,9 @@ def _review(ctx, claim_id: uuid.UUID, approve: bool, note: str | None) -> Profil
     claim.reviewed_by = ctx.user_id
     claim.reviewed_at = dt.datetime.now(dt.UTC)
     claim.review_note = note
+    if claim.kind == ClaimKind.REMOVAL:
+        _review_removal(ctx, claim, person, approve)
+        return claim
     if approve:
         if person.claimed_by_user_id is not None:
             raise Conflict("This profile has already been claimed", code="already_claimed")

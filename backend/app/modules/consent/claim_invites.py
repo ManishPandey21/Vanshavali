@@ -2,6 +2,10 @@
 
 The link is a single-use bearer token in the URL fragment. Accepting it only files a profile claim
 with the relative's own consent; a tree admin still approves the claim before any access is given.
+
+The link holder can also answer "this isn't me" (the link is cancelled, nothing else changes) or
+"this is me, remove me" (the profile is hidden from everyone but tree admins at once, and an admin
+erases it or restores it). A forwarded link can therefore never erase anyone on its own.
 """
 
 from __future__ import annotations
@@ -24,7 +28,7 @@ from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessab
 from app.core.ratelimit import enforce
 from app.core.security import new_token, token_hash
 from app.models import Person, ProfileClaim, ProfileClaimInvite, Tree, User
-from app.models.enums import ClaimStatus, ProfileStatus, Role
+from app.models.enums import ClaimKind, ClaimStatus, PrivacyLevel, ProfileStatus, Role
 from app.modules.consent import statements
 from app.modules.consent.statements import StatementKind
 from app.modules.genealogy import lookup
@@ -33,7 +37,10 @@ CLAIM_INVITE_TTL_DAYS = 7
 
 router = APIRouter(tags=["consent"])
 
-InviteState = Literal["active", "used", "expired", "revoked"]
+InviteState = Literal["active", "used", "declined", "expired", "revoked"]
+
+# Levels that already hide a profile from everyone but tree admins (and its claimant).
+_HIDDEN_LEVELS = {PrivacyLevel.PRIVATE_TREE_ADMINS, PrivacyLevel.PRIVATE_SELF}
 
 
 class ClaimInviteCreate(ApiModel):
@@ -65,6 +72,7 @@ class ClaimInvitePreview(ApiModel):
     expires_at: dt.datetime
     state: InviteState
     claim_id: uuid.UUID | None = None
+    claim_kind: ClaimKind | None = None
 
 
 class ClaimInviteAccept(ApiModel):
@@ -74,8 +82,14 @@ class ClaimInviteAccept(ApiModel):
     message: str | None = Field(default=None, max_length=2000)
 
 
+class RemovalRequestIn(ApiModel):
+    confirm_is_me: bool
+    message: str | None = Field(default=None, max_length=2000)
+
+
 class ClaimSubmitted(ApiModel):
     claim_id: uuid.UUID
+    kind: ClaimKind = ClaimKind.CLAIM
     status: ClaimStatus
     tree_name: str
     person_name: str
@@ -84,6 +98,8 @@ class ClaimSubmitted(ApiModel):
 def _state(inv: ProfileClaimInvite) -> InviteState:
     if inv.revoked_at is not None:
         return "revoked"
+    if inv.declined_at is not None:
+        return "declined"
     if inv.used_at is not None:
         return "used"
     if inv.expires_at < dt.datetime.now(dt.UTC):
@@ -115,6 +131,8 @@ def create_claim_invite(person_id: uuid.UUID, body: ClaimInviteCreate, ctx: Tree
         raise Forbidden("Only tree admins can invite relatives as contributors")
     if person.claimed_by_user_id is not None:
         raise Conflict("This profile has already been claimed", code="already_claimed")
+    if pending_removal(ctx.db, ctx.tree_id, person.id):
+        raise Conflict("This person has asked to be removed from the tree", code="removal_pending")
     if person.profile_status == ProfileStatus.DECEASED or not subject.is_protected:
         raise Unprocessable("Only living relatives can claim a profile", code="not_living")
     if subject.is_minor:
@@ -167,6 +185,21 @@ def revoke_claim_invite(invite_id: uuid.UUID, ctx: TreeCtx) -> Message:
     return Message(message="Invite revoked")
 
 
+def pending_removal(db: DbDep, tree_id: uuid.UUID, person_id: uuid.UUID) -> bool:
+    """Whether the person has an unreviewed "remove me" request (which freezes new claims and links)."""
+    return (
+        db.scalar(
+            select(ProfileClaim.id).where(
+                ProfileClaim.tree_id == tree_id,
+                ProfileClaim.person_id == person_id,
+                ProfileClaim.kind == ClaimKind.REMOVAL,
+                ProfileClaim.status == ClaimStatus.REQUESTED,
+            )
+        )
+        is not None
+    )
+
+
 # ------------------------------------------------------------ link holder side
 def _find(db: DbDep, token: str, *, lock: bool = False) -> ProfileClaimInvite:
     q = select(ProfileClaimInvite).where(ProfileClaimInvite.token_hash == token_hash(token))
@@ -198,7 +231,8 @@ def _gone(inv: ProfileClaimInvite, user: User) -> None:
     state = _state(inv)
     if state == "expired":
         raise ApiError("This invite link has expired", code="invite_expired", status_code=410)
-    if state == "used" and inv.used_by != user.id:
+    # After "this isn't me" the link shows nothing to anyone, including whoever declined it.
+    if state == "declined" or (state == "used" and inv.used_by != user.id):
         raise ApiError("This invite link has already been used", code="invite_used", status_code=410)
 
 
@@ -210,9 +244,9 @@ def preview_claim_invite(token: str, user: CurrentUser, db: DbDep) -> ClaimInvit
     person = _live_person(db, inv)
     tree = db.get(Tree, inv.tree_id)
     inviter = db.get(User, inv.created_by) if inv.created_by else None
-    claim_id = None
+    claim = None
     if inv.used_by == user.id:
-        claim_id = db.scalar(select(ProfileClaim.id).where(ProfileClaim.invite_id == inv.id))
+        claim = db.scalar(select(ProfileClaim).where(ProfileClaim.invite_id == inv.id))
     return ClaimInvitePreview(
         tree_name=tree.name if tree else "",
         person_name=person.preferred_display_name,
@@ -220,7 +254,8 @@ def preview_claim_invite(token: str, user: CurrentUser, db: DbDep) -> ClaimInvit
         offered_role=inv.offered_role,
         expires_at=inv.expires_at,
         state=_state(inv),
-        claim_id=claim_id,
+        claim_id=claim.id if claim else None,
+        claim_kind=claim.kind if claim else None,
     )
 
 
@@ -239,6 +274,8 @@ def accept_claim_invite(token: str, body: ClaimInviteAccept, user: CurrentUser, 
     person = _live_person(db, inv)
     if person.claimed_by_user_id is not None:
         raise Conflict("This profile has already been claimed", code="already_claimed")
+    if pending_removal(db, inv.tree_id, person.id):
+        raise Conflict("This person has asked to be removed from the tree", code="removal_pending")
     already_linked = db.scalar(
         select(Person.id).where(
             Person.tree_id == inv.tree_id, Person.claimed_by_user_id == user.id, Person.deleted_at.is_(None)
@@ -275,6 +312,101 @@ def accept_claim_invite(token: str, body: ClaimInviteAccept, user: CurrentUser, 
     tree = db.get(Tree, inv.tree_id)
     return ClaimSubmitted(
         claim_id=claim.id,
+        status=claim.status,
+        tree_name=tree.name if tree else "",
+        person_name=person.preferred_display_name,
+    )
+
+
+def _use(inv: ProfileClaimInvite, user: User) -> dt.datetime:
+    if inv.used_at is not None:
+        raise Conflict("You have already used this invite", code="invite_used")
+    now = dt.datetime.now(dt.UTC)
+    inv.used_at = now
+    inv.used_by = user.id
+    return now
+
+
+@router.post("/claim-invites/{token}/decline", response_model=Message)
+def decline_claim_invite(token: str, user: CurrentUser, db: DbDep) -> Message:
+    """Answer "this isn't me": cancel the link. No person data is read back or changed."""
+    enforce(f"claim-invite:open:{user.id}", 30, 60)
+    inv = _find(db, token, lock=True)
+    _gone(inv, user)
+    inv.declined_at = _use(inv, user)
+    audit.record(
+        db,
+        action="profile.claim_invite_declined",
+        actor_user_id=user.id,
+        tree_id=inv.tree_id,
+        target_type="person",
+        target_id=inv.person_id,
+        details={"reason": "not_me"},
+    )
+    return Message(message="Thanks for letting us know. This link no longer works.")
+
+
+@router.post(
+    "/claim-invites/{token}/request-removal",
+    response_model=ClaimSubmitted,
+    status_code=status.HTTP_201_CREATED,
+)
+def request_removal(token: str, body: RemovalRequestIn, user: CurrentUser, db: DbDep) -> ClaimSubmitted:
+    """Answer "this is me, remove me": hide the profile now and ask a tree admin to erase it.
+
+    The link is a bearer token that may have been forwarded, so it never erases anything by itself:
+    hiding is immediate and reversible, erasure needs an admin (ADR-0011).
+    """
+    enforce(f"claim-invite:open:{user.id}", 30, 60)
+    inv = _find(db, token, lock=True)
+    _gone(inv, user)
+    if not body.confirm_is_me:
+        raise Unprocessable("Please confirm that this profile is about you", code="confirmation_required")
+    person = _live_person(db, inv)
+    if person.claimed_by_user_id is not None:
+        # a claimed profile is managed by its owner, never by whoever holds an old link
+        raise Conflict("This profile has already been claimed", code="already_claimed")
+    now = _use(inv, user)
+    restore = None
+    if person.privacy_level not in _HIDDEN_LEVELS:
+        restore = person.privacy_level
+        person.privacy_level = PrivacyLevel.PRIVATE_TREE_ADMINS
+    claim = ProfileClaim(
+        tree_id=inv.tree_id,
+        person_id=person.id,
+        user_id=user.id,
+        kind=ClaimKind.REMOVAL,
+        message=body.message,
+        invite_id=inv.id,
+        restore_privacy_level=restore,
+        created_by=user.id,
+    )
+    db.add(claim)
+    # nobody else can claim the profile through another link while the request is open
+    for other in db.scalars(
+        select(ProfileClaimInvite).where(
+            ProfileClaimInvite.tree_id == inv.tree_id,
+            ProfileClaimInvite.person_id == person.id,
+            ProfileClaimInvite.id != inv.id,
+            ProfileClaimInvite.used_at.is_(None),
+            ProfileClaimInvite.revoked_at.is_(None),
+        )
+    ):
+        other.revoked_at = now
+    db.flush()
+    audit.record(
+        db,
+        action="profile.removal_requested",
+        actor_user_id=user.id,
+        tree_id=inv.tree_id,
+        target_type="person",
+        target_id=person.id,
+        details={"via": "invite", "hidden": restore is not None},
+    )
+    tree = db.get(Tree, inv.tree_id)
+    return ClaimSubmitted(
+        claim_id=claim.id,
+        kind=claim.kind,
         status=claim.status,
         tree_name=tree.name if tree else "",
         person_name=person.preferred_display_name,

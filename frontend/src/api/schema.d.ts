@@ -196,7 +196,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change Password */
+        /**
+         * Change Password
+         * @description Change the password; also the only way out of a forced change (``must_change_password``).
+         */
         post: operations["change_password_api_v1_auth_password_post"];
         delete?: never;
         options?: never;
@@ -272,6 +275,63 @@ export interface paths {
          *     Family data the user added stays with the tree (it belongs to the family archive).
          */
         post: operations["close_account_api_v1_auth_close_account_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Providers
+         * @description Which external sign-in options this server offers (the SPA shows only these).
+         */
+        get: operations["providers_api_v1_auth_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Start */
+        get: operations["google_start_api_v1_auth_google_start_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Google Callback
+         * @description Finish the Google flow: check state + nonce, exchange the code, then find/link/create the account.
+         */
+        get: operations["google_callback_api_v1_auth_google_callback_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1484,6 +1544,49 @@ export interface paths {
         put?: never;
         /** Accept Claim Invite */
         post: operations["accept_claim_invite_api_v1_claim_invites__token__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-invites/{token}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Claim Invite
+         * @description Answer "this isn't me": cancel the link. No person data is read back or changed.
+         */
+        post: operations["decline_claim_invite_api_v1_claim_invites__token__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-invites/{token}/request-removal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Removal
+         * @description Answer "this is me, remove me": hide the profile now and ask a tree admin to erase it.
+         *
+         *     The link is a bearer token that may have been forwarded, so it never erases anything by itself:
+         *     hiding is immediate and reversible, erasure needs an admin (ADR-0011).
+         */
+        post: operations["request_removal_api_v1_claim_invites__token__request_removal_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2944,7 +3047,7 @@ export interface components {
              * @default active
              * @enum {string}
              */
-            state?: "active" | "used" | "expired" | "revoked";
+            state?: "active" | "used" | "declined" | "expired" | "revoked";
             /** Url */
             url: string;
             /** Token */
@@ -2984,7 +3087,7 @@ export interface components {
              * @default active
              * @enum {string}
              */
-            state?: "active" | "used" | "expired" | "revoked";
+            state?: "active" | "used" | "declined" | "expired" | "revoked";
         };
         /** ClaimInvitePreview */
         ClaimInvitePreview: {
@@ -3004,10 +3107,16 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "active" | "used" | "expired" | "revoked";
+            state: "active" | "used" | "declined" | "expired" | "revoked";
             /** Claim Id */
             claim_id?: string | null;
+            claim_kind?: components["schemas"]["ClaimKind"] | null;
         };
+        /**
+         * ClaimKind
+         * @enum {string}
+         */
+        ClaimKind: "claim" | "removal";
         /** ClaimOut */
         ClaimOut: {
             /**
@@ -3025,6 +3134,8 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+            /** @default claim */
+            kind?: components["schemas"]["ClaimKind"];
             status: components["schemas"]["ClaimStatus"];
             /** Message */
             message: string | null;
@@ -3080,6 +3191,8 @@ export interface components {
              * Format: uuid
              */
             claim_id: string;
+            /** @default claim */
+            kind?: components["schemas"]["ClaimKind"];
             status: components["schemas"]["ClaimStatus"];
             /** Tree Name */
             tree_name: string;
@@ -5807,6 +5920,14 @@ export interface components {
             /** Confirmed At */
             confirmed_at?: string | null;
         };
+        /** ProvidersOut */
+        ProvidersOut: {
+            /**
+             * Google
+             * @default false
+             */
+            google?: boolean;
+        };
         /**
          * PublicMode
          * @enum {string}
@@ -6037,6 +6158,13 @@ export interface components {
             person: components["schemas"]["PersonSummary"];
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
+        };
+        /** RemovalRequestIn */
+        RemovalRequestIn: {
+            /** Confirm Is Me */
+            confirm_is_me: boolean;
+            /** Message */
+            message?: string | null;
         };
         /** ReprocessOut */
         ReprocessOut: {
@@ -6604,6 +6732,11 @@ export interface components {
              * @default false
              */
             email_verified?: boolean;
+            /**
+             * Must Change Password
+             * @default false
+             */
+            must_change_password?: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -7138,6 +7271,86 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Message"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    providers_api_v1_auth_providers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProvidersOut"];
+                };
+            };
+        };
+    };
+    google_start_api_v1_auth_google_start_get: {
+        parameters: {
+            query?: {
+                next?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    google_callback_api_v1_auth_google_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -10457,6 +10670,72 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ClaimInviteAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimSubmitted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_claim_invite_api_v1_claim_invites__token__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_removal_api_v1_claim_invites__token__request_removal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovalRequestIn"];
             };
         };
         responses: {

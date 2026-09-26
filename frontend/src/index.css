@@ -27,6 +27,33 @@
   --color-leaf-50: #eef7f0;
   --color-leaf-700: #22643a;
   --color-indigo-deep: #26336b;
+
+  /* Landing hero: slow cinematic pan, and a diya flame. Used only behind motion-safe:. */
+  --animate-kenburns: kenburns 38s ease-in-out infinite alternate;
+  --animate-flicker: flicker 2.4s ease-in-out infinite alternate;
+
+  @keyframes kenburns {
+    from {
+      transform: scale(1.06) translate3d(-2%, 0, 0);
+    }
+    to {
+      transform: scale(1.16) translate3d(2.5%, -1.5%, 0);
+    }
+  }
+  @keyframes flicker {
+    0% {
+      transform: scale(1, 1) rotate(-2deg);
+      opacity: 0.92;
+    }
+    50% {
+      transform: scale(0.94, 1.06) rotate(1deg);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.04, 0.96) rotate(2deg);
+      opacity: 0.88;
+    }
+  }
 }
 
 @layer base {

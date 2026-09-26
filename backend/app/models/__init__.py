@@ -15,7 +15,7 @@ from app.models.evidence import Citation, Source
 from app.models.family import BranchMembership, FamilyBranch, Household, HouseholdMembership
 from app.models.genealogy import Event, EventParticipant, MergeRecord, NameRecord, Person, Place, Relationship
 from app.models.heritage import Assertion
-from app.models.identity import AuthToken, AuthTokenPurpose, User, UserSession
+from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
 from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClaim, ProfileClaimInvite
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
@@ -41,6 +41,7 @@ __all__ = [
     "Event",
     "EventParticipant",
     "ExportJob",
+    "ExternalIdentity",
     "ExtractionProposal",
     "FamilyBranch",
     "FamilyDataAttestation",

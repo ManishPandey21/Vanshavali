@@ -388,6 +388,7 @@
      "auth"
     ],
     "summary": "Change Password",
+    "description": "Change the password; also the only way out of a forced change (``must_change_password``).",
     "operationId": "change_password_api_v1_auth_password_post",
     "requestBody": {
      "content": {
@@ -554,6 +555,149 @@
         }
        }
       }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/providers": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Providers",
+    "description": "Which external sign-in options this server offers (the SPA shows only these).",
+    "operationId": "providers_api_v1_auth_providers_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProvidersOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/google/start": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Google Start",
+    "operationId": "google_start_api_v1_auth_google_start_get",
+    "parameters": [
+     {
+      "name": "next",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 2000
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Next"
+      }
+     }
+    ],
+    "responses": {
+     "303": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/google/callback": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Google Callback",
+    "description": "Finish the Google flow: check state + nonce, exchange the code, then find/link/create the account.",
+    "operationId": "google_callback_api_v1_auth_google_callback_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 2000
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Code"
+      }
+     },
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "State"
+      }
+     },
+     {
+      "name": "error",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Error"
+      }
+     }
+    ],
+    "responses": {
+     "303": {
+      "description": "Successful Response"
      },
      "422": {
       "description": "Validation Error",
@@ -6311,6 +6455,102 @@
       "application/json": {
        "schema": {
         "$ref": "#/components/schemas/ClaimInviteAccept"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ClaimSubmitted"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/claim-invites/{token}/decline": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Decline Claim Invite",
+    "description": "Answer \"this isn't me\": cancel the link. No person data is read back or changed.",
+    "operationId": "decline_claim_invite_api_v1_claim_invites__token__decline_post",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/claim-invites/{token}/request-removal": {
+   "post": {
+    "tags": [
+     "consent"
+    ],
+    "summary": "Request Removal",
+    "description": "Answer \"this is me, remove me\": hide the profile now and ask a tree admin to erase it.\n\nThe link is a bearer token that may have been forwarded, so it never erases anything by itself:\nhiding is immediate and reversible, erasure needs an admin (ADR-0011).",
+    "operationId": "request_removal_api_v1_claim_invites__token__request_removal_post",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RemovalRequestIn"
        }
       }
      }
@@ -12420,6 +12660,7 @@
       "enum": [
        "active",
        "used",
+       "declined",
        "expired",
        "revoked"
       ],
@@ -12516,6 +12757,7 @@
       "enum": [
        "active",
        "used",
+       "declined",
        "expired",
        "revoked"
       ],
@@ -12570,6 +12812,7 @@
       "enum": [
        "active",
        "used",
+       "declined",
        "expired",
        "revoked"
       ],
@@ -12586,6 +12829,16 @@
        }
       ],
       "title": "Claim Id"
+     },
+     "claim_kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClaimKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -12598,6 +12851,14 @@
      "state"
     ],
     "title": "ClaimInvitePreview"
+   },
+   "ClaimKind": {
+    "type": "string",
+    "enum": [
+     "claim",
+     "removal"
+    ],
+    "title": "ClaimKind"
    },
    "ClaimOut": {
     "properties": {
@@ -12615,6 +12876,10 @@
       "type": "string",
       "format": "uuid",
       "title": "User Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ClaimKind",
+      "default": "claim"
      },
      "status": {
       "$ref": "#/components/schemas/ClaimStatus"
@@ -12782,6 +13047,10 @@
       "type": "string",
       "format": "uuid",
       "title": "Claim Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ClaimKind",
+      "default": "claim"
      },
      "status": {
       "$ref": "#/components/schemas/ClaimStatus"
@@ -21921,6 +22190,17 @@
     ],
     "title": "ProvenanceOut"
    },
+   "ProvidersOut": {
+    "properties": {
+     "google": {
+      "type": "boolean",
+      "title": "Google",
+      "default": false
+     }
+    },
+    "type": "object",
+    "title": "ProvidersOut"
+   },
    "PublicMode": {
     "type": "string",
     "enum": [
@@ -22745,6 +23025,31 @@
      "relationships"
     ],
     "title": "RelativeOut"
+   },
+   "RemovalRequestIn": {
+    "properties": {
+     "confirm_is_me": {
+      "type": "boolean",
+      "title": "Confirm Is Me"
+     },
+     "message": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Message"
+     }
+    },
+    "type": "object",
+    "required": [
+     "confirm_is_me"
+    ],
+    "title": "RemovalRequestIn"
    },
    "ReprocessOut": {
     "properties": {
@@ -24645,6 +24950,11 @@
      "email_verified": {
       "type": "boolean",
       "title": "Email Verified",
+      "default": false
+     },
+     "must_change_password": {
+      "type": "boolean",
+      "title": "Must Change Password",
       "default": false
      }
     },
