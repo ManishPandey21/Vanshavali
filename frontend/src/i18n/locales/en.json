@@ -1852,7 +1852,7 @@
       "start": "Begin your family tree",
       "startShort": "Start your tree",
       "goToTrees": "Go to my family trees",
-      "readStory": "Read our story"
+      "seeTree": "See the family tree"
     },
     "hero": {
       "shlokaMeaning": "“The world is one family.”",
@@ -1864,14 +1864,8 @@
         "languages": "In English and हिन्दी",
         "yours": "Your records, yours to export"
       },
-      "example": {
-        "caption": "An example family, three generations deep",
-        "you": "आप · You",
-        "private": "Living · private",
-        "gotra": "Gotra: Bharadwaj",
-        "village": "Mool gaon: Chunar",
-        "kuladevi": "Kuladevi: Vindhyavasini"
-      }
+      "sceneAlt": "Illustration: a brass thali being prepared as a Tambool offering, with betel leaves, supari, marigolds, rose petals, kumkum and haldi, beside a lit diya, under a marigold garland.",
+      "sceneCaption": "Tambool — betel leaf, supari and flowers, offered with reverence at every family occasion."
     },
     "story": {
       "kicker": "The Vanshavali tradition",
@@ -1981,6 +1975,13 @@
       "builtWithA": "Built with",
       "builtWithB": "for preserving Indian family heritage.",
       "love": "love"
+    },
+    "showcase": {
+      "kicker": "In your own language",
+      "title": "Your family tree, in the language your family speaks",
+      "lead": "Every screen works in Hindi and in English. Names are kept in every script your family has used, and relationships are named the way you say them.",
+      "alt": "The Vanshavali tree viewer in Hindi, showing three generations of the Sharma family: Suresh and Kamala Sharma, their sons Ramesh and Mahesh with their wives Sunita and Geeta, and grandchildren Aarav, Anaya and Kabir.",
+      "caption": "The real tree viewer, in Hindi. Grandparents who have passed away show their years; the lock marks family members whose details stay private to the family."
     }
   }
 }

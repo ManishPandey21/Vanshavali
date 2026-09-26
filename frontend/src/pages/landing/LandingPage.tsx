@@ -18,6 +18,7 @@ import {
 import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
+import { TamboolScene } from "./TamboolScene";
 
 /**
  * Public landing page ("/" for signed-out visitors, "/welcome" for everyone). Static marketing
@@ -110,91 +111,11 @@ function SectionHeading({ id, kicker, title, lead }: { id: string; kicker: strin
   return (
     <div className="mx-auto max-w-2xl text-center">
       <Kicker>{kicker}</Kicker>
-      <h2 id={id} className="mt-2 font-display text-3xl font-bold text-kumkum-900 sm:text-4xl">
+      <h2 id={id} className="mt-2 font-display text-3xl font-bold text-balance text-kumkum-900 sm:text-4xl">
         {title}
       </h2>
       {lead && <p className="mt-4 text-base text-ink-muted sm:text-lg">{lead}</p>}
     </div>
-  );
-}
-
-/** One member card in the hero's example family. */
-function KinCard({ relation, name, native, dates, living, you }: { relation: string; name: string; native: string; dates?: string; living?: boolean; you?: boolean }) {
-  const { t } = useTranslation();
-  return (
-    <div
-      className={`relative min-w-0 flex-1 rounded-xl border bg-white/95 px-3 py-2.5 shadow-sm ${
-        you ? "border-kumkum-700 ring-2 ring-kumkum-200" : "border-stone-200"
-      }`}
-    >
-      <span className="absolute -top-2.5 left-3 rounded-full bg-haldi-100 px-2 text-[11px] font-semibold text-haldi-700" lang="hi">
-        {relation}
-      </span>
-      <p className="truncate pt-1 text-sm font-semibold text-ink">{name}</p>
-      <p className="truncate text-xs text-ink-muted" lang="hi">
-        {native}
-      </p>
-      <p className="mt-1 flex items-center gap-1 text-[11px] text-ink-muted">
-        {living ? (
-          <>
-            <Lock className="size-3" aria-hidden />
-            {t("landing.hero.example.private")}
-          </>
-        ) : (
-          dates
-        )}
-      </p>
-    </div>
-  );
-}
-
-/** Stretches to the width of its row; draws the drop line from a couple to their child or children. */
-function Connector({ kids = 2 }: { kids?: 1 | 2 }) {
-  return (
-    <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="block h-6 w-full text-haldi-700" aria-hidden focusable="false">
-      <g fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke">
-        <path d="M25 0 V8 H75 V0" vectorEffect="non-scaling-stroke" />
-        {kids === 2 ? (
-          <path d="M50 8 V14 M25 14 H75 M25 14 V24 M75 14 V24" vectorEffect="non-scaling-stroke" />
-        ) : (
-          // Only the left card of the next row is their child; the right one married in.
-          <path d="M50 8 V16 H25 V24" vectorEffect="non-scaling-stroke" />
-        )}
-      </g>
-    </svg>
-  );
-}
-
-function HeroFamily() {
-  const { t } = useTranslation();
-  return (
-    <figure className="relative mx-auto w-full max-w-md" aria-labelledby="hero-family-caption">
-      <Mandala className="pointer-events-none absolute -inset-10 -z-0 m-auto text-haldi-300 opacity-60 motion-safe:animate-[spin_120s_linear_infinite]" />
-      <div className="relative rounded-2xl border border-haldi-300/70 bg-parchment/85 p-4 shadow-xl shadow-kumkum-900/10 backdrop-blur-sm sm:p-5">
-        <div className="flex gap-3">
-          <KinCard relation="दादा" name="Suresh Sharma" native="सुरेश शर्मा" dates="1938 – 2011" />
-          <KinCard relation="दादी" name="Kamala Sharma" native="कमला शर्मा" dates="1942 – 2019" />
-        </div>
-        <Connector kids={1} />
-        <div className="flex gap-3">
-          <KinCard relation="पापा" name="Ramesh Sharma" native="रमेश शर्मा" living />
-          <KinCard relation="मम्मी" name="Sunita Sharma" native="सुनीता शर्मा" living />
-        </div>
-        <Connector />
-        <div className="flex gap-3">
-          <KinCard relation={t("landing.hero.example.you")} name="Aarav Sharma" native="आरव शर्मा" living you />
-          <KinCard relation="बहन" name="Anaya Sharma" native="अनया शर्मा" living />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-1.5 border-t border-dashed border-haldi-300 pt-3 text-[11px] text-ink-muted">
-          <span className="rounded-full bg-white px-2 py-0.5">{t("landing.hero.example.gotra")}</span>
-          <span className="rounded-full bg-white px-2 py-0.5">{t("landing.hero.example.village")}</span>
-          <span className="rounded-full bg-white px-2 py-0.5">{t("landing.hero.example.kuladevi")}</span>
-        </div>
-      </div>
-      <figcaption id="hero-family-caption" className="relative mt-3 text-center text-xs text-ink-muted">
-        {t("landing.hero.example.caption")}
-      </figcaption>
-    </figure>
   );
 }
 
@@ -248,42 +169,76 @@ export function LandingPage() {
 
       <main id="main">
         {/* ---------------------------------------------------------------- hero */}
-        <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-[radial-gradient(ellipse_at_top_left,_#fbe3d6,_#fbf7ef_55%),radial-gradient(ellipse_at_bottom_right,_#fdf1c7,_transparent_50%)]">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-16 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:pb-24">
-            <div className="text-center lg:text-left">
-              <p className="font-display text-xl text-kumkum-700 sm:text-2xl" lang="sa">
+        <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-[#1c0b05] text-parchment">
+          <figure className="absolute inset-0 -z-10 m-0">
+            <TamboolScene label={t("landing.hero.sceneAlt")} className="size-full motion-safe:animate-kenburns" />
+            <figcaption className="absolute right-4 bottom-3 hidden max-w-xs rounded-md bg-[#1c0b05]/70 px-2.5 py-1.5 text-right text-xs text-parchment/85 italic backdrop-blur-sm sm:block">{t("landing.hero.sceneCaption")}</figcaption>
+          </figure>
+          {/* Legibility scrim: darker behind the text column, clear over the thali. */}
+          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1c0b05]/80 via-[#1c0b05]/65 to-[#1c0b05]/90 lg:bg-gradient-to-r lg:from-[#1c0b05]/95 lg:via-[#1c0b05]/70 lg:to-transparent" aria-hidden />
+          <div className="mx-auto flex min-h-[640px] max-w-6xl items-center px-4 py-16 sm:py-20 lg:min-h-[min(86vh,820px)]">
+            <div className="max-w-2xl text-center lg:text-left">
+              <p className="font-display text-xl text-haldi-300 sm:text-2xl" lang="sa">
                 {SHLOKA}
               </p>
-              <p className="mt-1 text-sm text-ink-muted italic">{t("landing.hero.shlokaMeaning")}</p>
-              <h1 id="hero-title" className="mt-6 font-display text-4xl leading-tight font-bold text-kumkum-900 sm:text-5xl lg:text-[3.4rem]">
-                {t("landing.hero.titleA")} <span className="text-kumkum-700">{t("landing.hero.titleB")}</span>
+              <p className="mt-1 text-sm text-parchment/80 italic">{t("landing.hero.shlokaMeaning")}</p>
+              <h1 id="hero-title" className="mt-6 font-display text-4xl leading-tight font-bold text-parchment sm:text-5xl lg:text-[3.6rem]">
+                {t("landing.hero.titleA")} <span className="text-haldi-300">{t("landing.hero.titleB")}</span>
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-base text-ink-muted sm:text-lg lg:mx-0">{t("landing.hero.lead")}</p>
+              <p className="mx-auto mt-5 max-w-xl text-base text-parchment/85 sm:text-lg lg:mx-0">{t("landing.hero.lead")}</p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
                 <Link
                   to={startTo}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-kumkum-700 px-6 py-3 text-base font-semibold text-white shadow-md shadow-kumkum-900/20 hover:bg-kumkum-800 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-haldi-100 px-6 py-3 text-base font-semibold text-kumkum-900 shadow-lg shadow-black/30 hover:bg-white sm:w-auto"
                 >
                   {startLabel}
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
                 <a
-                  href="#story"
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-kumkum-200 bg-white/70 px-6 py-3 text-base font-semibold text-kumkum-800 hover:bg-white sm:w-auto"
+                  href="#showcase"
+                  className="inline-flex w-full items-center justify-center rounded-xl border border-parchment/40 px-6 py-3 text-base font-semibold text-parchment hover:bg-white/10 sm:w-auto"
                 >
-                  {t("landing.cta.readStory")}
+                  {t("landing.cta.seeTree")}
                 </a>
               </div>
-              <ul className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-ink-muted lg:justify-start">
+              <ul className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-parchment/80 lg:justify-start">
                 {(["private", "languages", "yours"] as const).map((k) => (
                   <li key={k} className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-haldi-500" aria-hidden />
+                    <span className="size-1.5 rounded-full bg-haldi-300" aria-hidden />
                     {t(`landing.hero.points.${k}`)}
                   </li>
                 ))}
               </ul>
             </div>
-            <HeroFamily />
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------------- showcase */}
+        <section id="showcase" aria-labelledby="showcase-title" className="scroll-mt-20 bg-[radial-gradient(ellipse_at_top,_#fbe3d6,_#fbf7ef_60%)] px-4 py-20 sm:py-24">
+          <div className="mx-auto max-w-6xl">
+            <SectionHeading id="showcase-title" kicker={t("landing.showcase.kicker")} title={t("landing.showcase.title")} lead={t("landing.showcase.lead")} />
+            <figure className="mx-auto mt-12 max-w-5xl">
+              <div className="overflow-hidden rounded-2xl border border-haldi-300/70 bg-white shadow-2xl shadow-kumkum-900/15">
+                <div className="flex items-center gap-2 border-b border-stone-200 bg-parchment-deep/70 px-4 py-2.5" aria-hidden>
+                  <span className="size-3 rounded-full bg-kumkum-200" />
+                  <span className="size-3 rounded-full bg-haldi-300" />
+                  <span className="size-3 rounded-full bg-leaf-50 ring-1 ring-leaf-700/30" />
+                  <span className="ml-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-ink-muted" lang="hi">
+                    वंशावली · शर्मा परिवार · वंशवृक्ष
+                  </span>
+                </div>
+                <img
+                  src="/landing/tree-viewer-hi.png"
+                  width={2256}
+                  height={1472}
+                  loading="lazy"
+                  decoding="async"
+                  alt={t("landing.showcase.alt")}
+                  className="block h-auto w-full"
+                />
+              </div>
+              <figcaption className="mx-auto mt-4 max-w-2xl text-center text-sm text-ink-muted">{t("landing.showcase.caption")}</figcaption>
+            </figure>
           </div>
         </section>
 

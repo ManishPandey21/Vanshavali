@@ -31,6 +31,8 @@ describe("landing page", () => {
     expect(screen.getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/register");
     expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
     expect(screen.getByText(/for preserving Indian family heritage/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Tambool offering/ })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /tree viewer in Hindi/ })).toHaveAttribute("src", "/landing/tree-viewer-hi.png");
     // Static page: it asks only who is signed in, never for family data.
     expect(calls.every((u) => u.endsWith("/auth/me"))).toBe(true);
   });
