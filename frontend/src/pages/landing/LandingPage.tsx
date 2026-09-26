@@ -18,7 +18,6 @@ import {
 import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
-import { TamboolScene } from "./TamboolScene";
 
 /**
  * Public landing page ("/" for signed-out visitors, "/about" for everyone). Static marketing
@@ -172,11 +171,19 @@ export function LandingPage() {
         {/* ---------------------------------------------------------------- hero */}
         <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-[#1c0b05] text-parchment">
           <figure className="absolute inset-0 -z-10 m-0">
-            <TamboolScene label={t("landing.hero.sceneAlt")} className="size-full motion-safe:animate-kenburns" />
+            <img
+              src="/landing/hero-tambool.webp"
+              width={2000}
+              height={848}
+              alt={t("landing.hero.sceneAlt")}
+              fetchPriority="high"
+              decoding="async"
+              className="size-full object-cover object-center lg:object-left motion-safe:animate-kenburns"
+            />
             <figcaption className="absolute right-4 bottom-3 hidden max-w-xs rounded-md bg-[#1c0b05]/70 px-2.5 py-1.5 text-right text-xs text-parchment/85 italic backdrop-blur-sm sm:block">{t("landing.hero.sceneCaption")}</figcaption>
           </figure>
-          {/* Legibility scrim: darker behind the text column, clear over the thali. */}
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1c0b05]/80 via-[#1c0b05]/65 to-[#1c0b05]/90 lg:bg-gradient-to-r lg:from-[#1c0b05]/95 lg:via-[#1c0b05]/70 lg:to-transparent" aria-hidden />
+          {/* Legibility scrim: dark behind the text column, fading out before the offering on the right. */}
+          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1c0b05]/80 via-[#1c0b05]/65 to-[#1c0b05]/90 lg:bg-gradient-to-r lg:from-[#1c0b05]/90 lg:from-15% lg:via-[#1c0b05]/55 lg:via-45% lg:to-transparent lg:to-75%" aria-hidden />
           <div className="mx-auto flex min-h-[640px] max-w-6xl items-center px-4 py-16 sm:py-20 lg:min-h-[min(86vh,820px)]">
             <div className="max-w-2xl text-center lg:text-left">
               <p className="font-display text-xl text-haldi-300 sm:text-2xl" lang="sa">
