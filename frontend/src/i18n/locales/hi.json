@@ -1846,7 +1846,9 @@
     "events_other": "{{count}} घटनाएँ",
     "commit": "आयात करें: {{create}} नए, {{attach}} मिलान, {{skip}} छोड़े",
     "cancel": "आयात रद्द करें",
-    "committed": "आयात पूरा हुआ"
+    "committed": "आयात पूरा हुआ",
+    "dateUnknown": "तिथि अज्ञात",
+    "placeDateUnknown": "{{place}}, तिथि अज्ञात"
   },
   "archive": {
     "title": "पूरा पारिवारिक संग्रह डाउनलोड करें",

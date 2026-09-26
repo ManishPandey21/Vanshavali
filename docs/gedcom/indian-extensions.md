@@ -167,11 +167,32 @@ It is re-emitted only as part of the preserved payloads (see below).
     `evidence_status USER_ASSERTION` and subtype `gedcom_pedi_<value>`, and a review warning is
     reported.
 
+## Religion (`RELI`)
+
+- An `INDI`-level `RELI` with a value (e.g. `1 RELI Hindu`) becomes a **religion** heritage
+  assertion: `evidence_status USER_ASSERTION`, import provenance, and its `SOUR` citations. It is an
+  explicit statement in the file, so this is not inference; nothing is ever derived from names,
+  places or relatives.
+- A `RELI` without a value is kept verbatim (see below) rather than guessed at.
+- Religion is sensitive. Viewing follows the `religion` field-privacy group. On export the
+  preferred religion is written back as a standard `RELI`, **only** with `include_sensitive=true`
+  and only if the exporter may see it. That is the same bar a preserved `RELI` had before.
+
+## Media-only records and undated events
+
+- An `INDI` record that holds only media is skipped with a `photo_container_skipped` warning.
+  Such a record has `OBJE` but no name, no family links, no events and no known sex; MyHeritage
+  exports its "Unassociated photos" album this way (`_UID Unassociated photos`). Its photos still
+  count towards `media_refs`. An unnamed person with a family link or an event is a real person,
+  and is imported as "Unnamed".
+- The import preview reports an event recorded without a date (e.g. `1 BIRT` with only a `PLAC`,
+  or `1 DEAT Y`) as "India, date unknown" or "date unknown". No date is invented.
+
 ## Unknown extensions (round-trip)
 
 Anything the importer doesn't model is stored verbatim in `gedcom_extension`, with levels
 relative to the structure and the SCHMA URI when there is one. This covers unknown `_TAG` subtrees
-at `INDI` or `FAM` level or inside events, and standard `INDI`/`FAM` substructures such as `RELI`
+at `INDI` or `FAM` level or inside events, and standard `INDI`/`FAM` substructures such as `NATI`
 or `ASSO`.
 
 - Pointers to imported people are rewritten to stable internal ids. Other pointers become

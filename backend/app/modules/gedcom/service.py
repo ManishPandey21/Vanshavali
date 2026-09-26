@@ -251,13 +251,17 @@ def _preview(
     subjects = lookup.visible_subjects(ctx, ids)
     summaries = Serializer(ctx).summaries(subjects) if subjects else {}
 
-    def vital(ind: dict[str, Any], t: str) -> str | None:
+    def vital(ind: dict[str, Any], t: str) -> dict[str, Any]:
+        """Date text, whether the event is recorded at all, and its place — for the first such event."""
         for e in ind.get("events", []):
             if e.get("type") == t:
-                if e.get("date"):
-                    return GenealogicalDate.model_validate(e["date"]).display()
-                return e.get("date_text") or "yes"
-        return None
+                date = GenealogicalDate.model_validate(e["date"]).display() if e.get("date") else None
+                return {
+                    t: date or e.get("date_text"),
+                    f"{t}_recorded": True,
+                    f"{t}_place": e.get("place"),
+                }
+        return {}
 
     out = []
     for ind in page:
@@ -276,8 +280,8 @@ def _preview(
                 display_name=ind.get("display_name") or "Unnamed",
                 sex=ind.get("sex"),
                 profile_status=ind.get("profile_status") or "unknown",
-                birth=vital(ind, "birth"),
-                death=vital(ind, "death"),
+                **vital(ind, "birth"),
+                **vital(ind, "death"),
                 names=[mapping._display(n) for n in ind.get("names", [])][:10],
                 event_count=len(ind.get("events", [])),
                 heritage=sorted({h["attribute"] for h in ind.get("heritage") or []}),

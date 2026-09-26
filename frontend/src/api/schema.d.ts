@@ -6285,6 +6285,20 @@ export interface components {
             /** Death */
             death?: string | null;
             /**
+             * Birth Recorded
+             * @default false
+             */
+            birth_recorded?: boolean;
+            /**
+             * Death Recorded
+             * @default false
+             */
+            death_recorded?: boolean;
+            /** Birth Place */
+            birth_place?: string | null;
+            /** Death Place */
+            death_place?: string | null;
+            /**
              * Names
              * @default []
              */

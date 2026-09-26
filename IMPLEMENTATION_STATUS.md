@@ -4,10 +4,10 @@ Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERI
 tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
-Last verified: 2026-09-25.
-- Backend: `uv run pytest` 237 passed, run as the RLS-restricted app role, including the migration
+Last verified: 2026-09-26.
+- Backend: `uv run pytest` 240 passed, run as the RLS-restricted app role, including the migration
   roundtrip; ruff, ruff `S` and mypy clean.
-- Frontend: lint, typecheck, Vitest (101) and build green.
+- Frontend: lint, typecheck, Vitest (102) and build green.
 - Playwright: 22 tests in 8 specs (core flow, birth certificate review, property partition, viewer
   denied, MFA, password reset, onboarding + WhatsApp claim, accessibility). CI runs the same gates.
   In the dev sandbox, birth certificate review needs Tesseract installed.
@@ -80,7 +80,7 @@ Last verified: 2026-09-25.
 
 | Module | Status | Tests | Notes |
 |---|---|---|---|
-| GEDCOM 5.5/5.5.1/7 import (staging, report, duplicates, decisions, extension preservation) | VERIFIED | `test_gedcom.py` (17) | GEDZIP/media import DEFERRED; large imports run synchronously |
+| GEDCOM 5.5/5.5.1/7 import (staging, report, duplicates, decisions, extension preservation) | VERIFIED | `test_gedcom.py` (22) | Tested against MyHeritage export quirks: the "Unassociated photos" record is skipped, `RELI` becomes a religion assertion (sensitive on export), and undated events read "date unknown" in the preview. GEDZIP/media import DEFERRED; large imports run synchronously |
 | GEDCOM 7 export (SCHMA `_IND_*` URIs, privacy-filtered) | VERIFIED | `test_gedcom.py` incl. round trip | |
 | Full archival ZIP (manifest, checksums, GEDCOM, canonical JSON, property, documents) | VERIFIED | `test_archive.py` | Built synchronously; a background job for very large archives is DEFERRED |
 | Frontend: import/export (GEDCOM + archive) | VERIFIED | Vitest | |

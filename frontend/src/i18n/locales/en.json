@@ -1846,7 +1846,9 @@
     "events_other": "{{count}} events",
     "commit": "Import: {{create}} new, {{attach}} matched, {{skip}} skipped",
     "cancel": "Cancel import",
-    "committed": "Import committed"
+    "committed": "Import committed",
+    "dateUnknown": "date unknown",
+    "placeDateUnknown": "{{place}}, date unknown"
   },
   "archive": {
     "title": "Download full family archive",
