@@ -24,6 +24,7 @@ import { SourcesPage } from "./pages/tree/SourcesPage";
 import { DuplicatesPage, SearchPage } from "./pages/tree/SearchPages";
 import { AuditPage, ClaimsPage, InvitationsPage, MembersPage, RestorePeoplePage, SettingsPage } from "./pages/tree/AdminPages";
 import { PublicPersonPage, PublicTreePage } from "./pages/public/PublicPages";
+import { LandingPage } from "./pages/landing/LandingPage";
 
 // Records modules (documents, property, GEDCOM) are loaded on demand to keep the first load small.
 const DocumentsPage = lazy(() => import("./pages/tree/documents/DocumentsPage").then((m) => ({ default: m.DocumentsPage })));
@@ -70,6 +71,8 @@ function RequireAuth() {
   const me = useMe();
   const location = useLocation();
   if (me.isLoading) return <Spinner />;
+  // Signed-out visitors to the home page see the public landing page rather than a sign-in form.
+  if (!me.data && location.pathname === "/") return <LandingPage />;
   if (!me.data) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   return <Outlet />;
 }
@@ -82,6 +85,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/welcome" element={<LandingPage />} />
         <Route path="/invite/:token" element={<AcceptInvitePage />} />
         <Route path="/p/:slug" element={<PublicTreePage />} />
         <Route path="/p/:slug/people/:personId" element={<PublicPersonPage />} />

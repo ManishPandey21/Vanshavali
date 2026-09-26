@@ -34,7 +34,7 @@ function AuthFrame({ title, subtitle, children, footer }: { title: string; subti
   return (
     <div className="flex min-h-dvh flex-col bg-[radial-gradient(ellipse_at_top,_#fbe3d6,_#fbf7ef_60%)]">
       <header className="flex items-center justify-between px-4 py-3">
-        <BrandMark to="/login" />
+        <BrandMark to="/" />
         <LanguageSwitcher />
       </header>
       <main id="main" className="flex flex-1 items-start justify-center px-4 py-8 sm:items-center">
