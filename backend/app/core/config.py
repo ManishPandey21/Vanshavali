@@ -68,6 +68,8 @@ class Settings(BaseSettings):
 
     # Upload limits
     max_upload_bytes: int = 50 * 1024 * 1024
+    # GEDCOM import packages (a .zip or GEDZIP .gdz with the .ged and its photos, ADR-0013)
+    max_gedcom_package_bytes: int = 250 * 1024 * 1024
     max_pdf_pages: int = 300
     max_image_pixels: int = 80_000_000
 

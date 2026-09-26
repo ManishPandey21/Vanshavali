@@ -1848,7 +1848,9 @@
       "media_refs": "Media refs",
       "notes": "Notes",
       "repositories": "Repositories",
-      "preserved_structures": "Preserved structures"
+      "preserved_structures": "Preserved structures",
+      "photos_matched": "Photos found",
+      "photos_unlinked": "Photos not linked to anyone"
     },
     "errors_one": "{{count}} error",
     "errors_other": "{{count}} errors",
@@ -1875,7 +1877,18 @@
     "cancel": "Cancel import",
     "committed": "Import committed",
     "dateUnknown": "date unknown",
-    "placeDateUnknown": "{{place}}, date unknown"
+    "placeDateUnknown": "{{place}}, date unknown",
+    "photosHint": "To bring photos along, put the .ged file and its photos folder (for example “Family Tree_Photos”) in one zip and upload the zip. A GEDZIP (.gdz) file works too.",
+    "photosNotUploaded_one": "This file refers to {{count}} photo, but it wasn't uploaded. To import photos, zip the .ged file together with its photos folder and upload the zip instead.",
+    "photosNotUploaded_other": "This file refers to {{count}} photos, but they weren't uploaded. To import photos, zip the .ged file together with its photos folder and upload the zip instead.",
+    "photosFound_one": "Photos: {{matched}} of {{count}} found in the zip, for {{people}} people. They are checked and added to each person's documents when you import.",
+    "photosFound_other": "Photos: {{matched}} of {{count}} found in the zip, for {{people}} people. They are checked and added to each person's documents when you import.",
+    "photosSkipped_one": "{{count}} photo will be skipped (not in the zip, or more than one file matches)",
+    "photosSkipped_other": "{{count}} photos will be skipped (not in the zip, or more than one file matches)",
+    "photosImported_one": "{{count}} photo imported and linked to people.",
+    "photosImported_other": "{{count}} photos imported and linked to people.",
+    "photosRejected_one": "{{count}} file was rejected by the safety checks.",
+    "photosRejected_other": "{{count}} files were rejected by the safety checks."
   },
   "archive": {
     "title": "Download full family archive",

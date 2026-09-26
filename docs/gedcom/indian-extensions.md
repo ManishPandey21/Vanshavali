@@ -188,6 +188,18 @@ It is re-emitted only as part of the preserved payloads (see below).
 - The import preview reports an event recorded without a date (e.g. `1 BIRT` with only a `PLAC`,
   or `1 DEAT Y`) as "India, date unknown" or "date unknown". No date is invented.
 
+## Photos (`OBJE`) and GEDCOM packages
+
+- Upload the `.ged` on its own, or a **zip** of the `.ged` with its photos folder (for example
+  MyHeritage's `…_Photos`), or a GEDZIP (`.gdz`). Details and limits: ADR-0013.
+- Each person's `OBJE` (inline, or a pointer to an `OBJE` record) is matched to a file in the zip,
+  first by relative path (GEDZIP), then by file name (for absolute paths such as MyHeritage's
+  `C:\Users\…\P1.jpg`). The report lists photos that are missing or match more than one file.
+- On import, each matched photo of a newly created person goes through the normal document
+  pipeline (type check, malware scan, encrypted storage) and is linked to that person, with the
+  person's privacy level. Photos held by no person are counted as `photos_unlinked` and not stored.
+- `_PRIM`, `_POSITION` and `_CUTOUT` (MyHeritage primary photo and face crops) are not modelled yet.
+
 ## Unknown extensions (round-trip)
 
 Anything the importer doesn't model is stored verbatim in `gedcom_extension`, with levels

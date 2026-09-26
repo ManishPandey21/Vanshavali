@@ -19,3 +19,4 @@ into 0003, 0009 and 0010.
 | 0010 | [Ancestral property model](0010-property-model.md) | Accepted |
 | 0011 | [Onboarding, family-data attestation and shareable claim invites](0011-onboarding-attestation-claim-invites.md) | Accepted |
 | 0012 | [Sign in with Google (OIDC) and forced password change](0012-google-sign-in.md) | Accepted |
+| 0013 | [Importing photos with a GEDCOM file](0013-gedcom-photo-import.md) | Accepted |

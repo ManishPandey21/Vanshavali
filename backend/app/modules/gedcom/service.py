@@ -23,7 +23,7 @@ from app.core.storage import get_store
 from app.core.textnorm import search_key
 from app.models import ExportJob, ImportJob, NameRecord
 from app.models.enums import JobStatus
-from app.modules.gedcom import importer, mapping, parser
+from app.modules.gedcom import importer, mapping, media, package, parser
 from app.modules.gedcom.exporter import Exporter
 from app.modules.gedcom.schemas import (
     CommitIn,
@@ -175,7 +175,20 @@ def list_jobs(ctx: TreeContext) -> list[ImportJobSummary]:
 def upload(ctx: TreeContext, filename: str | None, data: bytes) -> ImportJob:
     ctx.require(Permission.GEDCOM_IMPORT)
     settings = get_settings()
-    if len(data) > settings.max_upload_bytes:
+    original = data
+    pkg: package.Package | None = None
+    if package.is_package(data):
+        # a GEDZIP / .zip with the .ged and its photos (ADR-0013)
+        if len(data) > settings.max_gedcom_package_bytes:
+            raise ApiError(
+                "The zip file is larger than the upload limit",
+                code="file_too_large",
+                status_code=413,
+                details={"max_bytes": settings.max_gedcom_package_bytes},
+            )
+        pkg = package.open_package(data, max_total_bytes=settings.max_gedcom_package_bytes)
+        data = pkg.gedcom_bytes(settings.max_upload_bytes)
+    elif len(data) > settings.max_upload_bytes:
         raise ApiError(
             "The file is larger than the upload limit",
             code="file_too_large",
@@ -184,10 +197,6 @@ def upload(ctx: TreeContext, filename: str | None, data: bytes) -> ImportJob:
         )
     if not data.strip():
         raise Unprocessable("The file is empty", code="empty_file")
-    if data[:4] == b"PK\x03\x04":
-        raise Unprocessable(
-            "GEDZIP (.gdz) packages are not supported yet; upload the .ged file", code="unsupported_format"
-        )
     if not parser.looks_like_gedcom(data):
         raise Unprocessable("This does not look like a GEDCOM file (no '0 HEAD' line)", code="not_gedcom")
     job = ImportJob(
@@ -195,18 +204,45 @@ def upload(ctx: TreeContext, filename: str | None, data: bytes) -> ImportJob:
         tree_id=ctx.tree_id,
         format="gedcom",
         status=JobStatus.RUNNING,
-        original_filename=(filename or "upload.ged")[:400],
+        original_filename=(filename or ("upload.zip" if pkg else "upload.ged"))[:400],
         created_by=ctx.user_id,
     )
     ctx.db.add(job)
     ctx.db.flush()
-    key = f"SYSTEM/{ctx.tree_id}/imports/{job.id}/original.ged"
-    get_store().put_immutable(key, data, key_id="STANDARD")
+    key = f"SYSTEM/{ctx.tree_id}/imports/{job.id}/original.{'zip' if pkg else 'ged'}"
+    get_store().put_immutable(key, original, key_id="STANDARD")
     job.original_storage_key = key
-    file_info = {"size_bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+    file_info = {"size_bytes": len(original), "sha256": hashlib.sha256(original).hexdigest()}
+    if pkg:
+        file_info["package"] = True
+        file_info["gedcom_name"] = package.basename(pkg.gedcom_name)
     try:
         result = parser.parse(data, max_bytes=settings.max_upload_bytes, max_records=MAX_RECORDS)
         staged, report = mapping.stage(result)
+        staged["package"] = pkg is not None
+        photos = media.match(staged, pkg)
+        report["photos"] = photos
+        report["counts"]["photos_matched"] = photos["matched"]
+        if photos["referenced"] and not pkg:
+            report["warnings"].append(
+                {
+                    "line": None,
+                    "code": "photos_not_in_upload",
+                    "message": f"The file refers to {photos['referenced']} photo(s). To import them, upload a "
+                    "zip of the .ged file together with its photos folder.",
+                    "severity": "warning",
+                }
+            )
+        elif photos["missing"] or photos["ambiguous"]:
+            report["warnings"].append(
+                {
+                    "line": None,
+                    "code": "photos_unmatched",
+                    "message": f"{photos['missing']} photo(s) are not in the zip and {photos['ambiguous']} "
+                    "match more than one file; those are skipped.",
+                    "severity": "warning",
+                }
+            )
         report["duplicates"] = find_duplicates(ctx, staged["individuals"])
         if len(staged["individuals"]) > MAX_DUPLICATE_CHECK:
             report["warnings"].append(
@@ -315,7 +351,11 @@ def commit(ctx: TreeContext, job_id: uuid.UUID, body: CommitIn) -> ImportJob:
         raise Conflict(f"This import cannot be committed (status {job.status.value})", code="not_ready")
     raw = {k: (v if isinstance(v, str) else {"attach": str(v.attach)}) for k, v in body.decisions.items()}
     decisions = importer.normalise_decisions(ctx, job.staged or {}, raw)
-    result = importer.Importer(ctx, job, decisions).run()
+    imp = importer.Importer(ctx, job, decisions)
+    result = imp.run()
+    photos = media.import_photos(ctx, job, imp)
+    result["counts"].update(photos["counts"])
+    result["warnings"].extend(photos["warnings"])
     job.decisions = {
         x: (kind if pid is None else {"attach": str(pid)}) for x, (kind, pid) in decisions.items()
     }
@@ -330,6 +370,14 @@ def commit(ctx: TreeContext, job_id: uuid.UUID, body: CommitIn) -> ImportJob:
         target_id=job.id,
         details={"counts": result["counts"], "warnings": len(result["warnings"])},
     )
+    # previews for the imported photos (commits first; inline in sync job mode)
+    from app.models import Document
+    from app.modules.documents import service as documents
+
+    for doc_id in photos["new_document_ids"]:
+        doc = ctx.db.get(Document, uuid.UUID(doc_id))
+        if doc is not None:
+            documents.schedule_processing(ctx, doc)
     return job
 
 

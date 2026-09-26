@@ -51,6 +51,8 @@ OTHER_FAM_EVENTS = frozenset({"ANUL", "DIVF", "ENGA", "MARB", "MARC", "MARL", "M
 # heritage assertions (user assertions with import provenance); nothing is ever inferred from them.
 STANDARD_ASSERTIONS: dict[str, str] = {"RELI": HeritageAttribute.RELIGION.value}
 
+MAX_PHOTOS_PER_PERSON = 50
+
 # Structure an INDI record may carry and still be only a photo container (see _is_photo_container).
 _PHOTO_CONTAINER_TAGS = frozenset({"OBJE", "RIN", "_UID", "_UPD", "SEX", "CHAN", "UID", "REFN"})
 
@@ -105,6 +107,8 @@ class Stager:
         self.unknown_ext: Counter[str] = Counter()
         self.unsupported: Counter[str] = Counter()
         self.media_refs = 0
+        self.media_records: dict[str, Node] = {}  # top-level OBJE records, for pointers
+        self.photos_unlinked = 0  # media held by records that are not people (ADR-0013)
         self.places: set[str] = set()
         self.notes_index: dict[str, str] = {}
         self.repos: dict[str, str] = {}
@@ -182,6 +186,39 @@ class Stager:
     def _media(self, node: Node) -> None:
         self.media_refs += len(node.all("OBJE"))
 
+    def _media_list(self, node: Node) -> list[dict[str, Any]]:
+        """A person's photos: inline OBJE, or pointers to top-level OBJE records (ADR-0013).
+
+        GEDCOM 5.5.1 puts FORM/TITL next to FILE or under it; GEDCOM 7 puts them under FILE.
+        """
+        out: list[dict[str, Any]] = []
+        for o in node.all("OBJE"):
+            rec = self.media_records.get(o.pointer or "") if o.pointer else o
+            if rec is None:
+                if o.pointer:
+                    self.warn(o.line, "dangling_pointer", f"Media object {o.pointer} is not defined")
+                continue
+            files = []
+            for f in rec.all("FILE"):
+                path = (f.value or "").strip()
+                if not path:
+                    continue
+                files.append(
+                    {
+                        "file": _clip(path, 1000),
+                        "form": _clip(f.val("FORM") or rec.val("FORM"), 60),
+                        "title": _clip(f.val("TITL") or rec.val("TITL"), 300),
+                    }
+                )
+            if files:
+                out.append(
+                    {
+                        "files": files[:10],
+                        "primary": (o.val("_PRIM") or rec.val("_PRIM") or "").upper() == "Y",
+                    }
+                )
+        return out[:MAX_PHOTOS_PER_PERSON]
+
     # ------------------------------------------------------------------ top level
     def run(self) -> tuple[dict[str, Any], dict[str, Any]]:
         records = self.result.records
@@ -192,6 +229,8 @@ class Stager:
                 self.note_count += 1
             elif r.tag == "REPO" and r.xref:
                 self.repos[r.xref] = _clip(r.val("NAME"), 300) or ""
+            elif r.tag == "OBJE" and r.xref:
+                self.media_records[r.xref] = r
         for r in records:
             if r.tag == "SOUR":
                 self._stage_source(r)
@@ -204,6 +243,7 @@ class Stager:
             if r.tag == "INDI" and _is_photo_container(r):
                 # e.g. MyHeritage's "Unassociated photos" pseudo-person: not a person, never staged
                 self.media_refs += len(r.all("OBJE"))
+                self.photos_unlinked += sum(len(m["files"]) for m in self._media_list(r))
                 self.warn(
                     r.line,
                     "photo_container_skipped",
@@ -258,6 +298,7 @@ class Stager:
                 "notes": self.note_count,
                 "repositories": len(self.repos),
                 "preserved_structures": self.preserved_count,
+                "photos_unlinked": self.photos_unlinked,
             },
             "extension_tags": dict(sorted(self.ext_used.items())),
             "unknown_extension_tags": dict(sorted(self.unknown_ext.items())),
@@ -658,6 +699,7 @@ class Stager:
             "preserved": preserved,
             "citations": self._citations(r),
             "occupation": _clip(occupation, 200),
+            "media": self._media_list(r),
         }
 
     def _stage_astrology(self, astrology: dict[str, Any], d: ext.ExtensionDef, c: Node) -> None:

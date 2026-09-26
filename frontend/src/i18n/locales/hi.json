@@ -1848,7 +1848,9 @@
       "media_refs": "मीडिया संदर्भ",
       "notes": "टिप्पणियाँ",
       "repositories": "संग्रहालय",
-      "preserved_structures": "सुरक्षित संरचनाएँ"
+      "preserved_structures": "सुरक्षित संरचनाएँ",
+      "photos_matched": "मिली फ़ोटो",
+      "photos_unlinked": "किसी से न जुड़ी फ़ोटो"
     },
     "errors_one": "{{count}} त्रुटि",
     "errors_other": "{{count}} त्रुटियाँ",
@@ -1875,7 +1877,18 @@
     "cancel": "आयात रद्द करें",
     "committed": "आयात पूरा हुआ",
     "dateUnknown": "तिथि अज्ञात",
-    "placeDateUnknown": "{{place}}, तिथि अज्ञात"
+    "placeDateUnknown": "{{place}}, तिथि अज्ञात",
+    "photosHint": "फ़ोटो साथ लाने के लिए, .ged फ़ाइल और उसका फ़ोटो फ़ोल्डर (जैसे “Family Tree_Photos”) एक zip में रखकर वह zip अपलोड करें। GEDZIP (.gdz) फ़ाइल भी चलती है।",
+    "photosNotUploaded_one": "इस फ़ाइल में {{count}} फ़ोटो का उल्लेख है, पर वह अपलोड नहीं हुई। फ़ोटो लाने के लिए .ged फ़ाइल और उसका फ़ोटो फ़ोल्डर एक zip में रखकर वह zip अपलोड करें।",
+    "photosNotUploaded_other": "इस फ़ाइल में {{count}} फ़ोटो का उल्लेख है, पर वे अपलोड नहीं हुईं। फ़ोटो लाने के लिए .ged फ़ाइल और उसका फ़ोटो फ़ोल्डर एक zip में रखकर वह zip अपलोड करें।",
+    "photosFound_one": "फ़ोटो: {{count}} में से {{matched}} zip में मिलीं, {{people}} लोगों के लिए। आयात करते समय इनकी जाँच होगी और ये हर व्यक्ति के दस्तावेज़ों में जुड़ेंगी।",
+    "photosFound_other": "फ़ोटो: {{count}} में से {{matched}} zip में मिलीं, {{people}} लोगों के लिए। आयात करते समय इनकी जाँच होगी और ये हर व्यक्ति के दस्तावेज़ों में जुड़ेंगी।",
+    "photosSkipped_one": "{{count}} फ़ोटो छोड़ी जाएगी (zip में नहीं है, या एक से अधिक फ़ाइलें मेल खाती हैं)",
+    "photosSkipped_other": "{{count}} फ़ोटो छोड़ी जाएँगी (zip में नहीं हैं, या एक से अधिक फ़ाइलें मेल खाती हैं)",
+    "photosImported_one": "{{count}} फ़ोटो आयात होकर लोगों से जोड़ी गई।",
+    "photosImported_other": "{{count}} फ़ोटो आयात होकर लोगों से जोड़ी गईं।",
+    "photosRejected_one": "{{count}} फ़ाइल सुरक्षा जाँच में अस्वीकार हुई।",
+    "photosRejected_other": "{{count}} फ़ाइलें सुरक्षा जाँच में अस्वीकार हुईं।"
   },
   "archive": {
     "title": "पूरा पारिवारिक संग्रह डाउनलोड करें",
