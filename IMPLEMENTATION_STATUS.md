@@ -4,12 +4,13 @@ Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERI
 tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
-Last verified: 2026-09-25.
-- Backend: `uv run pytest` 237 passed, run as the RLS-restricted app role, including the migration
+Last verified: 2026-09-26.
+- Backend: `uv run pytest` 242 passed, run as the RLS-restricted app role, including the migration
   roundtrip; ruff, ruff `S` and mypy clean.
-- Frontend: lint, typecheck, Vitest (101) and build green.
-- Playwright: 22 tests in 8 specs (core flow, birth certificate review, property partition, viewer
-  denied, MFA, password reset, onboarding + WhatsApp claim, accessibility). CI runs the same gates.
+- Frontend: lint, typecheck, Vitest (104) and build green.
+- Playwright: 23 tests in 9 specs (core flow, birth certificate review, property partition, viewer
+  denied, MFA, password reset, onboarding + WhatsApp claim, claim link "not me" / "remove me",
+  accessibility). CI runs the same gates.
   In the dev sandbox, birth certificate review needs Tesseract installed.
 
 ## Platform / Phase 0
@@ -97,7 +98,7 @@ Last verified: 2026-09-25.
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Consent ledger, profile claims, erasure, account closure | VERIFIED | `test_search_consent.py`, `test_privacy.py` | Formal data-subject-request inbox and grievance contact DEFERRED (legal workstream) |
-| Onboarding (ADR-0011): guided first run, server-enforced family-data attestation, WhatsApp/shareable claim links with the claimant's own consent and admin approval | VERIFIED | `test_onboarding.py` (25), Vitest `onboarding.test.tsx`, Playwright `onboarding-whatsapp.spec.ts` | Lawful basis for relatives who never claim, and legal review of the wording (en/hi), are open (Q13). A "this isn't me / remove me" response from a link holder is not built. |
+| Onboarding (ADR-0011): guided first run, server-enforced family-data attestation, WhatsApp/shareable claim links with the claimant's own consent and admin approval | VERIFIED | `test_onboarding.py` (32), Vitest `onboarding.test.tsx`, `ClaimsRemoval.test.tsx`, Playwright `onboarding-whatsapp.spec.ts`, `claim-removal.spec.ts` | Includes "this isn't me" (cancel the link) and "remove me" (hide at once, admin erases or keeps). Lawful basis for relatives who never claim, and legal review of the wording (en/hi), are open (Q13). |
 
 ## Security audit
 | Item | Status | Tests | Notes |

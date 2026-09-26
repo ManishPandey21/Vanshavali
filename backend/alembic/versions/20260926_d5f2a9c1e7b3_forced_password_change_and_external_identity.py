@@ -1,7 +1,7 @@
 """forced password change flag and external (OpenID Connect) identities
 
 Revision ID: d5f2a9c1e7b3
-Revises: c4e8f1a2b3d5
+Revises: edcd174a0123
 Create Date: 2026-09-26
 """
 
@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 from app.models.rls import GRANT_APP_ROLE_SQL
 
 revision: str = "d5f2a9c1e7b3"
-down_revision: str | None = "c4e8f1a2b3d5"
+down_revision: str | None = "edcd174a0123"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

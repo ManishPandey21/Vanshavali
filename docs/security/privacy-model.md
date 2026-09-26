@@ -77,6 +77,7 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 |---|---|
 | Claim own profile | `POST /people/{id}/claims`, then admin approval. Links the profile. **Grants no extra roles.** |
 | Claim via a shared link (ADR-0011) | A member creates a single-use link (`/claim#<token>`, shared via WhatsApp or anything else). The relative signs in, reads a plain-language notice and gives their own consent (server-owned text, 18+ confirmation). This files a claim. Only admin approval creates a membership (the offered role, never wider than the inviter's scope) and writes a `consent_record` with basis `self`. |
+| "This isn't me" / "remove me" from a link (ADR-0011) | "This isn't me" cancels the link and changes nothing else. "Remove me" hides the profile from everyone but tree admins at once, freezes new invites and claims, and asks an admin to erase it (the existing irreversible erasure) or keep it (the previous privacy level is restored). A link can never erase anyone by itself. |
 | Family-data attestation (ADR-0011) | Before adding anyone, each contributor confirms: "I agree to add my family members' names to this private tree, and I confirm I have their permission to do so." Enforced by the server, recorded in `family_data_attestation`, withdrawable. It is an accountability record, **not** the relatives' consent. |
 | Control own privacy | Claimant may `PUT /people/{id}/privacy` |
 | Consent ledger | `consent_record` (grant, purpose, categories, basis incl. parent/guardian, expiry, withdrawal) |

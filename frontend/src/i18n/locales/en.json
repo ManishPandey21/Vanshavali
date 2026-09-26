@@ -833,7 +833,13 @@
     "subtitleMine": "Your requests to claim profiles",
     "title": "Profile claims",
     "claimant": "Requested by {{name}}",
-    "viaInvite": "Came through an invite link. Check it is really them before approving."
+    "viaInvite": "Came through an invite link. Check it is really them before approving.",
+    "removalBadge": "Removal request",
+    "removalExplain": "This person asked to be removed from the tree through an invite link. Their profile is already hidden from everyone except tree admins. Erase it, or keep it if the request didn't come from them (for example, a forwarded link).",
+    "erase": "Erase profile",
+    "keep": "Keep profile",
+    "eraseTitle": "Erase this profile permanently?",
+    "eraseBody": "Their names, dates, notes and other personal details will be deleted and cannot be restored. An anonymous placeholder keeps the family structure intact."
   },
   "consent": {
     "active": "Active",
@@ -1981,8 +1987,24 @@
     "submit": "Claim my profile",
     "submitted": "Thank you. Your request was sent to the tree admins. You'll see the tree here once they approve it.",
     "home": "Go to my trees",
-    "notYou": "Not you, or don't want to join?",
-    "leave": "Leave without claiming"
+    "leave": "Leave without claiming",
+    "notMeTitle": "Not you, or don't want to be in this tree?",
+    "notMe": "This isn't me",
+    "removeMe": "This is me, but remove me",
+    "orLeave": "Or just",
+    "notMeConfirmTitle": "You are not “{{person}}”?",
+    "notMeConfirmBody": "We'll cancel this link so it can't be used again. Nothing about you is saved, and the relative who sent it will see it reached the wrong person.",
+    "notMeConfirm": "Yes, cancel this link",
+    "declined": "Thanks for letting us know. This link no longer works, and nothing about you was added to the tree.",
+    "removeTitle": "Remove me from this tree",
+    "removeBody": "Your profile will be hidden straight away from everyone except the tree admins. They will then permanently erase your personal details. Because links can be forwarded, an admin makes the final decision.",
+    "removeIsMe": "I am “{{person}}”, and I want my profile removed",
+    "removeIsMeRequired": "Please confirm that this profile is about you.",
+    "removeMessage": "Message to the tree admins (optional)",
+    "removeMessageHint": "For example, why you'd like to be removed. Please don't include sensitive details.",
+    "removeConfirm": "Hide my profile and ask for removal",
+    "removalRequested": "Done. Your profile is now hidden from everyone except the tree admins, and we've asked them to erase it. You don't need to do anything else.",
+    "notYou": "Not you, or don't want to join?"
   },
   "landing": {
     "nav": {

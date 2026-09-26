@@ -9,6 +9,7 @@ import type {
   ClaimInvitePreview,
   ClaimSubmitted,
   Message,
+  RemovalRequestIn,
   StatementKind,
   StatementOut,
 } from "../types";
@@ -87,6 +88,21 @@ export function useAcceptClaimInvite(token: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: ClaimInviteAccept) => api.post<ClaimSubmitted>(`/claim-invites/${encodeURIComponent(token)}/accept`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: onboardingKeys.invitePreview(token) }),
+  });
+}
+
+/** "This isn't me": cancels the link without touching anyone's data. */
+export function useDeclineClaimInvite(token: string) {
+  // No refetch afterwards: the link is dead, and the page shows its own confirmation.
+  return useMutation({ mutationFn: () => api.post<Message>(`/claim-invites/${encodeURIComponent(token)}/decline`) });
+}
+
+/** "This is me, remove me": hides the profile at once and asks a tree admin to erase it. */
+export function useRequestRemoval(token: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: RemovalRequestIn) => api.post<ClaimSubmitted>(`/claim-invites/${encodeURIComponent(token)}/request-removal`, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: onboardingKeys.invitePreview(token) }),
   });
 }
