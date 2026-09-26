@@ -23988,6 +23988,38 @@
       ],
       "title": "Death"
      },
+     "birth_recorded": {
+      "type": "boolean",
+      "title": "Birth Recorded",
+      "default": false
+     },
+     "death_recorded": {
+      "type": "boolean",
+      "title": "Death Recorded",
+      "default": false
+     },
+     "birth_place": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Place"
+     },
+     "death_place": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Death Place"
+     },
      "names": {
       "items": {
        "type": "string"

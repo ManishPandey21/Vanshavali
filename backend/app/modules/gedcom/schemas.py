@@ -46,8 +46,14 @@ class StagedPersonPreview(ApiModel):
     display_name: str
     sex: str | None = None
     profile_status: str
-    birth: str | None = None
+    birth: str | None = None  # the date as recorded (None when the event has no date)
     death: str | None = None
+    # An event recorded without a date (e.g. "1 BIRT" + "2 PLAC India", or "1 DEAT Y"):
+    # the UI says "India, date unknown" instead of inventing a date or showing nothing.
+    birth_recorded: bool = False
+    death_recorded: bool = False
+    birth_place: str | None = None
+    death_place: str | None = None
     names: list[str] = []
     event_count: int = 0
     heritage: list[str] = []  # attribute names only

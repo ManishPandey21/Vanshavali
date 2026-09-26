@@ -57,7 +57,7 @@ from app.modules.astrology import service as astrology_service
 from app.modules.evidence.service import can_view_source
 from app.modules.gedcom import extensions as ext
 from app.modules.gedcom.gdate import MONTHS, format_date, format_time
-from app.modules.gedcom.mapping import OTHER_FAM_EVENTS, OTHER_INDI_EVENTS
+from app.modules.gedcom.mapping import OTHER_FAM_EVENTS, OTHER_INDI_EVENTS, STANDARD_ASSERTIONS
 from app.modules.gedcom.parser import format_line
 from app.modules.genealogy.schemas import EventOut
 from app.modules.genealogy.serialize import Serializer
@@ -98,6 +98,10 @@ class _Fam:
     partners: list[uuid.UUID]
     union: Relationship | None = None
     children: list[tuple[uuid.UUID, RelationshipType]] = field(default_factory=list)
+
+
+# heritage attribute → standard GEDCOM tag (the inverse of mapping.STANDARD_ASSERTIONS)
+_STANDARD_TAG = {attr: tag for tag, attr in STANDARD_ASSERTIONS.items()}
 
 
 class Exporter:
@@ -202,7 +206,9 @@ class Exporter:
                 )
                 .order_by(Assertion.created_at)
             ):
-                if a.attribute in ext.BY_ATTRIBUTE and a.evidence_status not in _DROPPED:
+                if (
+                    a.attribute in ext.BY_ATTRIBUTE or a.attribute in _STANDARD_TAG
+                ) and a.evidence_status not in _DROPPED:
                     self.assertions[a.person_id].append(a)  # type: ignore[index]
             place_ids = {a.place_id for lst in self.assertions.values() for a in lst if a.place_id}
             if place_ids:
@@ -441,15 +447,23 @@ class Exporter:
         self.counts["extensions"] += 1
 
     def _heritage(self, s: Subject) -> None:
-        if not can_view_field(self.ctx, s, FieldGroup.HERITAGE):
-            return
+        heritage_ok = can_view_field(self.ctx, s, FieldGroup.HERITAGE)
         for a in self.assertions.get(s.id, []):
             if a.privacy_level is not None and not level_allows(self.ctx, a.privacy_level, subject=s):
+                continue
+            if a.attribute in _STANDARD_TAG:
+                # religion is sensitive: exported only with sensitive fields, like any preserved RELI
+                if not self.sensitive_ok(s, FieldGroup.RELIGION):
+                    continue
+                tag = _STANDARD_TAG[a.attribute]
+            elif heritage_ok:
+                tag = ext.BY_ATTRIBUTE[a.attribute].tag
+            else:
                 continue
             value = a.value_text or (self.place_names.get(a.place_id) if a.place_id else None)
             if not value:
                 continue
-            self.emit(1, ext.BY_ATTRIBUTE[a.attribute].tag, value)
+            self.emit(1, tag, value)
             self.emit_citations(2, CitationTarget.ASSERTION, a.id)
 
     def _astrology(self, s: Subject) -> None:

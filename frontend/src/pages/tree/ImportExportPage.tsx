@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Archive, Download, FileUp, ShieldAlert } from "lucide-react";
 import type { CommitIn, ImportJobOut, StagedPersonPreview } from "../../api/types";
 import { apiBlob, saveBlob } from "../../api/client";
@@ -158,6 +159,16 @@ function ArchiveExport() {
       />
     </section>
   );
+}
+
+/**
+ * A staged birth/death for the import preview. An event recorded without a date (common in
+ * MyHeritage exports, e.g. only a place) reads "India, date unknown"; nothing is invented.
+ */
+export function vitalText(t: TFunction, date: string | null | undefined, recorded: boolean | undefined, place: string | null | undefined): string | null {
+  if (date) return date;
+  if (!recorded) return null;
+  return place ? t("gedcom.placeDateUnknown", { place }) : t("gedcom.dateUnknown");
 }
 
 function GedcomImport() {
@@ -335,7 +346,7 @@ function ImportReview({ job, t }: { job: ImportJobOut; t: ReturnType<typeof useT
                         </p>
                       </td>
                       <td className="py-2 pr-3 text-xs">
-                        {p.birth ?? "?"} – {p.death ?? ""}
+                        {vitalText(t, p.birth, p.birth_recorded, p.birth_place) ?? "?"} – {vitalText(t, p.death, p.death_recorded, p.death_place) ?? ""}
                       </td>
                       <td className="py-2 pr-3 text-xs">
                         {(p.duplicates ?? []).length === 0

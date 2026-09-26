@@ -1873,7 +1873,9 @@
     "events_other": "{{count}} events",
     "commit": "Import: {{create}} new, {{attach}} matched, {{skip}} skipped",
     "cancel": "Cancel import",
-    "committed": "Import committed"
+    "committed": "Import committed",
+    "dateUnknown": "date unknown",
+    "placeDateUnknown": "{{place}}, date unknown"
   },
   "archive": {
     "title": "Download full family archive",
@@ -2003,8 +2005,7 @@
     "removeMessage": "Message to the tree admins (optional)",
     "removeMessageHint": "For example, why you'd like to be removed. Please don't include sensitive details.",
     "removeConfirm": "Hide my profile and ask for removal",
-    "removalRequested": "Done. Your profile is now hidden from everyone except the tree admins, and we've asked them to erase it. You don't need to do anything else.",
-    "notYou": "Not you, or don't want to join?"
+    "removalRequested": "Done. Your profile is now hidden from everyone except the tree admins, and we've asked them to erase it. You don't need to do anything else."
   },
   "landing": {
     "nav": {

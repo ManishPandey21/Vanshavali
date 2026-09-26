@@ -15,7 +15,7 @@ from typing import Any
 
 from app.core.dates import GenealogicalDate, TimePrecision, TimeSource
 from app.core.textnorm import detect_script
-from app.models.enums import EventType, NameType, RelationshipType
+from app.models.enums import EventType, HeritageAttribute, NameType, RelationshipType
 from app.modules.gedcom import extensions as ext
 from app.modules.gedcom.gdate import parse_date, parse_time, time_precision_valid
 from app.modules.gedcom.parser import Node, ParseResult, head_schema, node_lines
@@ -47,6 +47,13 @@ FAM_EVENTS: dict[str, tuple[EventType, str | None]] = {
     "RESI": (EventType.RESIDENCE, None),
 }
 OTHER_FAM_EVENTS = frozenset({"ANUL", "DIVF", "ENGA", "MARB", "MARC", "MARL", "MARS", "CENS"})
+# Standard GEDCOM attributes that are explicit statements about a heritage field. They become
+# heritage assertions (user assertions with import provenance); nothing is ever inferred from them.
+STANDARD_ASSERTIONS: dict[str, str] = {"RELI": HeritageAttribute.RELIGION.value}
+
+# Structure an INDI record may carry and still be only a photo container (see _is_photo_container).
+_PHOTO_CONTAINER_TAGS = frozenset({"OBJE", "RIN", "_UID", "_UPD", "SEX", "CHAN", "UID", "REFN"})
+
 IGNORED_TAGS = frozenset(
     {"CHAN", "CREA", "RIN", "RFN", "AFN", "REFN", "UID", "EXID", "SUBM", "ANCI", "DESI", "_UID"}
 )
@@ -194,6 +201,16 @@ class Stager:
         seen_xrefs: set[str] = set()
         anon = 0
         for r in records:
+            if r.tag == "INDI" and _is_photo_container(r):
+                # e.g. MyHeritage's "Unassociated photos" pseudo-person: not a person, never staged
+                self.media_refs += len(r.all("OBJE"))
+                self.warn(
+                    r.line,
+                    "photo_container_skipped",
+                    f"{r.xref or 'An INDI record'} only holds photos that are not linked to anyone "
+                    '(e.g. MyHeritage\'s "Unassociated photos"); it was not imported as a person',
+                )
+                continue
             if r.tag in ("INDI", "FAM"):
                 xref = r.xref
                 if not xref or xref in seen_xrefs:
@@ -546,6 +563,21 @@ class Stager:
                 t = self._note_text(c)
                 if t:
                     notes.append(t)
+            elif tag in STANDARD_ASSERTIONS:
+                value = _clip(c.value, 2000)
+                if value:
+                    heritage.append(
+                        {
+                            "attribute": STANDARD_ASSERTIONS[tag],
+                            "tag": tag,
+                            "value": value,
+                            "citations": self._citations(c),
+                        }
+                    )
+                else:  # e.g. RELI with only a TYPE or DATE: keep it verbatim rather than guess
+                    p = self._unhandled(c, "INDI", preserve=True)
+                    if p:
+                        preserved.append(p)
             elif tag == "RESN":
                 resn += [x.strip().upper() for x in (c.value or "").split(",") if x.strip()]
             elif tag.startswith("_"):
@@ -794,3 +826,18 @@ def _display(n: dict[str, Any]) -> str:
 
 def stage(result: ParseResult, today: dt.date | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
     return Stager(result, today).run()
+
+
+def _is_photo_container(r: Node) -> bool:
+    """An INDI record that only holds media: no name, no family links, no events or facts.
+
+    MyHeritage exports its "Unassociated photos" album this way (``_UID Unassociated photos``). Real
+    people without a name still have a family link or an event, so they are kept.
+    """
+    if r.first("OBJE") is None or any(r.first(t) is not None for t in ("NAME", "FAMC", "FAMS")):
+        return False
+    if (r.val("_UID") or "").strip().lower() == "unassociated photos":
+        return True
+    if (r.val("SEX") or "U").strip().upper()[:1] != "U":
+        return False
+    return all(c.tag in _PHOTO_CONTAINER_TAGS for c in r.children)
