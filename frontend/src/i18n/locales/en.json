@@ -2004,5 +2004,149 @@
     "removeMessageHint": "For example, why you'd like to be removed. Please don't include sensitive details.",
     "removeConfirm": "Hide my profile and ask for removal",
     "removalRequested": "Done. Your profile is now hidden from everyone except the tree admins, and we've asked them to erase it. You don't need to do anything else."
+  },
+  "landing": {
+    "nav": {
+      "label": "Page sections",
+      "story": "Our story",
+      "features": "What it keeps",
+      "how": "How it works",
+      "trust": "Privacy"
+    },
+    "cta": {
+      "start": "Begin your family tree",
+      "startShort": "Start your tree",
+      "goToTrees": "Go to my family trees",
+      "seeTree": "See the family tree"
+    },
+    "hero": {
+      "shlokaMeaning": "“The world is one family.”",
+      "titleA": "Preserving the threads of tradition,",
+      "titleB": "connecting generations.",
+      "lead": "Vanshavali is a home for your family's story — the names your elders remember, the village your great-grandparents left, the gotra and kuladevi your family honours, and the papers that show where the land came from. Kept safely, in your own languages, for the generations still to come.",
+      "points": {
+        "private": "Private by default",
+        "languages": "In English and हिन्दी",
+        "yours": "Your records, yours to export"
+      },
+      "sceneAlt": "Illustration: a brass thali being prepared as a Tambool offering, with betel leaves, supari, marigolds, rose petals, kumkum and haldi, beside a lit diya, under a marigold garland.",
+      "sceneCaption": "Tambool — betel leaf, supari and flowers, offered with reverence at every family occasion."
+    },
+    "story": {
+      "kicker": "The Vanshavali tradition",
+      "title": "Every family is a story told across generations",
+      "p1": "For centuries, the pandas of Haridwar, Gaya and Pushkar have kept our vanshavalis in hand-written bahis — each pilgrim adding a line for a father, a grandfather, and the children born since the last visit. Our grandmothers held the rest in memory: which village we came from, which temple we visit, who married into which family.",
+      "p2": "Those threads are thinning. Elders pass on, bahis fade, and families scatter across cities and continents.",
+      "p3": "Vanshavali brings the same care to a new medium — so the thread is not broken with our generation.",
+      "shlokaTranslation": "“This one is mine, that one a stranger” — so reckon the narrow-minded. For those of generous heart, the whole world is one family.",
+      "shlokaSource": "Maha Upanishad 6.71"
+    },
+    "features": {
+      "kicker": "What your Vanshavali can hold",
+      "title": "Made for the way Indian families really are",
+      "lead": "Not a generic chart of boxes, but a record that understands gotras, joint families, many scripts and many kinds of kinship.",
+      "items": {
+        "tree": {
+          "title": "A tree that understands Indian families",
+          "body": "Record biological, adoptive, ritual and step relationships honestly — every marriage, the children of each union, and names in every script your family has used."
+        },
+        "kinship": {
+          "title": "Relationships in your own words",
+          "body": "Ask how two people are related and hear it the way your family says it — दादा, नानी, मामा, बुआ — not just “grandfather” and “aunt”."
+        },
+        "heritage": {
+          "title": "Heritage beyond names",
+          "body": "Gotra and pravara, kuladevata and kuladevi, the mool gaon and the ancestral house, the family temple and its traditions — kept alongside each person."
+        },
+        "jointFamily": {
+          "title": "Joint families and households",
+          "body": "See the joint family as it truly lived: the branches of the family, the households under each roof, and who moved where."
+        },
+        "documents": {
+          "title": "Documents with proof",
+          "body": "Keep birth certificates, old letters and land papers. Text read from a document stays a suggestion until a family member reviews it and cites the source."
+        },
+        "property": {
+          "title": "Ancestral property, clearly recorded",
+          "body": "Record ancestral land and houses, each member's share, and the history of partitions — with the documents behind every entry."
+        }
+      }
+    },
+    "kin": {
+      "kicker": "The language of kinship",
+      "title": "English has “uncle”. We have a name for every bond.",
+      "lead": "Our relationships carry meaning — which side of the family, elder or younger, by birth or by marriage. Vanshavali speaks that language.",
+      "terms": {
+        "dada": "Father's father",
+        "nani": "Mother's mother",
+        "chacha": "Father's younger brother",
+        "tau": "Father's elder brother",
+        "mama": "Mother's brother",
+        "bua": "Father's sister",
+        "mausi": "Mother's sister",
+        "fufa": "Father's sister's husband",
+        "bhabhi": "Brother's wife",
+        "jija": "Sister's husband"
+      }
+    },
+    "how": {
+      "kicker": "How it works",
+      "title": "Your family's story, in three simple steps",
+      "steps": {
+        "seed": {
+          "title": "Plant the seed",
+          "body": "Create a private tree and begin with yourself — or with the eldest ancestor anyone still remembers."
+        },
+        "memories": {
+          "title": "Gather the elders' memories",
+          "body": "Sit with your grandparents. Add parents, spouses and children in a few taps, with dates as exact — or as approximate — as memory allows."
+        },
+        "invite": {
+          "title": "Invite the family",
+          "body": "Bring relatives in to add their own branches. You decide who can view, who can edit, and what stays private."
+        }
+      }
+    },
+    "trust": {
+      "kicker": "Kept in trust",
+      "title": "Your family's trust, kept with care",
+      "lead": "A family tree holds the most personal things we know about each other. We treat it that way.",
+      "items": {
+        "living": {
+          "title": "Living relatives stay private",
+          "body": "Details of living people are private by default, visible only to the family members you invite."
+        },
+        "public": {
+          "title": "Nothing is public unless you choose",
+          "body": "A tree owner can turn on a public view — and even then, only people who have passed away are shown."
+        },
+        "roles": {
+          "title": "You decide who sees what",
+          "body": "Roles for every member and privacy settings for every person let each branch share exactly as much as it is comfortable with."
+        },
+        "export": {
+          "title": "Your records stay yours",
+          "body": "Export your tree as a standard GEDCOM file whenever you wish, and take it anywhere."
+        }
+      }
+    },
+    "closing": {
+      "mottoMeaning": "Tradition and reverence",
+      "title": "Our ancestors kept the thread for us. Now it is our turn.",
+      "lead": "Start with one name. Ask one elder one question. The rest of the tree will follow.",
+      "cta": "Begin your family's Vanshavali"
+    },
+    "footer": {
+      "builtWithA": "Built with",
+      "builtWithB": "for preserving Indian family heritage.",
+      "love": "love"
+    },
+    "showcase": {
+      "kicker": "In your own language",
+      "title": "Your family tree, in the language your family speaks",
+      "lead": "Every screen works in Hindi and in English. Names are kept in every script your family has used, and relationships are named the way you say them.",
+      "alt": "The Vanshavali tree viewer in Hindi, showing three generations of the Sharma family: Suresh and Kamala Sharma, their sons Ramesh and Mahesh with their wives Sunita and Geeta, and grandchildren Aarav, Anaya and Kabir.",
+      "caption": "The real tree viewer, in Hindi. Grandparents who have passed away show their years; the lock marks family members whose details stay private to the family."
+    }
   }
 }
