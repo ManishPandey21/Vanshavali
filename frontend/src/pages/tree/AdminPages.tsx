@@ -492,6 +492,7 @@ export function ClaimsPage() {
   const claims = useClaims(treeId);
   const review = useReviewClaim(treeId);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [erasing, setErasing] = useState<string | null>(null);
   return (
     <div>
       <PageHeader title={t("claims.title")} subtitle={isAdmin ? t("claims.subtitleAdmin") : t("claims.subtitleMine")} />
@@ -503,8 +504,12 @@ export function ClaimsPage() {
           <li key={c.id} className="card p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <ClaimPerson personId={c.person_id} />
-              <Badge tone={c.status === "approved" ? "green" : c.status === "rejected" ? "red" : "saffron"}>{t(`enum.claimStatus.${c.status}`)}</Badge>
+              <span className="flex flex-wrap gap-1">
+                {c.kind === "removal" && <Badge tone="red">{t("claims.removalBadge")}</Badge>}
+                <Badge tone={c.status === "approved" ? "green" : c.status === "rejected" ? "red" : "saffron"}>{t(`enum.claimStatus.${c.status}`)}</Badge>
+              </span>
             </div>
+            {c.kind === "removal" && c.status === "requested" && <p className="mt-2 rounded-lg bg-parchment-deep p-2 text-sm">{t("claims.removalExplain")}</p>}
             {c.claimant_name && (
               <p className="mt-1 text-sm">
                 {t("claims.claimant", { name: c.claimant_name })}
@@ -526,17 +531,40 @@ export function ClaimsPage() {
                 <Field label={t("claims.note")} className="flex-1">
                   {(p) => <TextInput {...p} value={notes[c.id] ?? ""} onChange={(e) => setNotes({ ...notes, [c.id]: e.target.value })} />}
                 </Field>
-                <Button icon={<Check className="size-4" aria-hidden />} loading={review.isPending} onClick={() => review.mutate({ id: c.id, approve: true, note: notes[c.id] })}>
-                  {t("claims.approve")}
-                </Button>
-                <Button variant="secondary" icon={<X className="size-4" aria-hidden />} loading={review.isPending} onClick={() => review.mutate({ id: c.id, approve: false, note: notes[c.id] })}>
-                  {t("claims.reject")}
-                </Button>
+                {c.kind === "removal" ? (
+                  <>
+                    <Button variant="danger" icon={<Trash2 className="size-4" aria-hidden />} loading={review.isPending} onClick={() => setErasing(c.id)}>
+                      {t("claims.erase")}
+                    </Button>
+                    <Button variant="secondary" icon={<X className="size-4" aria-hidden />} loading={review.isPending} onClick={() => review.mutate({ id: c.id, approve: false, note: notes[c.id] })}>
+                      {t("claims.keep")}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button icon={<Check className="size-4" aria-hidden />} loading={review.isPending} onClick={() => review.mutate({ id: c.id, approve: true, note: notes[c.id] })}>
+                      {t("claims.approve")}
+                    </Button>
+                    <Button variant="secondary" icon={<X className="size-4" aria-hidden />} loading={review.isPending} onClick={() => review.mutate({ id: c.id, approve: false, note: notes[c.id] })}>
+                      {t("claims.reject")}
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </li>
         ))}
       </ul>
+      <ConfirmDialog
+        open={erasing !== null}
+        onClose={() => setErasing(null)}
+        danger
+        loading={review.isPending}
+        title={t("claims.eraseTitle")}
+        body={t("claims.eraseBody")}
+        confirmLabel={t("claims.erase")}
+        onConfirm={() => erasing && review.mutate({ id: erasing, approve: true, note: notes[erasing] }, { onSuccess: () => setErasing(null) })}
+      />
     </div>
   );
 }

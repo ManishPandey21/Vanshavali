@@ -489,6 +489,11 @@ class ConsentBasis(StrEnum):
     TREE_ADMIN_ATTESTATION = "tree_admin_attestation"
 
 
+class ClaimKind(StrEnum):
+    CLAIM = "claim"  # "this is me": link the profile to my account
+    REMOVAL = "removal"  # "this is me, remove me": erase the profile (ADR-0011 §removal)
+
+
 class ClaimStatus(StrEnum):
     REQUESTED = "requested"
     APPROVED = "approved"

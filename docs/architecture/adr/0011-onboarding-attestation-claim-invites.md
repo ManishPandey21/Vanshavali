@@ -1,6 +1,6 @@
 # ADR-0011: Onboarding, family-data attestation and shareable claim invites
 
-- Status: Accepted · Date: 2026-09-25
+- Status: Accepted · Date: 2026-09-25 · Amended 2026-09-26 ("this isn't me" / "remove me")
 - Relates to: ADR-0005 (sessions), ADR-0006 (authorisation), privacy model §5, PRS §29 and §31
 
 ## Context
@@ -67,6 +67,26 @@ grant access on its own.
 - Once claimed, the relative controls their own privacy settings, consent ledger and erasure
   request through the existing screens (privacy model §5).
 
+### "This isn't me" and "remove me" (amendment, 2026-09-26)
+Whoever opens a link has two more answers besides claiming. Neither needs the consent statement or
+an age check, because both only reduce what is stored or shown.
+- **"This isn't me"** (`POST /claim-invites/{token}/decline`) cancels the link (`declined_at`).
+  No person data is read back or changed, and no claim is filed. Afterwards the link returns 410 to
+  everyone, including the person who declined. The inviter sees the invite state as `declined` and
+  can send a new link to the right person.
+- **"This is me, remove me"** (`POST /claim-invites/{token}/request-removal`, `confirm_is_me`)
+  files a `profile_claim` with `kind = removal`. Because the link is a bearer token that may have
+  been forwarded, **it never erases anything by itself**:
+  - The profile is hidden at once: `privacy_level` becomes `PRIVATE_TREE_ADMINS` if it was more
+    open, and the previous level is kept in `restore_privacy_level`.
+  - The person's other outstanding links are revoked. New invites and claims are refused with
+    `409 removal_pending` until the request is reviewed.
+  - A tree admin **erases** the profile (the existing irreversible erasure; the request's free text
+    is cleared too) or **keeps** it, which restores the previous privacy level. Erasure never
+    creates a membership.
+  - A profile that is already claimed cannot be hidden or erased through a link. Its owner manages
+    it from their own account.
+
 ### Onboarding
 A `/welcome` flow after registration, and from the empty trees list, has four steps:
 1. A plain-language privacy notice.
@@ -89,6 +109,9 @@ Every step uses the public APIs above. There is no onboarding-only backdoor.
   what to do for relatives who never claim) is tracked in `open-questions.md` (Q13).
 
 ## Alternatives considered
+- **Erase immediately on "remove me"**: rejected. Anyone holding a forwarded link could destroy a
+  relative's profile. Hiding at once gives the person the protection they asked for; an admin
+  confirms before the irreversible step.
 - **Pre-filled phone number (`wa.me/<number>`)**: rejected. We would have to collect and store
   relatives' phone numbers without their consent.
 - **Token in the path** (like `/invite/<token>`): rejected. It ends up in access logs, `Referer`

@@ -190,3 +190,5 @@ export type ClaimInviteCreated = S["ClaimInviteCreated"];
 export type ClaimInvitePreview = S["ClaimInvitePreview"];
 export type ClaimInviteAccept = S["ClaimInviteAccept"];
 export type ClaimSubmitted = S["ClaimSubmitted"];
+export type RemovalRequestIn = S["RemovalRequestIn"];
+export type ClaimKind = S["ClaimKind"];
