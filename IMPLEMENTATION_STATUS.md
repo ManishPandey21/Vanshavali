@@ -5,12 +5,12 @@ tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, 
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
 Last verified: 2026-09-26.
-- Backend: `uv run pytest` 242 passed, run as the RLS-restricted app role, including the migration
+- Backend: `uv run pytest` 281 passed, run as the RLS-restricted app role, including the migration
   roundtrip; ruff, ruff `S` and mypy clean.
-- Frontend: lint, typecheck, Vitest (104) and build green.
-- Playwright: 23 tests in 9 specs (core flow, birth certificate review, property partition, viewer
-  denied, MFA, password reset, onboarding + WhatsApp claim, claim link "not me" / "remove me",
-  accessibility). CI runs the same gates.
+- Frontend: lint, typecheck, Vitest (117) and build green.
+- Playwright: 25 tests in 11 specs (core flow, birth certificate review, property partition, viewer
+  denied, MFA, password reset, forced password change, landing page, onboarding + WhatsApp claim,
+  claim link "not me" / "remove me", accessibility). CI runs the same gates.
   In the dev sandbox, birth certificate review needs Tesseract installed.
 
 ## Platform / Phase 0
@@ -81,7 +81,7 @@ Last verified: 2026-09-26.
 
 | Module | Status | Tests | Notes |
 |---|---|---|---|
-| GEDCOM 5.5/5.5.1/7 import (staging, report, duplicates, decisions, extension preservation) | VERIFIED | `test_gedcom.py` (17) | GEDZIP/media import DEFERRED; large imports run synchronously |
+| GEDCOM 5.5/5.5.1/7 import (staging, report, duplicates, decisions, extension preservation) | VERIFIED | `test_gedcom.py` (22) | Tested against MyHeritage export quirks: the "Unassociated photos" record is skipped, `RELI` becomes a religion assertion (sensitive on export), and undated events read "date unknown" in the preview. GEDZIP/media import DEFERRED; large imports run synchronously |
 | GEDCOM 7 export (SCHMA `_IND_*` URIs, privacy-filtered) | VERIFIED | `test_gedcom.py` incl. round trip | |
 | Full archival ZIP (manifest, checksums, GEDCOM, canonical JSON, property, documents) | VERIFIED | `test_archive.py` | Built synchronously; a background job for very large archives is DEFERRED |
 | Frontend: import/export (GEDCOM + archive) | VERIFIED | Vitest | |

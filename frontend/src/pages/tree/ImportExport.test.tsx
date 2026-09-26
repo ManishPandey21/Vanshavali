@@ -3,7 +3,19 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ImportJobOut } from "../../api/types";
 import { jsonResponse, renderWithProviders } from "../../test/utils";
-import { ImportExportPage, buildCommitBody, defaultDecisions } from "./ImportExportPage";
+import i18n from "../../i18n";
+import { ImportExportPage, buildCommitBody, defaultDecisions, vitalText } from "./ImportExportPage";
+
+describe("GEDCOM preview dates", () => {
+  const t = i18n.t.bind(i18n);
+  it("says 'date unknown' for an event recorded without a date, and invents nothing", () => {
+    expect(vitalText(t, "3 Mar 1980", true, "Lucknow")).toBe("3 Mar 1980");
+    expect(vitalText(t, null, true, "India")).toBe("India, date unknown");
+    expect(vitalText(t, null, true, null)).toBe("date unknown");
+    expect(vitalText(t, null, false, null)).toBeNull();
+    expect(vitalText(t, undefined, undefined, undefined)).toBeNull();
+  });
+});
 
 describe("GEDCOM decisions", () => {
   it("builds create / skip / attach payloads", () => {

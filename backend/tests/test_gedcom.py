@@ -630,3 +630,178 @@ def test_round_trip_export_then_import(owner, tree) -> None:
     assert ("Ramesh Sharma", "gotra", "Kashyapa") in b["heritage"]
     assert any(r[2] == "adoptive_parent" for r in b["rels"])
     assert any("ரமேஷ்" in n[0] for n in b["names"]["Ramesh Sharma"])
+
+
+# ------------------------------------------------------------------------------ MyHeritage exports
+# Fictional family, with the quirks of a MyHeritage Family Tree Builder 5.5.1 export: UTF-8 BOM,
+# CRLF line ends, a malformed "0  _PUBLISH" record, _UID/_UPD everywhere, photos with local paths,
+# an "Unassociated photos" pseudo-person, a wife recorded without a name, RELI/NATI facts, a birth
+# with a place but no date, and "1 DEAT Y".
+MYHERITAGE = "\ufeff" + "\r\n".join(
+    [
+        "0 HEAD",
+        "1 GEDC",
+        "2 VERS 5.5.1",
+        "2 FORM LINEAGE-LINKED",
+        "1 CHAR UTF-8",
+        "1 SOUR MYHERITAGE",
+        "2 NAME MyHeritage Family Tree Builder",
+        "0  _PUBLISH",
+        "1 _SITENAME Example Web Site",
+        "0 @I1@ INDI",
+        "1 _UID 11111111111111111111111111111111",
+        "1 _UPD 12 DEC 2024 00:50:52 GMT+5.5",
+        "1 NAME Arjun /Verma/",
+        "2 GIVN Arjun",
+        "2 SURN Verma",
+        "1 SEX M",
+        "1 BIRT",
+        "2 DATE 3 MAR 1980",
+        "2 PLAC Lucknow",
+        "1 RELI Hindu",
+        "2 _UID 22222222222222222222222222222222",
+        "1 NATI Indian",
+        "1 FAMC @F1@",
+        "1 OBJE",
+        "2 FORM jpg",
+        "2 FILE C:\\Users\\someone\\Photos\\P1.jpg",
+        "0 @I2@ INDI",
+        "1 NAME Ramesh /Verma/",
+        "1 SEX M",
+        "1 BIRT",
+        "2 _UID 33333333333333333333333333333333",
+        "2 PLAC India",
+        "1 DEAT Y",
+        "1 FAMS @F1@",
+        "0 @I3@ INDI",
+        "1 _UID 44444444444444444444444444444444",
+        "1 SEX F",
+        "1 FAMS @F1@",
+        "0 @I88888888@ INDI",
+        "1 RIN MH:I88888888",
+        "1 _UID Unassociated photos",
+        "1 _UPD 25 SEP 2026 01:27:49 GMT+5.5",
+        "1 SEX U",
+        "1 OBJE",
+        "2 FORM jpg",
+        "2 TITL WhatsApp Image",
+        "2 FILE C:\\Users\\someone\\Photos\\P17.jpg",
+        "1 OBJE",
+        "2 FORM jpg",
+        "2 FILE C:\\Users\\someone\\Photos\\P18.jpg",
+        "0 @F1@ FAM",
+        "1 HUSB @I2@",
+        "1 WIFE @I3@",
+        "1 CHIL @I1@",
+        "0 TRLR",
+        "",
+    ]
+)
+
+
+def test_myheritage_photo_container_is_not_a_person(owner, tree) -> None:
+    t = tree["id"]
+    r = _upload(owner, t, MYHERITAGE.encode("utf-8"))
+    assert r.status_code == 201, r.text
+    job = r.json()
+    assert job["status"] == "ready"
+    report = job["report"]
+    # three real people (including the wife recorded without a name); the photo album is skipped
+    assert report["counts"]["people"] == 3
+    assert report["counts"]["media_refs"] == 3  # its photos are still counted as media references
+    codes = [w["code"] for w in report["warnings"]]
+    assert codes.count("photo_container_skipped") == 1
+    assert codes.count("no_name") == 1  # the wife: a real person, kept as "Unnamed"
+    assert [p["xref"] for p in job["preview"]] == ["@I1@", "@I2@", "@I3@"]
+    result = owner.post(f"/trees/{t}/imports/{job['id']}/commit", json={"decisions": {}}).json()
+    assert result["commit_result"]["counts"]["people_created"] == 3
+    names = sorted(p["display_name"] for p in owner.get(f"/trees/{t}/people").json()["items"])
+    assert names == ["Arjun Verma", "Ramesh Verma", "Unnamed"]
+
+
+def test_photo_container_rule_keeps_real_people() -> None:
+    def indi(*lines: str) -> Any:
+        return parser.parse(
+            ("0 HEAD\n1 GEDC\n2 VERS 5.5.1\n0 @I1@ INDI\n" + "\n".join(lines) + "\n0 TRLR\n").encode()
+        ).records[1]
+
+    # only photos (no MyHeritage marker needed)
+    assert mapping._is_photo_container(indi("1 SEX U", "1 OBJE", "2 FILE a.jpg"))
+    # an unnamed person with a family link, an event, or a known sex is a person, not an album
+    assert not mapping._is_photo_container(indi("1 OBJE", "2 FILE a.jpg", "1 FAMS @F1@"))
+    assert not mapping._is_photo_container(indi("1 OBJE", "2 FILE a.jpg", "1 BIRT", "2 DATE 1900"))
+    assert not mapping._is_photo_container(indi("1 SEX F", "1 OBJE", "2 FILE a.jpg"))
+    # a named person with the MyHeritage marker (never produced, but never skipped either)
+    assert not mapping._is_photo_container(indi("1 NAME A /B/", "1 _UID Unassociated photos", "1 OBJE"))
+    # no photos at all: never a container
+    assert not mapping._is_photo_container(indi("1 SEX U"))
+
+
+def _religion(client: Any, tree_id: str, person_id: str) -> list[dict[str, Any]]:
+    """Every religion assertion (preferred first) on a person's heritage profile, as the caller sees it."""
+    profile = client.get(f"/trees/{tree_id}/people/{person_id}/heritage").json()
+    views = [v for v in profile["attributes"] if v["attribute"] == "religion"]
+    return [a for v in views for a in ([v["preferred"]] if v["preferred"] else []) + v["alternatives"]]
+
+
+def test_reli_becomes_religion_and_is_only_exported_as_sensitive(owner, tree, member_factory) -> None:
+    t = tree["id"]
+    _import(owner, t, MYHERITAGE.encode("utf-8"))
+    arjun = next(
+        p for p in owner.get(f"/trees/{t}/people").json()["items"] if p["display_name"] == "Arjun Verma"
+    )
+    religion = _religion(owner, t, arjun["id"])
+    assert [a["value_text"] for a in religion] == ["Hindu"]
+    assert religion[0]["evidence_status"] == "USER_ASSERTION"  # recorded in the file, never inferred
+    # NATI has no home in the model: kept verbatim, not mapped
+    with owner_session() as db:
+        tags = {
+            e.tag
+            for e in db.scalars(
+                select(GedcomExtension).where(GedcomExtension.person_id == uuid.UUID(arjun["id"]))
+            )
+        }
+    assert "NATI" in tags and "RELI" not in tags
+    # religion is sensitive: never in ordinary exports, only in an admin's sensitive export
+    assert "1 RELI" not in _export(owner, t, exclude_living=False).text
+    contrib = member_factory(["CONTRIBUTOR"])
+    assert "1 RELI" not in _export(contrib, t, exclude_living=False).text
+    sensitive = _export(owner, t, exclude_living=False, include_sensitive=True).text
+    assert "1 RELI Hindu" in sensitive
+    # and it survives a round trip without duplication
+    t2 = new_tree(owner, "Round trip")["id"]
+    _import(owner, t2, sensitive)
+    arjun2 = next(
+        p for p in owner.get(f"/trees/{t2}/people").json()["items"] if p["display_name"] == "Arjun Verma"
+    )
+    assert [a["value_text"] for a in _religion(owner, t2, arjun2["id"])] == ["Hindu"]
+
+
+def test_reli_religion_is_hidden_by_field_privacy(owner, tree, member_factory) -> None:
+    t = tree["id"]
+    _import(owner, t, MYHERITAGE.encode("utf-8"))
+    arjun = next(
+        p for p in owner.get(f"/trees/{t}/people").json()["items"] if p["display_name"] == "Arjun Verma"
+    )
+    r = owner.put(
+        f"/trees/{t}/people/{arjun['id']}/privacy",
+        json={"field_privacy": {"religion": "PRIVATE_TREE_ADMINS"}},
+    )
+    assert r.status_code == 200, r.text
+    viewer = member_factory(["VIEWER"])
+    heritage = viewer.get(f"/trees/{t}/people/{arjun['id']}/heritage")
+    assert heritage.status_code == 200 and "Hindu" not in heritage.text
+    assert "religion" in heritage.json()["withheld_attributes"]
+    assert [a["value_text"] for a in _religion(owner, t, arjun["id"])] == ["Hindu"]
+
+
+def test_preview_reports_undated_events_without_inventing_a_date(owner, tree) -> None:
+    job = _upload(owner, tree["id"], MYHERITAGE.encode("utf-8")).json()
+    by_xref = {p["xref"]: p for p in job["preview"]}
+    ramesh = by_xref["@I2@"]
+    assert ramesh["birth"] is None and ramesh["birth_recorded"] is True and ramesh["birth_place"] == "India"
+    assert ramesh["death"] is None and ramesh["death_recorded"] is True and ramesh["death_place"] is None
+    arjun = by_xref["@I1@"]
+    assert arjun["birth"] and "1980" in arjun["birth"] and arjun["birth_place"] == "Lucknow"
+    assert arjun["death"] is None and arjun["death_recorded"] is False
+    assert "yes" not in str(job["preview"])
