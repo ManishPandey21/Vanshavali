@@ -27,6 +27,18 @@ frontend (nginx serving the SPA and proxying `/api`).
   `python -m app.cli.ensure_app_role` (idempotent; takes `VSH_APP_DB_ROLE` and
   `VSH_APP_DB_PASSWORD`) → roll backend and worker.
   Migrations must be backward compatible with the previous app version (expand/contract).
+- **Capacity and overload.** Per backend worker process:
+  - The DB pool is `VSH_DB_POOL_SIZE` (5) + `VSH_DB_MAX_OVERFLOW` (10) connections. Keep
+    workers × (size + overflow) under PostgreSQL's `max_connections`, with headroom for migrations
+    and admin. For example, 4 workers × 15 = 60 against the default of 100.
+  - Admission control admits at most `VSH_MAX_INFLIGHT_REQUESTS` API requests at once (0 = pool
+    size + overflow). Excess requests wait up to `VSH_ADMISSION_WAIT_S` (1 s), then get **503
+    `server_busy` with `Retry-After: 2`**.
+  - A pool wait longer than `VSH_DB_POOL_TIMEOUT_S` (5 s) is also a 503, never a hang.
+  - Health, readiness and metrics are never shed, so probes keep working under load.
+  - Alert on a sustained 5xx rate with `server_busy` in the logs (`app.admission` warnings): it
+    means the node is at capacity and needs another replica. Capacity figures are in
+    `docs/operations/performance.md`.
 - **Client IP behind proxies.** Set `FORWARDED_ALLOW_IPS` on the backend to the exact addresses or
   CIDRs of the reverse proxies directly in front of it: the nginx tier and the load balancer. The
   image defaults to loopback only. Never use `*` or a subnet that also contains clients (for

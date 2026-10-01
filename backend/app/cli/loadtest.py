@@ -157,7 +157,13 @@ class VirtualUser:
         self.stats = stats
         self.think = think_ms / 1000
         self.rng = random.Random(seed * 1000 + idx)  # noqa: S311 - load-test randomness only
-        self.client = httpx.AsyncClient(base_url=base, timeout=60.0)
+        # One connection per request, like nginx's default upstream proxying (HTTP/1.0, no keep-alive).
+        # With keep-alive, each session's connection stays pinned to the uvicorn worker that accepted
+        # it: measured 19/9/8/4 connections across 4 workers, so one worker saturated while others
+        # idled and identical runs disagreed.
+        self.client = httpx.AsyncClient(
+            base_url=base, timeout=60.0, limits=httpx.Limits(max_keepalive_connections=0)
+        )
         self.created: list[str] = []
 
     async def login(self) -> None:
