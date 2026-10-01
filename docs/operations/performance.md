@@ -301,7 +301,7 @@ no 5xx other than the shed responses.
 ### Defects found and fixed while certifying
 | Finding | Evidence | Fix |
 |---|---|---|
-| Congestion collapse past capacity: requests queued for the 15-connection pool, waited 30 s, then failed as **unhandled 500s** | 70 req/s offered → 29 successful req/s; 80 → ~4 successful req/s; 2,389 `QueuePool limit reached` | Per-worker admission control, a 5 s pool wait, and a retryable 503 (`test_overload.py`). Now 63/62 successful req/s, p95 2.5 s, no unhandled errors. |
+| Congestion collapse past capacity: requests queued for the 15-connection pool, waited 30 s, then failed as **unhandled 500s** | 70 req/s offered → 10 successful req/s (29 completed, most of them errors); 80 → 0 successful; 2,389 `QueuePool limit reached` | Per-worker admission control, a 5 s pool wait, and a retryable 503 (`test_overload.py`). Now 63/62 successful req/s, p95 2.5 s, no unhandled errors. |
 | Concurrent OCR jobs time out (OpenMP thread thrash) | 1 page: 0.3 s alone, > 300 s with 4 in parallel | `OMP_THREAD_LIMIT=1` per tesseract (`test_concurrent_ocr_jobs_do_not_thrash`) |
 | The load test could not write (ADR-0011 attestation) | every write 403 `attestation_required` | Seeded accounts confirm the statement |
 | Measurement artifacts, not product defects | re-login per rate (Argon2id: 83 ms × 4 threads each) and keep-alive pinning (19/9/8/4 connections per worker) made identical runs disagree by 3× | The sweep logs in once; one connection per request, like nginx |
