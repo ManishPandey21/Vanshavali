@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DataError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+log = logging.getLogger(__name__)
 
 
 class ApiError(Exception):
@@ -80,6 +84,20 @@ def install_error_handlers(app: FastAPI) -> None:
             {"loc": list(e.get("loc", [])), "msg": e.get("msg"), "type": e.get("type")} for e in exc.errors()
         ]
         return JSONResponse(status_code=422, content=_body("validation_error", "Invalid request", details))
+
+    @app.exception_handler(DataError)
+    async def _data_error(_: Request, exc: DataError) -> JSONResponse:
+        # PostgreSQL SQLSTATE class 22 ("data exception"): a value the database cannot store or
+        # parse, e.g. a NUL character in text (found by DAST: it was an unhandled 500). Always caused
+        # by input, so answer 422; never echo the driver message, which can quote the input.
+        log.warning("rejected input the database cannot store: %s", type(getattr(exc, "orig", exc)).__name__)
+        return JSONResponse(
+            status_code=422,
+            content=_body(
+                "invalid_input",
+                "The request contains a value that cannot be stored (for example a NUL character)",
+            ),
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
