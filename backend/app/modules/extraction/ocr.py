@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import io
 import logging
+import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
@@ -23,6 +24,18 @@ log = logging.getLogger(__name__)
 
 OCR_MAX_PAGES = 20  # OCR at most this many pages per document (bounded CPU per job)
 TESSERACT_TIMEOUT_SECONDS = 120
+
+
+def _tesseract_env() -> dict[str, str]:
+    """Run each tesseract single-threaded unless the operator says otherwise.
+
+    The OpenMP builds (Debian/Ubuntu ``tesseract-ocr``) start one busy-waiting thread per core in
+    every process. Several OCR jobs at once (RQ workers, or a worker next to the API) then thrash:
+    measured on 4 vCPUs, one page took 0.3 s alone but more than 300 s with four in parallel, so
+    jobs hit the timeout and documents were marked "OCR failed". With one thread each, four
+    parallel runs take 0.3 s apiece. Tesseract's docs recommend this for concurrent instances.
+    """
+    return {**os.environ, "OMP_THREAD_LIMIT": os.environ.get("OMP_THREAD_LIMIT", "1")}
 MIN_TEXT_LAYER_CHARS = 20
 
 
@@ -209,6 +222,7 @@ class TesseractEngine(OcrEngine):
                 [self.cmd, "-", "stdout", "-l", langs, "--psm", "3", "tsv"],
                 input=png,
                 capture_output=True,
+                env=_tesseract_env(),
                 timeout=TESSERACT_TIMEOUT_SECONDS,
                 check=False,
             )
