@@ -36,6 +36,8 @@ def _tesseract_env() -> dict[str, str]:
     parallel runs take 0.3 s apiece. Tesseract's docs recommend this for concurrent instances.
     """
     return {**os.environ, "OMP_THREAD_LIMIT": os.environ.get("OMP_THREAD_LIMIT", "1")}
+
+
 MIN_TEXT_LAYER_CHARS = 20
 
 
