@@ -187,3 +187,143 @@ similar p95. Re-measure on a dedicated host before sizing.
 3. Re-run on a dedicated host, with the RLS app role, and at 100k people before choosing a graph
    projection (ADR-0002).
 
+
+# Production-readiness certification (October 2026)
+
+## Why the earlier load test cannot certify the target
+PRS §49 asks for a **normal** API p95 under 500 ms. The Phase 8 HTTP test ran a closed loop with
+zero think time: every virtual user sends its next request the instant the last one returns. That
+measures a saturated server, where p95 is mostly queueing. It is useful for finding bottlenecks, but
+it is not the latency of normal use. Its latency also suffers from coordinated omission: a slow
+response delays the next request, so the slowest periods are under-sampled.
+
+## Certification protocol (`ops/loadtest/certify.sh`)
+Each run uses a fresh database, the migrations, a 10,000-person synthetic tree, and a server running
+as the RLS-restricted app role. It records the host, CPU count, PostgreSQL version and git commit
+next to the results. Three measurements:
+
+| Step | Command | What it answers |
+|---|---|---|
+| 1. Sequential | `loadtest sequential` (1 user, 50 timed calls per operation after 3 warm-ups) | The latency a person sees on an idle server. |
+| 2. Open-loop sweep | `loadtest sweep --rates …` | p50/p95/p99 and errors at each **sustained** arrival rate (Poisson). Latency is measured from each request's *scheduled* time, so there is no coordinated omission. The sessions log in once before the first rate, because Argon2id logins are deliberately CPU-heavy (~83 ms on 4 threads each). Capacity is the highest rate with p95 ≤ 500 ms and < 1% errors. |
+| 3. Stress (diagnostic) | `loadtest run` (closed loop, 20 users) | Saturation behaviour only; not part of the pass/fail. |
+
+The operation mix is 85% reads and 15% writes: people list, profile, family, ancestors (depth 10),
+descendants (depth 4), search, relationship path, add person and add relative. The generator
+reports its own scheduling lag. If that lag is large, the generator was the bottleneck and the run
+is invalid.
+
+## Running it on a dedicated staging host (required before go-live)
+The Cloud sandbox is **not** a reliable place to certify capacity: the generator, PostgreSQL and
+the API share 4 vCPUs on a shared VM, and identical runs differ widely (see "Results" below).
+Procedure:
+
+1. **Hosts.** Use two machines in the same region:
+   - **Server host:** at least 4 dedicated vCPUs (not burstable), 8 GB RAM, SSD. PostgreSQL 16 on
+     the same host is fine, but record it; production uses managed PostgreSQL. Expect your
+     production node count to scale from this result.
+   - **Generator host:** at least 2 vCPUs.
+2. **Server host setup.** Install the repo, `uv`, PostgreSQL 16 (superuser access for the
+   throwaway database) and `openssl`. Set the CPU governor to `performance`, and stop cron jobs,
+   backups and other services during the run.
+3. **Run on the server host only** (simplest; the generator then shares the CPU, so treat capacity
+   as a lower bound):
+   ```bash
+   PEOPLE=10000 WORKERS=$(nproc) RATES="5,10,20,30,40,60,80" DURATION=120 ops/loadtest/certify.sh
+   ```
+4. **Or drive it from the generator host** (preferred):
+   - on the server host: `SERVE_ONLY=1 ops/loadtest/certify.sh` (seeds, then serves on
+     `0.0.0.0:8300` as the RLS role until Ctrl-C; open that port to the generator host only);
+   - copy `results/cert-*/state.json` to the generator host;
+   - run there:
+     ```bash
+     uv run python -m app.cli.loadtest sequential --base-url http://SERVER:8300 --state state.json --json seq.json
+     uv run python -m app.cli.loadtest sweep --base-url http://SERVER:8300 --state state.json \
+       --rates 5,10,20,30,40,60,80 --users 40 --duration 120 --json sweep.json
+     ```
+5. **Repeat** the sweep at least 3 times, and report the **worst** p95 at each rate. Accept a
+   capacity figure only if the three runs agree on it.
+6. **Pass criteria** (PRS §49):
+   - sequential p95 ≤ 500 ms for every operation;
+   - at the expected peak arrival rate (see sizing below), sweep p95 ≤ 500 ms and errors < 1% in all
+     three runs;
+   - generator lag p99 < 50 ms.
+7. **Sizing.** Peak rate ≈ concurrent active users ÷ seconds between their requests. For example,
+   300 people active at once, each clicking about every 10 s, is about 30 req/s. Size so that the
+   peak rate is at most 70% of the certified capacity.
+8. **Record** the result folder (`environment.txt`, `sequential.json`, `sweep.json`) and add a row to
+   `docs/release/production-readiness.md`.
+
+## Results in the Cloud sandbox (1 Oct 2026)
+**Environment:** 4 vCPU shared VM (cumulative CPU steal observed), 15 GiB RAM, PostgreSQL 16.13. The
+API (4 uvicorn workers, RLS app role), PostgreSQL and the generator ran **on the same host**. The
+results are evidence for this code. They are **not** a capacity certificate for production
+hardware; see the runbook above.
+
+**Sequential (normal use; 1 user, 50 timed calls per operation, 10,000 people; commit `54c1021` plus the seed fix. Later commits changed only overload handling and the generator, which do not affect single-user requests):**
+
+| Operation | p50 ms | p95 ms | p99 ms |
+|---|---|---|---|
+| People list (page of 50) | 48 | 59 | 156 |
+| Person profile | 23 | 28 | 33 |
+| Family view | 32 | 44 | 49 |
+| Ancestors, depth 10 | 47 | 60 | 64 |
+| Descendants, depth 4 | 38 | 50 | 158 |
+| Search | 59 | 84 | 161 |
+| Relationship path | 82 | 101 | 235 |
+| Add person (write) | 34 | 43 | 47 |
+| Add relative (write) | 49 | 58 | 64 |
+
+Every operation meets **p95 < 500 ms**, with at least a 5× margin. There were 0 errors.
+
+**Sustained concurrency (open loop, 40 sessions, 60 s per rate; three runs at commit `bb2fb18`; worst of three shown):**
+
+| Arrival rate | Worst p50 ms | Worst p95 ms | Worst p99 ms | Errors | p95 ≤ 500 ms |
+|---|---|---|---|---|---|
+| 10 req/s | 55 | 125 | 206 | 0% | yes (3/3) |
+| 20 req/s | 56 | 134 | 225 | 0% | yes (3/3) |
+| 30 req/s | 62 | 180 | 278 | 0% | yes (3/3) |
+| 40 req/s | 72 | 248 | 889 | 0% | yes (3/3) |
+| 50 req/s | 101 | 353 | 530 | 0% | yes (3/3) |
+
+**Capacity on this shared host: 50 req/s** of the 85/15 read/write mix (three runs agree). Beyond
+that:
+
+| Offered | Successful req/s | p95 | Shed (503, `Retry-After`) |
+|---|---|---|---|
+| 60 req/s | 60.4 | 1.6 s | 0.06–0.25% |
+| 70 req/s | 63.0 | 2.5 s | 10% |
+| 80 req/s | 62.4 | 2.6 s | 22% |
+
+So the node degrades gracefully: useful throughput holds near its ceiling, there are no timeouts and
+no 5xx other than the shed responses.
+
+### Defects found and fixed while certifying
+| Finding | Evidence | Fix |
+|---|---|---|
+| Congestion collapse past capacity: requests queued for the 15-connection pool, waited 30 s, then failed as **unhandled 500s** | 70 req/s offered → 29 successful req/s; 80 → ~4 successful req/s; 2,389 `QueuePool limit reached` | Per-worker admission control, a 5 s pool wait, and a retryable 503 (`test_overload.py`). Now 63/62 successful req/s, p95 2.5 s, no unhandled errors. |
+| Concurrent OCR jobs time out (OpenMP thread thrash) | 1 page: 0.3 s alone, > 300 s with 4 in parallel | `OMP_THREAD_LIMIT=1` per tesseract (`test_concurrent_ocr_jobs_do_not_thrash`) |
+| The load test could not write (ADR-0011 attestation) | every write 403 `attestation_required` | Seeded accounts confirm the statement |
+| Measurement artifacts, not product defects | re-login per rate (Argon2id: 83 ms × 4 threads each) and keep-alive pinning (19/9/8/4 connections per worker) made identical runs disagree by 3× | The sweep logs in once; one connection per request, like nginx |
+
+### Checked, no change needed
+- **N+1 queries:** none. Every endpoint issues 2–16 statements regardless of tree size. Relationship
+  path issues one batched query per BFS frontier (bounded by depth).
+- **RLS overhead:** not measurable. Sequential medians, RLS role versus owner, three alternating
+  rounds: −4.7 to +2.0 ms per endpoint, which is noise.
+- **Recursive genealogy queries:** ancestors depth 10 p95 60 ms, descendants depth 4 p95 50 ms.
+- **Indexes:** lookups by id and BFS frontiers use indexes (0.1 ms). **Measured trigger:** the people
+  list is a sequential scan plus top-N sort, growing linearly with tree size (19 ms at 33,765
+  people). Add
+  `CREATE INDEX ix_person_tree_display_name ON person (tree_id, preferred_display_name, id) WHERE deleted_at IS NULL`
+  before trees reach about 100k people.
+- **Serialization and Python overhead:** SQL is 12–52% of request time; the rest is the Python
+  stack. Nothing dominates, and nothing missed the target.
+- **Worker balancing:** gunicorn with `SO_REUSEPORT` gave no gain (p95 547 vs 463 ms at 50 req/s).
+  CPU, not connection distribution, is the limit. Keep `uvicorn --workers`.
+
+### Verdict
+- **Met:** `p95 < 500 ms` for normal (sequential) use of every operation, and for sustained load up
+  to **50 req/s** on this 4 vCPU shared host, where the database and generator also run.
+- **Not claimed:** production capacity. Run `ops/loadtest/certify.sh` on the staging host
+  (runbook above) and size the fleet from that result.
