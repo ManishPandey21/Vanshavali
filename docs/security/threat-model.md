@@ -96,36 +96,47 @@ SameSite=Lax cookies apply.
 - **Row-level security** covers tree-scoped tables only. Identity and control tables (`tree`,
   memberships, invitations, users, sessions, auth tokens, audit) rely on the service layer. The
   barrier is lost if a deployment connects the app as the table owner or a superuser (ADR-0002 §7).
-- **DAST:** IMPLEMENTED, NOT YET EXECUTED. `.github/workflows/dast.yml` runs weekly (Mon 04:23 UTC)
-  and on `workflow_dispatch`, never on pull requests, because a live scan is slow and flakier than
-  unit tests. What the workflow does:
-  - starts Postgres 16 and Redis services, then migrates and seeds the demo tree as the owner;
-  - runs uvicorn as the non-owner `vanshavali_app` role, so RLS is in force, and gates on
-    `/api/v1/health/ready`. `VSH_METRICS_TOKEN` is unset, so `/api/v1/metrics` answers 404;
-  - serves the SPA with the **production nginx image** (`frontend/Dockerfile`), so the headers
-    scanned are the real ones;
-  - runs the ZAP baseline (passive, with AJAX spider) against the SPA;
-  - runs the ZAP API scan (active) from `/api/v1/openapi.json`, with the demo user's session
-    cookie (`ZAP_AUTH_HEADER`).
+- **DAST: executed (1 Oct 2026); first GitHub run still pending.** `.github/workflows/dast.yml`
+  runs weekly (Mon 04:23 UTC) and on `workflow_dispatch`, never on pull requests. What it does:
+  - starts Postgres 16 and Redis, migrates and seeds the demo tree as the owner;
+  - serves the SPA with the **production nginx image**, then runs uvicorn as the non-owner
+    `vanshavali_app` role (RLS in force) with the production proxy flags, trusting
+    `X-Forwarded-For` only from that nginx container's exact address;
+  - probes that a spoofed `X-Forwarded-For` is not recorded as the client IP (threat T30);
+  - runs the ZAP baseline (passive, AJAX spider) and the ZAP API scan (active, from
+    `/api/v1/openapi.json`) with the demo user's session and **real demo-tree IDs** fed to ZAP's
+    form handler (`dast-ids.prop`). With placeholder path IDs, 99% of requests stopped at UUID
+    validation and never reached the data paths. No CSRF header is sent, so the active scan
+    covers authenticated reads but cannot mutate data; unsafe methods and BOLA stay covered by the
+    authz test suite.
 
-  No CSRF header is supplied, so the active scan covers authenticated reads but cannot mutate data.
-  Unsafe methods and cross-tree/BOLA cases stay covered by the authz test suite. Rule policy is in
-  `.zap/rules.tsv`:
-  - it holds only IGNOREs that stay true in production (HSTS and `Secure` over CI's plain HTTP;
-    informational SPA/caching notices);
-  - clickjacking, nosniff, CSP, CORS, XSS, SQLi, injection and traversal alerts are escalated to
-    FAIL;
-  - known weaknesses (CSP `style-src 'unsafe-inline'`, COEP/CORP, the deliberately readable
-    `vsh_csrf` cookie) stay visible as WARN.
+  **Executed** in the Cloud sandbox with the same steps, the same `zaproxy/zap-stable` image and
+  the same `.zap/rules.tsv` (details in `docs/release/production-readiness.md`):
+  - first run: baseline 0 FAIL, 4 WARN; API scan 0 FAIL, 3 WARN, 111 PASS. No injection, XSS,
+    traversal or file-inclusion finding in 166 endpoints.
+  - fixed from it: client-IP spoofing via `X-Forwarded-For` (T30, Medium); the nginx version in
+    `Server`; third-party Google Fonts (no SRI possible, visitor IPs sent to Google), now
+    self-hosted; CSP `style-src 'unsafe-inline'`, now `'self'`-only (0 violations in 24 browser page
+    loads).
+  - the ID-aware API scan then found a NUL byte in a query filter turning into an unhandled 500
+    (psycopg `DataError`). Input the database cannot store is now a structured 422
+    (`test_input_robustness.py`).
+  - after the fixes: **baseline 0 FAIL / 0 WARN / 60 PASS; ID-aware API scan 0 FAIL / 0 WARN /
+    113 PASS, 0 server errors** (reports in `docs/release/evidence/dast-2026-10-01/`).
 
-  The workflow YAML passes `actionlint` (with shellcheck), but the workflow has **not run** yet,
-  because this sandbox has no Docker daemon. Its first run may need rule tuning, and any change to
-  the rules must keep a written justification.
+  Rule policy (`.zap/rules.tsv`):
+  - IGNOREs only where the justification holds in production (HSTS and `Secure` over CI's plain
+    HTTP; informational SPA and caching notices);
+  - two false positives scoped by URL (`OUTOFSCOPE`), so the rule stays live everywhere else: your
+    own session IPs on `/auth/sessions`, and non-JSON content types outside `/api/` and for the
+    zip archive export;
+  - FAIL for clickjacking, nosniff, CSP (including `'unsafe-inline'`), server version, missing SRI,
+    CORS, XSS, SQLi, injection and traversal;
+  - COEP/CORP and the deliberately readable `vsh_csrf` cookie stay visible as WARN.
 
-  While building it, a real gap was fixed: nginx drops server-level `add_header` in any `location`
-  that sets its own, so the SPA HTML (`/`) and `/assets/` were served **without** CSP,
-  X-Frame-Options and nosniff. The fix is a shared `frontend/nginx-security-headers.conf` included
-  per location, verified locally with nginx 1.24 and curl.
+  Earlier, while building the workflow: nginx drops server-level `add_header` in any `location`
+  that sets its own, so the SPA HTML and `/assets/` were served without CSP, X-Frame-Options and
+  nosniff. Fixed with a shared `frontend/nginx-security-headers.conf` included per location.
 
   A scheduled external penetration test is still DEFERRED. CI also runs SAST (ruff `S` rules) and
   dependency audits.
