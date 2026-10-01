@@ -46,7 +46,7 @@ The code is **ready for a production pilot once the deployment items below are d
 | Secrets and keys | ⏳ Configure | `config.validate_production` refuses dev keys | — | — | Provision `VSH_STANDARD_DATA_KEY`, `VSH_VAULT_DATA_KEY`, `VSH_SIGNING_KEY`, DB passwords and `VSH_METRICS_TOKEN` from a secret manager | **Yes** |
 | Backup and restore | ⚠️ Local only | `ops/backup/drill.sh` (Phase 8) | restore + verify 5.9–6.7 s at 10k people (local) | `drill.yml` not run on GitHub; PITR and S3 versioning not drilled | Enable managed PITR; run the drill against production-like infrastructure; record RPO/RTO | **Yes** |
 | Observability | ✅ Implemented | `test_observability.py` | JSON logs, request IDs, readiness with RLS check, metrics | Alert rules and tracing deferred | Wire alerts: 5xx / `server_busy` rate, p95 per route, readiness, job failures, scanner down | No (do in week 1) |
-| Container images | ⚠️ Partly verified | frontend image built and served in DAST; backend image: CI `docker` job | Frontend: built (production nginx, headers verified) | Backend image could not be built in the sandbox (GHCR and AWS ECR CDN blocked by egress policy; Docker Hub rate-limited) | Confirm CI `docker` job is green on this PR | No (if CI green) |
+| Container images | ✅ Pass | frontend image built locally and served in DAST; **both images built by CI** (`docker` job, run 36922828365, on this PR's head `dc6a5eb`) | backend and frontend `docker build` succeeded; `docker compose config` valid | The backend image could not be built in the sandbox (egress policy, rate limit); CI is the evidence | — | No |
 | Hosting | ⏳ Decide | implementation-plan §12 (ASSUMPTION) | — | Hosting provider and topology not decided | Choose hosting; deploy per `docs/operations/deployment.md` | **Yes** |
 | Penetration test | ⏳ Deferred | — | — | No independent test | Commission an external penetration test (authz/BOLA, uploads, claim links) | **Yes** before public launch; No for a closed pilot |
 | Environment cleanup | ✅ Done | `pg_database` / `pg_roles` listings | `vsh_frontend_dev` dropped (0 connections, no references, no dedicated role); every DB and role created here removed | — | — | No |
@@ -87,7 +87,7 @@ production image before the fix and verified there after it.
 | End-to-end | `npx playwright test` | 26/26 |
 | Secrets | gitleaks over the full history | 3 false positives (test placeholders) |
 | DAST | ZAP baseline + ID-aware API scan | 0 FAIL / 0 WARN |
-| Docker | frontend image build; backend image | frontend ✅; backend via CI only (sandbox egress) |
+| Docker | `docker compose config -q`; `docker build` backend and frontend | ✅ both images built by CI (run 36922828365); frontend also built locally |
 
 ## Observations (not blockers)
 - `onboarding.test.tsx` ("never pre-ticks the consent box…") failed once during a full Vitest
