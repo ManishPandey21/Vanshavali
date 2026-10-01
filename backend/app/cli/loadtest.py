@@ -161,9 +161,13 @@ class VirtualUser:
         self.created: list[str] = []
 
     async def login(self) -> None:
-        r = await self.client.post(
-            "/api/v1/auth/login", json={"email": self.email, "password": self.password}
-        )
+        for _ in range(10):  # a burst of logins can be shed (503 + Retry-After): back off and retry
+            r = await self.client.post(
+                "/api/v1/auth/login", json={"email": self.email, "password": self.password}
+            )
+            if r.status_code != 503:
+                break
+            await asyncio.sleep(float(r.headers.get("retry-after", "1")) * self.rng.uniform(0.5, 1.5))
         if r.status_code != 200:
             raise RuntimeError(f"login failed for {self.email}: {r.status_code} {r.text[:200]}")
         self.client.headers["X-CSRF-Token"] = self.client.cookies.get("vsh_csrf") or ""

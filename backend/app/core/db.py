@@ -24,7 +24,15 @@ def get_engine() -> Engine:
     if settings.statement_timeout_ms:
         # server-side guard against runaway queries (PRS §49, threat T14)
         connect_args["options"] = f"-c statement_timeout={int(settings.statement_timeout_ms)}"
-    return create_engine(settings.database_url, pool_pre_ping=True, future=True, connect_args=connect_args)
+    return create_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        future=True,
+        connect_args=connect_args,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
+        pool_timeout=settings.db_pool_timeout_s,
+    )
 
 
 @lru_cache

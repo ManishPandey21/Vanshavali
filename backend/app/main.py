@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hmac
 import logging
 import time
@@ -27,6 +28,7 @@ from app.core.observability import (
 from app.models.rls import POLICY_NAME, RLS_TABLES
 
 access_log = logging.getLogger("app.access")
+admission_log = logging.getLogger("app.admission")
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -99,6 +101,45 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Content-Type", settings.csrf_header_name],
     )
+
+    limit = settings.max_inflight_requests or (settings.db_pool_size + settings.db_max_overflow)
+    slots = asyncio.Semaphore(limit)
+    exempt = {
+        f"{settings.api_prefix}/health",
+        f"{settings.api_prefix}/health/ready",
+        f"{settings.api_prefix}/metrics",
+    }
+
+    @app.middleware("http")
+    async def admission(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+        """Bound in-progress API work per worker (load test, Oct 2026).
+
+        Past capacity, unbounded admission made every request queue for a thread and a database
+        connection, so throughput collapsed and clients waited up to a minute. Shedding the excess
+        early keeps the admitted requests fast and tells clients to retry.
+        """
+        path = request.url.path
+        if not path.startswith(settings.api_prefix) or path in exempt:
+            return await call_next(request)
+        try:
+            await asyncio.wait_for(slots.acquire(), timeout=settings.admission_wait_s)
+        except TimeoutError:
+            admission_log.warning("admission limit (%d in progress) reached; shedding request", limit)
+            return JSONResponse(
+                status_code=503,
+                headers={"Retry-After": "2"},
+                content={
+                    "error": {
+                        "code": "server_busy",
+                        "message": "The service is busy. Please try again in a moment.",
+                        "details": None,
+                    }
+                },
+            )
+        try:
+            return await call_next(request)
+        finally:
+            slots.release()
 
     @app.middleware("http")
     async def request_context(

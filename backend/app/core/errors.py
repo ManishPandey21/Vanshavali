@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import DataError
+from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 log = logging.getLogger(__name__)
@@ -97,6 +98,18 @@ def install_error_handlers(app: FastAPI) -> None:
                 "invalid_input",
                 "The request contains a value that cannot be stored (for example a NUL character)",
             ),
+        )
+
+    @app.exception_handler(PoolTimeoutError)
+    async def _pool_exhausted(_: Request, exc: PoolTimeoutError) -> JSONResponse:
+        # Every database connection of this worker stayed busy for db_pool_timeout_s: the server is
+        # overloaded. Shed the request quickly with a retryable 503 instead of an unhandled 500 after a
+        # long hang; that keeps the work already admitted moving.
+        log.warning("database connection pool exhausted; shedding request")
+        return JSONResponse(
+            status_code=503,
+            headers={"Retry-After": "2"},
+            content=_body("server_busy", "The service is busy. Please try again in a moment."),
         )
 
     @app.exception_handler(StarletteHTTPException)
