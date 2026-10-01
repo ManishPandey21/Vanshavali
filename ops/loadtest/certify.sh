@@ -11,8 +11,10 @@
 # Usage, from the repo root on the host under test (needs PostgreSQL superuser access, uv, openssl):
 #   ops/loadtest/certify.sh
 #   PEOPLE=10000 WORKERS=4 RATES="5,10,20,30,40,60" DURATION=60 ops/loadtest/certify.sh
-# To drive a server on another host instead (recommended: generator and server on separate machines):
-#   BASE_URL=https://staging.example ops/loadtest/certify.sh   # seeds via VSH_DATABASE_URL, skips local server
+# Two hosts (recommended: the generator must not share the server's CPUs):
+#   server host:    SERVE_ONLY=1 ops/loadtest/certify.sh   # seed, then serve on 0.0.0.0:$PORT until Ctrl-C
+#   generator host: copy <OUT>/state.json, then run `loadtest sequential` / `loadtest sweep` against it
+#                   (docs/operations/performance.md, "Running it on a dedicated staging host")
 #
 # Env: PGHOST/PGUSER/PGPASSWORD (default localhost/vanshavali/vanshavali), CERT_DB (vsh_cert),
 #      PORT (8300), OUT (ops/loadtest/results/cert-<timestamp>), SKIP_STRESS=1 to skip step 3.
@@ -54,15 +56,22 @@ if [[ -z "${BASE_URL:-}" ]]; then
   APP_ROLE=vsh_cert_app
   APP_PW="$(openssl rand -hex 16)"
   VSH_APP_DB_ROLE="$APP_ROLE" VSH_APP_DB_PASSWORD="$APP_PW" uv run python -m app.cli.ensure_app_role
-  echo "== uvicorn --workers $WORKERS on :$PORT as $APP_ROLE (row-level security applies)"
+  BIND=127.0.0.1
+  [[ -n "${SERVE_ONLY:-}" ]] && BIND=0.0.0.0
+  echo "== uvicorn --workers $WORKERS on $BIND:$PORT as $APP_ROLE (row-level security applies)"
   VSH_DATABASE_URL="postgresql+psycopg://$APP_ROLE:$APP_PW@$PGHOST:5432/$CERT_DB" \
-    uv run uvicorn app.main:app --host 127.0.0.1 --port "$PORT" --workers "$WORKERS" --no-access-log \
+    uv run uvicorn app.main:app --host "$BIND" --port "$PORT" --workers "$WORKERS" --no-access-log \
     >"$OUT/server.log" 2>&1 &
   SERVER=$!
   trap 'kill $SERVER 2>/dev/null || true; wait $SERVER 2>/dev/null || true' EXIT
   BASE_URL="http://127.0.0.1:$PORT"
   for _ in $(seq 120); do curl -fsS "$BASE_URL/api/v1/health/ready" >/dev/null 2>&1 && break; sleep 0.5; done
   curl -fsS "$BASE_URL/api/v1/health/ready" | tee "$OUT/ready.json"; echo
+  if [[ -n "${SERVE_ONLY:-}" ]]; then
+    echo "serving on 0.0.0.0:$PORT; copy $OUT/state.json to the generator host. Ctrl-C to stop."
+    wait "$SERVER"
+    exit 0
+  fi
 fi
 
 LT=(uv run python -m app.cli.loadtest)

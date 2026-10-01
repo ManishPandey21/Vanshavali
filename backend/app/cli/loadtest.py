@@ -359,6 +359,7 @@ async def run_open(
     exclude: set[str] | None = None,
     max_in_flight: int = 1000,
     seed: int = 7,
+    vus: list[VirtualUser] | None = None,
 ) -> dict[str, Any]:
     """Open loop: requests arrive at ``rate``/s (Poisson) whether or not earlier ones have finished.
 
@@ -370,8 +371,16 @@ async def run_open(
     if sessions > len(state["users"]):
         raise SystemExit(f"state has only {len(state['users'])} accounts; re-seed with --users {sessions}")
     stats = Stats()
-    vus = [VirtualUser(i, base, state, stats, 0, seed=sessions) for i in range(sessions)]
-    await asyncio.gather(*(v.login() for v in vus))
+    owned = vus is None
+    if vus is None:
+        vus = [VirtualUser(i, base, state, stats, 0, seed=sessions) for i in range(sessions)]
+        # Logins verify Argon2id hashes (~83 ms and 4 threads each): never let them overlap the
+        # measured window. A sweep logs in once and passes its sessions in (see run_sweep).
+        await asyncio.gather(*(v.login() for v in vus))
+    else:
+        for v in vus:
+            v.stats = stats
+    sessions = len(vus)
     mix = [m for m in MIX if m[0] not in (exclude or set())]
     labels, weights = [m[0] for m in mix], [m[1] for m in mix]
     rng = random.Random(seed)  # noqa: S311 - load-test randomness only
@@ -408,7 +417,8 @@ async def run_open(
         in_flight.add(task)
         task.add_done_callback(in_flight.discard)
     await asyncio.gather(*in_flight)
-    await asyncio.gather(*(v.close() for v in vus))
+    if owned:
+        await asyncio.gather(*(v.close() for v in vus))
     for label in labels:  # dropped arrivals are errors, but have no latency
         stats.lat[label] = [x for x in stats.lat.get(label, []) if x == x]
     lag_ms.sort()
@@ -534,13 +544,39 @@ def main(argv: list[str] | None = None) -> int:
     return 1 if (rep["error_rate"] or 0) > 0.01 else 0
 
 
+async def run_sweep(
+    base: str,
+    state: dict[str, Any],
+    rates: list[float],
+    duration: float,
+    warmup: float,
+    sessions: int,
+    exclude: set[str],
+    settle: float = 10.0,
+) -> list[dict[str, Any]]:
+    """Open-loop runs at each rate over ONE set of sessions, logged in once before the first run."""
+    if sessions > len(state["users"]):
+        raise SystemExit(f"state has only {len(state['users'])} accounts; re-seed with --users {sessions}")
+    vus = [VirtualUser(i, base, state, Stats(), 0, seed=sessions) for i in range(sessions)]
+    await asyncio.gather(*(v.login() for v in vus))
+    await asyncio.sleep(settle)  # let the login burst's CPU drain before the first measurement
+    reports = []
+    try:
+        for rate in rates:
+            reports.append(await run_open(base, state, rate, duration, warmup, sessions, exclude, vus=vus))
+    finally:
+        await asyncio.gather(*(v.close() for v in vus))
+    return reports
+
+
 def _sweep(args: argparse.Namespace, state: dict[str, Any], exclude: set[str]) -> int:
     """Capacity: the highest open-loop rate whose overall p95 meets the SLO with < 1% errors."""
     results: list[dict[str, Any]] = []
-    for rate in [float(x) for x in args.rates.split(",") if x.strip()]:
-        rep = asyncio.run(
-            run_open(args.base_url, state, rate, args.duration, args.warmup, args.users, exclude)
-        )
+    rates = [float(x) for x in args.rates.split(",") if x.strip()]
+    reports = asyncio.run(
+        run_sweep(args.base_url, state, rates, args.duration, args.warmup, args.users, exclude)
+    )
+    for rate, rep in zip(rates, reports, strict=True):
         print_report(rep)
         ok = rep["overall"]["p95"] <= args.slo_p95_ms and (rep["error_rate"] or 0) < 0.01
         results.append({"rate": rate, "meets_slo": ok, "report": rep})
