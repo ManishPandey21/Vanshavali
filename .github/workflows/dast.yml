@@ -64,23 +64,40 @@ jobs:
           VSH_APP_DB_ROLE: vanshavali_app
           VSH_APP_DB_PASSWORD: dast-app-password
         run: uv run python -m app.cli.ensure_app_role
-      - name: Start API (uvicorn, 2 workers, all interfaces so the nginx container can reach it)
-        working-directory: backend
-        env:
-          # the API runs as the app role; migrations and seeding above used the owner
-          VSH_DATABASE_URL: postgresql+psycopg://vanshavali_app:dast-app-password@localhost:5432/vsh_dast
-          # VSH_METRICS_TOKEN deliberately unset: /api/v1/metrics must answer 404 to the scanner
-        run: |
-          nohup uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 > "$RUNNER_TEMP/api.log" 2>&1 &
-          for _ in $(seq 60); do curl -fsS http://localhost:8000/api/v1/health && break; sleep 1; done
-          curl -fsS http://localhost:8000/api/v1/health/ready
       - name: Build and start the SPA with the production nginx image
         run: |
           docker build -t vanshavali-frontend ./frontend
           docker run -d --name spa --add-host backend:host-gateway -p 8080:8080 vanshavali-frontend
           for _ in $(seq 30); do curl -fsS -o /dev/null http://localhost:8080/ && break; sleep 1; done
           curl -fsSI http://localhost:8080/ | tee "$RUNNER_TEMP/spa-headers.txt"
+          # The API must trust X-Forwarded-For from this container ONLY. Not its subnet: clients
+          # reaching the published port appear to nginx as the bridge gateway, which must stay untrusted.
+          echo "SPA_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' spa)" >> "$GITHUB_ENV"
+      - name: Start API (uvicorn, 2 workers, all interfaces so the nginx container can reach it)
+        working-directory: backend
+        env:
+          # the API runs as the app role; migrations and seeding above used the owner
+          VSH_DATABASE_URL: postgresql+psycopg://vanshavali_app:dast-app-password@localhost:5432/vsh_dast
+          # VSH_METRICS_TOKEN deliberately unset: /api/v1/metrics must answer 404 to the scanner
+          # Same proxy-header handling as the production image: trust X-Forwarded-For only from the
+          # nginx container's exact address, never "*" (backend/tests/test_proxy_headers.py).
+          FORWARDED_ALLOW_IPS: ${{ env.SPA_IP }}
+        run: |
+          nohup uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --no-access-log > "$RUNNER_TEMP/api.log" 2>&1 &
+          for _ in $(seq 60); do curl -fsS http://localhost:8000/api/v1/health && break; sleep 1; done
+          curl -fsS http://localhost:8000/api/v1/health/ready
           curl -fsS http://localhost:8080/api/v1/health
+      - name: A client cannot choose its own IP via X-Forwarded-For
+        # Per-IP rate limits, the audit log and the session list use the derived client IP.
+        run: |
+          jar="$RUNNER_TEMP/spoof.txt"
+          curl -fsS -c "$jar" -H 'Content-Type: application/json' -H 'X-Forwarded-For: 203.0.113.66' \
+            -d '{"email":"demo@example.com","password":"demo-password-123"}' \
+            http://localhost:8080/api/v1/auth/login > /dev/null
+          ips=$(curl -fsS -b "$jar" http://localhost:8080/api/v1/auth/sessions | python3 -c \
+            'import json,sys; d=json.load(sys.stdin); print(" ".join(str(s.get("ip")) for s in d))')
+          echo "session IPs: $ips"
+          if grep -q 203.0.113.66 <<<"$ips"; then echo "::error::spoofed X-Forwarded-For was trusted"; exit 1; fi
       - name: Log in as the demo user (authenticated scan context)
         run: |
           jar="$RUNNER_TEMP/cookies.txt"

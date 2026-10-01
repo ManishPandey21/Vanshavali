@@ -91,7 +91,10 @@ services:
 
   backend:
     build: ./backend
-    environment: *backend-env
+    environment:
+      <<: *backend-env
+      # Trust X-Forwarded-For only from the nginx container (fixed address below), never "*".
+      FORWARDED_ALLOW_IPS: 172.28.0.10
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
@@ -111,6 +114,15 @@ services:
     build: ./frontend
     depends_on: [backend]
     ports: ["8080:8080"]
+    networks:
+      default:
+        ipv4_address: 172.28.0.10
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
 
 volumes:
   pgdata:

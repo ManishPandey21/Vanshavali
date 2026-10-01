@@ -27,6 +27,12 @@ frontend (nginx serving the SPA and proxying `/api`).
   `python -m app.cli.ensure_app_role` (idempotent; takes `VSH_APP_DB_ROLE` and
   `VSH_APP_DB_PASSWORD`) → roll backend and worker.
   Migrations must be backward compatible with the previous app version (expand/contract).
+- **Client IP behind proxies.** Set `FORWARDED_ALLOW_IPS` on the backend to the exact addresses or
+  CIDRs of the reverse proxies directly in front of it: the nginx tier and the load balancer. The
+  image defaults to loopback only. Never use `*` or a subnet that also contains clients (for
+  example a Docker bridge, whose gateway is how host-published ports reach nginx): a client could
+  then choose its own IP, dodge per-IP rate limits and falsify audit and session IPs (threat T30).
+  Compose pins nginx to `172.28.0.10` and trusts only that address.
 - TLS 1.2+ terminates at the load balancer. HSTS is set by the API when `VSH_COOKIE_SECURE=true`.
 - **Observability.**
   - Set `VSH_LOG_FORMAT=json`: one JSON object per line, with `request_id`, `method`, `route`,
