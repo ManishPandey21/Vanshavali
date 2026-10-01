@@ -63,7 +63,11 @@ def seed(people: int, users: int, state_path: Path) -> dict[str, Any]:
     from app.cli.benchmark import build
     from app.core.db import get_sessionmaker
     from app.core.security import hash_password
-    from app.models import TreeMembership, User
+    from app.models import FamilyDataAttestation, TreeMembership, User
+    from app.modules.consent import statements
+    from app.modules.consent.statements import StatementKind
+
+    stmt = statements.current(StatementKind.FAMILY_DATA, "en")
 
     t0 = time.perf_counter()
     owner_email, tree_id, ids = build(people)
@@ -80,6 +84,17 @@ def seed(people: int, users: int, state_path: Path) -> dict[str, Any]:
             db.add(u)
             db.flush()
             db.add(TreeMembership(tree_id=uuid.UUID(tree_id), user_id=u.id, roles=["CONTRIBUTOR"]))
+            # Adding people requires the contributor's family-data confirmation (ADR-0011).
+            db.add(
+                FamilyDataAttestation(
+                    tree_id=uuid.UUID(tree_id),
+                    user_id=u.id,
+                    statement_version=stmt.version,
+                    language=stmt.language,
+                    statement_sha256=stmt.sha256,
+                    created_by=u.id,
+                )
+            )
             emails.append(email)
         db.commit()
     state = {

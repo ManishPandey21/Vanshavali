@@ -66,15 +66,18 @@ if [[ -z "${BASE_URL:-}" ]]; then
 fi
 
 LT=(uv run python -m app.cli.loadtest)
+status=0 # every step runs; a step with > 1% errors marks the whole certification as failed
 echo "== 1/3 sequential"
-"${LT[@]}" sequential --base-url "$BASE_URL" --state "$OUT/state.json" --per-endpoint 50 --json "$OUT/sequential.json" | tee "$OUT/sequential.txt"
+"${LT[@]}" sequential --base-url "$BASE_URL" --state "$OUT/state.json" --per-endpoint 50 \
+  --json "$OUT/sequential.json" | tee "$OUT/sequential.txt" || status=1
 echo "== 2/3 open-loop sweep: $RATES req/s"
 "${LT[@]}" sweep --base-url "$BASE_URL" --state "$OUT/state.json" --rates "$RATES" --users "$SESSIONS" \
-  --duration "$DURATION" --json "$OUT/sweep.json" | tee "$OUT/sweep.txt"
+  --duration "$DURATION" --json "$OUT/sweep.json" | tee "$OUT/sweep.txt" || status=1
 if [[ -z "${SKIP_STRESS:-}" ]]; then
-  echo "== 3/3 closed-loop stress, 20 users, zero think time (diagnostic)"
+  echo "== 3/3 closed-loop stress, 20 users, zero think time (diagnostic, does not affect the status)"
   "${LT[@]}" run --base-url "$BASE_URL" --state "$OUT/state.json" --users 20 --duration "$DURATION" \
     --json "$OUT/stress-20.json" | tee "$OUT/stress-20.txt" || true
 fi
 echo "loadavg after: $(cut -d' ' -f1-3 /proc/loadavg)" | tee -a "$OUT/environment.txt"
-echo "results: $OUT"
+echo "results: $OUT (status $status)"
+exit "$status"
