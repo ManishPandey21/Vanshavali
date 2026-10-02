@@ -2,11 +2,29 @@
 # Lines starting with # are ignored by the ZAP scripts. Anything not listed keeps ZAP's default (WARN).
 #
 # Policy: an IGNORE needs a written justification that holds for PRODUCTION, not just for CI.
+# OUTOFSCOPE takes a URL regex in the third column and silences the rule ONLY for matching URLs.
 # Expected WARNs that we deliberately do NOT ignore (so a regression still shows up in the report):
 #   10010 Cookie No HttpOnly Flag  - expected ONLY for vsh_csrf (double-submit token read by the SPA);
 #                                    any other cookie in this alert is a bug (vsh_session must be HttpOnly).
-#   10055 CSP: style-src 'unsafe-inline' - known weakness of the SPA CSP; tracked, not accepted.
 #   90004 Insufficient Site Isolation (COEP/CORP) - not yet decided; tracked.
+# First full run (Oct 2026, docs/release/production-readiness.md): 0 FAIL. Fixed then and escalated
+# below so they cannot regress: 10036 (nginx version), 10055 (CSP 'unsafe-inline'), 90003 (SRI on
+# third-party Google Fonts, now self-hosted). The same run led to the X-Forwarded-For trust fix
+# (backend/tests/test_proxy_headers.py and the spoofing probe step in dast.yml). The API scan is fed real
+# demo-tree IDs (dast-ids.prop): with placeholder path IDs 99% of its requests stopped at UUID validation.
+# That ID-aware run found a NUL byte in a query string turning into an unhandled 500 (now a 422; see
+# backend/tests/test_input_robustness.py).
+#
+# ---- scoped false positives (each limited to the URLs where the justification holds)
+2	OUTOFSCOPE	.*/api/v1/auth/sessions$
+# (Private IP Disclosure) /auth/sessions lists the signed-in user's OWN sessions with their client IP, by design
+# (so they can spot and revoke unknown sessions). In CI that IP is the Docker bridge (private); in production it is
+# the user's own public address. Still reported anywhere else.
+100001	OUTOFSCOPE	^https?://[^/]+/(?!api/).*
+# (Unexpected Content-Type) The API scan also crawls the site root, where the SPA rightly serves HTML/JS/CSS.
+# Every /api/ response must stay JSON, so the rule remains active for /api/ URLs.
+100001	OUTOFSCOPE	.*/api/v1/trees/[^/]+/exports/archive.*
+# (Unexpected Content-Type) The family archive export is a download and is application/zip by design.
 #
 # ---- justified IGNOREs
 10035	IGNORE	(Strict-Transport-Security Header Not Set) CI scans plain HTTP on localhost. In production TLS terminates at the load balancer and the API sets HSTS whenever VSH_COOKIE_SECURE=true, which VSH_ENV=production enforces (config.validate_production).
@@ -15,6 +33,9 @@
 10049	IGNORE	(Storable and Cacheable Content / Non-Storable Content) Informational: hashed /assets/* are deliberately cacheable (immutable); HTML shell and every API response are deliberately Cache-Control: no-store.
 #
 # ---- escalations: these fail the workflow
+10036	FAIL	(Server Leaks Version Information) nginx runs with server_tokens off.
+10055	FAIL	(CSP misconfiguration, e.g. style-src 'unsafe-inline') the CSP is 'self'-only for scripts, styles and fonts.
+90003	FAIL	(Sub Resource Integrity Attribute Missing) no third-party scripts or styles: fonts are self-hosted.
 10020	FAIL	(Anti-clickjacking header missing) X-Frame-Options DENY / frame-ancestors 'none' must be on every response.
 10021	FAIL	(X-Content-Type-Options missing) nosniff must be on every response.
 10038	FAIL	(Content Security Policy header not set) CSP must be on every HTML and API response.

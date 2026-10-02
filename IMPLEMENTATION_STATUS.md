@@ -4,14 +4,16 @@ Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERI
 tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
-Last verified: 2026-09-26.
-- Backend: `uv run pytest` 292 passed, run as the RLS-restricted app role, including the migration
-  roundtrip; ruff, ruff `S` and mypy clean.
-- Frontend: lint, typecheck, Vitest (120) and build green.
-- Playwright: 26 tests in 12 specs (core flow, birth certificate review, property partition, viewer
-  denied, MFA, password reset, forced password change, landing page, onboarding + WhatsApp claim,
-  claim link "not me" / "remove me", GEDCOM photos, accessibility). CI runs the same gates.
-  In the dev sandbox, birth certificate review needs Tesseract installed.
+Last verified: 2026-10-01 (post-Phase-8 production-readiness validation;
+[docs/release/production-readiness.md](docs/release/production-readiness.md)).
+- Backend: `uv run pytest` 312 passed, run as the RLS-restricted app role, including the migration
+  roundtrip; ruff, ruff format, ruff `S`, mypy, pip-audit clean. Migrations from a clean database:
+  one head, `alembic check` clean, full downgrade and re-upgrade.
+- Frontend: lint, typecheck, Vitest (122), build and npm audit (0 vulnerabilities) green.
+- Playwright: 26 tests in 12 specs, all passing, including the accessibility spec now covering the
+  pages added since the audit. CI runs the same gates. In the dev sandbox, birth certificate review
+  needs Tesseract installed.
+- DAST (ZAP, executed): baseline 0 FAIL/0 WARN; ID-aware API scan 0 FAIL/0 WARN, 0 server errors.
 
 ## Platform / Phase 0
 
@@ -59,7 +61,7 @@ Last verified: 2026-09-26.
 | Module | Status | Tests | Notes |
 |---|---|---|---|
 | Document vault (upload pipeline, vault class, previews, versions, links, signed downloads, soft delete/restore) | VERIFIED | `test_documents.py` (17), `test_retention.py` | Retention purge after 30 days (ADR-0004 §7). Streaming large downloads and watermarking DEFERRED |
-| OCR (PDF text layer, Tesseract eng+hin) + extractors (birth certificate, Kundli, land record) + Aadhaar masking | VERIFIED | `test_extraction.py` (15) | Handwriting / other Indic OCR languages DEFERRED |
+| OCR (PDF text layer, Tesseract eng+hin) + extractors (birth certificate, Kundli, land record) + Aadhaar masking | VERIFIED | `test_extraction.py` (17) | Tesseract runs single-threaded (`OMP_THREAD_LIMIT=1`), so concurrent jobs don't thrash: 4 parallel took > 300 s before, 0.3 s each after. Handwriting / other Indic OCR languages DEFERRED |
 | Proposal review → new claims with citation + provenance | VERIFIED | `test_extraction.py` | |
 | Frontend: document vault, extraction review | VERIFIED | Vitest; Playwright `birth-certificate.spec.ts` | |
 
@@ -110,10 +112,12 @@ Last verified: 2026-09-26.
 | Item | Status |
 |---|---|
 | RLS second barrier | VERIFIED: 31 tree-scoped tables, non-owner app role, `tests/test_rls.py` (unbound sees nothing; no cross-tree read, insert or update; no binding leak across pooled connections). The whole test suite runs as the restricted role |
-| Load tests (10k-person tree, p95 targets) | PARTIAL. What exists:<ul><li>in-process benchmark: relationship path is now 71 ms p50 / 149 ms p95 for a 14th-cousin pair (was 1.9 s)</li><li>HTTP load test (`app/cli/loadtest.py`, `ops/loadtest/run.sh`; uvicorn with 4 workers; 10k people; RLS app role)</li></ul>Its main bottleneck, the relationship path loading the whole graph per call, is **fixed**: at 20 users, 40.6 → 75.4 req/s and overall p95 1,587 → 764 ms, with 0 errors. The overall p95 < 500 ms target is **still not met** in a closed loop without think time on the shared 4-vCPU dev box (load average 9–21). Re-measure on a dedicated host before sizing (`docs/operations/performance.md`) |
-| WCAG 2.2 AA audit | VERIFIED (automated + scripted): axe WCAG 2.0–2.2 A/AA on 83 page states in en/hi/mobile with 0 violations, plus keyboard, semantics, reflow and reduced-motion checks in `e2e/tests/a11y.spec.ts`; findings and fixes in `docs/accessibility/audit-2026-09.md`. Real screen-reader pass (NVDA, VoiceOver, TalkBack) is still manual and outstanding |
+| Load tests (10k-person tree, p95 targets) | VERIFIED in the Cloud sandbox; **production capacity NOT certified**. New protocol (`ops/loadtest/certify.sh`): sequential, open-loop sweep with three runs that must agree, stress. Sequential: every operation p95 ≤ 101 ms. Sustained 10–50 req/s: p95 ≤ 353 ms, 0% errors, in all three runs. Beyond that the node sheds load gracefully (admission control). Measured on a shared 4 vCPU host where the DB and generator also run: run the staging-host runbook in `docs/operations/performance.md` before go-live |
+| WCAG 2.2 AA audit | VERIFIED (automated + scripted); **manual pass outstanding**. `e2e/tests/a11y.spec.ts` covers the original 83 page states plus 15 pages added since (landing, onboarding, claim link, search, sources, places, branches, households, joint family, duplicates, admin claims/invitations/restore) in en/hi: 0 serious/critical axe violations. Mobile "More" now marks the current section. Screen-reader and native-Hindi review checklist: `docs/accessibility/manual-test-checklist.md` |
 | Observability | VERIFIED: JSON logs, request IDs, privacy-safe access logs, liveness and readiness (with RLS self-check), token-protected Prometheus metrics, statement timeout (`tests/test_observability.py`). OpenTelemetry traces and alert rules DEFERRED |
 | Backup/restore drill | VERIFIED locally. `ops/backup/drill.sh` + `verify.py` covers:<ul><li>`pg_dump -Fc`, encrypted with age or openssl</li><li>a copy of the object store</li><li>restore into a fresh database and storage dir, then `alembic upgrade head`</li><li>row counts, API login, STANDARD+VAULT sha256, audit trigger</li></ul>It passed end to end at 10k people (restore + verify 5.9–6.7 s) and on the RLS working tree. The nightly/manual `.github/workflows/drill.yml` has not run on GitHub yet. PITR, S3 versioning and full-environment RTO are not drilled |
-| DAST / penetration test | DAST IMPLEMENTED, NOT EXECUTED. `.github/workflows/dast.yml` (weekly + manual) runs a ZAP baseline on the SPA via the production nginx image and a ZAP API scan on the OpenAPI document, with rules in `.zap/rules.tsv`. The workflow passes actionlint, but it has never run because there is no Docker here. It found and fixed missing security headers on the nginx SPA locations. Penetration test DEFERRED |
+| DAST / penetration test | DAST EXECUTED (Cloud sandbox, same ZAP image and rules as `dast.yml`); first GitHub run pending. Found and fixed: `X-Forwarded-For` client-IP spoofing that bypassed per-IP rate limits (T30), a NUL byte giving an unhandled 500, the nginx version leak, third-party Google Fonts (self-hosted now) and CSP `'unsafe-inline'`. Final: baseline 0 FAIL/0 WARN/60 PASS; ID-aware API scan 0 FAIL/0 WARN/113 PASS. Penetration test DEFERRED (human) |
+| Overload behaviour | VERIFIED: per-worker admission control, 5 s pool wait, retryable 503 `server_busy` (`test_overload.py`). At 70–80 req/s offered, successful throughput went from 10 / 0 req/s (collapse, unhandled 500s, 60 s timeouts) to 63 / 62 req/s |
+| Input robustness | VERIFIED: input the database cannot store (e.g. NUL) is a 422, never a 500 (`test_input_robustness.py`) |
 | Collaboration (change proposals, comments, notifications) | DEFERRED (post-MVP) |
 | Reports / PDF charts / fan chart / maps | DEFERRED |

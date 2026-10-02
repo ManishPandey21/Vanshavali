@@ -15,5 +15,9 @@ RUN useradd --system --uid 10001 --home /app vanshavali && mkdir -p /app/var && 
 USER vanshavali
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
+# Proxy headers are honoured only from these addresses/CIDRs (uvicorn walks X-Forwarded-For right to
+# left, skipping them). Set it to the reverse proxies directly in front of the API (nginx, the load
+# balancer). Never "*": any client could then choose its own IP and dodge per-IP rate limits.
+ENV FORWARDED_ALLOW_IPS="127.0.0.1,::1"
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health').status==200 else 1)"
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*", "--no-access-log"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--no-access-log"]

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ComponentType } from "react";
-import { NavLink, Outlet, useParams } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ArchiveRestore,
@@ -45,6 +45,7 @@ export function TreeLayout() {
   const { t } = useTranslation();
   const tree = useTree(treeId);
   const [moreOpen, setMoreOpen] = useState(false);
+  const { pathname } = useLocation();
   const ctx = useMemo(() => (tree.data ? makeTreeCtx(tree.data) : null), [tree.data]);
 
   const items: NavItem[] = useMemo(() => {
@@ -91,6 +92,8 @@ export function TreeLayout() {
     { id: "admin", label: t("nav.group.admin") },
   ];
   const mobileMain = items.filter((i) => [`/t/${treeId}`, `/t/${treeId}/people`, `/t/${treeId}/tree`, `/t/${treeId}/search`].includes(i.to));
+  // When the current page lives behind "More", that button is the current item of the bottom bar.
+  const moreCurrent = !mobileMain.some((i) => (i.end ? pathname === i.to : pathname === i.to || pathname.startsWith(`${i.to}/`)));
   const linkCls = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm ${isActive ? "bg-kumkum-100 font-semibold text-kumkum-900" : "text-ink hover:bg-parchment-deep"}`;
 
@@ -166,7 +169,13 @@ export function TreeLayout() {
               </li>
             ))}
             <li>
-              <button type="button" onClick={() => setMoreOpen(true)} className="flex w-full flex-col items-center gap-0.5 py-2 text-[11px] text-ink-muted" aria-haspopup="dialog">
+              <button
+                type="button"
+                onClick={() => setMoreOpen(true)}
+                className={`flex w-full flex-col items-center gap-0.5 py-2 text-[11px] ${moreCurrent ? "font-semibold text-kumkum-800" : "text-ink-muted"}`}
+                aria-haspopup="dialog"
+                aria-current={moreCurrent ? "true" : undefined}
+              >
                 <MoreHorizontal className="size-5" aria-hidden />
                 {t("nav.more")}
               </button>

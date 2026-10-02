@@ -170,6 +170,8 @@ function treePages(s: Seed): [string, string][] {
   const t = `/t/${s.treeId}`;
   return [
     ["trees list", "/"],
+    ["new tree", "/trees/new"],
+    ["guided first run", "/welcome"],
     ["account", "/account"],
     ["dashboard", t],
     ["people list", `${t}/people`],
@@ -179,6 +181,13 @@ function treePages(s: Seed): [string, string][] {
     ["tree viewer · list", `${t}/tree/${s.ramesh}?view=list`],
     ["tree viewer · descendants list", `${t}/tree/${s.suresh}?view=list&dir=descendants`],
     ["relationship calculator", `${t}/relationship?from=${s.aarav}&to=${s.suresh}`],
+    ["search", `${t}/search?q=Ramesh`],
+    ["sources", `${t}/sources`],
+    ["places", `${t}/places`],
+    ["branches", `${t}/branches`],
+    ["households", `${t}/households`],
+    ["joint family", `${t}/joint-family`],
+    ["duplicates", `${t}/duplicates`],
     ["documents list", `${t}/documents`],
     ["document detail (PDF)", `${t}/documents/${s.documentId}`],
     ["document detail (image)", `${t}/documents/${s.imageDocumentId}`],
@@ -191,6 +200,9 @@ function treePages(s: Seed): [string, string][] {
     ["admin members", `${t}/admin/members`],
     ["admin audit", `${t}/admin/audit`],
     ["admin settings", `${t}/admin/settings`],
+    ["admin claims", `${t}/admin/claims`],
+    ["admin invitations", `${t}/admin/invitations`],
+    ["admin restore", `${t}/admin/restore`],
   ];
 }
 
@@ -232,6 +244,13 @@ test.describe("axe: WCAG 2.2 A/AA", () => {
       const ctx = await browser.newContext({ baseURL });
       await ctx.addInitScript((l) => localStorage.setItem("vsh_lang", l), lang);
       const page = await ctx.newPage();
+      await page.goto("/");
+      await audit(page, `landing [${lang}]`);
+      await page.goto("/about");
+      await audit(page, `about [${lang}]`);
+      // a claim link opened while signed out: asks the relative to sign in or create an account
+      await page.goto("/claim#not-a-real-claim-token-0000000000000000000");
+      await audit(page, `claim link [${lang}]`);
       await page.goto(`/p/${seed.slug}`);
       await audit(page, `public tree [${lang}]`);
       await page.goto(`/p/${seed.slug}/people/${seed.suresh}`);

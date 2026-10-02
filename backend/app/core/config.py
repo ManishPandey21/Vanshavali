@@ -27,6 +27,17 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     # Per-statement timeout for API/worker connections (0 disables); protects against runaway queries.
     statement_timeout_ms: int = 15000
+    # Connection pool per worker process. Keep workers x (size + overflow) under PostgreSQL's
+    # max_connections (minus admin/migration headroom). When the pool is exhausted a request waits at
+    # most db_pool_timeout_s, then gets a 503 with Retry-After instead of hanging (load test, Oct 2026).
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout_s: float = 5.0
+    # Admission control per worker: at most this many API requests in progress (0 = pool size +
+    # overflow, so admitted requests never queue for a connection). Excess requests wait up to
+    # admission_wait_s for a slot, then get a 503 with Retry-After. Health and metrics are exempt.
+    max_inflight_requests: int = 0
+    admission_wait_s: float = 1.0
 
     # Observability: "json" for log shippers (recommended in production), "text" for humans.
     log_format: Literal["json", "text"] = "text"

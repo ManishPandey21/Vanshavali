@@ -81,7 +81,7 @@ def test_birth_certificate_image_produces_masked_proposals(owner, tree):
     person = _person(owner, t)
     doc = _upload_certificate(owner, t, person["id"], png_bytes(text_image(BIRTH_CERTIFICATE_LINES)))
     assert doc["storage_class"] == "VAULT"
-    assert doc["ocr_status"] == "completed", doc
+    assert doc["ocr_status"] == "completed", doc.get("ocr_error")
     assert doc["extraction_status"] == "completed"
     assert doc["pending_proposals"] >= 8
 
@@ -115,13 +115,40 @@ def test_birth_certificate_image_produces_masked_proposals(owner, tree):
     assert len(births) == 1 and births[0]["date"]["day"] == 12
 
 
+def test_tesseract_runs_single_threaded_unless_overridden(monkeypatch):
+    """OpenMP tesseract builds thrash when several run at once (see ocr._tesseract_env)."""
+    from app.modules.extraction import ocr
+
+    monkeypatch.delenv("OMP_THREAD_LIMIT", raising=False)
+    assert ocr._tesseract_env()["OMP_THREAD_LIMIT"] == "1"
+    monkeypatch.setenv("OMP_THREAD_LIMIT", "2")  # an explicit operator choice wins
+    assert ocr._tesseract_env()["OMP_THREAD_LIMIT"] == "2"
+
+
+@requires_tesseract
+def test_concurrent_ocr_jobs_do_not_thrash():
+    """Regression: four OCR jobs at once took > 300 s each (one alone: 0.3 s) and timed out."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    from app.modules.extraction.ocr import TesseractEngine
+
+    data = png_bytes(text_image(BIRTH_CERTIFICATE_LINES))
+    engine = TesseractEngine()
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(4) as pool:
+        results = list(pool.map(lambda _: engine.extract(data, "image/png"), range(4)))
+    assert all("Aarav Sharma" in r.text for r in results)
+    assert time.perf_counter() - t0 < 30
+
+
 @requires_tesseract
 def test_scanned_pdf_uses_tesseract(owner, tree):
     t = tree["id"]
     person = _person(owner, t)
     pdf = image_pdf(text_image(BIRTH_CERTIFICATE_LINES))
     doc = _upload_certificate(owner, t, person["id"], pdf, filename="bc.pdf", mime="application/pdf")
-    assert doc["ocr_status"] == "completed"
+    assert doc["ocr_status"] == "completed", doc.get("ocr_error")
     assert doc["preview_status"] == "completed"
     props = _proposals(owner, t, doc["id"])
     assert props["father_name"]["proposed_value"] == "Rakesh Sharma"

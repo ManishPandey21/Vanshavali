@@ -65,6 +65,7 @@ sharing, uploads, downloads, exports, admin or public features change.
 | T27 | S / E | Account takeover through Google linking (someone else's Google account with the victim's email; pre-registration squatter; bypassing TOTP) | Accounts are matched by Google `sub`, never by email after the first link. Linking by email needs `email_verified` **and** a Google-authoritative address (gmail.com/googlemail.com or Workspace `hd`); other addresses must use the password. Linking an unverified (squatted) account replaces its password and revokes every session. MFA-enabled and closed accounts are refused. (ADR-0012) | `test_account_security.py` (`test_returning_google_user_matches_by_subject_not_email`, `test_non_google_address_needs_the_password_first`, `test_pre_registration_squatter_loses_access_when_owner_signs_in_with_google`, `test_mfa_accounts_cannot_bypass_totp_with_google`, `test_inactive_account_cannot_sign_in_with_google`) |
 | T28 | S / E | A temporary (demo) password is shared or leaked and keeps working | Demo accounts come only from a CLI that refuses outside `development`/`test`, reads the password from an environment variable (never argv, source, seeds or docs) and stores only the Argon2 hash. `must_change_password` makes **every** authenticated endpoint except change-password and logout answer `403 password_change_required` (also after Google sign-in); the new password must differ; the change revokes other sessions. | `test_account_security.py` (`test_demo_account_must_change_password_before_anything_else`, `…rejects_reusing_the_temporary_password`, `…lifts_the_block`, `test_demo_account_refused_outside_development_and_test`, `test_demo_cli_reads_password_only_from_env`), Vitest `AccountSecurity.test.tsx` |
 | T29 | T / D / I | A malicious GEDCOM photo package (zip bomb, path traversal, encrypted or nested archives, disguised or infected files, photos of hidden people leaking) | Never extracted to disk; members read one at a time with bounded reads; ≤5,000 entries, total ≤ `max_gedcom_package_bytes`, each photo ≤ `max_upload_bytes`, ratio >100:1 refused; encrypted and nested archives ignored; member names used only for matching. Every photo goes through the normal document pipeline (magic-byte allowlist, malware scan failing closed, encrypted write-once storage); rejected files are skipped and audited. A photo takes its person's privacy level (the strictest when shared). Files nobody references are never stored. (ADR-0013) | `test_gedcom_photos.py` (`test_package_safety`, `test_package_limits_are_enforced`, `test_a_photo_with_malware_is_skipped_and_the_rest_imports`, `test_a_non_image_is_rejected_and_a_pdf_is_not_filed_as_a_photo`, `test_photo_privacy_follows_the_person`, `test_photo_import_is_tree_scoped_and_needs_import_rights`), Playwright `gedcom-photos.spec.ts` |
+| T30 | S / D / R | A client forges its IP with `X-Forwarded-For` to dodge per-IP rate limits (login, registration, resets) and to falsify audit and session IPs | **Found by the first DAST run (Oct 2026) and fixed.** The API trusts forwarded headers only from the proxies directly in front of it (`FORWARDED_ALLOW_IPS`: the nginx container's exact address, plus the load balancer in production), never `*`. uvicorn walks the header right to left, skipping trusted hops, so a client-supplied leftmost entry is never used. Trusting a whole Docker subnet is also wrong: the bridge gateway is where host clients appear. | `test_proxy_headers.py` (spoofed hop ignored; untrusted peer ignored; LB hop skipped; shipped Dockerfile, compose and DAST configs never trust `*`); `dast.yml` step "A client cannot choose its own IP" |
 
 ## 4a. Security audit, 25 Sep 2026
 An adversarial audit found 13 issues (3 High, 6 Medium, 4 Low). Each was proven with a failing test,
@@ -95,36 +96,47 @@ SameSite=Lax cookies apply.
 - **Row-level security** covers tree-scoped tables only. Identity and control tables (`tree`,
   memberships, invitations, users, sessions, auth tokens, audit) rely on the service layer. The
   barrier is lost if a deployment connects the app as the table owner or a superuser (ADR-0002 §7).
-- **DAST:** IMPLEMENTED, NOT YET EXECUTED. `.github/workflows/dast.yml` runs weekly (Mon 04:23 UTC)
-  and on `workflow_dispatch`, never on pull requests, because a live scan is slow and flakier than
-  unit tests. What the workflow does:
-  - starts Postgres 16 and Redis services, then migrates and seeds the demo tree as the owner;
-  - runs uvicorn as the non-owner `vanshavali_app` role, so RLS is in force, and gates on
-    `/api/v1/health/ready`. `VSH_METRICS_TOKEN` is unset, so `/api/v1/metrics` answers 404;
-  - serves the SPA with the **production nginx image** (`frontend/Dockerfile`), so the headers
-    scanned are the real ones;
-  - runs the ZAP baseline (passive, with AJAX spider) against the SPA;
-  - runs the ZAP API scan (active) from `/api/v1/openapi.json`, with the demo user's session
-    cookie (`ZAP_AUTH_HEADER`).
+- **DAST: executed (1 Oct 2026); first GitHub run still pending.** `.github/workflows/dast.yml`
+  runs weekly (Mon 04:23 UTC) and on `workflow_dispatch`, never on pull requests. What it does:
+  - starts Postgres 16 and Redis, migrates and seeds the demo tree as the owner;
+  - serves the SPA with the **production nginx image**, then runs uvicorn as the non-owner
+    `vanshavali_app` role (RLS in force) with the production proxy flags, trusting
+    `X-Forwarded-For` only from that nginx container's exact address;
+  - probes that a spoofed `X-Forwarded-For` is not recorded as the client IP (threat T30);
+  - runs the ZAP baseline (passive, AJAX spider) and the ZAP API scan (active, from
+    `/api/v1/openapi.json`) with the demo user's session and **real demo-tree IDs** fed to ZAP's
+    form handler (`dast-ids.prop`). With placeholder path IDs, 99% of requests stopped at UUID
+    validation and never reached the data paths. No CSRF header is sent, so the active scan
+    covers authenticated reads but cannot mutate data; unsafe methods and BOLA stay covered by the
+    authz test suite.
 
-  No CSRF header is supplied, so the active scan covers authenticated reads but cannot mutate data.
-  Unsafe methods and cross-tree/BOLA cases stay covered by the authz test suite. Rule policy is in
-  `.zap/rules.tsv`:
-  - it holds only IGNOREs that stay true in production (HSTS and `Secure` over CI's plain HTTP;
-    informational SPA/caching notices);
-  - clickjacking, nosniff, CSP, CORS, XSS, SQLi, injection and traversal alerts are escalated to
-    FAIL;
-  - known weaknesses (CSP `style-src 'unsafe-inline'`, COEP/CORP, the deliberately readable
-    `vsh_csrf` cookie) stay visible as WARN.
+  **Executed** in the Cloud sandbox with the same steps, the same `zaproxy/zap-stable` image and
+  the same `.zap/rules.tsv` (details in `docs/release/production-readiness.md`):
+  - first run: baseline 0 FAIL, 4 WARN; API scan 0 FAIL, 3 WARN, 111 PASS. No injection, XSS,
+    traversal or file-inclusion finding in 166 endpoints.
+  - fixed from it: client-IP spoofing via `X-Forwarded-For` (T30, Medium); the nginx version in
+    `Server`; third-party Google Fonts (no SRI possible, visitor IPs sent to Google), now
+    self-hosted; CSP `style-src 'unsafe-inline'`, now `'self'`-only (0 violations in 24 browser page
+    loads).
+  - the ID-aware API scan then found a NUL byte in a query filter turning into an unhandled 500
+    (psycopg `DataError`). Input the database cannot store is now a structured 422
+    (`test_input_robustness.py`).
+  - after the fixes: **baseline 0 FAIL / 0 WARN / 60 PASS; ID-aware API scan 0 FAIL / 0 WARN /
+    113 PASS, 0 server errors** (reports in `docs/release/evidence/dast-2026-10-01/`).
 
-  The workflow YAML passes `actionlint` (with shellcheck), but the workflow has **not run** yet,
-  because this sandbox has no Docker daemon. Its first run may need rule tuning, and any change to
-  the rules must keep a written justification.
+  Rule policy (`.zap/rules.tsv`):
+  - IGNOREs only where the justification holds in production (HSTS and `Secure` over CI's plain
+    HTTP; informational SPA and caching notices);
+  - two false positives scoped by URL (`OUTOFSCOPE`), so the rule stays live everywhere else: your
+    own session IPs on `/auth/sessions`, and non-JSON content types outside `/api/` and for the
+    zip archive export;
+  - FAIL for clickjacking, nosniff, CSP (including `'unsafe-inline'`), server version, missing SRI,
+    CORS, XSS, SQLi, injection and traversal;
+  - COEP/CORP and the deliberately readable `vsh_csrf` cookie stay visible as WARN.
 
-  While building it, a real gap was fixed: nginx drops server-level `add_header` in any `location`
-  that sets its own, so the SPA HTML (`/`) and `/assets/` were served **without** CSP,
-  X-Frame-Options and nosniff. The fix is a shared `frontend/nginx-security-headers.conf` included
-  per location, verified locally with nginx 1.24 and curl.
+  Earlier, while building the workflow: nginx drops server-level `add_header` in any `location`
+  that sets its own, so the SPA HTML and `/assets/` were served without CSP, X-Frame-Options and
+  nosniff. Fixed with a shared `frontend/nginx-security-headers.conf` included per location.
 
   A scheduled external penetration test is still DEFERRED. CI also runs SAST (ruff `S` rules) and
   dependency audits.
