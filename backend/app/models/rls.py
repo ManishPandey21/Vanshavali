@@ -10,7 +10,7 @@ not restrict (policies are not FORCEd), so migrations, backups and bulk tooling 
 
 Identity/control tables that must be read before a tree is known — ``tree``, ``tree_membership``,
 ``tree_invitation``, ``profile_claim_invite``, ``app_user``, ``user_session``, ``auth_token``,
-``external_identity`` — and the
+``external_identity``, ``notification_contact`` (a user's own phone numbers) — and the
 append-only ``audit_event`` are not covered; they are protected by the service layer (and their own
 rules). The two invite tables are resolved by a 256-bit token before the holder is a member; the
 handler then binds the invite's tree for everything else it reads.
@@ -25,6 +25,7 @@ RLS_TABLES: tuple[str, ...] = (
     "assertion",
     "astrology_profile",
     "branch_membership",
+    "chart_preset",
     "citation",
     "consent_record",
     "document",
@@ -32,7 +33,9 @@ RLS_TABLES: tuple[str, ...] = (
     "document_link",
     "document_metadata_version",
     "event",
+    "event_media",
     "event_participant",
+    "event_reminder",
     "export_job",
     "extraction_proposal",
     "family_branch",
@@ -44,6 +47,8 @@ RLS_TABLES: tuple[str, ...] = (
     "land_parcel",
     "merge_record",
     "name_record",
+    "notification_delivery",
+    "notification_preference",
     "person",
     "place",
     "profile_claim",
@@ -52,6 +57,8 @@ RLS_TABLES: tuple[str, ...] = (
     "property_event_parcel",
     "property_interest",
     "relationship",
+    "render_artifact",
+    "render_job",
     "source",
 )
 

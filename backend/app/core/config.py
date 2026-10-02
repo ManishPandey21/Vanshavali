@@ -173,6 +173,39 @@ class Settings(BaseSettings):
     # Traversal limits
     max_traversal_depth: int = 25
 
+    # Reminders and notifications (ADR-0016; docs/operations/notification-providers.md).
+    # Email reminders use the mailer above. SMS / WhatsApp: "disabled" (not offered), "mock" (writes
+    # JSON into notification_outbox_dir; tests, E2E and demos; refused in production) or a provider.
+    sms_backend: Literal["disabled", "mock", "twilio"] = "disabled"
+    whatsapp_backend: Literal["disabled", "mock", "twilio", "meta"] = "disabled"
+    notification_outbox_dir: str = "./var/notifications"
+    twilio_account_sid: str | None = None
+    twilio_auth_token: str | None = None
+    twilio_sms_from: str | None = None  # E.164 number or messaging service SID
+    twilio_whatsapp_from: str | None = None  # e.g. +14155238886 (sent as whatsapp:+...)
+    twilio_api_base: str = "https://api.twilio.com"
+    whatsapp_meta_token: str | None = None
+    whatsapp_meta_phone_number_id: str | None = None
+    whatsapp_meta_template: str = "family_reminder"  # approved template with one body parameter
+    whatsapp_meta_template_language: str = "en"
+    whatsapp_meta_api_base: str = "https://graph.facebook.com/v20.0"
+    provider_timeout_seconds: int = 15
+    # how far back the scheduler still delivers a missed reminder (scheduler downtime)
+    reminder_grace_hours: int = 36
+
+    # Animated exports (ADR-0017; docs/architecture/remotion-rendering.md). "disabled": the API
+    # answers 503 render_unavailable; "stub": deterministic placeholder artifacts (tests); "remotion":
+    # the Node renderer in renderer/ (needs Node 20+, Chromium and the built bundle).
+    render_backend: Literal["disabled", "stub", "remotion"] = "disabled"
+    render_queue_name: str = "vanshavali-render"
+    renderer_dir: str = "../renderer"
+    renderer_node: str = "node"
+    renderer_browser_executable: str | None = None
+    render_timeout_seconds: int = 600
+    render_max_active_per_user: int = 3
+    render_max_per_day_per_tree: int = 50
+    render_max_payload_bytes: int = 8 * 1024 * 1024
+
     @property
     def google_enabled(self) -> bool:
         return bool(self.google_client_id and self.google_client_secret)
@@ -213,6 +246,10 @@ class Settings(BaseSettings):
                 problems.append("VSH_MAIL_FROM must be an address on your sending domain (SPF/DKIM)")
             if not self.cookie_secure:
                 problems.append("VSH_COOKIE_SECURE must be true in production")
+            if "mock" in (self.sms_backend, self.whatsapp_backend):
+                problems.append("SMS/WhatsApp 'mock' backends are for tests and demos, not production")
+            if self.render_backend == "stub":
+                problems.append("VSH_RENDER_BACKEND=stub is for tests only")
             if self.google_enabled and not self.google_callback_uri.startswith("https://"):
                 problems.append("the Google redirect URI must use https in production")
             if problems:

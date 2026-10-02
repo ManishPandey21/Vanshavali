@@ -29,11 +29,14 @@ from app.models import (
     Relationship,
 )
 from app.models.enums import (
+    CATEGORY_EVENT_TYPE,
     DEFAULT_LINEAGE,
     PARENT_TYPES,
     SYMMETRIC_TYPES,
     EventType,
     EvidenceStatus,
+    LifeEventCategory,
+    LocationPrecision,
     ParticipantRole,
     PrivacyLevel,
     ProfileStatus,
@@ -82,6 +85,13 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
         raise Forbidden()
     _check_place(ctx, body.parent_place_id)
     data = body.model_dump(mode="json")
+    if data.get("location_precision") is None:
+        # coordinates without a stated precision are treated as approximate, never as exact
+        data["location_precision"] = (
+            LocationPrecision.APPROXIMATE.value
+            if body.latitude is not None
+            else LocationPrecision.UNKNOWN.value
+        )
     place = Place(tree_id=ctx.tree_id, created_by=ctx.user_id, **data)
     place.parent_place_id = body.parent_place_id
     place.search_text = _place_search(place)
@@ -97,7 +107,15 @@ def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Pl
         raise Forbidden()
     place = lookup.get_place(ctx, place_id)
     changes = body.model_dump(mode="json", exclude_unset=True)
-    if "parent_place_id" in changes:
+    for nn in ("location_precision", "geo_confidence"):
+        if nn in changes and changes[nn] is None:
+            del changes[nn]  # not nullable
+    if ("latitude" in changes) != ("longitude" in changes) or (
+        "latitude" in changes and (changes["latitude"] is None) != (changes["longitude"] is None)
+    ):
+        raise Unprocessable("latitude and longitude must be changed together")
+    if "coordinate_privacy" in changes and not ctx.has(Permission.PRIVACY_MANAGE):
+        raise Forbidden("Only tree admins can change who sees exact coordinates")
         pid = body.parent_place_id
         if pid == place.id:
             raise Unprocessable("A place cannot be its own parent")
@@ -284,6 +302,7 @@ _CORE_FIELDS = {
     "place_as_recorded",
     "latitude",
     "longitude",
+    "location_precision",
     "description",
     "evidence_status",
     "confidence",
@@ -356,18 +375,22 @@ def create_vital(
 
 
 def create_event(ctx: TreeContext, body: EventIn, **provenance: Any) -> Event:
+    etype = body.type or CATEGORY_EVENT_TYPE[body.category or LifeEventCategory.CUSTOM]
     principals = [p for p in body.participants if p.role == ParticipantRole.PRINCIPAL]
     if not principals:
         raise Unprocessable("An event needs at least one principal participant")
     for p in body.participants:
         lookup.get_person(ctx, p.person_id)
         ctx.require(Permission.PERSON_WRITE, person_id=p.person_id)
-    if body.type in SINGLE_PREFERRED and len(principals) != 1:
-        raise Unprocessable(f"A {body.type.value} event has exactly one principal")
+    if etype in SINGLE_PREFERRED and len(principals) != 1:
+        raise Unprocessable(f"A {etype.value} event has exactly one principal")
     e = Event(
         tree_id=ctx.tree_id,
-        type=body.type,
+        type=etype,
         subtype=body.subtype,
+        title=body.title,
+        category=body.category,
+        significance=body.significance,
         created_by=ctx.user_id,
         origin_place_as_recorded=body.origin_place_as_recorded,
         reason=body.reason,
@@ -376,9 +399,9 @@ def create_event(ctx: TreeContext, body: EventIn, **provenance: Any) -> Event:
     )
     _apply_event_core(ctx, e, body, _CORE_FIELDS | {"origin_place_id"})
     e.is_preferred = body.is_preferred
-    if body.type in SINGLE_PREFERRED:
+    if etype in SINGLE_PREFERRED:
         pid = principals[0].person_id
-        if "is_preferred" not in body.model_fields_set and _has_preferred(ctx, pid, body.type):
+        if "is_preferred" not in body.model_fields_set and _has_preferred(ctx, pid, etype):
             e.is_preferred = False  # competing claim: kept, not preferred (ADR-0003)
     ctx.db.add(e)
     ctx.db.flush()
@@ -399,9 +422,9 @@ def create_event(ctx: TreeContext, body: EventIn, **provenance: Any) -> Event:
             )
         )
     ctx.db.flush()
-    if body.type in SINGLE_PREFERRED and e.is_preferred:
-        _unset_other_preferred(ctx, principals[0].person_id, body.type, e.id)
-    audit.log(ctx, "event.created", target_type="event", target_id=e.id, details={"type": body.type.value})
+    if etype in SINGLE_PREFERRED and e.is_preferred:
+        _unset_other_preferred(ctx, principals[0].person_id, etype, e.id)
+    audit.log(ctx, "event.created", target_type="event", target_id=e.id, details={"type": etype.value})
     return e
 
 
@@ -420,8 +443,14 @@ def _event_principal(ctx: TreeContext, e: Event) -> uuid.UUID | None:
 def get_event_checked(ctx: TreeContext, event_id: uuid.UUID) -> tuple[Event, uuid.UUID | None]:
     e = lookup.get_event(ctx, event_id)
     principal = _event_principal(ctx, e)
+    subject = None
     if principal is not None:
-        lookup.get_person(ctx, principal)  # 404 if the principal is not visible
+        subject = lookup.get_person_subject(ctx, principal)  # 404 if the principal is not visible
+    if e.privacy_level is not None:
+        from app.authz.privacy import level_allows
+
+        if not level_allows(ctx, e.privacy_level, subject=subject):
+            raise NotFound("Event not found")  # the event's own visibility (ADR-0015)
     return e, principal
 
 
@@ -432,7 +461,10 @@ def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Ev
     core = fields & (_CORE_FIELDS | {"origin_place_id"})
     _apply_event_core(ctx, e, body, core)
     for f in fields - core - {"is_preferred"}:
-        setattr(e, f, getattr(body, f))
+        value = getattr(body, f)
+        if value is None and f == "significance":
+            continue  # not nullable
+        setattr(e, f, value)
     if body.is_preferred is not None:
         e.is_preferred = body.is_preferred
         if body.is_preferred and principal and e.type in SINGLE_PREFERRED:
