@@ -112,6 +112,7 @@ class Metrics:
         self.requests: dict[tuple[str, str, str], int] = defaultdict(int)
         self.hist: dict[tuple[str, str], list[int]] = {}
         self.hist_sum: dict[tuple[str, str], float] = defaultdict(float)
+        self.shed = 0
 
     def observe(self, method: str, route: str, status: int, seconds: float) -> None:
         with self._lock:
@@ -120,6 +121,10 @@ class Metrics:
             counts = self.hist.setdefault(key, [0] * (len(_BUCKETS) + 1))
             counts[bisect.bisect_left(_BUCKETS, seconds)] += 1
             self.hist_sum[key] += seconds
+
+    def inc_shed(self) -> None:
+        with self._lock:
+            self.shed += 1
 
     def render(self) -> str:
         def lbl(**kv: str) -> str:
@@ -156,3 +161,97 @@ class Metrics:
 
 
 metrics = Metrics()
+
+
+def _job_label(name: str) -> str:
+    # app.modules.documents.processing.process_document -> documents.process_document
+    parts = name.split(".")
+    return ".".join(p for p in (parts[2] if len(parts) > 3 else "", parts[-1]) if p)
+
+
+def runtime_metrics(settings: Settings) -> str:
+    """Gauges read at scrape time: DB pool, job queue, and the shared event counters.
+
+    Pool gauges describe this process. Queue gauges and event/job counters are cluster-wide when jobs
+    run through RQ (every replica reports the same values; aggregate with ``max``).
+    """
+    from app.core import events
+    from app.core.db import get_engine
+
+    lines: list[str] = []
+
+    def gauge(name: str, help_: str, value: float, kind: str = "gauge") -> None:
+        lines.extend([f"# HELP {name} {help_}", f"# TYPE {name} {kind}", f"{name} {value:g}"])
+
+    try:
+        with get_engine().connect() as db:
+            db.exec_driver_sql("select 1")
+        db_up = 1
+    except Exception:
+        db_up = 0
+    gauge("vsh_db_up", "1 if this process reached the database during this scrape.", db_up)
+    pool: Any = get_engine().pool
+    try:
+        gauge("vsh_db_pool_size", "Configured connections per process (excluding overflow).", pool.size())
+        gauge("vsh_db_pool_checked_out", "Connections in use in this process.", pool.checkedout())
+        gauge(
+            "vsh_db_pool_overflow", "Overflow connections open beyond the pool size.", max(pool.overflow(), 0)
+        )
+    except AttributeError:  # pragma: no cover - non-queue pools (tests with NullPool)
+        pass
+    gauge(
+        "vsh_requests_shed_total", "API requests refused by admission control (503).", metrics.shed, "counter"
+    )
+
+    if settings.job_mode == "rq":
+        try:
+            import redis
+            from rq import Queue, Worker
+            from rq.registry import FailedJobRegistry, ScheduledJobRegistry, StartedJobRegistry
+
+            conn = redis.Redis.from_url(settings.redis_url, socket_timeout=2)
+            q = Queue(settings.job_queue_name, connection=conn)
+            gauge("vsh_jobs_queued", "Jobs waiting in the queue.", q.count)
+            gauge("vsh_jobs_running", "Jobs being processed.", StartedJobRegistry(queue=q).count)
+            gauge(
+                "vsh_jobs_scheduled",
+                "Jobs waiting for a retry or a scheduled time.",
+                ScheduledJobRegistry(queue=q).count,
+            )
+            gauge(
+                "vsh_jobs_failed",
+                "Jobs in the failed registry (kept 7 days).",
+                FailedJobRegistry(queue=q).count,
+            )
+            gauge("vsh_workers", "Live background workers.", Worker.count(queue=q))
+            gauge("vsh_queue_up", "1 if the job queue (Redis) answered this scrape.", 1)
+        except Exception:
+            gauge("vsh_queue_up", "1 if the job queue (Redis) answered this scrape.", 0)
+
+    snap = events.snapshot()
+    ev = sorted((k.split("|", 1)[1], v) for k, v in snap.items() if k.startswith("event|"))
+    lines += [
+        "# HELP vsh_events_total Operational failures by kind (mail, storage, OCR, import).",
+        "# TYPE vsh_events_total counter",
+    ]
+    lines += [f'vsh_events_total{{event="{_escape(e)}"}} {v:g}' for e, v in ev]
+    runs = sorted((k.split("|")[1:], v) for k, v in snap.items() if k.startswith("job|"))
+    lines += [
+        "# HELP vsh_job_runs_total Background job runs by job and outcome (each retry counts).",
+        "# TYPE vsh_job_runs_total counter",
+    ]
+    lines += [
+        f'vsh_job_runs_total{{job="{_escape(_job_label(j))}",outcome="{_escape(o)}"}} {v:g}'
+        for (j, o), v in runs
+    ]
+    lines += [
+        "# HELP vsh_job_duration_seconds Background job run time (sum and count; mean = sum / count).",
+        "# TYPE vsh_job_duration_seconds summary",
+    ]
+    for k, v in sorted(snap.items()):
+        if k.startswith("jobsec|"):
+            j = k.split("|", 1)[1]
+            lbl = f'{{job="{_escape(_job_label(j))}"}}'
+            lines.append(f"vsh_job_duration_seconds_sum{lbl} {v:.6f}")
+            lines.append(f"vsh_job_duration_seconds_count{lbl} {snap.get(f'jobcount|{j}', 0):g}")
+    return "\n".join(lines) + "\n"

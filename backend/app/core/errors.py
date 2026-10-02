@@ -5,12 +5,17 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from botocore.exceptions import BotoCoreError
+from botocore.exceptions import ClientError as S3ClientError
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import DataError
 from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core import events
+from app.core.storage import StorageError
 
 log = logging.getLogger(__name__)
 
@@ -111,6 +116,23 @@ def install_error_handlers(app: FastAPI) -> None:
             headers={"Retry-After": "2"},
             content=_body("server_busy", "The service is busy. Please try again in a moment."),
         )
+
+    async def _storage_unavailable(_: Request, exc: Exception) -> JSONResponse:
+        # The object store failed (outage, credentials, missing object). Without this the client got
+        # an unstructured 500 (pilot audit, Oct 2026). The exception text can name bucket keys, so
+        # only its type is logged; the counter drives the storage-failure alert.
+        log.error("object storage error: %s", type(exc).__name__)
+        events.record("storage_error")
+        return JSONResponse(
+            status_code=503,
+            headers={"Retry-After": "30"},
+            content=_body(
+                "storage_unavailable", "Stored files are temporarily unavailable. Please try again."
+            ),
+        )
+
+    for exc_type in (StorageError, BotoCoreError, S3ClientError):
+        app.add_exception_handler(exc_type, _storage_unavailable)
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:

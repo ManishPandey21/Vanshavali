@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import logging
+import traceback
 import uuid
 from collections import defaultdict
 from typing import Any
@@ -14,7 +15,7 @@ from sqlalchemy import select
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
-from app.core import audit
+from app.core import audit, events
 from app.core.config import get_settings
 from app.core.dates import GenealogicalDate
 from app.core.errors import ApiError, Conflict, NotFound, Unprocessable
@@ -260,7 +261,14 @@ def upload(ctx: TreeContext, filename: str | None, data: bytes) -> ImportJob:
         job.report = report
         job.status = JobStatus.READY
     except Exception as exc:  # tolerate anything the parser/stager did not anticipate
-        log.exception("GEDCOM staging failed for import %s", job.id)
+        # Type and code location only: parser messages can quote lines of the family file.
+        log.error(
+            "GEDCOM staging failed for import %s: %s\n%s",
+            job.id,
+            type(exc).__name__,
+            "".join(traceback.format_tb(exc.__traceback__)),
+        )
+        events.record("gedcom_import_failed")
         job.status = JobStatus.FAILED
         job.error = f"The file could not be processed ({type(exc).__name__})"
         job.report = {"file": file_info, "errors": [{"line": None, "code": "internal", "message": job.error}]}
