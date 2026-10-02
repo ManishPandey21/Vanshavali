@@ -4,6 +4,10 @@ import { useTranslation } from "react-i18next";
 import {
   ArchiveRestore,
   ArrowDownUp,
+  Bell,
+  CalendarRange,
+  ChartPie,
+  History as HistoryIcon,
   FileText,
   LandPlot,
   BookOpen,
@@ -56,6 +60,10 @@ export function TreeLayout() {
       { to: `${base}/people`, label: t("nav.people"), icon: Users, group: "main" },
       { to: `${base}/tree`, label: t("nav.treeView"), icon: Network, group: "main" },
       { to: `${base}/relationship`, label: t("nav.relationship"), icon: Route, group: "main" },
+      { to: `${base}/visualizations`, label: t("nav.visualizations"), icon: ChartPie, group: "main" },
+      { to: `${base}/events`, label: t("nav.events"), icon: CalendarRange, group: "main" },
+      { to: `${base}/timeline`, label: t("nav.timeline"), icon: HistoryIcon, group: "main" },
+      { to: `${base}/reminders`, label: t("nav.reminders"), icon: Bell, group: "main" },
       { to: `${base}/joint-family`, label: t("nav.jointFamily"), icon: LayoutGrid, group: "family" },
       { to: `${base}/branches`, label: t("nav.branches"), icon: Landmark, group: "family" },
       { to: `${base}/households`, label: t("nav.households"), icon: UsersRound, group: "family" },
@@ -103,7 +111,7 @@ export function TreeLayout() {
         <a href="#main" className="sr-only-focusable absolute left-2 top-2 z-50 rounded bg-white px-3 py-2">
           {t("nav.skipToContent")}
         </a>
-        <aside className="hidden border-r border-stone-200 bg-white/70 lg:block">
+        <aside className="no-print hidden border-r border-stone-200 bg-white/70 lg:block">
           <div className="sticky top-0 flex h-dvh flex-col gap-4 overflow-y-auto p-4">
             <BrandMark />
             <div className="rounded-lg bg-parchment-deep px-3 py-2">
@@ -142,7 +150,7 @@ export function TreeLayout() {
         </aside>
 
         <div className="min-w-0 pb-20 lg:pb-0">
-          <header className="flex items-center justify-between gap-2 border-b border-stone-200 bg-white/80 px-4 py-2 backdrop-blur lg:hidden">
+          <header className="no-print flex items-center justify-between gap-2 border-b border-stone-200 bg-white/80 px-4 py-2 backdrop-blur lg:hidden">
             <BrandMark />
             <div className="flex items-center gap-2">
               <LanguageSwitcher />
@@ -154,7 +162,7 @@ export function TreeLayout() {
           </main>
         </div>
 
-        <nav aria-label={t("nav.mobileNavigation")} className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white lg:hidden">
+        <nav aria-label={t("nav.mobileNavigation")} className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white lg:hidden">
           <ul className="grid grid-cols-5">
             {mobileMain.map((i) => (
               <li key={i.to}>

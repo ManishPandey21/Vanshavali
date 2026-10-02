@@ -40,7 +40,7 @@ test("viewer sees no edit controls and a direct PATCH is refused", async ({ brow
   await expect(page.getByRole("button", { name: "Remove" })).toHaveCount(0);
   await page.getByRole("tab", { name: "Family" }).click();
   await expect(page.getByRole("button", { name: "Add parent" })).toHaveCount(0);
-  await page.getByRole("tab", { name: "Timeline" }).click();
+  await page.getByRole("tab", { name: "Events", exact: true }).click();
   await expect(page.getByRole("button", { name: "Add event" })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Privacy" })).toHaveCount(0);
 

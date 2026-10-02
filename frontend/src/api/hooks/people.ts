@@ -191,6 +191,14 @@ export function usePlaces(treeId: string, q: string, enabled = true) {
   });
 }
 
+export function useGeotaggedPlaces(treeId: string, enabled = true) {
+  return useQuery({
+    queryKey: [...peopleKeys.places(treeId, ""), "geotagged"],
+    queryFn: ({ signal }) => api.get<Page<PlaceOut>>(`/trees/${treeId}/places`, { geotagged: true, limit: 200 }, signal),
+    enabled,
+  });
+}
+
 export function usePlace(treeId: string, placeId: string | null | undefined) {
   return useQuery({
     queryKey: peopleKeys.place(treeId, placeId ?? ""),

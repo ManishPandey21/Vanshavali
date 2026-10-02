@@ -887,6 +887,524 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/life-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Life Events
+         * @description Events visible to the caller across the tree, oldest first (undated last).
+         */
+        get: operations["list_life_events_api_v1_trees__tree_id__life_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/events/{event_id}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Album */
+        get: operations["event_album_api_v1_trees__tree_id__events__event_id__media_get"];
+        put?: never;
+        /** Upload Event Photo */
+        post: operations["upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/events/{event_id}/media/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link Event Photo */
+        post: operations["link_event_photo_api_v1_trees__tree_id__events__event_id__media_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/events/{event_id}/media/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Event Photo */
+        delete: operations["remove_event_photo_api_v1_trees__tree_id__events__event_id__media__media_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Event Photo */
+        patch: operations["update_event_photo_api_v1_trees__tree_id__events__event_id__media__media_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Person Event Photos
+         * @description Photos from the albums of this person's events.
+         */
+        get: operations["person_event_photos_api_v1_trees__tree_id__people__person_id__photos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_v1_trees__tree_id__notification_preferences_get"];
+        /** Set Preferences */
+        put: operations["set_preferences_api_v1_trees__tree_id__notification_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reminders
+         * @description Your own reminders in this tree.
+         */
+        get: operations["list_reminders_api_v1_trees__tree_id__reminders_get"];
+        put?: never;
+        /** Create Reminder */
+        post: operations["create_reminder_api_v1_trees__tree_id__reminders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/reminders/upcoming": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Upcoming
+         * @description Upcoming birthdays, anniversaries and remembrance days you may see (``tree``), or only the
+         *     events you have reminders for (``mine``).
+         */
+        get: operations["upcoming_api_v1_trees__tree_id__reminders_upcoming_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/reminders/{reminder_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Reminder */
+        delete: operations["delete_reminder_api_v1_trees__tree_id__reminders__reminder_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Reminder */
+        patch: operations["update_reminder_api_v1_trees__tree_id__reminders__reminder_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/reminders/{reminder_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Reminder
+         * @description Send this reminder to yourself now on its channels (marked as a test; rate limited).
+         */
+        post: operations["test_reminder_api_v1_trees__tree_id__reminders__reminder_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Notification History
+         * @description Your reminder deliveries in this tree, newest first (status, attempts, errors; no message text).
+         */
+        get: operations["notification_history_api_v1_trees__tree_id__notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notification-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Notification Channels
+         * @description Which reminder channels this server can deliver.
+         */
+        get: operations["notification_channels_api_v1_notification_channels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notification-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Contacts */
+        get: operations["list_contacts_api_v1_me_notification_contacts_get"];
+        put?: never;
+        /**
+         * Add Contact
+         * @description Add (or replace) your phone number for SMS or WhatsApp; a 6-digit code is sent to it.
+         */
+        post: operations["add_contact_api_v1_me_notification_contacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notification-contacts/{contact_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify Contact */
+        post: operations["verify_contact_api_v1_me_notification_contacts__contact_id__verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notification-contacts/{contact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Contact */
+        delete: operations["delete_contact_api_v1_me_notification_contacts__contact_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/viz/ancestry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ancestry
+         * @description Ahnentafel-numbered ancestors for fan and pedigree charts, with birthplace, village, branch,
+         *     completeness and living/deceased attributes for colouring, and research gaps.
+         */
+        get: operations["ancestry_api_v1_trees__tree_id__viz_ancestry_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/viz/neighbourhood": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Neighbourhood
+         * @description Relatives within ``radius`` steps for the dynamic graph; expand nodes by calling again with
+         *     ``root`` set to an ``expandable`` node (progressive loading).
+         */
+        get: operations["neighbourhood_api_v1_trees__tree_id__viz_neighbourhood_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/viz/lifespans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lifespans */
+        get: operations["lifespans_api_v1_trees__tree_id__viz_lifespans_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/viz/people/{person_id}/story": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Story
+         * @description A person's life events in order, with places, relatives and album photos (event timeline).
+         */
+        get: operations["story_api_v1_trees__tree_id__viz_people__person_id__story_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/viz/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Geo Map */
+        get: operations["geo_map_api_v1_trees__tree_id__viz_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/chart-presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Presets
+         * @description Your presets plus presets other members shared with the tree.
+         */
+        get: operations["list_presets_api_v1_trees__tree_id__chart_presets_get"];
+        put?: never;
+        /** Create Preset */
+        post: operations["create_preset_api_v1_trees__tree_id__chart_presets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/chart-presets/{preset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Preset */
+        delete: operations["delete_preset_api_v1_trees__tree_id__chart_presets__preset_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Preset */
+        patch: operations["update_preset_api_v1_trees__tree_id__chart_presets__preset_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/render-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Render Jobs
+         * @description Your exports (tree admins see everyone's).
+         */
+        get: operations["list_render_jobs_api_v1_trees__tree_id__render_jobs_get"];
+        put?: never;
+        /**
+         * Create Render Job
+         * @description Queue an animated export (poster preview, or poster + MP4). Rendering runs on the render
+         *     worker; poll the job for status and progress.
+         */
+        post: operations["create_render_job_api_v1_trees__tree_id__render_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/render-jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Render Job */
+        get: operations["get_render_job_api_v1_trees__tree_id__render_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Render Job */
+        delete: operations["delete_render_job_api_v1_trees__tree_id__render_jobs__job_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/render-jobs/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Render Job */
+        post: operations["cancel_render_job_api_v1_trees__tree_id__render_jobs__job_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/render-jobs/{job_id}/artifacts/{artifact_id}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Render Download Url */
+        post: operations["render_download_url_api_v1_trees__tree_id__render_jobs__job_id__artifacts__artifact_id__download_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/render-files/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Serve Render File
+         * @description Serve a rendered poster or video for a signed, short-lived token bound to the user.
+         */
+        get: operations["serve_render_file_api_v1_render_files__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/trees/{slug}": {
         parameters: {
             query?: never;
@@ -2361,6 +2879,43 @@ export interface components {
             parcel_id?: string | null;
             interest_type?: components["schemas"]["InterestType"] | null;
         };
+        /** AncestryNode */
+        AncestryNode: {
+            /** Slot */
+            slot: number;
+            /** Generation */
+            generation: number;
+            /** Side */
+            side: string;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+            person?: components["schemas"]["VizPerson"] | null;
+        };
+        /** AncestryOut */
+        AncestryOut: {
+            /**
+             * Root Id
+             * Format: uuid
+             */
+            root_id: string;
+            /** Generations */
+            generations: number;
+            /** Nodes */
+            nodes: components["schemas"]["AncestryNode"][];
+            /**
+             * Missing Slots
+             * @default []
+             */
+            missing_slots?: number[];
+            /**
+             * Summary
+             * @default
+             */
+            summary?: string;
+        };
         /**
          * AreaUnit
          * @enum {string}
@@ -2816,6 +3371,34 @@ export interface components {
             /** Link Target Id */
             link_target_id?: string | null;
         };
+        /** Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post */
+        Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post: {
+            /**
+             * File
+             * @description A photo (JPEG, PNG, WebP, HEIC, …)
+             */
+            file: string;
+            /** Caption */
+            caption?: string | null;
+            /** Title */
+            title?: string | null;
+            /**
+             * Taken Date
+             * @description GenealogicalDate as JSON
+             */
+            taken_date?: string | null;
+            /**
+             * Is Cover
+             * @default false
+             */
+            is_cover?: boolean;
+            /**
+             * Person Ids
+             * @description people shown in the photo
+             */
+            person_ids?: string[] | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+        };
         /** Body_upload_gedcom_api_v1_trees__tree_id__imports_post */
         Body_upload_gedcom_api_v1_trees__tree_id__imports_post: {
             /** File */
@@ -2926,6 +3509,20 @@ export interface components {
             parent_branch_id?: string | null;
             descent_rule?: components["schemas"]["DescentRule"] | null;
         };
+        /** ChannelsOut */
+        ChannelsOut: {
+            /** Email */
+            email: boolean;
+            /** Sms */
+            sms: boolean;
+            /** Whatsapp */
+            whatsapp: boolean;
+        };
+        /**
+         * ChartType
+         * @enum {string}
+         */
+        ChartType: "fan" | "graph" | "pedigree" | "family_tree" | "lifespan" | "event_timeline" | "map";
         /** CitationIn */
         CitationIn: {
             /**
@@ -3211,6 +3808,16 @@ export interface components {
                 [key: string]: ("create" | "skip") | components["schemas"]["AttachDecision"];
             };
         };
+        /** Completeness */
+        Completeness: {
+            /** Score */
+            score: number;
+            /**
+             * Missing
+             * @default []
+             */
+            missing?: string[];
+        };
         /**
          * Confidence
          * @enum {string}
@@ -3289,6 +3896,33 @@ export interface components {
              */
             active?: boolean;
         };
+        /** ContactIn */
+        ContactIn: {
+            channel: components["schemas"]["NotificationChannel"];
+            /**
+             * Address
+             * @description E.164 phone number, e.g. +919876543210
+             */
+            address: string;
+        };
+        /** ContactOut */
+        ContactOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            channel: components["schemas"]["NotificationChannel"];
+            /** Address Hint */
+            address_hint: string;
+            /** Verified */
+            verified: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /**
          * DateCalendar
          * @enum {string}
@@ -3299,6 +3933,53 @@ export interface components {
          * @enum {string}
          */
         DatePrecision: "exact" | "day_unknown" | "month_unknown" | "year_only" | "circa" | "before" | "after" | "range" | "unknown";
+        /** DeliveryOut */
+        DeliveryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reminder Id */
+            reminder_id: string | null;
+            /** Event Id */
+            event_id: string | null;
+            channel: components["schemas"]["NotificationChannel"];
+            /**
+             * Occurrence Date
+             * Format: date
+             */
+            occurrence_date: string;
+            /** Lead Days */
+            lead_days: number;
+            /**
+             * Scheduled For
+             * Format: date-time
+             */
+            scheduled_for: string;
+            status: components["schemas"]["DeliveryStatus"];
+            /** Attempts */
+            attempts: number;
+            /** Next Attempt At */
+            next_attempt_at: string | null;
+            /** Last Error Code */
+            last_error_code: string | null;
+            /** Provider */
+            provider: string | null;
+            /** Sent At */
+            sent_at: string | null;
+            /** Cancelled Reason */
+            cancelled_reason: string | null;
+            /** Is Test */
+            is_test: boolean;
+            /** Label */
+            label?: string | null;
+        };
+        /**
+         * DeliveryStatus
+         * @enum {string}
+         */
+        DeliveryStatus: "pending" | "sent" | "failed" | "retrying" | "cancelled";
         /** DeriveOut */
         DeriveOut: {
             /** Added */
@@ -3548,13 +4229,19 @@ export interface components {
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
+            location_precision?: components["schemas"]["LocationPrecision"] | null;
             /** Description */
             description?: string | null;
             /** @default USER_ASSERTION */
             evidence_status?: components["schemas"]["EvidenceStatus"];
             /** @default unknown */
             confidence?: components["schemas"]["Confidence"];
-            type: components["schemas"]["EventType"];
+            type?: components["schemas"]["EventType"] | null;
+            category?: components["schemas"]["LifeEventCategory"] | null;
+            /** Title */
+            title?: string | null;
+            /** @default standard */
+            significance?: components["schemas"]["EventSignificance"];
             /** Subtype */
             subtype?: string | null;
             /** Participants */
@@ -3608,6 +4295,86 @@ export interface components {
             confidence?: components["schemas"]["Confidence"];
             /** Notes */
             notes?: string | null;
+        };
+        /**
+         * EventMediaLinkIn
+         * @description Add a photo that is already in the vault to the event's album.
+         */
+        EventMediaLinkIn: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Caption */
+            caption?: string | null;
+            taken_date?: components["schemas"]["GenealogicalDate"] | null;
+            /**
+             * Is Cover
+             * @default false
+             */
+            is_cover?: boolean;
+            /**
+             * Person Ids
+             * @default []
+             */
+            person_ids?: string[];
+        };
+        /** EventMediaOut */
+        EventMediaOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Caption */
+            caption: string | null;
+            /** Taken Date */
+            taken_date: {
+                [key: string]: unknown;
+            } | null;
+            /** Taken Date Display */
+            taken_date_display?: string | null;
+            /** Is Cover */
+            is_cover: boolean;
+            /** Sort Order */
+            sort_order: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            document: components["schemas"]["DocumentOut"];
+            /**
+             * People
+             * @default []
+             */
+            people?: components["schemas"]["TaggedPerson"][];
+        };
+        /** EventMediaUpdate */
+        EventMediaUpdate: {
+            /** Caption */
+            caption?: string | null;
+            taken_date?: components["schemas"]["GenealogicalDate"] | null;
+            /** Is Cover */
+            is_cover?: boolean | null;
+            /** Sort Order */
+            sort_order?: number | null;
+            /**
+             * Add Person Ids
+             * @default []
+             */
+            add_person_ids?: string[];
         };
         /** EventOut */
         EventOut: {
@@ -3675,7 +4442,26 @@ export interface components {
              * @default []
              */
             redacted_fields?: string[];
+            /** Title */
+            title?: string | null;
+            category?: components["schemas"]["LifeEventCategory"] | null;
+            /** @default standard */
+            significance?: components["schemas"]["EventSignificance"];
+            location_precision?: components["schemas"]["LocationPrecision"] | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Media Count
+             * @default 0
+             */
+            media_count?: number;
+            /** Cover Document Id */
+            cover_document_id?: string | null;
         };
+        /**
+         * EventSignificance
+         * @enum {string}
+         */
+        EventSignificance: "standard" | "important" | "milestone";
         /**
          * EventType
          * @enum {string}
@@ -3712,6 +4498,11 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             confidence?: components["schemas"]["Confidence"] | null;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /** Title */
+            title?: string | null;
+            category?: components["schemas"]["LifeEventCategory"] | null;
+            significance?: components["schemas"]["EventSignificance"] | null;
+            location_precision?: components["schemas"]["LocationPrecision"] | null;
         };
         /**
          * EvidenceStatus
@@ -3769,6 +4560,19 @@ export interface components {
             source?: components["schemas"]["TimeSource"];
             /** Original Text */
             original_text?: string | null;
+        };
+        /** GeoPoint */
+        GeoPoint: {
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            precision: components["schemas"]["LocationPrecision"];
+            /**
+             * Coarsened
+             * @default false
+             */
+            coarsened?: boolean;
         };
         /** GrantCreate */
         GrantCreate: {
@@ -3833,6 +4637,17 @@ export interface components {
             type: components["schemas"]["RelationshipType"];
             lineage?: components["schemas"]["Lineage"] | null;
         };
+        /** GraphEdgeOut */
+        GraphEdgeOut: {
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+            /** Kind */
+            kind: string;
+            /** Type */
+            type: string;
+        };
         /** GraphNode */
         GraphNode: {
             /** Id */
@@ -3850,6 +4665,32 @@ export interface components {
              * @default false
              */
             partner?: boolean;
+        };
+        /** GraphNodeOut */
+        GraphNodeOut: {
+            /** Id */
+            id: string;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+            person?: components["schemas"]["VizPerson"] | null;
+            /**
+             * Household Ids
+             * @default []
+             */
+            household_ids?: string[];
+            /**
+             * Distance
+             * @default 0
+             */
+            distance?: number;
+            /**
+             * Expandable
+             * @default false
+             */
+            expandable?: boolean;
         };
         /** GraphOut */
         GraphOut: {
@@ -3917,6 +4758,15 @@ export interface components {
              * @default []
              */
             withheld_attributes?: string[];
+        };
+        /** HistoricalPeriod */
+        HistoricalPeriod: {
+            /** Label */
+            label: string;
+            /** Start Year */
+            start_year: number;
+            /** End Year */
+            end_year: number;
         };
         /** HolderOut */
         HolderOut: {
@@ -4410,6 +5260,77 @@ export interface components {
          */
         JobStatus: "pending" | "running" | "ready" | "committed" | "completed" | "failed" | "cancelled";
         /**
+         * LifeEventCategory
+         * @description Fine-grained life-event vocabulary layered on the structural ``EventType`` (ADR-0015).
+         * @enum {string}
+         */
+        LifeEventCategory: "birth" | "naming_ceremony" | "annaprashan" | "mundan" | "upanayana" | "initiation" | "education" | "graduation" | "engagement" | "marriage" | "migration" | "employment" | "retirement" | "award" | "property_acquisition" | "illness" | "recovery" | "pilgrimage" | "death" | "memorial" | "custom";
+        /** LifespanEvent */
+        LifespanEvent: {
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Year */
+            year: number;
+            /** Label */
+            label: string;
+            /** Category */
+            category?: string | null;
+        };
+        /** LifespanRow */
+        LifespanRow: {
+            person: components["schemas"]["VizPerson"];
+            /** Generation */
+            generation?: number | null;
+            /** Start Year */
+            start_year: number;
+            /** End Year */
+            end_year: number | null;
+            /**
+             * End Known
+             * @default true
+             */
+            end_known?: boolean;
+            /**
+             * Approximate
+             * @default false
+             */
+            approximate?: boolean;
+            /**
+             * Events
+             * @default []
+             */
+            events?: components["schemas"]["LifespanEvent"][];
+        };
+        /** LifespansOut */
+        LifespansOut: {
+            /** Rows */
+            rows: components["schemas"]["LifespanRow"][];
+            /** Periods */
+            periods: components["schemas"]["HistoricalPeriod"][];
+            /** Min Year */
+            min_year?: number | null;
+            /** Max Year */
+            max_year?: number | null;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated?: boolean;
+            /**
+             * Without Dates
+             * @default 0
+             */
+            without_dates?: number;
+            /**
+             * Summary
+             * @default
+             */
+            summary?: string;
+        };
+        /**
          * Lineage
          * @enum {string}
          */
@@ -4472,6 +5393,12 @@ export interface components {
              */
             parcel_groups?: components["schemas"]["ParcelGroupOut"][];
         };
+        /**
+         * LocationPrecision
+         * @description What a pair of coordinates means (ADR-0015). Coordinates are never required.
+         * @enum {string}
+         */
+        LocationPrecision: "exact" | "approximate" | "locality" | "district" | "state" | "country" | "unknown";
         /** LoginIn */
         LoginIn: {
             /**
@@ -4483,6 +5410,66 @@ export interface components {
             password: string;
             /** Mfa Code */
             mfa_code?: string | null;
+        };
+        /** MapOut */
+        MapOut: {
+            /** Points */
+            points: components["schemas"]["MapPoint"][];
+            /** Paths */
+            paths: components["schemas"]["MapPath"][];
+            /**
+             * Not Geotagged
+             * @default 0
+             */
+            not_geotagged?: number;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated?: boolean;
+        };
+        /** MapPath */
+        MapPath: {
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Person Id */
+            person_id?: string | null;
+            /** Label */
+            label: string;
+            /** Year */
+            year?: number | null;
+            origin: components["schemas"]["GeoPoint"];
+            /** Origin Label */
+            origin_label: string;
+            destination: components["schemas"]["GeoPoint"];
+            /** Destination Label */
+            destination_label: string;
+        };
+        /** MapPoint */
+        MapPoint: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            geo: components["schemas"]["GeoPoint"];
+            /** Place Id */
+            place_id?: string | null;
+            /** Event Id */
+            event_id?: string | null;
+            /**
+             * Person Ids
+             * @default []
+             */
+            person_ids?: string[];
+            /** Year */
+            year?: number | null;
+            /** Category */
+            category?: string | null;
         };
         /** MemberOut */
         MemberOut: {
@@ -4754,6 +5741,30 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             confidence?: components["schemas"]["Confidence"] | null;
         };
+        /** NeighbourhoodOut */
+        NeighbourhoodOut: {
+            /**
+             * Root Id
+             * Format: uuid
+             */
+            root_id: string;
+            /** Radius */
+            radius: number;
+            /** Nodes */
+            nodes: components["schemas"]["GraphNodeOut"][];
+            /** Edges */
+            edges: components["schemas"]["GraphEdgeOut"][];
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated?: boolean;
+        };
+        /**
+         * NotificationChannel
+         * @enum {string}
+         */
+        NotificationChannel: "email" | "sms" | "whatsapp";
         /** OcrLineOut */
         OcrLineOut: {
             /** Line No */
@@ -4802,10 +5813,24 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** Page[DeliveryOut] */
+        Page_DeliveryOut_: {
+            /** Items */
+            items: components["schemas"]["DeliveryOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[DocumentOut] */
         Page_DocumentOut_: {
             /** Items */
             items: components["schemas"]["DocumentOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[EventOut] */
+        Page_EventOut_: {
+            /** Items */
+            items: components["schemas"]["EventOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -5396,6 +6421,22 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Map Label */
+            map_label?: string | null;
+            /** Geo Note */
+            geo_note?: string | null;
+            location_precision?: components["schemas"]["LocationPrecision"] | null;
+            /** @default unknown */
+            geo_confidence?: components["schemas"]["Confidence"];
+            coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
         };
         /** PlaceName */
         PlaceName: {
@@ -5438,17 +6479,53 @@ export interface components {
             geocoding_source: string | null;
             /** Lgd Code */
             lgd_code: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Map Label */
+            map_label?: string | null;
+            /** Geo Note */
+            geo_note?: string | null;
+            /** @default unknown */
+            location_precision?: components["schemas"]["LocationPrecision"];
+            /** @default unknown */
+            geo_confidence?: components["schemas"]["Confidence"];
+            coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Coordinates Coarsened
+             * @default false
+             */
+            coordinates_coarsened?: boolean;
             /**
              * Hierarchy
              * @default []
              */
             hierarchy?: string[];
         };
+        /** PlaceRef */
+        PlaceRef: {
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country */
+            country?: string | null;
+            geo?: components["schemas"]["GeoPoint"] | null;
+        };
         /**
          * PlaceType
          * @enum {string}
          */
-        PlaceType: "village" | "town" | "city" | "tehsil" | "district" | "state" | "country" | "temple" | "property" | "other";
+        PlaceType: "village" | "town" | "city" | "tehsil" | "district" | "state" | "country" | "temple" | "property" | "ancestral_house" | "shrine" | "land_parcel" | "neighbourhood" | "other";
         /** PlaceUpdate */
         PlaceUpdate: {
             /** Canonical Name */
@@ -5468,6 +6545,129 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Map Label */
+            map_label?: string | null;
+            /** Geo Note */
+            geo_note?: string | null;
+            location_precision?: components["schemas"]["LocationPrecision"] | null;
+            geo_confidence?: components["schemas"]["Confidence"] | null;
+            coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /** PreferenceIn */
+        PreferenceIn: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Channels
+             * @default [
+             *       "email"
+             *     ]
+             */
+            channels?: components["schemas"]["NotificationChannel"][];
+            /**
+             * Timezone
+             * @default Asia/Kolkata
+             */
+            timezone?: string;
+            /**
+             * Send Hour
+             * @default 8
+             */
+            send_hour?: number;
+            /**
+             * Default Lead Days
+             * @default [
+             *       0
+             *     ]
+             */
+            default_lead_days?: number[];
+        };
+        /** PreferenceOut */
+        PreferenceOut: {
+            /** Enabled */
+            enabled: boolean;
+            /** Channels */
+            channels: components["schemas"]["NotificationChannel"][];
+            /** Timezone */
+            timezone: string;
+            /** Send Hour */
+            send_hour: number;
+            /** Default Lead Days */
+            default_lead_days: number[];
+            /**
+             * Exists
+             * @default true
+             */
+            exists?: boolean;
+        };
+        /** PresetIn */
+        PresetIn: {
+            /** Name */
+            name: string;
+            chart_type: components["schemas"]["ChartType"];
+            /**
+             * Settings
+             * @default {}
+             */
+            settings?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Shared
+             * @default false
+             */
+            shared?: boolean;
+        };
+        /** PresetOut */
+        PresetOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            chart_type: components["schemas"]["ChartType"];
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /** Shared */
+            shared: boolean;
+            /**
+             * Mine
+             * @default true
+             */
+            mine?: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** PresetUpdate */
+        PresetUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
+            /** Shared */
+            shared?: boolean | null;
         };
         /**
          * PrivacyLevel
@@ -6159,6 +7359,89 @@ export interface components {
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
         };
+        /** ReminderIn */
+        ReminderIn: {
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            kind?: components["schemas"]["ReminderKind"] | null;
+            recurrence?: components["schemas"]["ReminderRecurrence"] | null;
+            /** Lead Days */
+            lead_days?: number[] | null;
+            /** Channels */
+            channels?: components["schemas"]["NotificationChannel"][] | null;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * ReminderKind
+         * @enum {string}
+         */
+        ReminderKind: "birthday" | "anniversary" | "memorial" | "one_time" | "custom";
+        /** ReminderOut */
+        ReminderOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            kind: components["schemas"]["ReminderKind"];
+            recurrence: components["schemas"]["ReminderRecurrence"];
+            /** Lead Days */
+            lead_days: number[];
+            /** Channels */
+            channels: components["schemas"]["NotificationChannel"][];
+            /** Note */
+            note: string | null;
+            /** Active */
+            active: boolean;
+            /** Next Fire At */
+            next_fire_at: string | null;
+            /** Last Fired At */
+            last_fired_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Label */
+            label?: string | null;
+            /** Person Id */
+            person_id?: string | null;
+            /** Person Name */
+            person_name?: string | null;
+            /** Next Occurrence */
+            next_occurrence?: string | null;
+            /**
+             * Deliverable
+             * @default true
+             */
+            deliverable?: boolean;
+        };
+        /**
+         * ReminderRecurrence
+         * @enum {string}
+         */
+        ReminderRecurrence: "none" | "annual";
+        /** ReminderUpdate */
+        ReminderUpdate: {
+            recurrence?: components["schemas"]["ReminderRecurrence"] | null;
+            /** Lead Days */
+            lead_days?: number[] | null;
+            /** Channels */
+            channels?: components["schemas"]["NotificationChannel"][] | null;
+            /** Note */
+            note?: string | null;
+            /** Active */
+            active?: boolean | null;
+        };
         /** RemovalRequestIn */
         RemovalRequestIn: {
             /** Confirm Is Me */
@@ -6166,6 +7449,152 @@ export interface components {
             /** Message */
             message?: string | null;
         };
+        /**
+         * RenderArtifactKind
+         * @enum {string}
+         */
+        RenderArtifactKind: "poster_png" | "video_mp4";
+        /** RenderArtifactOut */
+        RenderArtifactOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["RenderArtifactKind"];
+            /** Mime Type */
+            mime_type: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Width */
+            width: number | null;
+            /** Height */
+            height: number | null;
+            /** Duration S */
+            duration_s: number | null;
+        };
+        /** RenderDownloadOut */
+        RenderDownloadOut: {
+            /** Url */
+            url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /** RenderJobIn */
+        RenderJobIn: {
+            chart_type: components["schemas"]["ChartType"];
+            /** @default poster */
+            output?: components["schemas"]["RenderOutput"];
+            /**
+             * @default {
+             *       "generations": 4,
+             *       "direction": "descendants",
+             *       "color_by": "side",
+             *       "theme": "heritage",
+             *       "include_photos": true
+             *     }
+             */
+            settings?: components["schemas"]["RenderSettings"];
+        };
+        /** RenderJobOut */
+        RenderJobOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            chart_type: components["schemas"]["ChartType"];
+            output: components["schemas"]["RenderOutput"];
+            status: components["schemas"]["RenderStatus"];
+            /** Progress */
+            progress: number;
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /** Renderer */
+            renderer: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Artifacts
+             * @default []
+             */
+            artifacts?: components["schemas"]["RenderArtifactOut"][];
+            /**
+             * Mine
+             * @default true
+             */
+            mine?: boolean;
+        };
+        /**
+         * RenderOutput
+         * @enum {string}
+         */
+        RenderOutput: "poster" | "mp4";
+        /**
+         * RenderSettings
+         * @description What to render. Only ids and display options: the data itself is read as you, at request time.
+         */
+        RenderSettings: {
+            /** Root Person Id */
+            root_person_id?: string | null;
+            /**
+             * Generations
+             * @default 4
+             */
+            generations?: number;
+            /**
+             * Direction
+             * @default descendants
+             * @enum {string}
+             */
+            direction?: "ancestors" | "descendants";
+            /**
+             * Color By
+             * @default side
+             * @enum {string}
+             */
+            color_by?: "birthplace" | "village" | "branch" | "side" | "completeness" | "living";
+            /** Lineage */
+            lineage?: components["schemas"]["Lineage"][] | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /**
+             * Theme
+             * @default heritage
+             * @enum {string}
+             */
+            theme?: "heritage" | "dusk" | "minimal";
+            /** Title */
+            title?: string | null;
+            /** Subtitle */
+            subtitle?: string | null;
+            /**
+             * Include Photos
+             * @default true
+             */
+            include_photos?: boolean;
+        };
+        /**
+         * RenderStatus
+         * @enum {string}
+         */
+        RenderStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
         /** ReprocessOut */
         ReprocessOut: {
             /**
@@ -6477,6 +7906,90 @@ export interface components {
          * @enum {string}
          */
         StorageClass: "STANDARD" | "VAULT";
+        /** StoryEvent */
+        StoryEvent: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Type */
+            type: string;
+            /** Category */
+            category?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Label */
+            label: string;
+            /** Date */
+            date?: {
+                [key: string]: unknown;
+            } | null;
+            /** Date Display */
+            date_display?: string | null;
+            /** Year */
+            year?: number | null;
+            /** Sort Key */
+            sort_key: string;
+            place?: components["schemas"]["PlaceRef"] | null;
+            /** Description */
+            description?: string | null;
+            /** Significance */
+            significance: string;
+            /**
+             * Relatives
+             * @default []
+             */
+            relatives?: {
+                [key: string]: string;
+            }[];
+            /**
+             * Photos
+             * @default []
+             */
+            photos?: components["schemas"]["StoryPhoto"][];
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields?: string[];
+        };
+        /** StoryOut */
+        StoryOut: {
+            person: components["schemas"]["VizPerson"];
+            /** Events */
+            events: components["schemas"]["StoryEvent"][];
+            /**
+             * Summary
+             * @default
+             */
+            summary?: string;
+        };
+        /** StoryPhoto */
+        StoryPhoto: {
+            /**
+             * Media Id
+             * Format: uuid
+             */
+            media_id: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Caption */
+            caption?: string | null;
+            /**
+             * Is Cover
+             * @default false
+             */
+            is_cover?: boolean;
+            /**
+             * Has Thumbnail
+             * @default false
+             */
+            has_thumbnail?: boolean;
+        };
         /** SubdivideIn */
         SubdivideIn: {
             /** Children */
@@ -6563,6 +8076,16 @@ export interface components {
             } | null;
             /** Notes */
             notes?: string | null;
+        };
+        /** TaggedPerson */
+        TaggedPerson: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
         };
         /**
          * TimePrecision
@@ -6704,6 +8227,32 @@ export interface components {
              */
             children?: components["schemas"]["RelatedPerson"][];
         };
+        /** UpcomingOut */
+        UpcomingOut: {
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            kind: components["schemas"]["ReminderKind"];
+            /**
+             * Occurrence Date
+             * Format: date
+             */
+            occurrence_date: string;
+            /** Days Until */
+            days_until: number;
+            /** Label */
+            label: string;
+            /** Person Id */
+            person_id?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Anniversary */
+            anniversary?: number | null;
+            /** Reminder Id */
+            reminder_id?: string | null;
+        };
         /** UserOut */
         UserOut: {
             /**
@@ -6756,6 +8305,11 @@ export interface components {
          * @enum {string}
          */
         ValueStatus: "known" | "unknown" | "not_applicable" | "withheld";
+        /** VerifyIn */
+        VerifyIn: {
+            /** Code */
+            code: string;
+        };
         /**
          * VitalIn
          * @description Birth/death details embedded in person creation.
@@ -6775,6 +8329,7 @@ export interface components {
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
+            location_precision?: components["schemas"]["LocationPrecision"] | null;
             /** Description */
             description?: string | null;
             /** @default USER_ASSERTION */
@@ -6810,6 +8365,45 @@ export interface components {
              * @default []
              */
             redacted_fields?: string[];
+        };
+        /** VizPerson */
+        VizPerson: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            profile_status: components["schemas"]["ProfileStatus"];
+            /**
+             * Is Protected
+             * @default false
+             */
+            is_protected?: boolean;
+            /** Birth Year */
+            birth_year?: number | null;
+            /** Death Year */
+            death_year?: number | null;
+            /** Birth Display */
+            birth_display?: string | null;
+            /** Death Display */
+            death_display?: string | null;
+            birth_place?: components["schemas"]["PlaceRef"] | null;
+            /** Village */
+            village?: string | null;
+            /**
+             * Branch Ids
+             * @default []
+             */
+            branch_ids?: string[];
+            /**
+             * Event Count
+             * @default 0
+             */
+            event_count?: number;
+            completeness?: components["schemas"]["Completeness"] | null;
         };
     };
     responses: never;
@@ -8490,6 +10084,8 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                /** @description only places with (or without) coordinates */
+                geotagged?: boolean | null;
                 cursor?: string | null;
                 limit?: number;
             };
@@ -8926,6 +10522,1235 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["RelationshipPathOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_life_events_api_v1_trees__tree_id__life_events_get: {
+        parameters: {
+            query?: {
+                person_id?: string | null;
+                category?: components["schemas"]["LifeEventCategory"][] | null;
+                significance?: components["schemas"]["EventSignificance"][] | null;
+                important_only?: boolean;
+                from_year?: number | null;
+                to_year?: number | null;
+                geotagged?: boolean | null;
+                q?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_EventOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_album_api_v1_trees__tree_id__events__event_id__media_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMediaOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMediaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_event_photo_api_v1_trees__tree_id__events__event_id__media_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMediaLinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMediaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_event_photo_api_v1_trees__tree_id__events__event_id__media__media_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                media_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_event_photo_api_v1_trees__tree_id__events__event_id__media__media_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                media_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMediaUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMediaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    person_event_photos_api_v1_trees__tree_id__people__person_id__photos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMediaOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preferences_api_v1_trees__tree_id__notification_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_preferences_api_v1_trees__tree_id__notification_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferenceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reminders_api_v1_trees__tree_id__reminders_get: {
+        parameters: {
+            query?: {
+                event_id?: string | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_reminder_api_v1_trees__tree_id__reminders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upcoming_api_v1_trees__tree_id__reminders_upcoming_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                scope?: string;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpcomingOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_reminder_api_v1_trees__tree_id__reminders__reminder_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_reminder_api_v1_trees__tree_id__reminders__reminder_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_reminder_api_v1_trees__tree_id__reminders__reminder_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notification_history_api_v1_trees__tree_id__notifications_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_DeliveryOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notification_channels_api_v1_notification_channels_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelsOut"];
+                };
+            };
+        };
+    };
+    list_contacts_api_v1_me_notification_contacts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactOut"][];
+                };
+            };
+        };
+    };
+    add_contact_api_v1_me_notification_contacts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_contact_api_v1_me_notification_contacts__contact_id__verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_contact_api_v1_me_notification_contacts__contact_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ancestry_api_v1_trees__tree_id__viz_ancestry_get: {
+        parameters: {
+            query: {
+                root: string;
+                generations?: number;
+                /** @description Restrict parent links to these lineages */
+                lineage?: components["schemas"]["Lineage"][] | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AncestryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    neighbourhood_api_v1_trees__tree_id__viz_neighbourhood_get: {
+        parameters: {
+            query: {
+                root: string;
+                radius?: number;
+                max_nodes?: number;
+                /** @description Restrict parent links to these lineages */
+                lineage?: components["schemas"]["Lineage"][] | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeighbourhoodOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lifespans_api_v1_trees__tree_id__viz_lifespans_get: {
+        parameters: {
+            query?: {
+                root?: string | null;
+                generations?: number;
+                branch_id?: string | null;
+                include_events?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LifespansOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    story_api_v1_trees__tree_id__viz_people__person_id__story_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    geo_map_api_v1_trees__tree_id__viz_map_get: {
+        parameters: {
+            query?: {
+                person_id?: string | null;
+                branch_id?: string | null;
+                /** @description events, migrations, heritage, properties, places */
+                layer?: string[] | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_presets_api_v1_trees__tree_id__chart_presets_get: {
+        parameters: {
+            query?: {
+                chart_type?: components["schemas"]["ChartType"] | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_preset_api_v1_trees__tree_id__chart_presets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_preset_api_v1_trees__tree_id__chart_presets__preset_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                preset_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_preset_api_v1_trees__tree_id__chart_presets__preset_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                preset_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresetUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_render_jobs_api_v1_trees__tree_id__render_jobs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderJobOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_render_job_api_v1_trees__tree_id__render_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenderJobIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_render_job_api_v1_trees__tree_id__render_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_render_job_api_v1_trees__tree_id__render_jobs__job_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_render_job_api_v1_trees__tree_id__render_jobs__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    render_download_url_api_v1_trees__tree_id__render_jobs__job_id__artifacts__artifact_id__download_url_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+                artifact_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderDownloadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    serve_render_file_api_v1_render_files__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
