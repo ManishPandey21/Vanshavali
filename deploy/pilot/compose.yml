@@ -95,6 +95,39 @@ services:
       redis: { condition: service_healthy }
       clamav: { condition: service_healthy }
 
+  # Reminder scheduler (ADR-0016): materialises due reminder deliveries every 5 minutes and enqueues
+  # them for the worker. One replica is enough; a second would be harmless (idempotent).
+  reminders:
+    <<: *backend
+    command: ["python", "-m", "app.cli.reminders", "tick", "--loop", "--interval", "300"]
+    healthcheck:
+      disable: true
+    depends_on:
+      redis: { condition: service_healthy }
+
+  # Animated exports (ADR-0017): Remotion + Chromium + ffmpeg. Opt-in (profile "render") because of
+  # its size and Remotion's licence terms (docs/architecture/remotion-rendering.md §licence). Set
+  # VSH_RENDER_BACKEND=remotion in app.env when this runs; otherwise the API answers 503.
+  render-worker:
+    <<: *backend
+    image: ${IMAGE_PREFIX}/vanshavali-render-worker:${VSH_VERSION}
+    command: ["python", "-m", "app.cli.worker", "--queue", "render"]
+    environment:
+      <<: *backend-env
+      VSH_RENDER_BACKEND: remotion
+      VSH_RENDERER_DIR: /opt/renderer
+    tmpfs: ["/tmp:size=2g"]
+    shm_size: 1g
+    healthcheck:
+      disable: true
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 3g }
+    stop_grace_period: 300s
+    depends_on:
+      redis: { condition: service_healthy }
+    profiles: [render]
+
   # Release step (deploy.sh): migrations as the schema owner, then the RLS-bound app role and grants.
   migrate:
     <<: *backend
