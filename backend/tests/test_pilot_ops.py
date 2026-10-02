@@ -285,3 +285,33 @@ def test_mail_check_fails_on_authentication_error(
     monkeypatch.setattr(mail_check.smtplib, "SMTP", RefusingSMTP)
     assert mail_check.main([]) == 1
     assert "[FAIL] SMTP: SMTPAuthenticationError 535" in capsys.readouterr().out
+
+
+# ------------------------------------------------------------------ commit before respond
+def test_a_failed_commit_is_an_error_not_a_success(owner: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The request's transaction commits before the response is sent (pilot benchmark, Oct 2026).
+
+    With FastAPI's default dependency scope the commit in ``get_db`` ran after the response had gone
+    out: a client could be told 201 while the write was still uncommitted (an immediate follow-up on
+    another replica got 404 "Import not found") or was lost entirely if the commit then failed.
+    """
+    from sqlalchemy.exc import OperationalError
+    from sqlalchemy.orm import Session
+
+    real_commit = Session.commit
+    calls: list[str] = []
+
+    def failing_commit(self: Session) -> None:
+        calls.append("commit")
+        raise OperationalError("COMMIT", {}, Exception("server closed the connection unexpectedly"))
+
+    client = TestClient(owner.client.app, raise_server_exceptions=False, cookies=owner.client.cookies)
+    monkeypatch.setattr(Session, "commit", failing_commit)
+    r = client.post(
+        f"{get_settings().api_prefix}/trees", json={"name": "Never committed"}, headers=owner._headers()
+    )
+    monkeypatch.setattr(Session, "commit", real_commit)
+    assert calls, "the request did not commit"
+    assert r.status_code >= 500, f"client was told {r.status_code} although the commit failed"
+    names = [t["name"] for t in owner.get("/trees").json()]
+    assert "Never committed" not in names

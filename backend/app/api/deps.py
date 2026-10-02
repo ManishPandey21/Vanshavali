@@ -20,7 +20,11 @@ from app.models import User, UserSession
 
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
-DbDep = Annotated[Session, Depends(get_db)]
+# scope="function": get_db commits when the handler returns, BEFORE the response is sent. With
+# FastAPI's default ("request") scope the commit ran after the response: clients could act on a 201
+# whose row was not yet visible (404 on the next request to another replica), or that was lost if
+# the commit failed (pilot benchmark, Oct 2026; test_pilot_ops.py).
+DbDep = Annotated[Session, Depends(get_db, scope="function")]
 
 
 def request_info(request: Request) -> RequestInfo:
