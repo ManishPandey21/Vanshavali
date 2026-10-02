@@ -26,10 +26,10 @@ describe("landing page", () => {
   it("is what a signed-out visitor sees at the home page, with a way to start and to sign in", async () => {
     const calls = stubApi(false);
     renderWithProviders(<App />, { tree: null, route: "/" });
-    expect(await screen.findByRole("heading", { level: 1, name: /Preserving the threads of tradition/ })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: /Preserving the Threads of Tradition/ })).toBeInTheDocument();
     expect(screen.getAllByText("॥ वसुधैव कुटुम्बकम् ॥").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/login");
-    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
+    for (const link of screen.getAllByRole("link", { name: /Begin your family tree/ })) expect(link).toHaveAttribute("href", "/login");
+    expect(screen.getAllByRole("link", { name: "Sign in" })[0]).toHaveAttribute("href", "/login");
     expect(screen.getByText(/for preserving Indian family heritage/)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Tambool offering/ })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /tree viewer in Hindi/ })).toHaveAttribute("src", "/landing/tree-viewer-hi.png");
@@ -41,13 +41,13 @@ describe("landing page", () => {
     stubApi(true);
     renderWithProviders(<App />, { tree: null, route: "/" });
     expect(await screen.findByRole("heading", { name: "Your family trees" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 1, name: /Preserving the threads/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1, name: /Preserving the threads/i })).not.toBeInTheDocument();
   });
 
   it("stays reachable at /about when signed in, pointing back to the user's trees", async () => {
     stubApi(true);
     renderWithProviders(<App />, { tree: null, route: "/about" });
-    expect(await screen.findByRole("heading", { level: 1, name: /Preserving the threads/ })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: /Preserving the threads/i })).toBeInTheDocument();
     expect((await screen.findAllByRole("link", { name: /Go to my family trees/ }))[0]).toHaveAttribute("href", "/");
     expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
   });

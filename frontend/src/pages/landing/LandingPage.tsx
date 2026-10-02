@@ -1,167 +1,175 @@
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowRight,
-  Download,
-  House,
-  Landmark,
-  Languages,
-  Lock,
-  ScrollText,
-  ShieldCheck,
-  Sprout,
-  Users,
-  MapPin,
-  Heart,
-} from "lucide-react";
+import { ArrowRight, Heart, Lock, Network, ScrollText, Users } from "lucide-react";
+import "@fontsource/playfair-display/400.css";
+import "@fontsource/playfair-display/400-italic.css";
+import "@fontsource/playfair-display/600.css";
+import "@fontsource/playfair-display/700.css";
+import "@fontsource/playfair-display/700-italic.css";
+import "@fontsource/eb-garamond/400.css";
+import "@fontsource/eb-garamond/400-italic.css";
+import "@fontsource/eb-garamond/500.css";
 import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
+import { Reveal } from "./Reveal";
 
 /**
- * Public landing page ("/" for signed-out visitors, "/about" for everyone). Static marketing
- * copy only — it reads no family data, so nothing here can leak a person's details.
+ * Public landing page ("/" for signed-out visitors, "/about" for everyone). Static copy only — it
+ * reads no family data, so nothing here can leak a person's details. Editorial heritage design:
+ * Playfair Display headings, EB Garamond text, cream/cocoa/terracotta palette, scroll reveals.
  */
 
-type Icon = ComponentType<SVGProps<SVGSVGElement>>;
+const HERO_IMAGE = "/landing/hero-tambool.webp";
+const HERO_W = 2000;
+const HERO_H = 848;
 
-const FEATURES: { key: string; icon: Icon }[] = [
-  { key: "tree", icon: Sprout },
-  { key: "kinship", icon: Languages },
-  { key: "heritage", icon: Landmark },
-  { key: "jointFamily", icon: House },
-  { key: "documents", icon: ScrollText },
-  { key: "property", icon: MapPin },
-];
-
-const STEPS = ["seed", "memories", "invite"] as const;
-
-const TRUST: { key: string; icon: Icon }[] = [
-  { key: "living", icon: Lock },
-  { key: "public", icon: ShieldCheck },
-  { key: "roles", icon: Users },
-  { key: "export", icon: Download },
-];
-
-/** Kinship words are shown in Devanagari in every UI language; only the gloss is translated. */
-const KIN_TERMS: { key: string; word: string }[] = [
-  { key: "dada", word: "दादा" },
-  { key: "nani", word: "नानी" },
-  { key: "chacha", word: "चाचा" },
-  { key: "tau", word: "ताऊ" },
-  { key: "mama", word: "मामा" },
-  { key: "bua", word: "बुआ" },
-  { key: "mausi", word: "मौसी" },
-  { key: "fufa", word: "फूफा" },
-  { key: "bhabhi", word: "भाभी" },
-  { key: "jija", word: "जीजा" },
-];
-
-const SHLOKA = "॥ वसुधैव कुटुम्बकम् ॥";
-
-/** A lotus mandala drawn with rotated petals; purely decorative. */
-function Mandala({ className = "" }: { className?: string }) {
-  const ring = (count: number, rx: number, ry: number, cy: number, key: string) =>
-    Array.from({ length: count }, (_, i) => (
-      <ellipse key={`${key}${i}`} cx="200" cy={cy} rx={rx} ry={ry} transform={`rotate(${(360 / count) * i} 200 200)`} />
-    ));
+/** A region of the hero photograph, cropped with CSS so the page downloads one image only. */
+function PhotoCrop({ x, y, w, h, label, className = "" }: { x: number; y: number; w: number; h: number; label: string; className?: string }) {
   return (
-    <svg viewBox="0 0 400 400" className={className} aria-hidden focusable="false">
-      <g fill="none" stroke="currentColor" strokeWidth="1.2">
-        <circle cx="200" cy="200" r="196" strokeDasharray="2 6" />
-        <circle cx="200" cy="200" r="178" />
-        {ring(24, 14, 34, 52, "o")}
-        <circle cx="200" cy="200" r="120" />
-        {ring(16, 12, 28, 96, "m")}
-        <circle cx="200" cy="200" r="64" strokeDasharray="3 5" />
-        {ring(8, 10, 22, 160, "i")}
-        <circle cx="200" cy="200" r="14" />
-      </g>
-    </svg>
+    <div
+      role="img"
+      aria-label={label}
+      className={`w-full bg-sand bg-no-repeat ${className}`}
+      style={{
+        aspectRatio: `${w} / ${h}`,
+        backgroundImage: `url(${HERO_IMAGE})`,
+        backgroundSize: `${(HERO_W / w) * 100}% auto`,
+        backgroundPosition: `${(x / (HERO_W - w)) * 100}% ${(y / (HERO_H - h)) * 100}%`,
+      }}
+    />
   );
 }
 
-/** Toran: a festive garland of mango leaves and marigolds hung across the top of the page. */
-function Toran() {
-  return (
-    <svg className="block h-7 w-full text-leaf-700" aria-hidden focusable="false" preserveAspectRatio="none" viewBox="0 0 400 28">
-      <defs>
-        <pattern id="toran" width="40" height="28" patternUnits="userSpaceOnUse">
-          <path d="M0 3 Q20 9 40 3" fill="none" stroke="#8a5a00" strokeWidth="1.5" />
-          <path d="M20 6 C14 12 15 21 20 27 C25 21 26 12 20 6 Z" fill="currentColor" opacity="0.85" />
-          <circle cx="4" cy="6" r="4" fill="#d99a0b" />
-          <circle cx="4" cy="6" r="1.6" fill="#b4441c" />
-        </pattern>
-      </defs>
-      <rect width="400" height="28" fill="url(#toran)" />
-    </svg>
-  );
-}
-
-/** Section label. Letter-spacing breaks Devanagari conjuncts and matras, so it is Latin-only. */
-function Kicker({ children }: { children: ReactNode }) {
+/** Small label above a heading. Letter-spacing breaks Devanagari conjuncts and matras, so it is Latin-only. */
+function Eyebrow({ children, tone = "rust", center = false }: { children: ReactNode; tone?: "rust" | "gold"; center?: boolean }) {
   const { i18n } = useTranslation();
   const latin = !i18n.language.startsWith("hi");
-  return <p className={`font-semibold text-kumkum-700 ${latin ? "text-xs tracking-[0.18em] uppercase" : "text-sm"}`}>{children}</p>;
-}
-
-function SectionHeading({ id, kicker, title, lead }: { id: string; kicker: string; title: string; lead?: string }) {
+  const color = tone === "gold" ? "text-gold" : "text-rust";
   return (
-    <div className="mx-auto max-w-2xl text-center">
-      <Kicker>{kicker}</Kicker>
-      <h2 id={id} className="mt-2 font-display text-3xl font-bold text-balance text-kumkum-900 sm:text-4xl">
-        {title}
-      </h2>
-      {lead && <p className="mt-4 text-base text-ink-muted sm:text-lg">{lead}</p>}
-    </div>
+    <p className={`flex items-center gap-3 ${center ? "justify-center" : ""} ${color} ${latin ? "text-[11px] font-semibold tracking-[0.28em] uppercase" : "text-sm font-semibold"}`}>
+      <span className="h-px w-8 bg-current opacity-50" aria-hidden />
+      {children}
+      <span className="h-px w-8 bg-current opacity-50" aria-hidden />
+    </p>
   );
 }
 
+/** Heading with one italic accent phrase, the signature of this design. */
+function AccentHeading({
+  id,
+  before,
+  accent,
+  after,
+  tone = "rust",
+  className = "",
+  as: Tag = "h2",
+}: {
+  id?: string;
+  before: string;
+  accent: string;
+  after?: string;
+  tone?: "rust" | "gold";
+  className?: string;
+  as?: "h1" | "h2" | "h3";
+}) {
+  return (
+    <Tag id={id} className={`font-heritage leading-[1.08] font-bold text-balance ${className}`}>
+      {before}{" "}
+      <em className={`font-normal italic ${tone === "gold" ? "text-gold" : "text-rust"}`}>{accent}</em>
+      {after ? <> {after}</> : null}
+    </Tag>
+  );
+}
+
+const PILLARS = ["educate", "preserve", "celebrate"] as const;
+const NUMERALS = ["I", "II", "III"];
+
+const CHAPTERS = [
+  { key: "leaf", n: "01", crop: { x: 1110, y: 396, w: 256, h: 256 }, facts: ["offered", "heard"], imageLeft: true },
+  { key: "petal", n: "02", crop: { x: 640, y: 580, w: 300, h: 170 }, facts: ["marigold", "jasmine", "lotus"], imageLeft: false },
+  { key: "seed", n: "03", crop: { x: 1110, y: 586, w: 330, h: 165 }, facts: ["whole", "shared"], imageLeft: true },
+] as const;
+
+const KEEPERS = [
+  { key: "elder", initial: "दा" },
+  { key: "panda", initial: "ब" },
+  { key: "grandchild", initial: "आ" },
+] as const;
+
+const STORIES = ["samskara", "gotra", "kuladevata", "nakshatra"] as const;
+const TIMELINE = ["vedic", "shraddha", "puranic", "bahi", "partition", "today"] as const;
+
+const ARCHIVE_POINTS = [
+  { key: "kinship", icon: Network },
+  { key: "heritage", icon: ScrollText },
+  { key: "together", icon: Users },
+  { key: "private", icon: Lock },
+] as const;
+
 export function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const me = useMe();
   const signedIn = !!me.data;
+  const hindi = i18n.language.startsWith("hi");
   // Visitors start at sign-in, which also offers "Create account" (and Google, when configured).
   const startTo = signedIn ? "/" : "/login";
   const startLabel = signedIn ? t("landing.cta.goToTrees") : t("landing.cta.start");
+  // Wide-tracked capitals suit the Latin design but pull Devanagari conjuncts and matras apart.
+  const btnText = hindi ? "text-sm font-semibold" : "text-xs font-bold tracking-[0.16em] uppercase";
 
   const navLinks = [
-    { href: "#story", label: t("landing.nav.story") },
-    { href: "#features", label: t("landing.nav.features") },
-    { href: "#how", label: t("landing.nav.how") },
-    { href: "#trust", label: t("landing.nav.trust") },
+    { href: "#archive", label: t("landing.nav.archive") },
+    { href: "#traditions", label: t("landing.nav.traditions") },
+    { href: "#keepers", label: t("landing.nav.keepers") },
+    { href: "#stories", label: t("landing.nav.stories") },
+    { href: "#timeline", label: t("landing.nav.timeline") },
   ];
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-parchment text-ink">
-      <a href="#main" className="sr-only-focusable absolute top-2 left-2 z-50 rounded bg-white px-3 py-2 text-sm font-medium">
+    <div className="min-h-dvh overflow-x-hidden bg-cream font-garamond text-cocoa">
+      <a href="#main" className="sr-only-focusable absolute top-2 left-2 z-50 rounded bg-white px-3 py-2 font-sans text-sm font-medium">
         {t("nav.skipToContent")}
       </a>
-      <Toran />
-      <header className="sticky top-0 z-40 border-b border-haldi-300/50 bg-parchment/90 backdrop-blur">
+
+      {/* ---------------------------------------------------------------- announcement + header */}
+      <p className="bg-cocoa px-4 py-2 text-center font-sans text-[11px] text-cream/80 sm:text-xs">
+        <span lang="sa" className="text-gold">
+          ॥ वसुधैव कुटुम्बकम् ॥
+        </span>
+        <span className="mx-2 text-cream/40" aria-hidden>
+          ·
+        </span>
+        <span className={hindi ? "" : "tracking-[0.2em] uppercase"}>{t("landing.announce")}</span>
+      </p>
+      <header className="sticky top-0 z-40 border-b border-cocoa/10 bg-cream/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <BrandMark to="/" />
-          <nav aria-label={t("landing.nav.label")} className="hidden md:block">
-            <ul className="flex items-center gap-6 text-sm font-medium text-ink-muted">
+          <nav aria-label={t("landing.nav.label")} className="hidden lg:block">
+            <ul className={`flex items-center gap-6 font-sans text-umber ${hindi ? "text-sm" : "text-[11px] font-semibold tracking-[0.18em] uppercase"}`}>
               {navLinks.map((l) => (
                 <li key={l.href}>
-                  <a href={l.href} className="rounded hover:text-kumkum-800">
+                  <a href={l.href} className="rounded hover:text-rust">
                     {l.label}
                   </a>
                 </li>
               ))}
             </ul>
           </nav>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 font-sans sm:gap-3">
             <LanguageSwitcher className="hidden sm:flex" />
             {!signedIn && (
-              <Link to="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-kumkum-800 hover:bg-kumkum-50">
+              <Link to="/login" className="rounded px-3 py-2 text-sm font-semibold text-rust hover:bg-sand">
                 {t("auth.login")}
               </Link>
             )}
-            <Link to={startTo} className="hidden rounded-lg bg-kumkum-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-kumkum-800 sm:inline-flex">
+            <Link
+              to={startTo}
+              className={`hidden items-center gap-2 bg-cocoa px-4 py-2.5 text-cream hover:bg-cocoa-soft ${hindi ? "text-sm font-semibold" : "text-xs font-semibold tracking-wide uppercase"} sm:inline-flex`}
+            >
               {signedIn ? t("landing.cta.goToTrees") : t("landing.cta.startShort")}
+              <ArrowRight className="size-3.5" aria-hidden />
             </Link>
           </div>
         </div>
@@ -169,235 +177,430 @@ export function LandingPage() {
 
       <main id="main">
         {/* ---------------------------------------------------------------- hero */}
-        <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-[#1c0b05] text-parchment">
+        <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-cocoa text-cream">
           <figure className="absolute inset-0 -z-10 m-0">
             <img
-              src="/landing/hero-tambool.webp"
-              width={2000}
-              height={848}
+              src={HERO_IMAGE}
+              width={HERO_W}
+              height={HERO_H}
               alt={t("landing.hero.sceneAlt")}
               fetchPriority="high"
               decoding="async"
               className="size-full object-cover object-center lg:object-left motion-safe:animate-kenburns"
             />
-            <figcaption className="absolute right-4 bottom-3 hidden max-w-xs rounded-md bg-[#1c0b05]/70 px-2.5 py-1.5 text-right text-xs text-parchment/85 italic backdrop-blur-sm sm:block">{t("landing.hero.sceneCaption")}</figcaption>
           </figure>
-          {/* Legibility scrim: dark behind the text column, fading out before the offering on the right. */}
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1c0b05]/80 via-[#1c0b05]/65 to-[#1c0b05]/90 lg:bg-gradient-to-r lg:from-[#1c0b05]/90 lg:from-15% lg:via-[#1c0b05]/55 lg:via-45% lg:to-transparent lg:to-75%" aria-hidden />
-          <div className="mx-auto flex min-h-[640px] max-w-6xl items-center px-4 py-16 sm:py-20 lg:min-h-[min(86vh,820px)]">
-            <div className="max-w-2xl text-center lg:text-left">
-              <p className="font-display text-xl text-haldi-300 sm:text-2xl" lang="sa">
-                {SHLOKA}
+          <div
+            className="absolute inset-0 -z-10 bg-gradient-to-b from-cocoa/80 via-cocoa/60 to-cocoa/90 lg:bg-gradient-to-r lg:from-cocoa/90 lg:from-15% lg:via-cocoa/50 lg:via-45% lg:to-transparent lg:to-75%"
+            aria-hidden
+          />
+          <div className="mx-auto flex min-h-[620px] max-w-6xl flex-col justify-center px-4 pt-16 pb-24 lg:min-h-[min(88vh,840px)]">
+            <div className="max-w-2xl">
+              <p className="flex flex-wrap items-center gap-3 font-sans text-xs text-cream/80 motion-safe:animate-rise">
+                <span className="border border-gold/60 px-3 py-1 text-gold" lang="sa">
+                  ॥ परंपरा एवं श्रद्धा ॥
+                </span>
+                <span className="italic">{t("landing.hero.eyebrow")}</span>
               </p>
-              <p className="mt-1 text-sm text-parchment/80 italic">{t("landing.hero.shlokaMeaning")}</p>
-              <h1 id="hero-title" className="mt-6 font-display text-4xl leading-tight font-bold text-parchment sm:text-5xl lg:text-[3.6rem]">
-                {t("landing.hero.titleA")} <span className="text-haldi-300">{t("landing.hero.titleB")}</span>
+              <h1 id="hero-title" className={`mt-6 font-heritage text-5xl font-bold sm:text-6xl lg:text-[5.2rem] ${hindi ? "leading-[1.3] [&>*]:leading-[1.3]" : "leading-[1.02]"}`}>
+                <span className="block motion-safe:animate-rise [animation-delay:120ms]">{t("landing.hero.titleA")}</span>{" "}
+                <em className="block font-normal text-gold italic motion-safe:animate-rise [animation-delay:240ms]">{t("landing.hero.titleB")}</em>{" "}
+                <span className="block motion-safe:animate-rise [animation-delay:360ms]">{t("landing.hero.titleC")}</span>
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-base text-parchment/85 sm:text-lg lg:mx-0">{t("landing.hero.lead")}</p>
-              <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-cream/85 motion-safe:animate-rise [animation-delay:480ms] sm:text-xl">
+                {t("landing.hero.lead")}
+              </p>
+              <div className="mt-9 flex flex-col gap-3 font-sans motion-safe:animate-rise [animation-delay:600ms] sm:flex-row">
                 <Link
                   to={startTo}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-haldi-100 px-6 py-3 text-base font-semibold text-kumkum-900 shadow-lg shadow-black/30 hover:bg-white sm:w-auto"
+                  className={`inline-flex items-center justify-center gap-2 bg-cream px-7 py-3.5 ${btnText} text-cocoa hover:bg-white`}
                 >
                   {startLabel}
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
                 <a
-                  href="#showcase"
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-parchment/40 px-6 py-3 text-base font-semibold text-parchment hover:bg-white/10 sm:w-auto"
+                  href="#archive"
+                  className={`inline-flex items-center justify-center border border-cream/50 px-7 py-3.5 ${btnText} text-cream hover:bg-cream/10`}
                 >
-                  {t("landing.cta.seeTree")}
+                  {t("landing.cta.explore")}
                 </a>
               </div>
-              <ul className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-parchment/80 lg:justify-start">
-                {(["private", "languages", "yours"] as const).map((k) => (
-                  <li key={k} className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-haldi-300" aria-hidden />
-                    {t(`landing.hero.points.${k}`)}
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
-        </section>
-
-        {/* ---------------------------------------------------------------- showcase */}
-        <section id="showcase" aria-labelledby="showcase-title" className="scroll-mt-20 bg-[radial-gradient(ellipse_at_top,_#fbe3d6,_#fbf7ef_60%)] px-4 py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeading id="showcase-title" kicker={t("landing.showcase.kicker")} title={t("landing.showcase.title")} lead={t("landing.showcase.lead")} />
-            <figure className="mx-auto mt-12 max-w-5xl">
-              <div className="overflow-hidden rounded-2xl border border-haldi-300/70 bg-white shadow-2xl shadow-kumkum-900/15">
-                <div className="flex items-center gap-2 border-b border-stone-200 bg-parchment-deep/70 px-4 py-2.5" aria-hidden>
-                  <span className="size-3 rounded-full bg-kumkum-200" />
-                  <span className="size-3 rounded-full bg-haldi-300" />
-                  <span className="size-3 rounded-full bg-leaf-50 ring-1 ring-leaf-700/30" />
-                  <span className="ml-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-ink-muted" lang="hi">
-                    वंशावली · शर्मा परिवार · वंशवृक्ष
-                  </span>
-                </div>
-                <img
-                  src="/landing/tree-viewer-hi.png"
-                  width={2256}
-                  height={1472}
-                  loading="lazy"
-                  decoding="async"
-                  alt={t("landing.showcase.alt")}
-                  className="block h-auto w-full"
-                />
-              </div>
-              <figcaption className="mx-auto mt-4 max-w-2xl text-center text-sm text-ink-muted">{t("landing.showcase.caption")}</figcaption>
-            </figure>
+          <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-3 px-4 pb-5 font-sans text-xs">
+            <span className="inline-flex items-center gap-2 rounded-full bg-cocoa/85 px-4 py-2 text-cream/90 backdrop-blur">
+              <Lock className="size-3.5 text-gold" aria-hidden />
+              {t("landing.hero.chipPrivate")}
+            </span>
+            <span className="hidden max-w-sm rounded-full bg-rust/90 px-4 py-2 text-cream italic sm:inline-flex">{t("landing.hero.sceneCaption")}</span>
           </div>
         </section>
 
-        {/* ---------------------------------------------------------------- story */}
-        <section id="story" aria-labelledby="story-title" className="scroll-mt-20 px-4 py-20 sm:py-24">
-          <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1fr] lg:items-center">
-            <div>
-              <Kicker>{t("landing.story.kicker")}</Kicker>
-              <h2 id="story-title" className="mt-2 font-display text-3xl font-bold text-kumkum-900 sm:text-4xl">
-                {t("landing.story.title")}
+        {/* ---------------------------------------------------------------- purpose */}
+        <section aria-labelledby="purpose-title" className="px-4 py-24 sm:py-28">
+          <div className="mx-auto max-w-3xl text-center">
+            <Reveal>
+              <Eyebrow center>{t("landing.purpose.kicker")}</Eyebrow>
+              <h2 id="purpose-title" className="mt-6 font-heritage text-4xl leading-tight font-bold text-cocoa/90 sm:text-5xl">
+                {t("landing.purpose.titleA")}{" "}
+                <Heart className="inline size-10 -translate-y-1 fill-rust text-rust sm:size-12" aria-label={t("landing.purpose.love")} role="img" />{" "}
+                {t("landing.purpose.titleB")}
+                <span className="mt-3 block font-garamond text-2xl font-medium text-rust" lang="sa">
+                  ॥ परंपरा एवं श्रद्धा ॥
+                </span>
+                <em className="mt-2 block font-normal text-umber italic">{t("landing.purpose.titleC")}</em>
               </h2>
-              <div className="mt-6 space-y-4 text-base leading-relaxed text-ink-muted sm:text-lg">
-                <p>{t("landing.story.p1")}</p>
-                <p>{t("landing.story.p2")}</p>
-                <p className="font-medium text-ink">{t("landing.story.p3")}</p>
+            </Reveal>
+            <Reveal delay={120}>
+              <p className="mt-10 text-xl leading-relaxed text-umber">
+                {t("landing.purpose.p1a")} <em className="text-rust">{t("landing.purpose.p1em")}</em> {t("landing.purpose.p1b")}
+              </p>
+              <p className="mx-auto mt-6 max-w-2xl font-sans text-sm leading-relaxed text-umber">
+                <strong className="font-semibold text-rust">{t("app.name")}</strong> {t("landing.purpose.p2")}
+              </p>
+            </Reveal>
+          </div>
+          <ol className="mx-auto mt-16 grid max-w-4xl gap-10 sm:grid-cols-3">
+            {PILLARS.map((k, i) => (
+              <Reveal as="li" key={k} delay={i * 140} className="text-left">
+                <span className="font-heritage text-4xl text-rust/70" aria-hidden>
+                  {NUMERALS[i]}
+                </span>
+                <h3 className="mt-3 font-heritage text-lg font-bold">{t(`landing.purpose.pillars.${k}.title`)}</h3>
+                <p className="mt-2 font-sans text-sm leading-relaxed text-umber">{t(`landing.purpose.pillars.${k}.body`)}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </section>
+
+        {/* ---------------------------------------------------------------- the family tree (living archive) */}
+        <section id="archive" aria-labelledby="archive-title" className="scroll-mt-20 overflow-hidden bg-sand px-4 py-24 sm:py-28">
+          <div className="mx-auto max-w-6xl">
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <Eyebrow center>{t("landing.archive.kicker")}</Eyebrow>
+              <h2 id="archive-title" className="mt-5 font-heritage text-4xl leading-[1.08] font-bold sm:text-5xl">
+                {t("landing.archive.titleA")}
+                <em className="mt-1 block font-normal text-rust italic">{t("landing.archive.titleB")}</em>
+              </h2>
+              <p className="mt-5 text-lg leading-relaxed text-umber">{t("landing.archive.lead")}</p>
+            </Reveal>
+
+            <div className="mt-14 grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+              <div>
+                <Reveal className="relative border border-cocoa/10 bg-cream p-7 shadow-sm">
+                  <span className="grid size-12 place-items-center rounded-full bg-leaf-50 text-leaf-700">
+                    <Network className="size-6" aria-hidden />
+                  </span>
+                  <h3 className="mt-5 font-heritage text-2xl font-bold">{t("landing.archive.card.title")}</h3>
+                  <p className="mt-3 leading-relaxed text-umber">{t("landing.archive.card.body")}</p>
+                </Reveal>
+                <ul className="mt-6 grid gap-3 font-sans text-sm">
+                  {ARCHIVE_POINTS.map(({ key, icon: I }, i) => (
+                    <Reveal as="li" key={key} delay={150 + i * 120} className="flex gap-3 border-b border-cocoa/10 pb-3">
+                      <I className="mt-0.5 size-4 shrink-0 text-rust" aria-hidden />
+                      <span>
+                        <strong className="font-semibold text-cocoa">{t(`landing.archive.points.${key}.title`)}</strong>{" "}
+                        <span className="text-umber">{t(`landing.archive.points.${key}.body`)}</span>
+                      </span>
+                    </Reveal>
+                  ))}
+                </ul>
               </div>
+
+              <Reveal as="figure" variant="unveil" delay={200} className="relative m-0">
+                <svg className="pointer-events-none absolute -top-10 -left-10 hidden h-[calc(100%+5rem)] w-24 text-rust/50 lg:block" viewBox="0 0 96 400" fill="none" aria-hidden>
+                  <path className="thread-path" pathLength={1} d="M80 4 C 10 80, 90 140, 30 210 S 70 330, 20 396" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <div className="overflow-hidden rounded-2xl border border-cocoa/10 bg-white shadow-2xl shadow-cocoa/15">
+                  <div className="flex items-center gap-2 border-b border-cocoa/10 bg-cream px-4 py-2.5" aria-hidden>
+                    <span className="size-2.5 rounded-full bg-rust/40" />
+                    <span className="size-2.5 rounded-full bg-gold/60" />
+                    <span className="size-2.5 rounded-full bg-leaf-700/30" />
+                    <span className="ml-3 truncate font-sans text-xs text-umber" lang="hi">
+                      वंशावली · शर्मा परिवार · वंशवृक्ष
+                    </span>
+                  </div>
+                  <img
+                    src="/landing/tree-viewer-hi.png"
+                    width={2256}
+                    height={1472}
+                    loading="lazy"
+                    decoding="async"
+                    alt={t("landing.archive.alt")}
+                    className="block h-auto w-full"
+                  />
+                </div>
+                <figcaption className="mt-4 text-center text-sm text-umber italic">{t("landing.archive.caption")}</figcaption>
+              </Reveal>
             </div>
-            <figure className="relative overflow-hidden rounded-3xl bg-kumkum-900 px-6 py-10 text-center text-parchment shadow-xl sm:px-10">
-              <Mandala className="pointer-events-none absolute -top-24 -right-24 size-72 text-haldi-300 opacity-20" />
-              <Mandala className="pointer-events-none absolute -bottom-28 -left-28 size-72 text-haldi-300 opacity-20" />
-              <blockquote className="relative">
-                <p className="font-display text-xl leading-relaxed text-haldi-100 sm:text-2xl" lang="sa">
-                  अयं निजः परो वेति गणना लघुचेतसाम्।
-                  <br />
-                  उदारचरितानां तु वसुधैव कुटुम्बकम्॥
-                </p>
-                <p className="mx-auto mt-6 max-w-sm text-sm leading-relaxed text-parchment/90 sm:text-base">{t("landing.story.shlokaTranslation")}</p>
-              </blockquote>
-              <figcaption className="relative mt-4 text-xs text-haldi-300">{t("landing.story.shlokaSource")}</figcaption>
-            </figure>
+
+            <Reveal className="mt-14 text-center font-sans" delay={100}>
+              <Link
+                to={startTo}
+                className={`inline-flex items-center gap-2 bg-cocoa px-7 py-3.5 ${btnText} text-cream hover:bg-cocoa-soft`}
+              >
+                {startLabel}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+              <p className="mt-3 text-xs text-umber">{t("landing.archive.note")}</p>
+            </Reveal>
           </div>
         </section>
 
-        {/* ---------------------------------------------------------------- features */}
-        <section id="features" aria-labelledby="features-title" className="scroll-mt-20 bg-parchment-deep/60 px-4 py-20 sm:py-24">
+        {/* ---------------------------------------------------------------- three traditions */}
+        <div id="traditions" className="scroll-mt-20">
+          {CHAPTERS.map((c, ci) => {
+            const base = `landing.traditions.${c.key}`;
+            return (
+              <section
+                key={c.key}
+                aria-labelledby={`chapter-${c.key}`}
+                className={`px-4 py-24 sm:py-28 ${ci % 2 === 1 ? "bg-sand/60" : "bg-cream"}`}
+              >
+                <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-12">
+                  <Reveal className={`lg:col-span-5 ${c.imageLeft ? "" : "lg:order-2"}`}>
+                    <div className="relative">
+                      <PhotoCrop {...c.crop} label={t(`${base}.imgAlt`)} className="shadow-xl shadow-cocoa/10" />
+                      <p className="absolute -bottom-6 left-6 bg-cream px-4 py-2 font-sans shadow-sm">
+                        <span className="block text-xs font-semibold text-cocoa">{t(`${base}.imgCaption`)}</span>
+                      </p>
+                    </div>
+                  </Reveal>
+                  <div className={`lg:col-span-7 ${c.imageLeft ? "" : "lg:order-1"}`}>
+                    <Reveal className="flex items-end gap-4">
+                      <span className="font-heritage text-7xl leading-none text-rust/20" aria-hidden>
+                        {c.n}
+                      </span>
+                      <span className="pb-2">
+                        <Eyebrow>{t(`${base}.chapter`)}</Eyebrow>
+                        <span className="mt-1 block text-umber italic">{t(`${base}.subtitle`)}</span>
+                      </span>
+                    </Reveal>
+                    <Reveal delay={100}>
+                      <AccentHeading
+                        id={`chapter-${c.key}`}
+                        before={t(`${base}.titleA`)}
+                        accent={t(`${base}.titleEm`)}
+                        after={t(`${base}.titleB`)}
+                        className="mt-6 text-4xl sm:text-5xl"
+                      />
+                    </Reveal>
+                    <Reveal delay={180}>
+                      <p className="mt-6 text-lg leading-relaxed text-umber first-letter:float-left first-letter:mt-1 first-letter:mr-3 first-letter:font-heritage first-letter:text-6xl first-letter:leading-[0.8] first-letter:text-rust">
+                        {t(`${base}.p1`)}
+                      </p>
+                      <p className="mt-4 text-lg leading-relaxed text-umber">{t(`${base}.p2`)}</p>
+                      <blockquote className="mt-7 border-l-2 border-rust/50 pl-5">
+                        <p className="font-heritage text-xl text-rust italic" lang="sa">
+                          {t(`${base}.quote`)}
+                        </p>
+                        <p className="mt-1 text-umber italic">“{t(`${base}.quoteMeaning`)}”</p>
+                        <footer className="mt-1 font-sans text-xs text-umber">— {t(`${base}.quoteSource`)}</footer>
+                      </blockquote>
+                    </Reveal>
+                    <dl className={`mt-9 grid gap-6 font-sans ${c.facts.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                      {c.facts.map((f, fi) => (
+                        <Reveal key={f} delay={240 + fi * 120} className="border-t border-cocoa/15 pt-3">
+                          <dt className={`text-rust ${hindi ? "text-sm font-semibold" : "text-[11px] font-semibold tracking-[0.2em] uppercase"}`}>
+                            {t(`${base}.facts.${f}.label`)}
+                          </dt>
+                          <dd className="mt-1 text-sm text-umber">{t(`${base}.facts.${f}.body`)}</dd>
+                        </Reveal>
+                      ))}
+                    </dl>
+                  </div>
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        {/* ---------------------------------------------------------------- keepers of memory */}
+        <section id="keepers" aria-labelledby="keepers-title" className="scroll-mt-20 bg-cocoa px-4 py-24 text-cream sm:py-28">
           <div className="mx-auto max-w-6xl">
-            <SectionHeading id="features-title" kicker={t("landing.features.kicker")} title={t("landing.features.title")} lead={t("landing.features.lead")} />
-            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map(({ key, icon: I }) => (
-                <li key={key} className="group rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-haldi-300 hover:shadow-md">
-                  <span className="grid size-11 place-items-center rounded-xl bg-kumkum-50 text-kumkum-700 group-hover:bg-kumkum-700 group-hover:text-white">
-                    <I className="size-5" aria-hidden />
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <Eyebrow tone="gold" center>
+                {t("landing.keepers.kicker")}
+              </Eyebrow>
+              <h2 id="keepers-title" className="mt-5 font-heritage text-4xl leading-[1.08] font-bold sm:text-5xl">
+                {t("landing.keepers.titleA")}
+                <em className="mt-1 block font-normal text-gold italic">{t("landing.keepers.titleB")}</em>
+              </h2>
+              <p className="mt-5 text-lg text-cream/75">{t("landing.keepers.lead")}</p>
+            </Reveal>
+            <ul className="mt-16 grid gap-10 border-t border-cream/10 pt-12 md:grid-cols-3">
+              {KEEPERS.map((k, i) => (
+                <Reveal as="li" key={k.key} delay={i * 150}>
+                  <span className="font-heritage text-4xl leading-none text-gold/70" aria-hidden>
+                    “
                   </span>
-                  <h3 className="mt-4 font-display text-lg font-bold text-ink">{t(`landing.features.items.${key}.title`)}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-muted">{t(`landing.features.items.${key}.body`)}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------------- kinship words */}
-        <section aria-labelledby="kin-title" className="px-4 py-20 sm:py-24">
-          <div className="mx-auto max-w-5xl text-center">
-            <Kicker>{t("landing.kin.kicker")}</Kicker>
-            <h2 id="kin-title" className="mt-2 font-display text-3xl font-bold text-kumkum-900 sm:text-4xl">
-              {t("landing.kin.title")}
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-ink-muted sm:text-lg">{t("landing.kin.lead")}</p>
-            <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {KIN_TERMS.map(({ key, word }) => (
-                <li key={key} className="rounded-xl border border-haldi-300/60 bg-gradient-to-b from-white to-haldi-100/40 px-3 py-4">
-                  <p className="font-display text-2xl font-bold text-kumkum-800" lang="hi">
-                    {word}
+                  <p className="mt-2 text-lg leading-relaxed text-cream/85 italic">{t(`landing.keepers.items.${k.key}.body`)}</p>
+                  <p className="mt-6 flex items-center gap-3 font-sans">
+                    <span className="grid size-10 place-items-center rounded-full border border-gold/40 bg-rust/30 text-sm text-gold" lang="hi" aria-hidden>
+                      {k.initial}
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-cream">{t(`landing.keepers.items.${k.key}.title`)}</span>
+                      <span className="block text-xs text-gold/80">{t(`landing.keepers.items.${k.key}.role`)}</span>
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs leading-snug text-ink-muted">{t(`landing.kin.terms.${key}`)}</p>
-                </li>
+                </Reveal>
               ))}
             </ul>
           </div>
         </section>
 
-        {/* ---------------------------------------------------------------- how it works */}
-        <section id="how" aria-labelledby="how-title" className="scroll-mt-20 bg-parchment-deep/60 px-4 py-20 sm:py-24">
+        {/* ---------------------------------------------------------------- stories & guides */}
+        <section id="stories" aria-labelledby="stories-title" className="scroll-mt-20 bg-sand/60 px-4 py-24 sm:py-28">
           <div className="mx-auto max-w-6xl">
-            <SectionHeading id="how-title" kicker={t("landing.how.kicker")} title={t("landing.how.title")} />
-            <ol className="relative mt-12 grid gap-8 md:grid-cols-3">
-              <span className="absolute top-7 right-[16%] left-[16%] hidden border-t-2 border-dashed border-haldi-300 md:block" aria-hidden />
-              {STEPS.map((key, i) => (
-                <li key={key} className="relative text-center">
-                  <span className="relative mx-auto grid size-14 place-items-center rounded-full border-4 border-parchment bg-kumkum-700 font-display text-xl font-bold text-white shadow-md">
-                    {i + 1}
-                  </span>
-                  <h3 className="mt-4 font-display text-xl font-bold text-ink">{t(`landing.how.steps.${key}.title`)}</h3>
-                  <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">{t(`landing.how.steps.${key}.body`)}</p>
-                </li>
+            <Reveal className="max-w-2xl">
+              <Eyebrow>{t("landing.stories.kicker")}</Eyebrow>
+              <AccentHeading
+                id="stories-title"
+                before={t("landing.stories.titleA")}
+                accent={t("landing.stories.titleEm")}
+                after={t("landing.stories.titleB")}
+                className="mt-5 text-4xl sm:text-5xl"
+              />
+            </Reveal>
+            <ul className="mt-12 grid gap-6 md:grid-cols-2">
+              {STORIES.map((k, i) => (
+                <Reveal as="li" key={k} delay={(i % 2) * 140} className="flex flex-col border border-cocoa/10 bg-cream p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                  <span className="self-start rounded-sm bg-rust/10 px-2.5 py-1 font-sans text-[11px] font-semibold text-rust">{t(`landing.stories.items.${k}.tag`)}</span>
+                  <h3 className="mt-4 font-heritage text-2xl leading-snug font-bold">{t(`landing.stories.items.${k}.title`)}</h3>
+                  <p className="mt-3 flex-1 leading-relaxed text-umber">{t(`landing.stories.items.${k}.body`)}</p>
+                  <p className="mt-5 font-sans text-xs font-semibold text-rust">{t(`landing.stories.items.${k}.inApp`)}</p>
+                </Reveal>
               ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------------- timeline */}
+        <section id="timeline" aria-labelledby="timeline-title" className="scroll-mt-20 px-4 py-24 sm:py-28">
+          <div className="mx-auto max-w-5xl">
+            <Reveal className="text-center">
+              <Eyebrow center>{t("landing.timeline.kicker")}</Eyebrow>
+              <AccentHeading
+                id="timeline-title"
+                before={t("landing.timeline.titleA")}
+                accent={t("landing.timeline.titleEm")}
+                className="mt-5 text-4xl sm:text-5xl"
+              />
+            </Reveal>
+            <ol className="relative mt-16 before:absolute before:top-0 before:bottom-0 before:left-3 before:w-px before:bg-rust/25 md:before:left-1/2">
+              {TIMELINE.map((k, i) => {
+                const right = i % 2 === 1;
+                return (
+                  <Reveal as="li" key={k} delay={80} className="relative grid pb-14 pl-10 last:pb-0 md:grid-cols-2 md:pl-0">
+                    <span className="absolute top-3 left-3 size-2.5 -translate-x-1/2 rotate-45 bg-rust md:left-1/2" aria-hidden />
+                    <div className={right ? "md:col-start-2 md:pl-12" : "md:pr-12 md:text-right"}>
+                      <p className="font-heritage text-4xl text-rust/45">{t(`landing.timeline.items.${k}.era`)}</p>
+                      <h3 className="mt-1 font-heritage text-lg font-bold">{t(`landing.timeline.items.${k}.title`)}</h3>
+                      <p className="mt-2 font-sans text-sm leading-relaxed text-umber">{t(`landing.timeline.items.${k}.body`)}</p>
+                    </div>
+                  </Reveal>
+                );
+              })}
             </ol>
           </div>
         </section>
 
-        {/* ---------------------------------------------------------------- trust */}
-        <section id="trust" aria-labelledby="trust-title" className="scroll-mt-20 px-4 py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeading id="trust-title" kicker={t("landing.trust.kicker")} title={t("landing.trust.title")} lead={t("landing.trust.lead")} />
-            <ul className="mt-12 grid gap-5 sm:grid-cols-2">
-              {TRUST.map(({ key, icon: I }) => (
-                <li key={key} className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-leaf-50 text-leaf-700">
-                    <I className="size-5" aria-hidden />
-                  </span>
-                  <div>
-                    <h3 className="font-display text-lg font-bold text-ink">{t(`landing.trust.items.${key}.title`)}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">{t(`landing.trust.items.${key}.body`)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------------- closing */}
-        <section aria-labelledby="closing-title" className="px-4 pb-20 sm:pb-24">
-          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-kumkum-800 via-kumkum-700 to-kumkum-900 px-6 py-14 text-center text-white shadow-xl sm:px-12">
-            <Mandala className="pointer-events-none absolute top-1/2 left-1/2 size-[36rem] -translate-x-1/2 -translate-y-1/2 text-haldi-300 opacity-15" />
-            <div className="relative">
-              <p className="font-display text-2xl text-haldi-100 sm:text-3xl" lang="sa">
-                ॥ परंपरा एवं श्रद्धा ॥
-              </p>
-              <p className="mt-1 text-sm text-kumkum-100 italic">{t("landing.closing.mottoMeaning")}</p>
-              <h2 id="closing-title" className="mx-auto mt-6 max-w-2xl font-display text-3xl font-bold sm:text-4xl">
-                {t("landing.closing.title")}
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base text-kumkum-50/90">{t("landing.closing.lead")}</p>
+        {/* ---------------------------------------------------------------- join */}
+        <section aria-labelledby="join-title" className="bg-terracotta px-4 py-24 text-center text-cream sm:py-28">
+          <Reveal className="mx-auto max-w-2xl">
+            <span className="font-heritage text-3xl text-gold" lang="sa" aria-hidden>
+              ॐ
+            </span>
+            <h2 id="join-title" className="mt-4 font-heritage text-4xl leading-[1.08] font-bold sm:text-5xl">
+              {t("landing.join.titleA")}
+              <em className="mt-1 block font-normal text-gold italic">{t("landing.join.titleEm")}</em>
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-cream/85">{t("landing.join.lead")}</p>
+            <div className="mt-9 flex flex-col justify-center gap-3 font-sans sm:flex-row">
               <Link
                 to={startTo}
-                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-haldi-100 px-6 py-3 text-base font-semibold text-kumkum-900 shadow-md hover:bg-white"
+                className={`inline-flex items-center justify-center gap-2 bg-mustard px-7 py-3.5 ${btnText} text-cocoa hover:bg-gold`}
               >
-                {signedIn ? t("landing.cta.goToTrees") : t("landing.closing.cta")}
+                {startLabel}
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
+              {!signedIn && (
+                <Link
+                  to="/login"
+                  className={`inline-flex items-center justify-center border border-cream/50 px-7 py-3.5 ${btnText} text-cream hover:bg-cream/10`}
+                >
+                  {t("auth.login")}
+                </Link>
+              )}
             </div>
-          </div>
+            <p className="mt-4 font-sans text-xs text-cream/70">{t("landing.join.note")}</p>
+          </Reveal>
         </section>
       </main>
 
-      <footer className="border-t border-haldi-300/60 bg-parchment-deep/70 px-4 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center">
-          <BrandMark to="/" />
-          <p className="flex items-center gap-1.5 text-sm text-ink">
+      {/* ---------------------------------------------------------------- footer */}
+      <footer className="bg-cocoa px-4 pt-16 pb-8 font-sans text-cream/75">
+        <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[2fr_1fr_1fr_1fr]">
+          <div>
+            <div className="[&_*]:!text-cream">
+              <BrandMark to="/" />
+            </div>
+            <p className="mt-5 max-w-sm font-garamond text-lg text-cream/80 italic">“{t("landing.footer.tagline")}”</p>
+            <p className="mt-2 text-xs text-gold" lang="sa">
+              ॥ वसुधैव कुटुम्बकम् ॥
+            </p>
+          </div>
+          <FooterColumn title={t("landing.footer.explore")}>
+            {navLinks.map((l) => (
+              <a key={l.href} href={l.href} className="hover:text-gold">
+                {l.label}
+              </a>
+            ))}
+          </FooterColumn>
+          <FooterColumn title={t("landing.footer.family")}>
+            <Link to={startTo} className="hover:text-gold">
+              {startLabel}
+            </Link>
+            {!signedIn && (
+              <>
+                <Link to="/login" className="hover:text-gold">
+                  {t("auth.login")}
+                </Link>
+                <Link to="/register" className="hover:text-gold">
+                  {t("auth.createAccount")}
+                </Link>
+              </>
+            )}
+          </FooterColumn>
+          <FooterColumn title={t("landing.footer.language")}>
+            <div className="[&_select]:border-cream/30 [&_select]:bg-cocoa-soft [&_select]:text-cream [&_svg]:text-cream/70">
+              <LanguageSwitcher />
+            </div>
+          </FooterColumn>
+        </div>
+        <div className="mx-auto mt-14 flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs sm:flex-row">
+          <p className="flex items-center gap-1.5">
             {t("landing.footer.builtWithA")}
-            <Heart className="size-4 fill-kumkum-600 text-kumkum-600" aria-hidden />
+            <Heart className="size-3.5 fill-rust text-rust" aria-hidden />
             <span className="sr-only">{t("landing.footer.love")}</span>
             {t("landing.footer.builtWithB")}
           </p>
-          <p className="font-display text-kumkum-800" lang="sa">
-            {SHLOKA} · ॥ परंपरा एवं श्रद्धा ॥
+          <p className="text-gold/80" lang="sa">
+            ॥ परंपरा एवं श्रद्धा ॥
           </p>
-          <LanguageSwitcher className="sm:hidden" />
         </div>
       </footer>
+    </div>
+  );
+}
+
+function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
+  const { i18n } = useTranslation();
+  const latin = !i18n.language.startsWith("hi");
+  return (
+    <div>
+      <p className={`font-semibold text-cream ${latin ? "text-[11px] tracking-[0.2em] uppercase" : "text-sm"}`}>{title}</p>
+      <div className="mt-4 flex flex-col gap-2 text-sm">{children}</div>
     </div>
   );
 }
