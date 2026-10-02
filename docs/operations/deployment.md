@@ -11,11 +11,20 @@ Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd)
 `alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
 
-## Production shape (ASSUMPTION until the hosting decision, implementation-plan §12)
-- Managed PostgreSQL 16 with PITR, managed Redis, S3 with SSE-KMS plus versioning and object lock,
-  and clamd as a sidecar or internal service.
-- Containers: `backend` (N replicas behind TLS load balancer), `worker` (M replicas), `frontend`
-  (nginx or CDN).
+## Production shape
+**Decided for the pilot: ADR-0014.** One VM runs `deploy/pilot/compose.yml` (Caddy, the nginx SPA,
+backend replicas, worker, Redis, clamd, monitoring), with managed PostgreSQL 16 (PITR) and private
+S3 in an Indian region. Read these alongside this section:
+- `docs/deployment/pilot-deployment-plan.md` (architecture, provisioning, storage and DB setup);
+- `docs/deployment/environment-variables.md` (every setting);
+- `docs/operations/release-runbook.md` (deploy and rollback);
+- `docs/operations/backup-restore-runbook.md`;
+- `docs/operations/monitoring-alerting.md`;
+- `docs/operations/incident-response.md`.
+
+The general rules below still apply to any topology:
+- Containers: `backend` (one uvicorn process per replica, behind the TLS proxy), `worker`
+  (`python -m app.cli.worker`, M replicas), `frontend` (nginx).
 - Required settings: `VSH_ENV=production` (the app refuses to start with dev keys, the EICAR test
   scanner, or insecure cookies), `VSH_COOKIE_SECURE=true`, keys from a secret manager, and
   `VSH_CORS_ORIGINS` set to the real origin.
@@ -75,6 +84,7 @@ frontend (nginx serving the SPA and proxying `/api`).
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `.github/workflows/dast.yml` | weekly (Mon 04:23 UTC) and manual | Runs these steps:<ul><li>Postgres and Redis services, migrate, seed demo</li><li>uvicorn</li><li>SPA via the production nginx image</li><li>ZAP baseline on `http://localhost:8080/`</li><li>ZAP API scan on `/api/v1/openapi.json`, authenticated as the demo user</li></ul>Rules are in `.zap/rules.tsv` and reports are uploaded as artefacts (`zap-baseline`, `zap-api-scan`). Kept off PRs to avoid flaky merges. **Not yet executed** (written without a Docker daemon). |
+| `.github/workflows/deploy-pilot.yml` | manual (`main` only) | The deployment gate: full CI on the commit → images tagged with the SHA → approval of the protected `staging`/`pilot` environment → `deploy.sh` over SSH (release-runbook.md) |
 | `.github/workflows/drill.yml` | nightly (02:41 UTC) and manual (`people`, `encryption` inputs) | Backup/restore drill `ops/backup/drill.sh`: encrypted dump, fresh restore, `alembic upgrade head`, `verify.py`. Timings go to the job summary; see `backup-restore.md`. |
 
 HTTP load test (manual, not in CI): `ops/loadtest/run.sh` seeds 10k people and runs
