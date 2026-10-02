@@ -18,6 +18,9 @@ Modular monolith (ADR-0001):
   UI permission checks (`my_permissions`, `can_edit`) only hide controls; 403s are handled.
   `src/data/masterData/*` are typing-aid vocabularies only — never used to infer values.
 - `e2e/` — Playwright specs against the real stack (own `vsh_e2e` database, API :8100, SPA :3100).
+- `deploy/pilot/` — staging/pilot stack (ADR-0014: one VM with Compose + managed PostgreSQL and S3):
+  Caddy edge, scripts (deploy, rollback, backup, restore), monitoring, and a staging drill. Runbooks
+  in `docs/operations/`, go-live checklist in `docs/release/pilot-go-live-checklist.md`.
 - Architecture, domain model and decisions: `docs/architecture/`. Security/privacy: `docs/security/`.
 
 ## Commands
