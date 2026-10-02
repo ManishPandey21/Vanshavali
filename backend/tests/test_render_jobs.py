@@ -42,14 +42,18 @@ def captured(monkeypatch, stub):
 def small_family(owner: Any, tid: str) -> dict[str, Any]:
     root = create_person(owner, tid, "Raju", sex="male", birth={"date": exact(1950, 1, 1)})
     dad = create_person(owner, tid, "Mohan", sex="male", birth={"date": exact(1920, 2, 2)})
-    hidden = create_person(owner, tid, "Hiddenmum", sex="female", status="living", privacy_level="PRIVATE_TREE_ADMINS")
+    hidden = create_person(
+        owner, tid, "Hiddenmum", sex="female", status="living", privacy_level="PRIVATE_TREE_ADMINS"
+    )
     link(owner, tid, dad["id"], root["id"], "biological_parent")
     link(owner, tid, hidden["id"], root["id"], "biological_parent")
     return {"root": root, "dad": dad, "hidden": hidden}
 
 
 def job(client: Any, tid: str, chart: str = "fan", output: str = "poster", **settings: Any) -> Any:
-    return client.post(f"/trees/{tid}/render-jobs", json={"chart_type": chart, "output": output, "settings": settings})
+    return client.post(
+        f"/trees/{tid}/render-jobs", json={"chart_type": chart, "output": output, "settings": settings}
+    )
 
 
 def test_render_disabled_by_default(owner, tree):
@@ -65,7 +69,9 @@ def test_poster_and_video_lifecycle_and_download(owner, tree, stub):
     j = r.json()
     assert j["status"] == "succeeded" and j["progress"] == 100 and j["renderer"] == "stub"
     assert [a["kind"] for a in j["artifacts"]] == ["poster_png"]
-    url = owner.post(f"/trees/{tid}/render-jobs/{j['id']}/artifacts/{j['artifacts'][0]['id']}/download-url").json()["url"]
+    url = owner.post(
+        f"/trees/{tid}/render-jobs/{j['id']}/artifacts/{j['artifacts'][0]['id']}/download-url"
+    ).json()["url"]
     got = owner.get(url)
     assert got.status_code == 200 and got.content[:4] == b"\x89PNG"
     assert got.headers["cache-control"] == "no-store, private"
@@ -105,7 +111,14 @@ def test_event_timeline_embeds_only_photos_the_requester_may_open(owner, tree, m
     p = create_person(owner, tid, "Kamla", birth={"date": exact(1940, 3, 3)})
     open_ev = life_event(owner, tid, p["id"], category="marriage", title="Wedding", date=exact(1960, 5, 5))
     upload_photo(owner, tid, open_ev["id"], caption="Open photo")
-    upload_photo(owner, tid, open_ev["id"], caption="Admins photo", privacy_level="PRIVATE_TREE_ADMINS", color=(1, 1, 1))
+    upload_photo(
+        owner,
+        tid,
+        open_ev["id"],
+        caption="Admins photo",
+        privacy_level="PRIVATE_TREE_ADMINS",
+        color=(1, 1, 1),
+    )
     viewer = member_factory(["VIEWER"])
     assert job(viewer, tid, "event_timeline", "mp4", root_person_id=p["id"]).status_code == 202
     events = captured[-1]["props"]["data"]["events"]
@@ -139,7 +152,9 @@ def test_jobs_and_artifacts_are_private_to_the_requester(owner, tree, member_fac
 def test_validation_quotas_and_failures(owner, tree, stub, monkeypatch):
     tid = tree["id"]
     f = small_family(owner, tid)
-    assert job(owner, tid, "graph", root_person_id=f["root"]["id"]).json()["error"]["code"] == "not_animatable"
+    assert (
+        job(owner, tid, "graph", root_person_id=f["root"]["id"]).json()["error"]["code"] == "not_animatable"
+    )
     assert job(owner, tid, "fan").json()["error"]["code"] == "root_required"
     assert job(owner, tid, "fan", root_person_id=f["root"]["id"], generations=9).status_code == 422
     assert job(owner, tid, "fan", root_person_id=f["root"]["id"], title="x" * 200).status_code == 422
@@ -172,16 +187,32 @@ def test_hidden_root_is_not_renderable(owner, tree, member_factory, stub):
 def test_lifespan_and_family_tree_payloads(owner, tree, captured):
     tid = tree["id"]
     f = small_family(owner, tid)
-    life_event(owner, tid, f["dad"]["id"], category="migration", title="Moved", date={"precision": "year_only", "year": 1947}, significance="milestone")
+    life_event(
+        owner,
+        tid,
+        f["dad"]["id"],
+        category="migration",
+        title="Moved",
+        date={"precision": "year_only", "year": 1947},
+        significance="milestone",
+    )
     assert job(owner, tid, "lifespan", root_person_id=f["root"]["id"]).status_code == 202
     rows = {r["name"]: r for r in captured[-1]["props"]["data"]["rows"]}
     assert rows["Mohan Iyer"]["events"] == [{"year": 1947, "label": "Moved"}]
-    assert job(owner, tid, "family_tree", root_person_id=f["dad"]["id"], direction="descendants").status_code == 202
+    assert (
+        job(owner, tid, "family_tree", root_person_id=f["dad"]["id"], direction="descendants").status_code
+        == 202
+    )
     data = captured[-1]["props"]["data"]
-    assert data["rootId"] == f["dad"]["id"] and {n["person"]["name"] for n in data["nodes"]} >= {"Mohan Iyer", "Raju Iyer"}
+    assert data["rootId"] == f["dad"]["id"] and {n["person"]["name"] for n in data["nodes"]} >= {
+        "Mohan Iyer",
+        "Raju Iyer",
+    }
 
 
-@pytest.mark.skipif(os.environ.get("VSH_TEST_REMOTION") != "1", reason="real Remotion render: set VSH_TEST_REMOTION=1")
+@pytest.mark.skipif(
+    os.environ.get("VSH_TEST_REMOTION") != "1", reason="real Remotion render: set VSH_TEST_REMOTION=1"
+)
 def test_real_remotion_render_end_to_end(owner, tree, monkeypatch):
     renderer_dir = Path(__file__).resolve().parents[2] / "renderer"
     if not (renderer_dir / "build" / "bundle" / "index.html").exists() or shutil.which("node") is None:
