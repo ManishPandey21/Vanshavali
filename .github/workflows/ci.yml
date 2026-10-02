@@ -87,6 +87,40 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  # Remotion animated exports (ADR-0017): typecheck, bundle and a REAL render of every composition
+  # (posters) plus two MP4s, then the backend's end-to-end render test against that bundle.
+  renderer:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vanshavali
+          POSTGRES_PASSWORD: vanshavali
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vanshavali" --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: renderer/package-lock.json
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: cd renderer && npm ci && npm run typecheck && npm test
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - run: cd backend && uv sync --frozen
+      - name: Real render through the API (render worker path)
+        env:
+          VSH_TEST_ADMIN_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres
+          VSH_TEST_REMOTION: "1"
+        run: cd backend && uv run pytest -q tests/test_render_jobs.py
+
   e2e:
     needs: [backend, frontend]
     runs-on: ubuntu-24.04

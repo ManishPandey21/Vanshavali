@@ -1,0 +1,438 @@
+{
+ "FanChart": {
+  "theme": "heritage",
+  "generatedAt": "2026-10-02T00:00:00Z",
+  "branding": {
+   "title": "The Sharma family",
+   "subtitle": "Five generations",
+   "treeName": "Sample tree",
+   "footer": "Sample data"
+  },
+  "data": {
+   "kind": "fan",
+   "generations": 3,
+   "colorBy": "birthplace",
+   "nodes": [
+    {
+     "slot": 1,
+     "generation": 0,
+     "hidden": false,
+     "person": {
+      "id": "1",
+      "name": "Arjun Sharma",
+      "years": "1990–",
+      "colorKey": "Varanasi",
+      "birthPlace": "Varanasi"
+     }
+    },
+    {
+     "slot": 2,
+     "generation": 1,
+     "hidden": false,
+     "person": {
+      "id": "2",
+      "name": "Ravi Sharma",
+      "years": "1958–2019",
+      "colorKey": "Varanasi",
+      "birthPlace": "Varanasi"
+     }
+    },
+    {
+     "slot": 3,
+     "generation": 1,
+     "hidden": false,
+     "person": {
+      "id": "3",
+      "name": "Meera Sharma",
+      "years": "1962–",
+      "colorKey": "Prayagraj",
+      "birthPlace": "Prayagraj"
+     }
+    },
+    {
+     "slot": 4,
+     "generation": 2,
+     "hidden": false,
+     "person": {
+      "id": "4",
+      "name": "Shankar Sharma",
+      "years": "1930–1999",
+      "colorKey": "Bhadohi",
+      "birthPlace": "Bhadohi"
+     }
+    },
+    {
+     "slot": 5,
+     "generation": 2,
+     "hidden": false,
+     "person": {
+      "id": "5",
+      "name": "Kamla Devi",
+      "years": "1935–2010",
+      "colorKey": "Bhadohi",
+      "birthPlace": "Bhadohi"
+     }
+    },
+    {
+     "slot": 6,
+     "generation": 2,
+     "hidden": true,
+     "person": null
+    },
+    {
+     "slot": 8,
+     "generation": 3,
+     "hidden": false,
+     "person": {
+      "id": "8",
+      "name": "Gopal Sharma",
+      "years": "c. 1900–1960",
+      "colorKey": "Bhadohi",
+      "birthPlace": "Bhadohi"
+     }
+    }
+   ],
+   "legend": [
+    {
+     "key": "Varanasi",
+     "label": "Varanasi"
+    },
+    {
+     "key": "Prayagraj",
+     "label": "Prayagraj"
+    },
+    {
+     "key": "Bhadohi",
+     "label": "Bhadohi"
+    }
+   ],
+   "missingSlots": [
+    7,
+    9,
+    10,
+    11
+   ]
+  }
+ },
+ "PedigreeChart": {
+  "theme": "heritage",
+  "generatedAt": "2026-10-02T00:00:00Z",
+  "branding": {
+   "title": "The Sharma family",
+   "subtitle": "Five generations",
+   "treeName": "Sample tree",
+   "footer": "Sample data"
+  },
+  "data": {
+   "kind": "pedigree",
+   "generations": 3,
+   "colorBy": "birthplace",
+   "nodes": [
+    {
+     "slot": 1,
+     "generation": 0,
+     "hidden": false,
+     "person": {
+      "id": "1",
+      "name": "Arjun Sharma",
+      "years": "1990–",
+      "colorKey": "Varanasi",
+      "birthPlace": "Varanasi"
+     }
+    },
+    {
+     "slot": 2,
+     "generation": 1,
+     "hidden": false,
+     "person": {
+      "id": "2",
+      "name": "Ravi Sharma",
+      "years": "1958–2019",
+      "colorKey": "Varanasi",
+      "birthPlace": "Varanasi"
+     }
+    },
+    {
+     "slot": 3,
+     "generation": 1,
+     "hidden": false,
+     "person": {
+      "id": "3",
+      "name": "Meera Sharma",
+      "years": "1962–",
+      "colorKey": "Prayagraj",
+      "birthPlace": "Prayagraj"
+     }
+    },
+    {
+     "slot": 4,
+     "generation": 2,
+     "hidden": false,
+     "person": {
+      "id": "4",
+      "name": "Shankar Sharma",
+      "years": "1930–1999",
+      "colorKey": "Bhadohi",
+      "birthPlace": "Bhadohi"
+     }
+    },
+    {
+     "slot": 5,
+     "generation": 2,
+     "hidden": false,
+     "person": {
+      "id": "5",
+      "name": "Kamla Devi",
+      "years": "1935–2010",
+      "colorKey": "Bhadohi",
+      "birthPlace": "Bhadohi"
+     }
+    },
+    {
+     "slot": 6,
+     "generation": 2,
+     "hidden": true,
+     "person": null
+    },
+    {
+     "slot": 8,
+     "generation": 3,
+     "hidden": false,
+     "person": {
+      "id": "8",
+      "name": "Gopal Sharma",
+      "years": "c. 1900–1960",
+      "colorKey": "Bhadohi",
+      "birthPlace": "Bhadohi"
+     }
+    }
+   ],
+   "legend": [
+    {
+     "key": "Varanasi",
+     "label": "Varanasi"
+    },
+    {
+     "key": "Prayagraj",
+     "label": "Prayagraj"
+    },
+    {
+     "key": "Bhadohi",
+     "label": "Bhadohi"
+    }
+   ],
+   "missingSlots": [
+    7,
+    9,
+    10,
+    11
+   ]
+  }
+ },
+ "FamilyTree": {
+  "theme": "heritage",
+  "generatedAt": "2026-10-02T00:00:00Z",
+  "branding": {
+   "title": "The Sharma family",
+   "subtitle": "Five generations",
+   "treeName": "Sample tree",
+   "footer": "Sample data"
+  },
+  "data": {
+   "kind": "family_tree",
+   "direction": "descendants",
+   "rootId": "g",
+   "nodes": [
+    {
+     "id": "g",
+     "generation": 0,
+     "hidden": false,
+     "partner": false,
+     "person": {
+      "id": "g",
+      "name": "Gopal Sharma",
+      "years": "c. 1900–1960",
+      "colorKey": "",
+      "birthPlace": ""
+     }
+    },
+    {
+     "id": "w",
+     "generation": 0,
+     "hidden": false,
+     "partner": true,
+     "person": {
+      "id": "w",
+      "name": "Parvati",
+      "years": "1905–1970",
+      "colorKey": "",
+      "birthPlace": ""
+     }
+    },
+    {
+     "id": "s",
+     "generation": 1,
+     "hidden": false,
+     "partner": false,
+     "person": {
+      "id": "s",
+      "name": "Shankar",
+      "years": "1930–1999",
+      "colorKey": "",
+      "birthPlace": ""
+     }
+    },
+    {
+     "id": "d",
+     "generation": 1,
+     "hidden": false,
+     "partner": false,
+     "person": {
+      "id": "d",
+      "name": "Lakshmi",
+      "years": "1933–",
+      "colorKey": "",
+      "birthPlace": ""
+     }
+    },
+    {
+     "id": "r",
+     "generation": 2,
+     "hidden": false,
+     "partner": false,
+     "person": {
+      "id": "r",
+      "name": "Ravi",
+      "years": "1958–2019",
+      "colorKey": "",
+      "birthPlace": ""
+     }
+    }
+   ],
+   "edges": [
+    {
+     "source": "g",
+     "target": "s"
+    },
+    {
+     "source": "g",
+     "target": "d"
+    },
+    {
+     "source": "s",
+     "target": "r"
+    }
+   ],
+   "unions": [
+    {
+     "a": "g",
+     "b": "w"
+    }
+   ]
+  }
+ },
+ "LifespanTimeline": {
+  "theme": "heritage",
+  "generatedAt": "2026-10-02T00:00:00Z",
+  "branding": {
+   "title": "The Sharma family",
+   "subtitle": "Five generations",
+   "treeName": "Sample tree",
+   "footer": "Sample data"
+  },
+  "data": {
+   "kind": "lifespan",
+   "minYear": 1900,
+   "maxYear": 2026,
+   "legend": [
+    {
+     "key": "deceased",
+     "label": "Deceased"
+    },
+    {
+     "key": "living",
+     "label": "Living"
+    }
+   ],
+   "periods": [
+    {
+     "label": "British Raj",
+     "startYear": 1858,
+     "endYear": 1947
+    },
+    {
+     "label": "Republic of India",
+     "startYear": 1950,
+     "endYear": 2026
+    }
+   ],
+   "rows": [
+    {
+     "name": "Gopal Sharma",
+     "start": 1900,
+     "end": 1960,
+     "endKnown": true,
+     "living": false,
+     "colorKey": "deceased",
+     "events": [
+      {
+       "year": 1925,
+       "label": "Marriage"
+      }
+     ]
+    },
+    {
+     "name": "Arjun Sharma",
+     "start": 1990,
+     "end": null,
+     "endKnown": true,
+     "living": true,
+     "colorKey": "living",
+     "events": []
+    }
+   ]
+  }
+ },
+ "EventTimeline": {
+  "theme": "heritage",
+  "generatedAt": "2026-10-02T00:00:00Z",
+  "branding": {
+   "title": "The Sharma family",
+   "subtitle": "Five generations",
+   "treeName": "Sample tree",
+   "footer": "Sample data"
+  },
+  "data": {
+   "kind": "event_timeline",
+   "person": {
+    "name": "Shankar Sharma",
+    "years": "1930–1999"
+   },
+   "events": [
+    {
+     "label": "Birth",
+     "dateDisplay": "1930",
+     "year": 1930,
+     "place": "Bhadohi",
+     "relatives": [],
+     "photos": []
+    },
+    {
+     "label": "Marriage",
+     "dateDisplay": "12 Feb 1955",
+     "year": 1955,
+     "place": "Prayagraj",
+     "relatives": [
+      "Kamla Devi"
+     ],
+     "photos": [
+      {
+       "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAAAZElEQVR4nO3PUQkAIBTAwBfHEIY1qiH8OITBAtzm7PV1wwUNaEEDWtCAFjSgBQ1oQQNa0IAWNKAFDWhBA1rQgBY0oAUNaEEDWtCAFjSgBQ1oQQNa0IAWNKAFDWhBA1rQgBY8dgExCTC1+yhQigAAAABJRU5ErkJggg==",
+       "caption": "Jaimala"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

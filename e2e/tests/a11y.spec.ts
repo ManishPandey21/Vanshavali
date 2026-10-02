@@ -102,10 +102,23 @@ async function seedData(browser: Browser, baseURL: string): Promise<Seed> {
   return { treeId, slug: tree.slug, ramesh: ramesh.id, suresh: suresh.person.id, aarav: aarav.person.id, documentId: pdf.id, imageDocumentId: img.id, propertyId: property.id, storage };
 }
 
-/** Waits until the SPA has no spinners (queries settled, lazy chunks loaded). */
+/**
+ * Waits until the SPA has no spinners (queries settled, lazy chunks loaded) and every finite CSS
+ * animation has finished: axe measures colour contrast on what is painted, so an element sampled
+ * mid fade-in (e.g. the landing page hero, 600 ms delay) would report a contrast that no user sees.
+ */
 async function settled(page: Page) {
   await expect(page.locator("main, [role=main]").first()).toBeVisible();
   await expect(page.locator(".animate-spin")).toHaveCount(0, { timeout: 20_000 });
+  await page.waitForFunction(
+    () =>
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+        .every((a) => a.playState !== "running" && !a.pending),
+    undefined,
+    { timeout: 10_000 },
+  );
 }
 
 /** Runs axe on the current page; serious/critical violations fail (soft, so every page is reported). */
@@ -164,7 +177,7 @@ test.beforeAll(async ({ browser, baseURL }) => {
   seed = await seedData(browser, baseURL!);
 });
 
-const PROFILE_TABS = ["overview", "family", "timeline", "heritage", "documents", "astrology", "property", "sources", "households", "privacy"];
+const PROFILE_TABS = ["overview", "family", "events", "timeline", "photos", "heritage", "documents", "astrology", "property", "sources", "households", "visualizations", "privacy"];
 
 function treePages(s: Seed): [string, string][] {
   const t = `/t/${s.treeId}`;
@@ -181,6 +194,17 @@ function treePages(s: Seed): [string, string][] {
     ["tree viewer · list", `${t}/tree/${s.ramesh}?view=list`],
     ["tree viewer · descendants list", `${t}/tree/${s.suresh}?view=list&dir=descendants`],
     ["relationship calculator", `${t}/relationship?from=${s.aarav}&to=${s.suresh}`],
+    // heritage visualization milestone (ADR-0015/0016/0017)
+    ["charts · fan", `${t}/visualizations?chart=fan&root=${s.aarav}`],
+    ["charts · relationship web", `${t}/visualizations?chart=graph&root=${s.ramesh}`],
+    ["charts · pedigree", `${t}/visualizations?chart=pedigree&root=${s.aarav}`],
+    ["charts · family tree", `${t}/visualizations?chart=family&root=${s.suresh}`],
+    ["charts · lifespans", `${t}/visualizations?chart=lifespan`],
+    ["charts · life story", `${t}/visualizations?chart=events&root=${s.ramesh}`],
+    ["charts · map", `${t}/visualizations?chart=map`],
+    ["life events", `${t}/events`],
+    ["family timeline", `${t}/timeline`],
+    ["reminders", `${t}/reminders`],
     ["search", `${t}/search?q=Ramesh`],
     ["sources", `${t}/sources`],
     ["places", `${t}/places`],

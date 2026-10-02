@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from typing import Any
 
-from sqlalchemy import BigInteger, DateTime, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime, Index, Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -145,3 +145,31 @@ class ExtractionProposal(TreeScopedMixin, Base):
     review_note: Mapped[str | None] = mapped_column(Text)
     applied_target_type: Mapped[str | None] = mapped_column(String(40))
     applied_target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+
+
+class EventMedia(TreeScopedMixin, Base):
+    """A photo in an event's album (ADR-0015). The photo itself is an ordinary vault document;
+    people shown in it are ``document_link`` rows to ``person``."""
+
+    __tablename__ = "event_media"
+    __table_args__ = (
+        tree_unique("event_media"),
+        tree_fk(["event_id"], "event"),
+        tree_fk(["document_id"], "document"),
+        UniqueConstraint("event_id", "document_id", name="uq_event_media"),
+        Index("ix_event_media_event", "tree_id", "event_id", "sort_order"),
+        # at most one cover photo per event
+        Index(
+            "uq_event_media_cover",
+            "event_id",
+            unique=True,
+            postgresql_where=text("is_cover"),
+        ),
+    )
+
+    event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    caption: Mapped[str | None] = mapped_column(String(500))
+    taken_date: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    is_cover: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

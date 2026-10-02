@@ -27,6 +27,8 @@ from app.models import (
     ExportJob,
     ExtractionProposal,
     ImportJob,
+    RenderArtifact,
+    RenderJob,
     Tree,
 )
 
@@ -128,6 +130,10 @@ def _referenced_keys(db: Session, tree_id: uuid.UUID) -> set[str]:
         k for k in db.scalars(select(ImportJob.original_storage_key).where(ImportJob.tree_id == tree_id)) if k
     )
     refs.update(k for k in db.scalars(select(ExportJob.storage_key).where(ExportJob.tree_id == tree_id)) if k)
+    refs.update(db.scalars(select(RenderArtifact.storage_key).where(RenderArtifact.tree_id == tree_id)))
+    refs.update(
+        k for k in db.scalars(select(RenderJob.payload_storage_key).where(RenderJob.tree_id == tree_id)) if k
+    )
     return refs
 
 

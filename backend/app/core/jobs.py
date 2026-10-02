@@ -49,13 +49,16 @@ def enqueue(
     fn: Callable[..., Any],
     *args: Any,
     retry_intervals: Sequence[int] = (),
+    queue: str | None = None,
+    timeout: int = JOB_TIMEOUT_S,
     **kwargs: Any,
 ) -> str | None:
     """Run ``fn`` (a module-level function taking only JSON-safe args) in the background.
 
     Job functions open their own DB session; never pass ORM objects or sessions.
     ``retry_intervals`` (seconds) retries a failed RQ job once per entry; the worker must run with
-    its scheduler (``python -m app.cli.worker`` does).
+    its scheduler (``python -m app.cli.worker`` does). ``queue`` selects another RQ queue (e.g. the
+    render queue, served by its own worker so long renders never delay email or OCR).
     """
     s = get_settings()
     name = job_name(fn)
@@ -65,11 +68,11 @@ def enqueue(
     import redis
     from rq import Queue, Retry
 
-    q = Queue(s.job_queue_name, connection=redis.Redis.from_url(s.redis_url))
+    q = Queue(queue or s.job_queue_name, connection=redis.Redis.from_url(s.redis_url))
     job = q.enqueue_call(
         run_job,
         args=(name, list(args), kwargs),
-        timeout=JOB_TIMEOUT_S,
+        timeout=timeout,
         failure_ttl=JOB_FAILURE_TTL_S,
         description=name,
         retry=Retry(max=len(retry_intervals), interval=list(retry_intervals)) if retry_intervals else None,

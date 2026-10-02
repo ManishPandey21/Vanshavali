@@ -164,6 +164,20 @@ export function useDocumentPreview(treeId: string, id: string, enabled: boolean)
   });
 }
 
+/** Thumbnail (or preview) as an object URL, for photo grids and albums. */
+export function useDocumentImage(treeId: string, id: string, variant: "thumbnail" | "preview", enabled = true) {
+  return useQuery({
+    queryKey: ["tree", treeId, "document", id, `${variant}-blob`],
+    queryFn: async () => {
+      const { blob } = await fetchDocumentFile(treeId, id, variant);
+      return URL.createObjectURL(blob);
+    },
+    enabled,
+    staleTime: 240_000,
+    retry: false,
+  });
+}
+
 export function useReprocess(treeId: string, id: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({ mutationFn: () => api.post<ReprocessOut>(`/trees/${treeId}/documents/${id}/reprocess`), onSuccess: invalidate });

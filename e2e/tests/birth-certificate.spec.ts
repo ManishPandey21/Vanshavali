@@ -56,8 +56,8 @@ test("birth certificate: upload, OCR, review, accept and reject", async ({ page,
   await expect(place).toContainText("Rejected");
   await expect(place.getByRole("button", { name: /Accept/ })).toHaveCount(0);
 
-  // The accepted date is a new birth claim in the timeline; the rejected place was not applied.
-  await page.goto(`/t/${treeId}/people/${person.id}?tab=timeline`);
+  // The accepted date is a new birth claim among the events; the rejected place was not applied.
+  await page.goto(`/t/${treeId}/people/${person.id}?tab=events`);
   const birth = page.getByRole("article", { name: "Birth" });
   await expect(birth).toBeVisible();
   await expect(birth).toContainText("12 March 1985");

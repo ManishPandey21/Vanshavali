@@ -168,6 +168,10 @@ class PlaceType(StrEnum):
     COUNTRY = "country"
     TEMPLE = "temple"
     PROPERTY = "property"
+    ANCESTRAL_HOUSE = "ancestral_house"
+    SHRINE = "shrine"
+    LAND_PARCEL = "land_parcel"
+    NEIGHBOURHOOD = "neighbourhood"
     OTHER = "other"
 
 
@@ -520,3 +524,135 @@ class JobStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
+
+# ---------------------------------------------------------------- heritage visualization milestone
+class LocationPrecision(StrEnum):
+    """What a pair of coordinates means (ADR-0015). Coordinates are never required."""
+
+    EXACT = "exact"  # surveyed / GPS point
+    APPROXIMATE = "approximate"  # within a few km
+    LOCALITY = "locality"  # village / town centre
+    DISTRICT = "district"
+    STATE = "state"
+    COUNTRY = "country"
+    UNKNOWN = "unknown"
+
+
+class LifeEventCategory(StrEnum):
+    """Fine-grained life-event vocabulary layered on the structural ``EventType`` (ADR-0015)."""
+
+    BIRTH = "birth"
+    NAMING_CEREMONY = "naming_ceremony"  # namkaran
+    ANNAPRASHAN = "annaprashan"
+    MUNDAN = "mundan"
+    UPANAYANA = "upanayana"  # thread ceremony / janeu
+    INITIATION = "initiation"  # diksha, baptism, amrit sanchar, ...
+    EDUCATION = "education"
+    GRADUATION = "graduation"
+    ENGAGEMENT = "engagement"
+    MARRIAGE = "marriage"
+    MIGRATION = "migration"
+    EMPLOYMENT = "employment"
+    RETIREMENT = "retirement"
+    AWARD = "award"
+    PROPERTY_ACQUISITION = "property_acquisition"
+    ILLNESS = "illness"
+    RECOVERY = "recovery"
+    PILGRIMAGE = "pilgrimage"
+    DEATH = "death"
+    MEMORIAL = "memorial"  # shraddha, barsi, punyatithi
+    CUSTOM = "custom"
+
+
+# default structural type for each category (the category refines it, never replaces it)
+CATEGORY_EVENT_TYPE: dict[LifeEventCategory, EventType] = {
+    LifeEventCategory.BIRTH: EventType.BIRTH,
+    LifeEventCategory.NAMING_CEREMONY: EventType.RELIGIOUS_CEREMONY,
+    LifeEventCategory.ANNAPRASHAN: EventType.RELIGIOUS_CEREMONY,
+    LifeEventCategory.MUNDAN: EventType.RELIGIOUS_CEREMONY,
+    LifeEventCategory.UPANAYANA: EventType.RELIGIOUS_CEREMONY,
+    LifeEventCategory.INITIATION: EventType.RELIGIOUS_CEREMONY,
+    LifeEventCategory.EDUCATION: EventType.EDUCATION,
+    LifeEventCategory.GRADUATION: EventType.EDUCATION,
+    LifeEventCategory.ENGAGEMENT: EventType.OTHER,
+    LifeEventCategory.MARRIAGE: EventType.MARRIAGE,
+    LifeEventCategory.MIGRATION: EventType.MIGRATION,
+    LifeEventCategory.EMPLOYMENT: EventType.OCCUPATION,
+    LifeEventCategory.RETIREMENT: EventType.OCCUPATION,
+    LifeEventCategory.AWARD: EventType.OTHER,
+    LifeEventCategory.PROPERTY_ACQUISITION: EventType.OTHER,
+    LifeEventCategory.ILLNESS: EventType.OTHER,
+    LifeEventCategory.RECOVERY: EventType.OTHER,
+    LifeEventCategory.PILGRIMAGE: EventType.OTHER,
+    LifeEventCategory.DEATH: EventType.DEATH,
+    LifeEventCategory.MEMORIAL: EventType.MEMORIAL,
+    LifeEventCategory.CUSTOM: EventType.OTHER,
+}
+
+
+class EventSignificance(StrEnum):
+    STANDARD = "standard"
+    IMPORTANT = "important"
+    MILESTONE = "milestone"
+
+
+class NotificationChannel(StrEnum):
+    EMAIL = "email"
+    SMS = "sms"
+    WHATSAPP = "whatsapp"
+
+
+class ReminderKind(StrEnum):
+    BIRTHDAY = "birthday"
+    ANNIVERSARY = "anniversary"
+    MEMORIAL = "memorial"  # death anniversary (punyatithi) or memorial day
+    ONE_TIME = "one_time"
+    CUSTOM = "custom"
+
+
+class ReminderRecurrence(StrEnum):
+    NONE = "none"
+    ANNUAL = "annual"
+
+
+class DeliveryStatus(StrEnum):
+    PENDING = "pending"
+    SENT = "sent"
+    FAILED = "failed"
+    RETRYING = "retrying"
+    CANCELLED = "cancelled"
+
+
+class ChartType(StrEnum):
+    FAN = "fan"
+    GRAPH = "graph"
+    PEDIGREE = "pedigree"
+    FAMILY_TREE = "family_tree"
+    LIFESPAN = "lifespan"
+    EVENT_TIMELINE = "event_timeline"
+    MAP = "map"
+
+
+# charts that have an animated (Remotion) composition
+ANIMATED_CHARTS = frozenset(
+    {ChartType.FAN, ChartType.PEDIGREE, ChartType.FAMILY_TREE, ChartType.LIFESPAN, ChartType.EVENT_TIMELINE}
+)
+
+
+class RenderStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class RenderOutput(StrEnum):
+    POSTER = "poster"  # quick still preview (PNG)
+    MP4 = "mp4"  # poster + full video
+
+
+class RenderArtifactKind(StrEnum):
+    POSTER_PNG = "poster_png"
+    VIDEO_MP4 = "video_mp4"

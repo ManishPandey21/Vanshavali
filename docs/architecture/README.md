@@ -8,7 +8,10 @@ target, and the decisions still open. ADRs are listed in `adr/README.md`.
 | [implementation-plan.md](implementation-plan.md) | Architecture, stack, phases, assumptions, risks |
 | [domain-model.md](domain-model.md) | Entity graph (Mermaid) and domain rules |
 | [data-model.md](data-model.md) | Generated table-by-table schema (from the ORM, which the migrations match) |
-| [adr/](adr/) | Architecture Decision Records 0001–0010 |
+| [adr/](adr/) | Architecture Decision Records 0001–0017 |
+| [heritage-visualization-milestone.md](heritage-visualization-milestone.md) | Geo-tagging, life events, reminders, visualizations and Remotion exports: plan and scope |
+| [event-reminder-model.md](event-reminder-model.md) | Reminder entities, scheduling rules, delivery states |
+| [remotion-rendering.md](remotion-rendering.md) | Animated export architecture (render jobs, renderer package, access) |
 | [open-questions.md](open-questions.md) | Requirements review. Answered by the PRS and ADRs; remaining ones marked |
 | [../security/threat-model.md](../security/threat-model.md) | STRIDE threats → controls → tests |
 | [../security/privacy-model.md](../security/privacy-model.md) | Privacy levels, field groups, enforcement points |

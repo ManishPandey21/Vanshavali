@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { History, MapPin, Plus, Trash2 } from "lucide-react";
 import type { GenealogicalDate, PlaceName, PlaceOut, PlaceType } from "../../api/types";
-import { useCreatePlace, usePlaces, useUpdatePlace } from "../../api/hooks/people";
+import { useCreatePlace, useGeotaggedPlaces, usePlaces, useUpdatePlace } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
 import { useDebounced } from "../../lib/useDebounced";
@@ -16,8 +16,11 @@ import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState, ErrorAlert, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Field, Select, TextInput } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
+import { GeoFields, geoBody, geoDraftFrom, geoErrors } from "../../components/geo/GeoFields";
+import { MapPreview } from "../../components/geo/MapPreview";
+import { formatCoords } from "../../lib/geo";
 
-export const PLACE_TYPES: PlaceType[] = ["village", "town", "city", "tehsil", "district", "state", "country", "temple", "property", "other"];
+export const PLACE_TYPES: PlaceType[] = ["village", "town", "city", "tehsil", "district", "state", "country", "temple", "shrine", "ancestral_house", "property", "land_parcel", "neighbourhood", "other"];
 
 export function PlacesPage() {
   const { t } = useTranslation();
@@ -49,6 +52,7 @@ export function PlacesPage() {
       </div>
       {places.isLoading && <Spinner />}
       <ErrorAlert error={places.error} />
+      <PlacesMap />
       {places.data?.items.length === 0 && <EmptyState icon={<MapPin className="size-10" aria-hidden />} title={t("places.empty")}>{t("places.emptyHint")}</EmptyState>}
       <ul className="grid gap-3 md:grid-cols-2">
         {places.data?.items.map((p) => (
@@ -88,6 +92,16 @@ export function PlacesPage() {
                   ))}
                 </ul>
               </div>
+            )}
+            {[p.district, p.state, p.country].some(Boolean) && <p className="mt-1 text-sm">{[p.locality, p.district, p.state, p.country].filter(Boolean).join(", ")}</p>}
+            {p.latitude != null && p.longitude != null ? (
+              <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-muted">
+                <MapPin className="size-3.5" aria-hidden />
+                {formatCoords({ latitude: p.latitude, longitude: p.longitude })} · {t(`enum.locationPrecision.${p.location_precision ?? "unknown"}`)}
+                {p.coordinates_coarsened && <Badge tone="stone">{t("geo.coarsened")}</Badge>}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-ink-muted">{t("geo.notGeotagged")}</p>
             )}
             {p.lgd_code && <p className="mt-1 text-xs text-ink-muted">LGD: {p.lgd_code}</p>}
             {canWrite && (
@@ -134,9 +148,34 @@ function fromNameDraft(n: NameDraft): PlaceName {
   };
 }
 
-function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () => void }) {
+/** Every geotagged place in the tree on the tile-free map preview. */
+function PlacesMap() {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
+  const [open, setOpen] = useState(false);
+  const geo = useGeotaggedPlaces(treeId, open);
+  return (
+    <details className="card mb-4 p-3" open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
+      <summary className="cursor-pointer font-semibold">{t("geo.placesMap")}</summary>
+      {open && geo.isLoading && <Spinner />}
+      {geo.data && (
+        <div className="mt-3">
+          <MapPreview
+            title={t("places.title")}
+            pins={geo.data.items
+              .filter((p) => p.latitude != null && p.longitude != null)
+              .map((p) => ({ id: p.id, label: p.map_label || p.canonical_name, kind: "place", latitude: p.latitude!, longitude: p.longitude!, precision: p.location_precision, coarsened: p.coordinates_coarsened }))}
+          />
+        </div>
+      )}
+    </details>
+  );
+}
+
+function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { treeId, can } = useTreeCtx();
+  const [geo, setGeo] = useState(() => geoDraftFrom(place));
   const create = useCreatePlace(treeId);
   const update = useUpdatePlace(treeId);
   const parents = usePlaces(treeId, "");
@@ -151,8 +190,10 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!name.trim()) return;
+    const ge = geoErrors(geo);
+    if (!name.trim() || ge.latitude || ge.longitude || ge.pair) return;
     const body = {
+      ...geoBody(geo, place, can(Perm.PRIVACY_MANAGE)),
       canonical_name: name.trim(),
       place_type: type,
       parent_place_id: parent || null,
@@ -272,6 +313,7 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
             {(p) => <TextInput {...p} value={lgd} onChange={(e) => setLgd(e.target.value)} />}
           </Field>
         </div>
+        <GeoFields value={geo} onChange={setGeo} showErrors={submitted} canPrivacy={can(Perm.PRIVACY_MANAGE)} coarsened={!!place?.coordinates_coarsened} />
         {renderNames(local, setLocal, false, t("places.localNames"))}
         {renderNames(historical, setHistorical, true, t("places.historicalNames"))}
         <ErrorAlert error={mutation.error} />

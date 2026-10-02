@@ -34,6 +34,11 @@ const DocumentsPage = lazy(() => import("./pages/tree/documents/DocumentsPage").
 const DocumentDetailPage = lazy(() => import("./pages/tree/documents/DocumentDetailPage").then((m) => ({ default: m.DocumentDetailPage })));
 const PropertyListPage = lazy(() => import("./pages/tree/property/PropertyListPage").then((m) => ({ default: m.PropertyListPage })));
 const PropertyDetailPage = lazy(() => import("./pages/tree/property/PropertyDetailPage").then((m) => ({ default: m.PropertyDetailPage })));
+// Visualizations, events, reminders and timeline (heritage visualization milestone) load on demand too.
+const VisualizationsPage = lazy(() => import("./pages/tree/VisualizationsPage").then((m) => ({ default: m.VisualizationsPage })));
+const EventsPage = lazy(() => import("./pages/tree/EventsPage").then((m) => ({ default: m.EventsPage })));
+const RemindersPage = lazy(() => import("./pages/tree/RemindersPage").then((m) => ({ default: m.RemindersPage })));
+const TimelinePage = lazy(() => import("./pages/tree/TimelinePage").then((m) => ({ default: m.TimelinePage })));
 const ImportExportPage = lazy(() => import("./pages/tree/ImportExportPage").then((m) => ({ default: m.ImportExportPage })));
 
 function Lazy({ children }: { children: ReactNode }) {
@@ -114,6 +119,10 @@ export default function App() {
             <Route path="tree" element={<TreeViewerPage />} />
             <Route path="tree/:personId" element={<TreeViewerPage />} />
             <Route path="relationship" element={<RelationshipPage />} />
+            <Route path="visualizations" element={<Lazy><VisualizationsPage /></Lazy>} />
+            <Route path="events" element={<Lazy><EventsPage /></Lazy>} />
+            <Route path="reminders" element={<Lazy><RemindersPage /></Lazy>} />
+            <Route path="timeline" element={<Lazy><TimelinePage /></Lazy>} />
             <Route path="joint-family" element={<JointFamilyPage />} />
             <Route path="branches" element={<BranchesPage />} />
             <Route path="branches/:branchId" element={<BranchDetailPage />} />

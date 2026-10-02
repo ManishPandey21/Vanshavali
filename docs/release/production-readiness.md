@@ -1,9 +1,50 @@
 # Production readiness report
 
-Two validations are recorded here, newest first:
-1. **Pilot deployment and operational validation:** 2 Oct 2026, this section.
-2. **Post-Phase-8 production-readiness validation:** 1 Oct 2026, kept below unchanged for the
+Three validations are recorded here, newest first:
+1. **Heritage visualization milestone:** 2 Oct 2026 (later the same day), this section.
+2. **Pilot deployment and operational validation:** 2 Oct 2026.
+3. **Post-Phase-8 production-readiness validation:** 1 Oct 2026, kept below unchanged for the
    record.
+
+# Heritage visualization milestone (2 Oct 2026)
+
+**Code:** branch `claude/optimistic-brown-de9b6u` from `main` at `b2c3e2e`. Plan:
+`docs/architecture/heritage-visualization-milestone.md`; ADR-0015, ADR-0016, ADR-0017.
+
+## Verdict for this milestone: MVP COMPLETE, READY FOR REVIEW
+The features are additive and do not change the pilot verdict below. They can ship to the pilot
+with SMS/WhatsApp `disabled` and renders `disabled` (switch to `remotion` only after the licence
+check and a render-worker deployment; production refuses `stub`). Email reminders need the new
+`reminders` scheduler service (go-live checklist, "Heritage visualization milestone").
+
+## Regression results (this branch)
+- Backend: `uv run pytest` **385 passed, 3 skipped** as the RLS-restricted role (includes the
+  migration roundtrip and `test_real_remotion_render_end_to_end` with `VSH_TEST_REMOTION=1`);
+  ruff, ruff format, mypy clean. New: `test_life_events.py` (10), `test_reminders.py` (16),
+  `test_visualization.py` (8), `test_render_jobs.py` (9).
+- Migration `9a1b2c3d4e5f`: upgrade → `alembic check` clean → downgrade → upgrade on a clean database.
+- Frontend: lint, typecheck, **Vitest 137 passed**, build, `npm audit` 0 vulnerabilities; OpenAPI
+  types regenerated.
+- Renderer: `npm run typecheck`, `npm test` (real renders: 5 posters, 2 MP4s with ffprobe duration
+  checks), `npm audit` 0 vulnerabilities.
+- Playwright: new `heritage-visualization.spec.ts` passes with the stub renderer **and** with
+  `VSH_E2E_RENDER_BACKEND=remotion` (real poster rendered through the UI: `remotion@4.0.532`,
+  1280×720). Full suite: see `IMPLEMENTATION_STATUS.md`.
+
+## Defects found and fixed in this pass
+1. An event's own privacy level was enforced only when serialising it, not when looking it up:
+   a new route keyed by event id (album, reminders) would have been reachable for a private event
+   whose person was visible. Fixed centrally in `get_event_checked`; regression test
+   `test_photo_privacy_inherits_from_event_and_person`.
+2. The a11y audit could sample colour contrast mid fade-in on the landing page (timing-dependent
+   failure). The audit now waits for finite CSS animations to finish.
+
+## Remaining items (milestone)
+- SMS (Twilio) and WhatsApp (Twilio, Meta Cloud API) adapters not exercised against live
+  services: need credentials, DLT registration and template approval.
+- Render worker image not built in the sandbox (no Docker daemon); Remotion licence to confirm.
+- Retention periods for render artifacts and delivery history; tithi (lunar) anniversaries; live
+  map tiles/geocoding; narration/music assets; manual screen-reader pass of the new charts.
 
 # Pilot deployment and operational validation (2 Oct 2026)
 

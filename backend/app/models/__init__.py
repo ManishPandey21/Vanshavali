@@ -9,6 +9,7 @@ from app.models.documents import (
     DocumentDerivative,
     DocumentLink,
     DocumentMetadataVersion,
+    EventMedia,
     ExtractionProposal,
 )
 from app.models.evidence import Citation, Source
@@ -17,9 +18,16 @@ from app.models.genealogy import Event, EventParticipant, MergeRecord, NameRecor
 from app.models.heritage import Assertion
 from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
+from app.models.notifications import (
+    EventReminder,
+    NotificationContact,
+    NotificationDelivery,
+    NotificationPreference,
+)
 from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClaim, ProfileClaimInvite
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
 from app.models.tree import AccessGrant, Tree, TreeInvitation, TreeMembership
+from app.models.visualization import ChartPreset, RenderArtifact, RenderJob
 
 _rls.attach_to_metadata(Base.metadata.tables)  # type: ignore[arg-type]
 
@@ -32,6 +40,7 @@ __all__ = [
     "AuthTokenPurpose",
     "Base",
     "BranchMembership",
+    "ChartPreset",
     "Citation",
     "ConsentRecord",
     "Document",
@@ -39,7 +48,9 @@ __all__ = [
     "DocumentLink",
     "DocumentMetadataVersion",
     "Event",
+    "EventMedia",
     "EventParticipant",
+    "EventReminder",
     "ExportJob",
     "ExternalIdentity",
     "ExtractionProposal",
@@ -52,6 +63,9 @@ __all__ = [
     "LandParcel",
     "MergeRecord",
     "NameRecord",
+    "NotificationContact",
+    "NotificationDelivery",
+    "NotificationPreference",
     "Person",
     "Place",
     "ProfileClaim",
@@ -61,6 +75,8 @@ __all__ = [
     "PropertyEventParcel",
     "PropertyInterest",
     "Relationship",
+    "RenderArtifact",
+    "RenderJob",
     "Source",
     "Tree",
     "TreeInvitation",

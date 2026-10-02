@@ -43,7 +43,15 @@ GROUPS = {
         "document_derivative",
         "document_link",
         "extraction_proposal",
+        "event_media",
     ],
+    "Reminders & notifications": [
+        "notification_preference",
+        "event_reminder",
+        "notification_delivery",
+        "notification_contact",
+    ],
+    "Visualization & exports": ["chart_preset", "render_job", "render_artifact"],
     "Astrology": ["astrology_profile"],
     "Property": ["property", "land_parcel", "property_interest", "property_event", "property_event_parcel"],
     "Privacy & consent": [

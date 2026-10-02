@@ -1,0 +1,30 @@
+{
+  "name": "vanshavali-renderer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Remotion compositions and render CLI for Vanshavali animated exports (ADR-0017)",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "bundle": "node scripts/bundle.mjs",
+    "render": "node scripts/render.mjs",
+    "test": "node scripts/smoke.mjs",
+    "studio": "remotion studio src/index.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.532",
+    "@remotion/renderer": "4.0.532",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.532"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.532",
+    "@types/node": "^22.20.4",
+    "@types/react": "^18.3.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

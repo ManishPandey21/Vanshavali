@@ -13,7 +13,7 @@ from app.authz.privacy import can_view_person, load_subjects
 from app.core.textnorm import search_key
 from app.models import Person, Place
 from app.models.enums import EventType, Lineage, ProfileStatus
-from app.modules.genealogy import engine, lookup, service
+from app.modules.genealogy import engine, geo, lookup, service
 from app.modules.genealogy.schemas import (
     EventIn,
     EventOut,
@@ -226,9 +226,11 @@ def _event_out(ctx, event_id: uuid.UUID) -> EventOut:  # type: ignore[no-untyped
     )
     subjects = lookup.visible_subjects(ctx, [p.person_id for p in parts])
     from app.models.enums import CitationTarget
-    from app.modules.genealogy.serialize import citation_counts
+    from app.modules.genealogy.serialize import citation_counts, media_summary
 
-    out = Serializer(ctx).event_out(e, parts, subjects, citation_counts(ctx, CitationTarget.EVENT, {e.id}))
+    out = Serializer(ctx).event_out(
+        e, parts, subjects, citation_counts(ctx, CitationTarget.EVENT, {e.id}), media_summary(ctx, {e.id})
+    )
     if out is None:
         raise NotFound("Event not found")
     return out
@@ -253,18 +255,32 @@ def delete_event(event_id: uuid.UUID, ctx: TreeCtx) -> Message:
 
 # ------------------------------------------------------------------ places
 def _place_out(ctx, p: Place) -> PlaceOut:  # type: ignore[no-untyped-def]
-    return PlaceOut.model_validate(p).model_copy(update={"hierarchy": service.place_hierarchy(ctx, p)})
+    coords = geo.place_coordinates(ctx, p)
+    update: dict = {
+        "hierarchy": service.place_hierarchy(ctx, p),
+        "latitude": coords.latitude if coords else None,
+        "longitude": coords.longitude if coords else None,
+        "coordinates_coarsened": bool(coords and coords.coarsened),
+    }
+    if coords is not None:
+        update["location_precision"] = coords.precision
+        if coords.coarsened:
+            update["geo_note"] = None
+    return PlaceOut.model_validate(p).model_copy(update=update)
 
 
 @router.get("/places", response_model=Page[PlaceOut])
 def list_places(
     ctx: TreeCtx,
     q: str | None = Query(default=None, max_length=200),
+    geotagged: bool | None = Query(default=None, description="only places with (or without) coordinates"),
     cursor: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),
 ) -> Page[PlaceOut]:
     offset = decode_cursor(cursor)
     stmt = select(Place).where(Place.tree_id == ctx.tree_id)
+    if geotagged is not None:
+        stmt = stmt.where(Place.latitude.is_not(None) if geotagged else Place.latitude.is_(None))
     if q:
         stmt = stmt.where(Place.search_text.contains(search_key(q)))
     rows = ctx.db.scalars(stmt.order_by(Place.canonical_name).offset(offset).limit(limit + 1)).all()

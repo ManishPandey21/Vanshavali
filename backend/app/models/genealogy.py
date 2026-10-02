@@ -30,8 +30,12 @@ from app.models.base import (
     tree_unique,
 )
 from app.models.enums import (
+    Confidence,
+    EventSignificance,
     EventType,
+    LifeEventCategory,
     Lineage,
+    LocationPrecision,
     NameType,
     ParticipantRole,
     PlaceType,
@@ -149,6 +153,27 @@ class Place(TreeScopedMixin, Base):
     date_validity: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     lgd_code: Mapped[str | None] = mapped_column(String(40))
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
+    # geo-tagging (ADR-0015): administrative context, precision, provenance and coordinate privacy
+    locality: Mapped[str | None] = mapped_column(String(200))
+    district: Mapped[str | None] = mapped_column(String(120))
+    state: Mapped[str | None] = mapped_column(String(120))
+    country: Mapped[str | None] = mapped_column(String(120))
+    map_label: Mapped[str | None] = mapped_column(String(200))
+    location_precision: Mapped[LocationPrecision] = mapped_column(
+        enum_column(LocationPrecision),
+        default=LocationPrecision.UNKNOWN,
+        server_default=LocationPrecision.UNKNOWN.value,
+    )
+    geo_confidence: Mapped[Confidence] = mapped_column(
+        enum_column(Confidence, "geo_confidence"),
+        default=Confidence.UNKNOWN,
+        server_default=Confidence.UNKNOWN.value,
+    )
+    geo_note: Mapped[str | None] = mapped_column(Text)
+    # viewers below this level get coarsened coordinates; NULL = any member sees exact coordinates
+    coordinate_privacy: Mapped[PrivacyLevel | None] = mapped_column(
+        enum_column(PrivacyLevel, "coordinate_privacy"), nullable=True
+    )
 
 
 class Relationship(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
@@ -206,6 +231,17 @@ class Event(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
     description: Mapped[str | None] = mapped_column(Text)
     is_preferred: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     privacy_level: Mapped[PrivacyLevel | None] = mapped_column(enum_column(PrivacyLevel), nullable=True)
+    # important life events (ADR-0015)
+    title: Mapped[str | None] = mapped_column(String(300))
+    category: Mapped[LifeEventCategory | None] = mapped_column(enum_column(LifeEventCategory), nullable=True)
+    significance: Mapped[EventSignificance] = mapped_column(
+        enum_column(EventSignificance),
+        default=EventSignificance.STANDARD,
+        server_default=EventSignificance.STANDARD.value,
+    )
+    location_precision: Mapped[LocationPrecision | None] = mapped_column(
+        enum_column(LocationPrecision, "event_location_precision"), nullable=True
+    )
 
 
 class EventParticipant(TreeScopedMixin, Base):

@@ -22,6 +22,7 @@ from app.models import (
     Relationship,
 )
 from app.models.enums import CitationTarget, EventType, ParticipantRole
+from app.modules.genealogy.geo import coarsen, may_see_exact
 from app.modules.genealogy.schemas import (
     EventOut,
     NameOut,
@@ -106,7 +107,7 @@ def _redact_event_fields(
         data["date_display"] = date_display(data["date"])
         redacted.append("event_date_full")
     if ctx.public:
-        data.update(latitude=None, longitude=None, description=None, provenance=None)
+        data.update(latitude=None, longitude=None, description=None, provenance=None, location_precision=None)
     return redacted
 
 
@@ -134,6 +135,7 @@ class Serializer:
         participants: list[EventParticipant],
         subjects: dict[uuid.UUID, Subject],
         citation_counts: dict[uuid.UUID, int] | None = None,
+        media: dict[uuid.UUID, tuple[int, uuid.UUID | None]] | None = None,
     ) -> EventOut | None:
         ctx = self.ctx
         principal = next((p for p in participants if p.role == ParticipantRole.PRINCIPAL), None)
@@ -170,7 +172,18 @@ class Serializer:
             "confidence": ev.confidence,
             "provenance": ProvenanceOut.of(ev),
             "citation_count": (citation_counts or {}).get(ev.id, 0),
+            "title": ev.title,
+            "category": ev.category,
+            "significance": ev.significance,
+            "location_precision": ev.location_precision,
+            "privacy_level": None if ctx.public else ev.privacy_level,
+            "media_count": (media or {}).get(ev.id, (0, None))[0],
+            "cover_document_id": (media or {}).get(ev.id, (0, None))[1],
         }
+        place = places.get(ev.place_id) if ev.place_id else None
+        if place is not None and data["latitude"] is not None and not may_see_exact(ctx, place):
+            c = coarsen(data["latitude"], data["longitude"], ev.location_precision)
+            data.update(latitude=c.latitude, longitude=c.longitude, location_precision=c.precision)
         redacted = _redact_event_fields(ctx, subject, ev, data)
         parts = []
         for p in participants:
@@ -225,11 +238,12 @@ class Serializer:
 
             subjects = {**subjects, **visible_subjects(ctx, extra_ids)}
         counts = citation_counts(ctx, CitationTarget.EVENT, event_ids)
+        media = media_summary(ctx, event_ids)
         out: dict[uuid.UUID, list[EventOut]] = defaultdict(list)
         cache: dict[uuid.UUID, EventOut | None] = {}
         for ev, part in rows:
             if ev.id not in cache:
-                cache[ev.id] = self.event_out(ev, all_parts[ev.id], subjects, counts)
+                cache[ev.id] = self.event_out(ev, all_parts[ev.id], subjects, counts, media)
             eo = cache[ev.id]
             if eo is not None:
                 out[part.person_id].append(eo)
@@ -390,3 +404,33 @@ def citation_counts(ctx: TreeContext, target: CitationTarget, ids: set[uuid.UUID
         .group_by(Citation.target_id)
     ).all()
     return {tid: int(n) for tid, n in rows}
+
+
+def media_summary(
+    ctx: TreeContext, event_ids: set[uuid.UUID]
+) -> dict[uuid.UUID, tuple[int, uuid.UUID | None]]:
+    """Per event: how many album photos the viewer may see, and the cover (if the viewer may see it)."""
+    if not event_ids or ctx.public:
+        return {}
+    from app.models import Document, EventMedia
+    from app.modules.documents.access import can_view_document
+
+    rows = ctx.db.execute(
+        select(EventMedia, Document)
+        .join(
+            Document,
+            (Document.id == EventMedia.document_id) & (Document.tree_id == EventMedia.tree_id),
+        )
+        .where(
+            EventMedia.tree_id == ctx.tree_id,
+            EventMedia.event_id.in_(event_ids),
+            Document.deleted_at.is_(None),
+        )
+    ).all()
+    out: dict[uuid.UUID, tuple[int, uuid.UUID | None]] = {}
+    for m, doc in rows:
+        if not can_view_document(ctx, doc):
+            continue
+        n, cover = out.get(m.event_id, (0, None))
+        out[m.event_id] = (n + 1, doc.id if m.is_cover else cover)
+    return out

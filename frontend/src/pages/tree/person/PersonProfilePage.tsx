@@ -21,6 +21,9 @@ import { Tabs } from "../../../components/ui/Tabs";
 import { Badge } from "../../../components/ui/Badge";
 import { OverviewTab } from "./OverviewTab";
 import { TimelineTab } from "./TimelineTab";
+import { EventsTab } from "./EventsTab";
+import { PhotosTab } from "./PhotosTab";
+import { VisualizationsTab } from "./VisualizationsTab";
 import { FamilyTab } from "./FamilyTab";
 import { HouseholdsTab } from "./HouseholdsTab";
 import { PrivacyTab } from "./PrivacyTab";
@@ -29,7 +32,7 @@ import { DocumentsTab, PropertyInterestsSection } from "./DocumentsTab";
 import { ApiError } from "../../../api/client";
 import { ClaimInviteDialog } from "../../../components/consent/ClaimInviteShare";
 
-const TABS = ["overview", "family", "timeline", "heritage", "documents", "astrology", "property", "sources", "households", "privacy"] as const;
+const TABS = ["overview", "family", "events", "timeline", "photos", "heritage", "documents", "astrology", "property", "sources", "households", "visualizations", "privacy"] as const;
 type TabId = (typeof TABS)[number];
 
 export function PersonProfilePage() {
@@ -141,7 +144,10 @@ export function PersonProfilePage() {
       >
         {tab === "overview" && <OverviewTab person={p} />}
         {tab === "family" && <FamilyTab person={p} />}
+        {tab === "events" && <EventsTab person={p} />}
         {tab === "timeline" && <TimelineTab person={p} />}
+        {tab === "photos" && <PhotosTab person={p} />}
+        {tab === "visualizations" && <VisualizationsTab person={p} />}
         {tab === "heritage" && <HeritageProfile subject={{ kind: "person", id: p.id }} canWrite={can(Perm.ASSERTION_WRITE)} />}
         {tab === "documents" && <DocumentsTab person={p} />}
         {tab === "astrology" && <AstrologyTab person={p} />}

@@ -2620,6 +2620,24 @@
       }
      },
      {
+      "name": "geotagged",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "only places with (or without) coordinates",
+       "title": "Geotagged"
+      },
+      "description": "only places with (or without) coordinates"
+     },
+     {
       "name": "cursor",
       "in": "query",
       "required": false,
@@ -3434,6 +3452,2339 @@
         }
        }
       }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/life-events": {
+   "get": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "List Life Events",
+    "description": "Events visible to the caller across the tree, oldest first (undated last).",
+    "operationId": "list_life_events_api_v1_trees__tree_id__life_events_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "category",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/LifeEventCategory"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Category"
+      }
+     },
+     {
+      "name": "significance",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/EventSignificance"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Significance"
+      }
+     },
+     {
+      "name": "important_only",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": false,
+       "title": "Important Only"
+      }
+     },
+     {
+      "name": "from_year",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer",
+         "maximum": 9999,
+         "minimum": 1
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "From Year"
+      }
+     },
+     {
+      "name": "to_year",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer",
+         "maximum": 9999,
+         "minimum": 1
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "To Year"
+      }
+     },
+     {
+      "name": "geotagged",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Geotagged"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_EventOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/events/{event_id}/media": {
+   "get": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "Event Album",
+    "operationId": "event_album_api_v1_trees__tree_id__events__event_id__media_get",
+    "parameters": [
+     {
+      "name": "event_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Event Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/EventMediaOut"
+         },
+         "title": "Response Event Album Api V1 Trees  Tree Id  Events  Event Id  Media Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "Upload Event Photo",
+    "operationId": "upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post",
+    "parameters": [
+     {
+      "name": "event_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Event Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventMediaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/events/{event_id}/media/link": {
+   "post": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "Link Event Photo",
+    "operationId": "link_event_photo_api_v1_trees__tree_id__events__event_id__media_link_post",
+    "parameters": [
+     {
+      "name": "event_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Event Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EventMediaLinkIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventMediaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/events/{event_id}/media/{media_id}": {
+   "patch": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "Update Event Photo",
+    "operationId": "update_event_photo_api_v1_trees__tree_id__events__event_id__media__media_id__patch",
+    "parameters": [
+     {
+      "name": "event_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Event Id"
+      }
+     },
+     {
+      "name": "media_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Media Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EventMediaUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EventMediaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "Remove Event Photo",
+    "operationId": "remove_event_photo_api_v1_trees__tree_id__events__event_id__media__media_id__delete",
+    "parameters": [
+     {
+      "name": "event_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Event Id"
+      }
+     },
+     {
+      "name": "media_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Media Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/photos": {
+   "get": {
+    "tags": [
+     "life-events"
+    ],
+    "summary": "Person Event Photos",
+    "description": "Photos from the albums of this person's events.",
+    "operationId": "person_event_photos_api_v1_trees__tree_id__people__person_id__photos_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/EventMediaOut"
+         },
+         "title": "Response Person Event Photos Api V1 Trees  Tree Id  People  Person Id  Photos Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/notification-preferences": {
+   "get": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Get Preferences",
+    "operationId": "get_preferences_api_v1_trees__tree_id__notification_preferences_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PreferenceOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Set Preferences",
+    "operationId": "set_preferences_api_v1_trees__tree_id__notification_preferences_put",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PreferenceIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PreferenceOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/reminders": {
+   "get": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "List Reminders",
+    "description": "Your own reminders in this tree.",
+    "operationId": "list_reminders_api_v1_trees__tree_id__reminders_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "event_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Event Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ReminderOut"
+         },
+         "title": "Response List Reminders Api V1 Trees  Tree Id  Reminders Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Create Reminder",
+    "operationId": "create_reminder_api_v1_trees__tree_id__reminders_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReminderIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReminderOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/reminders/upcoming": {
+   "get": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Upcoming",
+    "description": "Upcoming birthdays, anniversaries and remembrance days you may see (``tree``), or only the\nevents you have reminders for (``mine``).",
+    "operationId": "upcoming_api_v1_trees__tree_id__reminders_upcoming_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "days",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 366,
+       "minimum": 1,
+       "default": 30,
+       "title": "Days"
+      }
+     },
+     {
+      "name": "scope",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^(tree|mine)$",
+       "default": "tree",
+       "title": "Scope"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/UpcomingOut"
+         },
+         "title": "Response Upcoming Api V1 Trees  Tree Id  Reminders Upcoming Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/reminders/{reminder_id}": {
+   "patch": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Update Reminder",
+    "operationId": "update_reminder_api_v1_trees__tree_id__reminders__reminder_id__patch",
+    "parameters": [
+     {
+      "name": "reminder_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Reminder Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReminderUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReminderOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Delete Reminder",
+    "operationId": "delete_reminder_api_v1_trees__tree_id__reminders__reminder_id__delete",
+    "parameters": [
+     {
+      "name": "reminder_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Reminder Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/reminders/{reminder_id}/test": {
+   "post": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Test Reminder",
+    "description": "Send this reminder to yourself now on its channels (marked as a test; rate limited).",
+    "operationId": "test_reminder_api_v1_trees__tree_id__reminders__reminder_id__test_post",
+    "parameters": [
+     {
+      "name": "reminder_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Reminder Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/DeliveryOut"
+         },
+         "title": "Response Test Reminder Api V1 Trees  Tree Id  Reminders  Reminder Id  Test Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/notifications": {
+   "get": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Notification History",
+    "description": "Your reminder deliveries in this tree, newest first (status, attempts, errors; no message text).",
+    "operationId": "notification_history_api_v1_trees__tree_id__notifications_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_DeliveryOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/notification-channels": {
+   "get": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Notification Channels",
+    "description": "Which reminder channels this server can deliver.",
+    "operationId": "notification_channels_api_v1_notification_channels_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChannelsOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/me/notification-contacts": {
+   "get": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "List Contacts",
+    "operationId": "list_contacts_api_v1_me_notification_contacts_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ContactOut"
+         },
+         "type": "array",
+         "title": "Response List Contacts Api V1 Me Notification Contacts Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Add Contact",
+    "description": "Add (or replace) your phone number for SMS or WhatsApp; a 6-digit code is sent to it.",
+    "operationId": "add_contact_api_v1_me_notification_contacts_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ContactIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ContactOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/me/notification-contacts/{contact_id}/verify": {
+   "post": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Verify Contact",
+    "operationId": "verify_contact_api_v1_me_notification_contacts__contact_id__verify_post",
+    "parameters": [
+     {
+      "name": "contact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Contact Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/VerifyIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ContactOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/me/notification-contacts/{contact_id}": {
+   "delete": {
+    "tags": [
+     "reminders"
+    ],
+    "summary": "Delete Contact",
+    "operationId": "delete_contact_api_v1_me_notification_contacts__contact_id__delete",
+    "parameters": [
+     {
+      "name": "contact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Contact Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/viz/ancestry": {
+   "get": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Ancestry",
+    "description": "Ahnentafel-numbered ancestors for fan and pedigree charts, with birthplace, village, branch,\ncompleteness and living/deceased attributes for colouring, and research gaps.",
+    "operationId": "ancestry_api_v1_trees__tree_id__viz_ancestry_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "root",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Root"
+      }
+     },
+     {
+      "name": "generations",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 10,
+       "minimum": 1,
+       "default": 5,
+       "title": "Generations"
+      }
+     },
+     {
+      "name": "lineage",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/Lineage"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Restrict parent links to these lineages",
+       "title": "Lineage"
+      },
+      "description": "Restrict parent links to these lineages"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AncestryOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/viz/neighbourhood": {
+   "get": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Neighbourhood",
+    "description": "Relatives within ``radius`` steps for the dynamic graph; expand nodes by calling again with\n``root`` set to an ``expandable`` node (progressive loading).",
+    "operationId": "neighbourhood_api_v1_trees__tree_id__viz_neighbourhood_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "root",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Root"
+      }
+     },
+     {
+      "name": "radius",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 3,
+       "minimum": 1,
+       "default": 1,
+       "title": "Radius"
+      }
+     },
+     {
+      "name": "max_nodes",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 300,
+       "minimum": 10,
+       "default": 120,
+       "title": "Max Nodes"
+      }
+     },
+     {
+      "name": "lineage",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/Lineage"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Restrict parent links to these lineages",
+       "title": "Lineage"
+      },
+      "description": "Restrict parent links to these lineages"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NeighbourhoodOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/viz/lifespans": {
+   "get": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Lifespans",
+    "operationId": "lifespans_api_v1_trees__tree_id__viz_lifespans_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "root",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Root"
+      }
+     },
+     {
+      "name": "generations",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 25,
+       "minimum": 1,
+       "default": 4,
+       "title": "Generations"
+      }
+     },
+     {
+      "name": "branch_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Branch Id"
+      }
+     },
+     {
+      "name": "include_events",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": false,
+       "title": "Include Events"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 500,
+       "minimum": 1,
+       "default": 200,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LifespansOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/viz/people/{person_id}/story": {
+   "get": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Story",
+    "description": "A person's life events in order, with places, relatives and album photos (event timeline).",
+    "operationId": "story_api_v1_trees__tree_id__viz_people__person_id__story_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StoryOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/viz/map": {
+   "get": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Geo Map",
+    "operationId": "geo_map_api_v1_trees__tree_id__viz_map_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "branch_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Branch Id"
+      }
+     },
+     {
+      "name": "layer",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "events, migrations, heritage, properties, places",
+       "title": "Layer"
+      },
+      "description": "events, migrations, heritage, properties, places"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MapOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/chart-presets": {
+   "get": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "List Presets",
+    "description": "Your presets plus presets other members shared with the tree.",
+    "operationId": "list_presets_api_v1_trees__tree_id__chart_presets_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "chart_type",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/ChartType"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Chart Type"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/PresetOut"
+         },
+         "title": "Response List Presets Api V1 Trees  Tree Id  Chart Presets Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Create Preset",
+    "operationId": "create_preset_api_v1_trees__tree_id__chart_presets_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PresetIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PresetOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/chart-presets/{preset_id}": {
+   "patch": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Update Preset",
+    "operationId": "update_preset_api_v1_trees__tree_id__chart_presets__preset_id__patch",
+    "parameters": [
+     {
+      "name": "preset_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Preset Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PresetUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PresetOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "visualization"
+    ],
+    "summary": "Delete Preset",
+    "operationId": "delete_preset_api_v1_trees__tree_id__chart_presets__preset_id__delete",
+    "parameters": [
+     {
+      "name": "preset_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Preset Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/render-jobs": {
+   "post": {
+    "tags": [
+     "render"
+    ],
+    "summary": "Create Render Job",
+    "description": "Queue an animated export (poster preview, or poster + MP4). Rendering runs on the render\nworker; poll the job for status and progress.",
+    "operationId": "create_render_job_api_v1_trees__tree_id__render_jobs_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RenderJobIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RenderJobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "render"
+    ],
+    "summary": "List Render Jobs",
+    "description": "Your exports (tree admins see everyone's).",
+    "operationId": "list_render_jobs_api_v1_trees__tree_id__render_jobs_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/RenderJobOut"
+         },
+         "title": "Response List Render Jobs Api V1 Trees  Tree Id  Render Jobs Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/render-jobs/{job_id}": {
+   "get": {
+    "tags": [
+     "render"
+    ],
+    "summary": "Get Render Job",
+    "operationId": "get_render_job_api_v1_trees__tree_id__render_jobs__job_id__get",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Job Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RenderJobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "render"
+    ],
+    "summary": "Delete Render Job",
+    "operationId": "delete_render_job_api_v1_trees__tree_id__render_jobs__job_id__delete",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Job Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/render-jobs/{job_id}/cancel": {
+   "post": {
+    "tags": [
+     "render"
+    ],
+    "summary": "Cancel Render Job",
+    "operationId": "cancel_render_job_api_v1_trees__tree_id__render_jobs__job_id__cancel_post",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Job Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RenderJobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/render-jobs/{job_id}/artifacts/{artifact_id}/download-url": {
+   "post": {
+    "tags": [
+     "render"
+    ],
+    "summary": "Render Download Url",
+    "operationId": "render_download_url_api_v1_trees__tree_id__render_jobs__job_id__artifacts__artifact_id__download_url_post",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Job Id"
+      }
+     },
+     {
+      "name": "artifact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Artifact Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RenderDownloadOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/render-files/{token}": {
+   "get": {
+    "tags": [
+     "render"
+    ],
+    "summary": "Serve Render File",
+    "description": "Serve a rendered poster or video for a signed, short-lived token bound to the user.",
+    "operationId": "serve_render_file_api_v1_render_files__token__get",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
      },
      "422": {
       "description": "Validation Error",
@@ -10101,6 +12452,84 @@
     ],
     "title": "AllocationIn"
    },
+   "AncestryNode": {
+    "properties": {
+     "slot": {
+      "type": "integer",
+      "title": "Slot"
+     },
+     "generation": {
+      "type": "integer",
+      "title": "Generation"
+     },
+     "side": {
+      "type": "string",
+      "title": "Side"
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     },
+     "person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/VizPerson"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "slot",
+     "generation",
+     "side"
+    ],
+    "title": "AncestryNode"
+   },
+   "AncestryOut": {
+    "properties": {
+     "root_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Root Id"
+     },
+     "generations": {
+      "type": "integer",
+      "title": "Generations"
+     },
+     "nodes": {
+      "items": {
+       "$ref": "#/components/schemas/AncestryNode"
+      },
+      "type": "array",
+      "title": "Nodes"
+     },
+     "missing_slots": {
+      "items": {
+       "type": "integer"
+      },
+      "type": "array",
+      "title": "Missing Slots",
+      "default": []
+     },
+     "summary": {
+      "type": "string",
+      "title": "Summary",
+      "default": ""
+     }
+    },
+    "type": "object",
+    "required": [
+     "root_id",
+     "generations",
+     "nodes"
+    ],
+    "title": "AncestryOut"
+   },
    "AreaUnit": {
     "type": "string",
     "enum": [
@@ -12002,6 +14431,88 @@
     ],
     "title": "Body_upload_document_api_v1_trees__tree_id__documents_post"
    },
+   "Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post": {
+    "properties": {
+     "file": {
+      "type": "string",
+      "contentMediaType": "application/octet-stream",
+      "title": "File",
+      "description": "A photo (JPEG, PNG, WebP, HEIC, \u2026)"
+     },
+     "caption": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Caption"
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 400
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "taken_date": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Taken Date",
+      "description": "GenealogicalDate as JSON"
+     },
+     "is_cover": {
+      "type": "boolean",
+      "title": "Is Cover",
+      "default": false
+     },
+     "person_ids": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Ids",
+      "description": "people shown in the photo"
+     },
+     "privacy_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "file"
+    ],
+    "title": "Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post"
+   },
    "Body_upload_gedcom_api_v1_trees__tree_id__imports_post": {
     "properties": {
      "file": {
@@ -12339,6 +14850,42 @@
     },
     "type": "object",
     "title": "BranchUpdate"
+   },
+   "ChannelsOut": {
+    "properties": {
+     "email": {
+      "type": "boolean",
+      "title": "Email"
+     },
+     "sms": {
+      "type": "boolean",
+      "title": "Sms"
+     },
+     "whatsapp": {
+      "type": "boolean",
+      "title": "Whatsapp"
+     }
+    },
+    "type": "object",
+    "required": [
+     "email",
+     "sms",
+     "whatsapp"
+    ],
+    "title": "ChannelsOut"
+   },
+   "ChartType": {
+    "type": "string",
+    "enum": [
+     "fan",
+     "graph",
+     "pedigree",
+     "family_tree",
+     "lifespan",
+     "event_timeline",
+     "map"
+    ],
+    "title": "ChartType"
    },
    "CitationIn": {
     "properties": {
@@ -13111,6 +15658,27 @@
     "type": "object",
     "title": "CommitIn"
    },
+   "Completeness": {
+    "properties": {
+     "score": {
+      "type": "number",
+      "title": "Score"
+     },
+     "missing": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Missing",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "score"
+    ],
+    "title": "Completeness"
+   },
    "Confidence": {
     "type": "string",
     "enum": [
@@ -13344,6 +15912,60 @@
     ],
     "title": "ConsentOut"
    },
+   "ContactIn": {
+    "properties": {
+     "channel": {
+      "$ref": "#/components/schemas/NotificationChannel"
+     },
+     "address": {
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 8,
+      "title": "Address",
+      "description": "E.164 phone number, e.g. +919876543210"
+     }
+    },
+    "type": "object",
+    "required": [
+     "channel",
+     "address"
+    ],
+    "title": "ContactIn"
+   },
+   "ContactOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "channel": {
+      "$ref": "#/components/schemas/NotificationChannel"
+     },
+     "address_hint": {
+      "type": "string",
+      "title": "Address Hint"
+     },
+     "verified": {
+      "type": "boolean",
+      "title": "Verified"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "channel",
+     "address_hint",
+     "verified",
+     "created_at"
+    ],
+    "title": "ContactOut"
+   },
    "DateCalendar": {
     "type": "string",
     "enum": [
@@ -13370,6 +15992,165 @@
      "unknown"
     ],
     "title": "DatePrecision"
+   },
+   "DeliveryOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "reminder_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reminder Id"
+     },
+     "event_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Event Id"
+     },
+     "channel": {
+      "$ref": "#/components/schemas/NotificationChannel"
+     },
+     "occurrence_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Occurrence Date"
+     },
+     "lead_days": {
+      "type": "integer",
+      "title": "Lead Days"
+     },
+     "scheduled_for": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Scheduled For"
+     },
+     "status": {
+      "$ref": "#/components/schemas/DeliveryStatus"
+     },
+     "attempts": {
+      "type": "integer",
+      "title": "Attempts"
+     },
+     "next_attempt_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Attempt At"
+     },
+     "last_error_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Error Code"
+     },
+     "provider": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provider"
+     },
+     "sent_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sent At"
+     },
+     "cancelled_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cancelled Reason"
+     },
+     "is_test": {
+      "type": "boolean",
+      "title": "Is Test"
+     },
+     "label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "reminder_id",
+     "event_id",
+     "channel",
+     "occurrence_date",
+     "lead_days",
+     "scheduled_for",
+     "status",
+     "attempts",
+     "next_attempt_at",
+     "last_error_code",
+     "provider",
+     "sent_at",
+     "cancelled_reason",
+     "is_test"
+    ],
+    "title": "DeliveryOut"
+   },
+   "DeliveryStatus": {
+    "type": "string",
+    "enum": [
+     "pending",
+     "sent",
+     "failed",
+     "retrying",
+     "cancelled"
+    ],
+    "title": "DeliveryStatus"
    },
    "DeriveOut": {
     "properties": {
@@ -14134,6 +16915,16 @@
       ],
       "title": "Longitude"
      },
+     "location_precision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LocationPrecision"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "description": {
       "anyOf": [
        {
@@ -14155,7 +16946,40 @@
       "default": "unknown"
      },
      "type": {
-      "$ref": "#/components/schemas/EventType"
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/EventType"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "category": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LifeEventCategory"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "significance": {
+      "$ref": "#/components/schemas/EventSignificance",
+      "default": "standard"
      },
      "subtype": {
       "anyOf": [
@@ -14231,7 +17055,6 @@
     },
     "type": "object",
     "required": [
-     "type",
      "participants"
     ],
     "title": "EventIn"
@@ -14358,6 +17181,210 @@
     ],
     "title": "EventInterestIn",
     "description": "An interest created by a property event; ``valid_from`` defaults to the event date."
+   },
+   "EventMediaLinkIn": {
+    "properties": {
+     "document_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Document Id"
+     },
+     "caption": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Caption"
+     },
+     "taken_date": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "is_cover": {
+      "type": "boolean",
+      "title": "Is Cover",
+      "default": false
+     },
+     "person_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Person Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "document_id"
+    ],
+    "title": "EventMediaLinkIn",
+    "description": "Add a photo that is already in the vault to the event's album."
+   },
+   "EventMediaOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "document_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Document Id"
+     },
+     "caption": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Caption"
+     },
+     "taken_date": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Taken Date"
+     },
+     "taken_date_display": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Taken Date Display"
+     },
+     "is_cover": {
+      "type": "boolean",
+      "title": "Is Cover"
+     },
+     "sort_order": {
+      "type": "integer",
+      "title": "Sort Order"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "document": {
+      "$ref": "#/components/schemas/DocumentOut"
+     },
+     "people": {
+      "items": {
+       "$ref": "#/components/schemas/TaggedPerson"
+      },
+      "type": "array",
+      "title": "People",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "event_id",
+     "document_id",
+     "caption",
+     "taken_date",
+     "is_cover",
+     "sort_order",
+     "created_at",
+     "document"
+    ],
+    "title": "EventMediaOut"
+   },
+   "EventMediaUpdate": {
+    "properties": {
+     "caption": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Caption"
+     },
+     "taken_date": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "is_cover": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Cover"
+     },
+     "sort_order": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 10000.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sort Order"
+     },
+     "add_person_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Add Person Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "title": "EventMediaUpdate"
    },
    "EventOut": {
     "properties": {
@@ -14600,6 +17627,68 @@
       "type": "array",
       "title": "Redacted Fields",
       "default": []
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LifeEventCategory"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "significance": {
+      "$ref": "#/components/schemas/EventSignificance",
+      "default": "standard"
+     },
+     "location_precision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LocationPrecision"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "privacy_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "media_count": {
+      "type": "integer",
+      "title": "Media Count",
+      "default": 0
+     },
+     "cover_document_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cover Document Id"
      }
     },
     "type": "object",
@@ -14624,6 +17713,15 @@
      "confidence"
     ],
     "title": "EventOut"
+   },
+   "EventSignificance": {
+    "type": "string",
+    "enum": [
+     "standard",
+     "important",
+     "milestone"
+    ],
+    "title": "EventSignificance"
    },
    "EventType": {
     "type": "string",
@@ -14825,6 +17923,48 @@
       "anyOf": [
        {
         "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LifeEventCategory"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "significance": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/EventSignificance"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "location_precision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LocationPrecision"
        },
        {
         "type": "null"
@@ -15042,6 +18182,33 @@
     "title": "GenealogicalTime",
     "description": "A time of day with explicit precision; approximate values are never presented as exact."
    },
+   "GeoPoint": {
+    "properties": {
+     "latitude": {
+      "type": "number",
+      "title": "Latitude"
+     },
+     "longitude": {
+      "type": "number",
+      "title": "Longitude"
+     },
+     "precision": {
+      "$ref": "#/components/schemas/LocationPrecision"
+     },
+     "coarsened": {
+      "type": "boolean",
+      "title": "Coarsened",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "latitude",
+     "longitude",
+     "precision"
+    ],
+    "title": "GeoPoint"
+   },
    "GrantCreate": {
     "properties": {
      "user_id": {
@@ -15184,6 +18351,34 @@
     ],
     "title": "GraphEdge"
    },
+   "GraphEdgeOut": {
+    "properties": {
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "target": {
+      "type": "string",
+      "title": "Target"
+     },
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "type": {
+      "type": "string",
+      "title": "Type"
+     }
+    },
+    "type": "object",
+    "required": [
+     "source",
+     "target",
+     "kind",
+     "type"
+    ],
+    "title": "GraphEdgeOut"
+   },
    "GraphNode": {
     "properties": {
      "id": {
@@ -15222,6 +18417,53 @@
      "generation"
     ],
     "title": "GraphNode"
+   },
+   "GraphNodeOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     },
+     "person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/VizPerson"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "household_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Household Ids",
+      "default": []
+     },
+     "distance": {
+      "type": "integer",
+      "title": "Distance",
+      "default": 0
+     },
+     "expandable": {
+      "type": "boolean",
+      "title": "Expandable",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id"
+    ],
+    "title": "GraphNodeOut"
    },
    "GraphOut": {
     "properties": {
@@ -15384,6 +18626,29 @@
      "attributes"
     ],
     "title": "HeritageProfileOut"
+   },
+   "HistoricalPeriod": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "start_year": {
+      "type": "integer",
+      "title": "Start Year"
+     },
+     "end_year": {
+      "type": "integer",
+      "title": "End Year"
+     }
+    },
+    "type": "object",
+    "required": [
+     "label",
+     "start_year",
+     "end_year"
+    ],
+    "title": "HistoricalPeriod"
    },
    "HolderOut": {
     "properties": {
@@ -16928,6 +20193,188 @@
     ],
     "title": "JobStatus"
    },
+   "LifeEventCategory": {
+    "type": "string",
+    "enum": [
+     "birth",
+     "naming_ceremony",
+     "annaprashan",
+     "mundan",
+     "upanayana",
+     "initiation",
+     "education",
+     "graduation",
+     "engagement",
+     "marriage",
+     "migration",
+     "employment",
+     "retirement",
+     "award",
+     "property_acquisition",
+     "illness",
+     "recovery",
+     "pilgrimage",
+     "death",
+     "memorial",
+     "custom"
+    ],
+    "title": "LifeEventCategory",
+    "description": "Fine-grained life-event vocabulary layered on the structural ``EventType`` (ADR-0015)."
+   },
+   "LifespanEvent": {
+    "properties": {
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "year": {
+      "type": "integer",
+      "title": "Year"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     }
+    },
+    "type": "object",
+    "required": [
+     "event_id",
+     "year",
+     "label"
+    ],
+    "title": "LifespanEvent"
+   },
+   "LifespanRow": {
+    "properties": {
+     "person": {
+      "$ref": "#/components/schemas/VizPerson"
+     },
+     "generation": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Generation"
+     },
+     "start_year": {
+      "type": "integer",
+      "title": "Start Year"
+     },
+     "end_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "End Year"
+     },
+     "end_known": {
+      "type": "boolean",
+      "title": "End Known",
+      "default": true
+     },
+     "approximate": {
+      "type": "boolean",
+      "title": "Approximate",
+      "default": false
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/LifespanEvent"
+      },
+      "type": "array",
+      "title": "Events",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "person",
+     "start_year",
+     "end_year"
+    ],
+    "title": "LifespanRow"
+   },
+   "LifespansOut": {
+    "properties": {
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/LifespanRow"
+      },
+      "type": "array",
+      "title": "Rows"
+     },
+     "periods": {
+      "items": {
+       "$ref": "#/components/schemas/HistoricalPeriod"
+      },
+      "type": "array",
+      "title": "Periods"
+     },
+     "min_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Min Year"
+     },
+     "max_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Year"
+     },
+     "truncated": {
+      "type": "boolean",
+      "title": "Truncated",
+      "default": false
+     },
+     "without_dates": {
+      "type": "integer",
+      "title": "Without Dates",
+      "default": 0
+     },
+     "summary": {
+      "type": "string",
+      "title": "Summary",
+      "default": ""
+     }
+    },
+    "type": "object",
+    "required": [
+     "rows",
+     "periods"
+    ],
+    "title": "LifespansOut"
+   },
    "Lineage": {
     "type": "string",
     "enum": [
@@ -17039,6 +20486,20 @@
     ],
     "title": "LineageOut"
    },
+   "LocationPrecision": {
+    "type": "string",
+    "enum": [
+     "exact",
+     "approximate",
+     "locality",
+     "district",
+     "state",
+     "country",
+     "unknown"
+    ],
+    "title": "LocationPrecision",
+    "description": "What a pair of coordinates means (ADR-0015). Coordinates are never required."
+   },
    "LoginIn": {
     "properties": {
      "email": {
@@ -17070,6 +20531,182 @@
      "password"
     ],
     "title": "LoginIn"
+   },
+   "MapOut": {
+    "properties": {
+     "points": {
+      "items": {
+       "$ref": "#/components/schemas/MapPoint"
+      },
+      "type": "array",
+      "title": "Points"
+     },
+     "paths": {
+      "items": {
+       "$ref": "#/components/schemas/MapPath"
+      },
+      "type": "array",
+      "title": "Paths"
+     },
+     "not_geotagged": {
+      "type": "integer",
+      "title": "Not Geotagged",
+      "default": 0
+     },
+     "truncated": {
+      "type": "boolean",
+      "title": "Truncated",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "points",
+     "paths"
+    ],
+    "title": "MapOut"
+   },
+   "MapPath": {
+    "properties": {
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     },
+     "origin": {
+      "$ref": "#/components/schemas/GeoPoint"
+     },
+     "origin_label": {
+      "type": "string",
+      "title": "Origin Label"
+     },
+     "destination": {
+      "$ref": "#/components/schemas/GeoPoint"
+     },
+     "destination_label": {
+      "type": "string",
+      "title": "Destination Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "event_id",
+     "label",
+     "origin",
+     "origin_label",
+     "destination",
+     "destination_label"
+    ],
+    "title": "MapPath"
+   },
+   "MapPoint": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "geo": {
+      "$ref": "#/components/schemas/GeoPoint"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     },
+     "event_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Event Id"
+     },
+     "person_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Person Ids",
+      "default": []
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "label",
+     "geo"
+    ],
+    "title": "MapPoint"
    },
    "MemberOut": {
     "properties": {
@@ -18032,6 +21669,55 @@
     "type": "object",
     "title": "NameUpdate"
    },
+   "NeighbourhoodOut": {
+    "properties": {
+     "root_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Root Id"
+     },
+     "radius": {
+      "type": "integer",
+      "title": "Radius"
+     },
+     "nodes": {
+      "items": {
+       "$ref": "#/components/schemas/GraphNodeOut"
+      },
+      "type": "array",
+      "title": "Nodes"
+     },
+     "edges": {
+      "items": {
+       "$ref": "#/components/schemas/GraphEdgeOut"
+      },
+      "type": "array",
+      "title": "Edges"
+     },
+     "truncated": {
+      "type": "boolean",
+      "title": "Truncated",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "root_id",
+     "radius",
+     "nodes",
+     "edges"
+    ],
+    "title": "NeighbourhoodOut"
+   },
+   "NotificationChannel": {
+    "type": "string",
+    "enum": [
+     "email",
+     "sms",
+     "whatsapp"
+    ],
+    "title": "NotificationChannel"
+   },
    "OcrLineOut": {
     "properties": {
      "line_no": {
@@ -18168,6 +21854,33 @@
     ],
     "title": "Page[AuditEventOut]"
    },
+   "Page_DeliveryOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/DeliveryOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[DeliveryOut]"
+   },
    "Page_DocumentOut_": {
     "properties": {
      "items": {
@@ -18194,6 +21907,33 @@
      "items"
     ],
     "title": "Page[DocumentOut]"
+   },
+   "Page_EventOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/EventOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[EventOut]"
    },
    "Page_PersonSummary_": {
     "properties": {
@@ -20481,6 +24221,102 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country"
+     },
+     "map_label": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Map Label"
+     },
+     "geo_note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geo Note"
+     },
+     "location_precision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LocationPrecision"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "geo_confidence": {
+      "$ref": "#/components/schemas/Confidence",
+      "default": "unknown"
+     },
+     "coordinate_privacy": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -20645,6 +24481,95 @@
       ],
       "title": "Lgd Code"
      },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country"
+     },
+     "map_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Map Label"
+     },
+     "geo_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geo Note"
+     },
+     "location_precision": {
+      "$ref": "#/components/schemas/LocationPrecision",
+      "default": "unknown"
+     },
+     "geo_confidence": {
+      "$ref": "#/components/schemas/Confidence",
+      "default": "unknown"
+     },
+     "coordinate_privacy": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "coordinates_coarsened": {
+      "type": "boolean",
+      "title": "Coordinates Coarsened",
+      "default": false
+     },
      "hierarchy": {
       "items": {
        "type": "string"
@@ -20669,6 +24594,74 @@
     ],
     "title": "PlaceOut"
    },
+   "PlaceRef": {
+    "properties": {
+     "id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country"
+     },
+     "geo": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoPoint"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "name"
+    ],
+    "title": "PlaceRef"
+   },
    "PlaceType": {
     "type": "string",
     "enum": [
@@ -20681,6 +24674,10 @@
      "country",
      "temple",
      "property",
+     "ancestral_house",
+     "shrine",
+     "land_parcel",
+     "neighbourhood",
      "other"
     ],
     "title": "PlaceType"
@@ -20797,10 +24794,325 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country"
+     },
+     "map_label": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Map Label"
+     },
+     "geo_note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Geo Note"
+     },
+     "location_precision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LocationPrecision"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "geo_confidence": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Confidence"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "coordinate_privacy": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
     "title": "PlaceUpdate"
+   },
+   "PreferenceIn": {
+    "properties": {
+     "enabled": {
+      "type": "boolean",
+      "title": "Enabled"
+     },
+     "channels": {
+      "items": {
+       "$ref": "#/components/schemas/NotificationChannel"
+      },
+      "type": "array",
+      "title": "Channels",
+      "default": [
+       "email"
+      ]
+     },
+     "timezone": {
+      "type": "string",
+      "maxLength": 64,
+      "title": "Timezone",
+      "default": "Asia/Kolkata"
+     },
+     "send_hour": {
+      "type": "integer",
+      "maximum": 23.0,
+      "minimum": 0.0,
+      "title": "Send Hour",
+      "default": 8
+     },
+     "default_lead_days": {
+      "items": {
+       "type": "integer"
+      },
+      "type": "array",
+      "title": "Default Lead Days",
+      "default": [
+       0
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "enabled"
+    ],
+    "title": "PreferenceIn"
+   },
+   "PreferenceOut": {
+    "properties": {
+     "enabled": {
+      "type": "boolean",
+      "title": "Enabled"
+     },
+     "channels": {
+      "items": {
+       "$ref": "#/components/schemas/NotificationChannel"
+      },
+      "type": "array",
+      "title": "Channels"
+     },
+     "timezone": {
+      "type": "string",
+      "title": "Timezone"
+     },
+     "send_hour": {
+      "type": "integer",
+      "title": "Send Hour"
+     },
+     "default_lead_days": {
+      "items": {
+       "type": "integer"
+      },
+      "type": "array",
+      "title": "Default Lead Days"
+     },
+     "exists": {
+      "type": "boolean",
+      "title": "Exists",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "enabled",
+     "channels",
+     "timezone",
+     "send_hour",
+     "default_lead_days"
+    ],
+    "title": "PreferenceOut"
+   },
+   "PresetIn": {
+    "properties": {
+     "name": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Name"
+     },
+     "chart_type": {
+      "$ref": "#/components/schemas/ChartType"
+     },
+     "settings": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Settings",
+      "default": {}
+     },
+     "shared": {
+      "type": "boolean",
+      "title": "Shared",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "name",
+     "chart_type"
+    ],
+    "title": "PresetIn"
+   },
+   "PresetOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "chart_type": {
+      "$ref": "#/components/schemas/ChartType"
+     },
+     "settings": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Settings"
+     },
+     "shared": {
+      "type": "boolean",
+      "title": "Shared"
+     },
+     "mine": {
+      "type": "boolean",
+      "title": "Mine",
+      "default": true
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "chart_type",
+     "settings",
+     "shared",
+     "created_at",
+     "updated_at"
+    ],
+    "title": "PresetOut"
+   },
+   "PresetUpdate": {
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "settings": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Settings"
+     },
+     "shared": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Shared"
+     }
+    },
+    "type": "object",
+    "title": "PresetUpdate"
    },
    "PrivacyLevel": {
     "type": "string",
@@ -23026,6 +27338,310 @@
     ],
     "title": "RelativeOut"
    },
+   "ReminderIn": {
+    "properties": {
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReminderKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "recurrence": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReminderRecurrence"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "lead_days": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "integer"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lead Days"
+     },
+     "channels": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/NotificationChannel"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Channels"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "required": [
+     "event_id"
+    ],
+    "title": "ReminderIn"
+   },
+   "ReminderKind": {
+    "type": "string",
+    "enum": [
+     "birthday",
+     "anniversary",
+     "memorial",
+     "one_time",
+     "custom"
+    ],
+    "title": "ReminderKind"
+   },
+   "ReminderOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ReminderKind"
+     },
+     "recurrence": {
+      "$ref": "#/components/schemas/ReminderRecurrence"
+     },
+     "lead_days": {
+      "items": {
+       "type": "integer"
+      },
+      "type": "array",
+      "title": "Lead Days"
+     },
+     "channels": {
+      "items": {
+       "$ref": "#/components/schemas/NotificationChannel"
+      },
+      "type": "array",
+      "title": "Channels"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "active": {
+      "type": "boolean",
+      "title": "Active"
+     },
+     "next_fire_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Fire At"
+     },
+     "last_fired_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Fired At"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "person_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Name"
+     },
+     "next_occurrence": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Occurrence"
+     },
+     "deliverable": {
+      "type": "boolean",
+      "title": "Deliverable",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "event_id",
+     "kind",
+     "recurrence",
+     "lead_days",
+     "channels",
+     "note",
+     "active",
+     "next_fire_at",
+     "last_fired_at",
+     "created_at"
+    ],
+    "title": "ReminderOut"
+   },
+   "ReminderRecurrence": {
+    "type": "string",
+    "enum": [
+     "none",
+     "annual"
+    ],
+    "title": "ReminderRecurrence"
+   },
+   "ReminderUpdate": {
+    "properties": {
+     "recurrence": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReminderRecurrence"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "lead_days": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "integer"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lead Days"
+     },
+     "channels": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/NotificationChannel"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Channels"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "active": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Active"
+     }
+    },
+    "type": "object",
+    "title": "ReminderUpdate"
+   },
    "RemovalRequestIn": {
     "properties": {
      "confirm_is_me": {
@@ -23050,6 +27666,373 @@
      "confirm_is_me"
     ],
     "title": "RemovalRequestIn"
+   },
+   "RenderArtifactKind": {
+    "type": "string",
+    "enum": [
+     "poster_png",
+     "video_mp4"
+    ],
+    "title": "RenderArtifactKind"
+   },
+   "RenderArtifactOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/RenderArtifactKind"
+     },
+     "mime_type": {
+      "type": "string",
+      "title": "Mime Type"
+     },
+     "size_bytes": {
+      "type": "integer",
+      "title": "Size Bytes"
+     },
+     "width": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Width"
+     },
+     "height": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Height"
+     },
+     "duration_s": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Duration S"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "mime_type",
+     "size_bytes",
+     "width",
+     "height",
+     "duration_s"
+    ],
+    "title": "RenderArtifactOut"
+   },
+   "RenderDownloadOut": {
+    "properties": {
+     "url": {
+      "type": "string",
+      "title": "Url"
+     },
+     "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "url",
+     "expires_at"
+    ],
+    "title": "RenderDownloadOut"
+   },
+   "RenderJobIn": {
+    "properties": {
+     "chart_type": {
+      "$ref": "#/components/schemas/ChartType"
+     },
+     "output": {
+      "$ref": "#/components/schemas/RenderOutput",
+      "default": "poster"
+     },
+     "settings": {
+      "$ref": "#/components/schemas/RenderSettings",
+      "default": {
+       "generations": 4,
+       "direction": "descendants",
+       "color_by": "side",
+       "theme": "heritage",
+       "include_photos": true
+      }
+     }
+    },
+    "type": "object",
+    "required": [
+     "chart_type"
+    ],
+    "title": "RenderJobIn"
+   },
+   "RenderJobOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "chart_type": {
+      "$ref": "#/components/schemas/ChartType"
+     },
+     "output": {
+      "$ref": "#/components/schemas/RenderOutput"
+     },
+     "status": {
+      "$ref": "#/components/schemas/RenderStatus"
+     },
+     "progress": {
+      "type": "integer",
+      "title": "Progress"
+     },
+     "settings": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Settings"
+     },
+     "renderer": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Renderer"
+     },
+     "error_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error Code"
+     },
+     "error_message": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error Message"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "started_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Started At"
+     },
+     "finished_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished At"
+     },
+     "artifacts": {
+      "items": {
+       "$ref": "#/components/schemas/RenderArtifactOut"
+      },
+      "type": "array",
+      "title": "Artifacts",
+      "default": []
+     },
+     "mine": {
+      "type": "boolean",
+      "title": "Mine",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "chart_type",
+     "output",
+     "status",
+     "progress",
+     "settings",
+     "renderer",
+     "error_code",
+     "error_message",
+     "created_at",
+     "started_at",
+     "finished_at"
+    ],
+    "title": "RenderJobOut"
+   },
+   "RenderOutput": {
+    "type": "string",
+    "enum": [
+     "poster",
+     "mp4"
+    ],
+    "title": "RenderOutput"
+   },
+   "RenderSettings": {
+    "properties": {
+     "root_person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Root Person Id"
+     },
+     "generations": {
+      "type": "integer",
+      "maximum": 8.0,
+      "minimum": 1.0,
+      "title": "Generations",
+      "default": 4
+     },
+     "direction": {
+      "type": "string",
+      "enum": [
+       "ancestors",
+       "descendants"
+      ],
+      "title": "Direction",
+      "default": "descendants"
+     },
+     "color_by": {
+      "type": "string",
+      "enum": [
+       "birthplace",
+       "village",
+       "branch",
+       "side",
+       "completeness",
+       "living"
+      ],
+      "title": "Color By",
+      "default": "side"
+     },
+     "lineage": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/Lineage"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lineage"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "theme": {
+      "type": "string",
+      "enum": [
+       "heritage",
+       "dusk",
+       "minimal"
+      ],
+      "title": "Theme",
+      "default": "heritage"
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "subtitle": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Subtitle"
+     },
+     "include_photos": {
+      "type": "boolean",
+      "title": "Include Photos",
+      "default": true
+     }
+    },
+    "type": "object",
+    "title": "RenderSettings",
+    "description": "What to render. Only ids and display options: the data itself is read as you, at request time."
+   },
+   "RenderStatus": {
+    "type": "string",
+    "enum": [
+     "queued",
+     "running",
+     "succeeded",
+     "failed",
+     "cancelled"
+    ],
+    "title": "RenderStatus"
    },
    "ReprocessOut": {
     "properties": {
@@ -24114,6 +29097,210 @@
     ],
     "title": "StorageClass"
    },
+   "StoryEvent": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "type": {
+      "type": "string",
+      "title": "Type"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "date": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Date"
+     },
+     "date_display": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Date Display"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     },
+     "sort_key": {
+      "type": "string",
+      "title": "Sort Key"
+     },
+     "place": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PlaceRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "description": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Description"
+     },
+     "significance": {
+      "type": "string",
+      "title": "Significance"
+     },
+     "relatives": {
+      "items": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Relatives",
+      "default": []
+     },
+     "photos": {
+      "items": {
+       "$ref": "#/components/schemas/StoryPhoto"
+      },
+      "type": "array",
+      "title": "Photos",
+      "default": []
+     },
+     "redacted_fields": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Redacted Fields",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "type",
+     "label",
+     "sort_key",
+     "significance"
+    ],
+    "title": "StoryEvent"
+   },
+   "StoryOut": {
+    "properties": {
+     "person": {
+      "$ref": "#/components/schemas/VizPerson"
+     },
+     "events": {
+      "items": {
+       "$ref": "#/components/schemas/StoryEvent"
+      },
+      "type": "array",
+      "title": "Events"
+     },
+     "summary": {
+      "type": "string",
+      "title": "Summary",
+      "default": ""
+     }
+    },
+    "type": "object",
+    "required": [
+     "person",
+     "events"
+    ],
+    "title": "StoryOut"
+   },
+   "StoryPhoto": {
+    "properties": {
+     "media_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Media Id"
+     },
+     "document_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Document Id"
+     },
+     "caption": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Caption"
+     },
+     "is_cover": {
+      "type": "boolean",
+      "title": "Is Cover",
+      "default": false
+     },
+     "has_thumbnail": {
+      "type": "boolean",
+      "title": "Has Thumbnail",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "media_id",
+     "document_id"
+    ],
+    "title": "StoryPhoto"
+   },
    "SubdivideIn": {
     "properties": {
      "children": {
@@ -24508,6 +29695,25 @@
     },
     "type": "object",
     "title": "SubdivisionChildIn"
+   },
+   "TaggedPerson": {
+    "properties": {
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "display_name": {
+      "type": "string",
+      "title": "Display Name"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person_id",
+     "display_name"
+    ],
+    "title": "TaggedPerson"
    },
    "TimePrecision": {
     "type": "string",
@@ -24918,6 +30124,86 @@
     ],
     "title": "UnionOut"
    },
+   "UpcomingOut": {
+    "properties": {
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ReminderKind"
+     },
+     "occurrence_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Occurrence Date"
+     },
+     "days_until": {
+      "type": "integer",
+      "title": "Days Until"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "display_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Display Name"
+     },
+     "anniversary": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Anniversary"
+     },
+     "reminder_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reminder Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "event_id",
+     "kind",
+     "occurrence_date",
+     "days_until",
+     "label"
+    ],
+    "title": "UpcomingOut"
+   },
    "UserOut": {
     "properties": {
      "id": {
@@ -25018,6 +30304,22 @@
     ],
     "title": "ValueStatus"
    },
+   "VerifyIn": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "maxLength": 6,
+      "minLength": 6,
+      "pattern": "^\\d{6}$",
+      "title": "Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "code"
+    ],
+    "title": "VerifyIn"
+   },
    "VitalIn": {
     "properties": {
      "date": {
@@ -25114,6 +30416,16 @@
        }
       ],
       "title": "Longitude"
+     },
+     "location_precision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LocationPrecision"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "description": {
       "anyOf": [
@@ -25231,6 +30543,133 @@
      "date_display"
     ],
     "title": "VitalSummary"
+   },
+   "VizPerson": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "display_name": {
+      "type": "string",
+      "title": "Display Name"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "profile_status": {
+      "$ref": "#/components/schemas/ProfileStatus"
+     },
+     "is_protected": {
+      "type": "boolean",
+      "title": "Is Protected",
+      "default": false
+     },
+     "birth_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Year"
+     },
+     "death_year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Death Year"
+     },
+     "birth_display": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Display"
+     },
+     "death_display": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Death Display"
+     },
+     "birth_place": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PlaceRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "village": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Village"
+     },
+     "branch_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Branch Ids",
+      "default": []
+     },
+     "event_count": {
+      "type": "integer",
+      "title": "Event Count",
+      "default": 0
+     },
+     "completeness": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Completeness"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "display_name",
+     "profile_status"
+    ],
+    "title": "VizPerson"
    }
   }
  }

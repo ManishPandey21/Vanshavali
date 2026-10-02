@@ -9,10 +9,14 @@ from pydantic import Field, field_validator, model_validator
 from app.api.schemas import ApiModel
 from app.core.dates import GenealogicalDate, GenealogicalTime
 from app.models.enums import (
+    CATEGORY_EVENT_TYPE,
     Confidence,
+    EventSignificance,
     EventType,
     EvidenceStatus,
+    LifeEventCategory,
     Lineage,
+    LocationPrecision,
     NameType,
     ParticipantRole,
     PlaceType,
@@ -68,6 +72,25 @@ class PlaceIn(ApiModel):
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = Field(default=None, max_length=120)
     lgd_code: str | None = Field(default=None, max_length=40)
+    locality: str | None = Field(default=None, max_length=200)
+    district: str | None = Field(default=None, max_length=120)
+    state: str | None = Field(default=None, max_length=120)
+    country: str | None = Field(default=None, max_length=120)
+    map_label: str | None = Field(default=None, max_length=200)
+    geo_note: str | None = Field(default=None, max_length=2000)
+    location_precision: LocationPrecision | None = None
+    geo_confidence: Confidence = Confidence.UNKNOWN
+    coordinate_privacy: PrivacyLevel | None = None
+
+    @model_validator(mode="after")
+    def _pair(self) -> PlaceIn:
+        _check_pair(self.latitude, self.longitude)
+        return self
+
+
+def _check_pair(lat: float | None, lng: float | None) -> None:
+    if (lat is None) != (lng is None):
+        raise ValueError("latitude and longitude must be given together")
 
 
 class PlaceUpdate(ApiModel):
@@ -80,6 +103,15 @@ class PlaceUpdate(ApiModel):
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = None
     lgd_code: str | None = None
+    locality: str | None = Field(default=None, max_length=200)
+    district: str | None = Field(default=None, max_length=120)
+    state: str | None = Field(default=None, max_length=120)
+    country: str | None = Field(default=None, max_length=120)
+    map_label: str | None = Field(default=None, max_length=200)
+    geo_note: str | None = Field(default=None, max_length=2000)
+    location_precision: LocationPrecision | None = None
+    geo_confidence: Confidence | None = None
+    coordinate_privacy: PrivacyLevel | None = None
 
 
 class PlaceOut(ApiModel):
@@ -93,6 +125,17 @@ class PlaceOut(ApiModel):
     longitude: float | None
     geocoding_source: str | None
     lgd_code: str | None
+    locality: str | None = None
+    district: str | None = None
+    state: str | None = None
+    country: str | None = None
+    map_label: str | None = None
+    geo_note: str | None = None
+    location_precision: LocationPrecision = LocationPrecision.UNKNOWN
+    geo_confidence: Confidence = Confidence.UNKNOWN
+    coordinate_privacy: PrivacyLevel | None = None
+    # true when the viewer gets rounded coordinates (coordinate_privacy above their access)
+    coordinates_coarsened: bool = False
     hierarchy: list[str] = []
 
 
@@ -187,6 +230,7 @@ class EventCore(ApiModel):
     place_as_recorded: str | None = Field(default=None, max_length=500)
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
+    location_precision: LocationPrecision | None = None
     description: str | None = Field(default=None, max_length=5000)
     evidence_status: EvidenceStatus = EvidenceStatus.USER_ASSERTION
     confidence: Confidence = Confidence.UNKNOWN
@@ -216,7 +260,11 @@ class ParticipantIn(ApiModel):
 
 
 class EventIn(EventCore):
-    type: EventType
+    # Either a structural type or a life-event category (which implies a type) is required.
+    type: EventType | None = None
+    category: LifeEventCategory | None = None
+    title: str | None = Field(default=None, max_length=300)
+    significance: EventSignificance = EventSignificance.STANDARD
     subtype: str | None = Field(default=None, max_length=80)
     participants: list[ParticipantIn] = Field(min_length=1)
     origin_place_id: uuid.UUID | None = None
@@ -224,6 +272,15 @@ class EventIn(EventCore):
     reason: str | None = Field(default=None, max_length=5000)
     is_preferred: bool = True
     privacy_level: PrivacyLevel | None = None
+
+    @model_validator(mode="after")
+    def _type_or_category(self) -> EventIn:
+        if self.type is None:
+            if self.category is None:
+                raise ValueError("an event needs a type or a life-event category")
+            self.type = CATEGORY_EVENT_TYPE[self.category]
+        _check_pair(self.latitude, self.longitude)
+        return self
 
 
 class EventUpdate(ApiModel):
@@ -244,6 +301,10 @@ class EventUpdate(ApiModel):
     evidence_status: EvidenceStatus | None = None
     confidence: Confidence | None = None
     privacy_level: PrivacyLevel | None = None
+    title: str | None = Field(default=None, max_length=300)
+    category: LifeEventCategory | None = None
+    significance: EventSignificance | None = None
+    location_precision: LocationPrecision | None = None
 
 
 class ParticipantOut(ApiModel):
@@ -280,6 +341,13 @@ class EventOut(ApiModel):
     provenance: ProvenanceOut | None = None
     citation_count: int = 0
     redacted_fields: list[str] = []
+    title: str | None = None
+    category: LifeEventCategory | None = None
+    significance: EventSignificance = EventSignificance.STANDARD
+    location_precision: LocationPrecision | None = None
+    privacy_level: PrivacyLevel | None = None
+    media_count: int = 0  # album photos the viewer may see
+    cover_document_id: uuid.UUID | None = None
 
 
 # ---------- persons ----------

@@ -110,6 +110,31 @@ graph LR
 | Places keep their historical names. Renames append history. | `place.historical_names` |
 | Merges are reversible | `merge_record.changes` |
 | The audit log is append-only | DB trigger |
+| A life-event category refines, never replaces, the structural event type | `CATEGORY_EVENT_TYPE` (ADR-0015) |
+| An event's own privacy level gates every lookup of it (album, reminders, charts, renders) | `genealogy.service.get_event_checked` |
+| An event photo is never more visible than its event and principal person; at most one cover per event | `lifeevents.service.inherited_privacy`, partial unique index `uq_event_media_cover` |
+| Coordinates are optional and carry a precision; restricted coordinates are coarsened for lower roles | `place.location_precision`, `place.coordinate_privacy`, `genealogy.geo` |
+| Reminders are personal and opt-in; each occurrence × lead × channel is delivered at most once | `uq_event_reminder`, `uq_notification_delivery_once` (ADR-0016) |
+| A render shows only what its requester could see and is visible only to them (and admins) | `render.payloads` built as the requester (ADR-0017) |
+
+## 3a. Heritage visualization extensions (ADR-0015, ADR-0016, ADR-0017)
+
+```mermaid
+erDiagram
+  PLACE ||--o{ EVENT : "place / origin"
+  EVENT ||--o{ EVENT_MEDIA : "album"
+  DOCUMENT ||--o{ EVENT_MEDIA : "photo"
+  DOCUMENT ||--o{ DOCUMENT_LINK : "people in the photo"
+  EVENT ||--o{ EVENT_REMINDER : "a member subscribes"
+  EVENT_REMINDER ||--o{ NOTIFICATION_DELIVERY : "occurrence x lead x channel"
+  APP_USER ||--o{ NOTIFICATION_PREFERENCE : "per tree (opt-in)"
+  APP_USER ||--o{ NOTIFICATION_CONTACT : "verified phone"
+  APP_USER ||--o{ CHART_PRESET : "saved views"
+  APP_USER ||--o{ RENDER_JOB : "requests"
+  RENDER_JOB ||--o{ RENDER_ARTIFACT : "poster / mp4"
+  PLACE { string district string state string country string location_precision string coordinate_privacy }
+  EVENT { string title string category string significance }
+```
 
 ## 4. Traversal strategy
 - Family unit (parents, unions + children, siblings): one query for the person's edges plus one
