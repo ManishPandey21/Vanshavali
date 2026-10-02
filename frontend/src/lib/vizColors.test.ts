@@ -38,5 +38,7 @@ describe("chart colour keys", () => {
   it("formats lifespans", () => {
     expect(yearsLabel(person())).toBe("1955–2015");
     expect(yearsLabel(person({ profile_status: "living", death_display: null }))).toBe("1955–");
+    expect(yearsLabel(person({ birth_display: "1950-10-12", birth_year: 1950, death_display: null, death_year: null }))).toBe("1950–?");
+    expect(yearsLabel(person({ birth_display: "c. 1900", birth_year: 1900, death_display: "1960", death_year: 1960 }))).toBe("c. 1900–1960");
   });
 });

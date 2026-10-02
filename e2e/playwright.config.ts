@@ -52,6 +52,10 @@ export default defineConfig({
         VSH_SCANNER: "eicar_test",
         VSH_MAIL_BACKEND: "file",
         VSH_MAIL_FILE_DIR: MAIL_DIR,
+        // animated exports: deterministic stub by default; set VSH_E2E_RENDER_BACKEND=remotion (with
+        // renderer/ bundled) to render for real (ADR-0017)
+        VSH_RENDER_BACKEND: process.env.VSH_E2E_RENDER_BACKEND ?? "stub",
+        VSH_RENDERER_DIR: `${process.cwd()}/../renderer`,
       },
       stdout: process.env.CI ? "pipe" : "ignore",
     },

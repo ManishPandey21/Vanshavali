@@ -125,5 +125,25 @@ Last verified: 2026-10-02 (pilot deployment and operational validation;
 | DAST / penetration test | Penetration-test scope, accounts, rules and remediation process: `docs/security/pentest-scope.md` (test not performed; public-launch blocker). DAST EXECUTED (Cloud sandbox, same ZAP image and rules as `dast.yml`); first GitHub run pending. Found and fixed: `X-Forwarded-For` client-IP spoofing that bypassed per-IP rate limits (T30), a NUL byte giving an unhandled 500, the nginx version leak, third-party Google Fonts (self-hosted now) and CSP `'unsafe-inline'`. Final: baseline 0 FAIL/0 WARN/60 PASS; ID-aware API scan 0 FAIL/0 WARN/113 PASS. Penetration test outstanding (independent tester) |
 | Overload behaviour | VERIFIED: per-worker admission control, 5 s pool wait, retryable 503 `server_busy` (`test_overload.py`). At 70–80 req/s offered, successful throughput went from 10 / 0 req/s (collapse, unhandled 500s, 60 s timeouts) to 63 / 62 req/s |
 | Input robustness | VERIFIED: input the database cannot store (e.g. NUL) is a 422, never a 500 (`test_input_robustness.py`) |
-| Collaboration (change proposals, comments, notifications) | DEFERRED (post-MVP) |
-| Reports / PDF charts / fan chart / maps | DEFERRED |
+| Collaboration (change proposals, comments) | DEFERRED (post-MVP). Event reminders and their notifications are implemented (heritage milestone below) |
+| Reports / PDF charts / fan chart / maps | Fan chart, pedigree, family tree, graph, lifespans, life story and maps IMPLEMENTED (heritage milestone below); charts print to PDF. Narrative PDF reports DEFERRED |
+
+## Heritage visualization milestone (Oct 2026)
+
+Plan: [docs/architecture/heritage-visualization-milestone.md](docs/architecture/heritage-visualization-milestone.md).
+Decisions: ADR-0015 (life events, geo-tags, event photos), ADR-0016 (reminders), ADR-0017
+(visualizations and Remotion exports). One migration (`9a1b2c3d4e5f`, with downgrade; RLS on the
+seven new tree-scoped tables).
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Geo-tagged places (district/state/country/locality, map label, precision, confidence, provenance, coordinate privacy; ancestral house, shrine, land parcel, neighbourhood types) | VERIFIED | `test_life_events.py` (place tests), Vitest `geo.test.ts` | No geocoder or PostGIS by design (ADR-0015) |
+| Important life events (category → type, title, significance, visibility, own coordinates with precision; tree-wide `/life-events`) | VERIFIED | `test_life_events.py`, Vitest `heritage.test.tsx`, `lifeEvents.test.ts`, Playwright `heritage-visualization.spec.ts` | Event privacy now enforced at lookup for every route (`get_event_checked`) |
+| Event photo albums (multiple photos, cover, caption/date, people tagging, privacy inheritance, album and Photos tab, slideshow) | VERIFIED | `test_life_events.py`, Playwright `heritage-visualization.spec.ts` | Photos are vault documents (scan, encryption, signed URLs) |
+| Reminders: per-user opt-in, lead days, annual/one-time, time zones, scheduler tick, queue delivery, retries, cancellation on lost access, history, test send | VERIFIED (email) | `test_reminders.py` (16), Vitest, Playwright | Scheduler: `python -m app.cli.reminders tick [--loop]`; pilot compose service `reminders` |
+| SMS / WhatsApp channels (verified encrypted phone numbers; mock, Twilio and Meta Cloud API adapters) | IMPLEMENTED with mock providers | `test_reminders.py` (mock) | Live providers **not exercised**: need credentials, DLT registration (SMS India) and an approved WhatsApp template (`docs/operations/notification-providers.md`) |
+| Visualization data APIs (ancestry, neighbourhood, lifespans, story, map) and chart presets | VERIFIED | `test_visualization.py` (8) | Caps: 10 generations, radius 3 / 300 nodes, 500 lifespans, 2,000 map points |
+| Charts UI: fan, relationship web (progressive, draggable, zoom/pan, path), pedigree, family tree, lifespans (zoom slider, eras, events), life story (decade / detailed / slideshow), tile-free map; legends, text alternatives, keyboard details panel, SVG/PNG/print export, saved views | VERIFIED | Vitest `heritage.test.tsx`, Playwright `heritage-visualization.spec.ts` | axe audit of the new pages and a screen-reader pass are outstanding (add to the manual pack) |
+| Remotion renderer (`renderer/`): FanChart, PedigreeChart, FamilyTree, LifespanTimeline, EventTimeline; themes, title card, branding, audio slots | VERIFIED | `renderer` `npm test` (real renders: 5 posters + 2 MP4s, ffprobe duration check) | CI job `renderer`. Remotion licence to confirm before production |
+| Render jobs and artifacts (payload as requester, encrypted, separate queue/worker, poster + MP4, progress, quotas, timeouts, signed downloads) | VERIFIED | `test_render_jobs.py` (9, incl. a real Remotion render through the API with `VSH_TEST_REMOTION=1`) | Render worker image `deploy/render-worker/Dockerfile` not built in the sandbox (no Docker daemon); compose profile `render` |
+

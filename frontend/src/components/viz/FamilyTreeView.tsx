@@ -46,7 +46,7 @@ export function FamilyTreeView({ rootId }: { rootId: string }) {
   if (graph.error || !graph.data) return <ErrorAlert error={graph.error} />;
   const people = graph.data.nodes.filter((n) => n.person).length;
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <ChartFrame
         title={t("viz.chart.family")}
         summary={t("viz.familySummary", { count: people, generations: depth })}

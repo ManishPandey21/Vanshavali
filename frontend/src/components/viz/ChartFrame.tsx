@@ -38,14 +38,14 @@ export function ChartFrame({
   const fallback = useRef<HTMLDivElement>(null);
   const svg = () => svgRef?.current ?? fallback.current?.querySelector("svg") ?? null;
   return (
-    <section className="space-y-3 print:space-y-1" aria-label={title}>
+    <section className="min-w-0 space-y-3 print:space-y-1" aria-label={title}>
       {controls && <div className="no-print flex flex-wrap items-end gap-3">{controls}</div>}
       {summary && (
         <p className="text-sm text-ink-muted" aria-live="polite">
           {summary}
         </p>
       )}
-      <div ref={fallback} className="overflow-hidden rounded-xl border border-stone-200 bg-white">
+      <div ref={fallback} className="overflow-auto rounded-xl border border-stone-200 bg-white">
         {children}
       </div>
       {legend.length > 0 && (

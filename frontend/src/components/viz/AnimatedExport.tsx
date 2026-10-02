@@ -31,11 +31,11 @@ export function AnimatedExport({ chartType, settings, disabledReason }: { chartT
     create.mutate({ chart_type: chartType, output, settings: { ...settings, theme, title: title.trim() || null } as RenderSettings });
   return (
     <section className="card space-y-3 p-4" aria-labelledby={`anim-${chartType}`}>
-      <h3 id={`anim-${chartType}`} className="flex items-center gap-2 font-semibold">
+      <h2 id={`anim-${chartType}`} className="flex items-center gap-2 font-semibold">
         <Film className="size-4" aria-hidden /> {t("render.title")}
-      </h3>
+      </h2>
       <p className="text-sm text-ink-muted">{t("render.hint")}</p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3">
         <Field label={t("render.output")}>
           {(p) => (
             <Select {...p} value={output} onChange={(e) => setOutput(e.target.value as "poster" | "mp4")}>

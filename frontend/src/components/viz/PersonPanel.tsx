@@ -15,9 +15,9 @@ export function PersonPanel({ person, onClose, extra }: { person: VizPerson; onC
   return (
     <aside className="card no-print space-y-2 p-4" aria-labelledby="viz-panel-name">
       <div className="flex items-start justify-between gap-2">
-        <h3 id="viz-panel-name" ref={ref} tabIndex={-1} className="font-display text-lg font-semibold focus:outline-none">
+        <h2 id="viz-panel-name" ref={ref} tabIndex={-1} className="font-display text-lg font-semibold focus:outline-none">
           {person.display_name}
-        </h3>
+        </h2>
         <button type="button" onClick={onClose} className="rounded p-1 hover:bg-parchment-deep" aria-label={t("common.close")}>
           <X className="size-4" aria-hidden />
         </button>

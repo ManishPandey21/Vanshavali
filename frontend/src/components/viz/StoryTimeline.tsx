@@ -95,7 +95,7 @@ function EventList({ events, detailed }: { events: StoryEvent[]; detailed: boole
               const cover = e.photos?.find((p) => p.is_cover) ?? e.photos?.[0];
               return (
                 <li key={e.id} className="relative">
-                  <span className={`absolute -left-[27px] top-3 size-3 rounded-full border-2 border-white ${e.significance === "milestone" ? "bg-haldi-600" : "bg-kumkum-700"}`} aria-hidden />
+                  <span className={`absolute -left-[27px] top-3 size-3 rounded-full border-2 border-white ${e.significance === "milestone" ? "bg-haldi-500" : "bg-kumkum-700"}`} aria-hidden />
                   <article className="card flex gap-3 p-3">
                     {cover?.has_thumbnail && <PhotoThumb treeId={treeId} documentId={cover.document_id} alt={cover.caption || e.label} className="size-20 shrink-0 rounded-md" />}
                     <div className="min-w-0">

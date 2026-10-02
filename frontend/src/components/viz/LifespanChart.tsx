@@ -22,7 +22,7 @@ export function LifespanChart({ rootId }: { rootId?: string }) {
   const [branchId, setBranchId] = useState("");
   const [withEvents, setWithEvents] = useState(true);
   const [generation, setGeneration] = useState<string>("");
-  const [scale, setScale] = useState(6); // pixels per year
+  const [scale, setScale] = useState(4); // pixels per year
   const [selected, setSelected] = useState<LifespanRow | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const data = useLifespans(treeId, { root: rootId || undefined, generations, branch_id: branchId || undefined, include_events: withEvents });
@@ -35,7 +35,7 @@ export function LifespanChart({ rootId }: { rootId?: string }) {
   const lo = Math.floor(((data.data?.min_year ?? thisYear - 100) - 5) / 10) * 10;
   const hi = Math.max(data.data?.max_year ?? thisYear, thisYear) + 3;
   const width = LABEL_W + (hi - lo) * scale + 20;
-  const height = 40 + rows.length * ROW_H + 30;
+  const height = 48 + rows.length * ROW_H + 30;
   const x = (y: number) => LABEL_W + (y - lo) * scale;
   const step = scale >= 10 ? 10 : scale >= 5 ? 20 : 50;
   const ticks: number[] = [];
@@ -92,7 +92,7 @@ export function LifespanChart({ rootId }: { rootId?: string }) {
   if (data.isLoading) return <Spinner />;
   if (data.error || !data.data) return <ErrorAlert error={data.error} />;
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <ChartFrame
         title={t("viz.chart.lifespan")}
         summary={data.data.summary + ((data.data.without_dates ?? 0) > 0 ? ` ${t("viz.withoutDates", { count: data.data.without_dates })}` : "")}
@@ -110,14 +110,21 @@ export function LifespanChart({ rootId }: { rootId?: string }) {
           <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="group" aria-label={t("viz.chart.lifespan")}>
             {(data.data.periods ?? [])
               .filter((p) => p.end_year >= lo && p.start_year <= hi)
-              .map((p, i) => (
-                <g key={p.label}>
-                  <rect x={x(Math.max(lo, p.start_year))} y={14} width={Math.max(2, x(Math.min(hi, p.end_year)) - x(Math.max(lo, p.start_year)))} height={height - 30} fill="#9f1239" opacity={i % 2 ? 0.04 : 0.08} />
-                  <text x={x(Math.max(lo, p.start_year)) + 3} y={26} fontSize={10} fill="#6b5e55">
-                    {p.label}
-                  </text>
-                </g>
-              ))}
+              .map((p, i) => {
+                const w = Math.max(2, x(Math.min(hi, p.end_year)) - x(Math.max(lo, p.start_year)));
+                return (
+                  <g key={p.label}>
+                    <rect x={x(Math.max(lo, p.start_year))} y={14} width={w} height={height - 30} fill="#9f1239" opacity={i % 2 ? 0.04 : 0.08}>
+                      <title>{`${p.label}: ${p.start_year}–${p.end_year}`}</title>
+                    </rect>
+                    {w >= p.label.length * 5.5 && (
+                      <text x={x(Math.max(lo, p.start_year)) + 3} y={i % 2 ? 36 : 26} fontSize={10} fill="#6b5e55">
+                        {p.label}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
             {ticks.map((y) => (
               <g key={y}>
                 <line x1={x(y)} x2={x(y)} y1={32} y2={height - 24} stroke="#e7dfd0" />
@@ -127,7 +134,7 @@ export function LifespanChart({ rootId }: { rootId?: string }) {
               </g>
             ))}
             {rows.map((r, i) => {
-              const y = 40 + i * ROW_H;
+              const y = 48 + i * ROW_H;
               const end = r.end_year ?? thisYear;
               const living = r.person.profile_status === "living";
               const color = !r.end_known ? "#a8a29e" : living ? "#1d4ed8" : "#9a3412";

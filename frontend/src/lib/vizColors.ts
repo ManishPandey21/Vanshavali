@@ -46,8 +46,18 @@ export function buildLegend(keys: (string | null)[], max = PALETTE.length - 1): 
   return { entries, color: (k) => (k ? top.get(k) ?? OTHER_COLOR : HIDDEN_COLOR) };
 }
 
-export function yearsLabel(p: Pick<VizPerson, "birth_display" | "death_display" | "profile_status">): string {
-  if (!p.birth_display && !p.death_display) return "";
-  if (p.profile_status === "deceased") return `${p.birth_display ?? "?"}–${p.death_display ?? "?"}`;
-  return p.birth_display ? `${p.birth_display}–` : "";
+/** "c. 1900" stays "c. 1900", "12 Oct 1950" / "1950-10-12" become "1950" (charts show years). */
+export function shortYear(display: string | null | undefined, year: number | null | undefined): string | null {
+  if (!display && !year) return null;
+  if (!year) return display ?? null;
+  const qualifier = display && /^[^\d]/.test(display) ? `${display.split(" ")[0]} ` : "";
+  return `${qualifier}${year}`;
+}
+
+export function yearsLabel(p: Pick<VizPerson, "birth_display" | "death_display" | "profile_status"> & Partial<Pick<VizPerson, "birth_year" | "death_year">>): string {
+  const born = shortYear(p.birth_display, p.birth_year);
+  const died = shortYear(p.death_display, p.death_year);
+  if (!born && !died) return "";
+  if (p.profile_status === "deceased") return `${born ?? "?"}–${died ?? "?"}`;
+  return born ? `${born}–` : "";
 }

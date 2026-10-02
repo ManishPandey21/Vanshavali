@@ -74,6 +74,12 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Operational logs, metrics and job queues | Route templates only (no raw paths or query strings, so no signed tokens), no bodies, cookies or headers; masked email addresses; job descriptions without arguments, and failed jobs expire after 7 days; GEDCOM and storage failures logged by type only; metrics carry fixed low-cardinality labels, never IDs or names; the pilot edge (Caddy) keeps no access log (T18, T31; `docs/operations/monitoring-alerting.md`) | `test_observability.py`, `test_pilot_ops.py` |
 | Backups | Database dumps are encrypted with age before leaving the database host; the identity is kept offline. Document objects are already app-encrypted; backup copies stay in an Indian region (ADR-0014, backup-restore runbook) | drill (`deploy/pilot/drill/run-drill.sh`) |
 | Exports | GEDCOM export applies the exporter's view. Living people are excluded by default. Sensitive data needs `privacy.manage` and is audited. | `test_gedcom.py` |
+| Life events (ADR-0015) | An event's own `privacy_level` is enforced at lookup (`get_event_checked`), so album, reminder and render endpoints 404 for events the viewer may not see; tree-wide listing pages over visible rows only | `test_life_events.py::test_private_events_and_people_never_listed`, `…test_photo_privacy_inherits_from_event_and_person` |
+| Event photos (ADR-0015) | A new photo takes the strictest of tree default, event level and principal's level; a looser level is refused; album entries and counts include only documents the viewer may see; vault content rules (STANDARD/VAULT, grants, signed URLs) unchanged | `test_life_events.py` (album tests), `test_render_jobs.py::test_event_timeline_embeds_only_photos_the_requester_may_open` |
+| Coordinates (ADR-0015) | `place.coordinate_privacy`: viewers below it get coordinates rounded to 0.1° and precision `approximate`, no geo note; event coordinates at such a place are coarsened too; public pages never get coordinates | `test_life_events.py::test_coordinate_privacy_coarsens_for_lower_roles`, `test_visualization.py::test_map_points_paths_and_coordinate_privacy` |
+| Charts and maps (ADR-0017) | Every `/viz/*` endpoint builds on `visible_subjects` and the event serialiser: hidden people are placeholders without names, dates or places; the graph never expands through them; living people keep year-only dates and no birthplace detail | `test_visualization.py::test_viz_endpoints_leak_nothing_hidden` |
+| Animated exports (ADR-0017) | The payload is built as the requester, encrypted at rest and purged when the job ends; artifacts are visible and downloadable only by the requester and tree admins via 5-minute user-bound signed URLs re-authorised at download | `test_render_jobs.py` |
+| Reminders (ADR-0016) | Per-user, opt-in; only dates the member can see in full; re-evaluated as the recipient at send time; SMS/WhatsApp texts carry no names, places or notes; delivery records hold no message or address; phone numbers encrypted, masked and verified | `test_reminders.py` |
 
 ## 5. Subject rights and deletion (PRS §29, §31, §54)
 | Need | Implementation |
@@ -103,3 +109,24 @@ the onboarding wording and its Hindi translation.
 **DEFERRED:** a formal data-subject-request inbox with SLAs and a grievance officer contact
 (DPDP Rules commencement is phased, so this is tracked as a legal workstream). Age-verification and
 guardian-consent capture flows beyond the consent ledger are also deferred.
+
+## 7. Heritage visualization milestone (ADR-0015, ADR-0016, ADR-0017)
+- **Event visibility.** An event can be more private than its person (`event.privacy_level`). That
+  level now gates every route that looks the event up, not just its serialisation.
+- **Photos inherit privacy.** Event photos are vault documents whose default level is the strictest
+  of the tree default, the event and its principal person; uploaders cannot loosen it. Tagging a
+  person in a photo requires that the uploader can see the person (404 otherwise).
+- **Exact locations are personal data** when they point at a living family's home. Place
+  coordinates can be restricted (`coordinate_privacy`); others see ~11 km precision. Maps draw no
+  third-party tiles; "open in OpenStreetMap" sends a point to OSM only when the user clicks it.
+- **Charts and videos show what the viewer may see, no more.** Hidden relatives are anonymous
+  placeholders in every chart, table alternative, map and render payload. A video is rendered from
+  a payload built as its requester; other members cannot see or download it. Videos downloaded by a
+  member leave the platform's control — the export panel says the render uses the requester's view.
+- **Reminders** are opt-in per member and tree, stop when access is revoked, and keep minimal data:
+  no message bodies or addresses in delivery history; SMS/WhatsApp (third-party processors) get no
+  names, places or notes; phone numbers are encrypted (SYSTEM key), masked, and verified by code.
+- **Retention.** Render payloads are deleted when a job ends; artifacts until the job is deleted.
+  Delivery history is kept with the tree (deleted with it). An automatic retention period for
+  render artifacts and delivery history is DEFERRED (proposed: 90 days / 1 year).
+

@@ -95,7 +95,7 @@ export function AncestryChart({ kind, rootId, settings, onSettings }: { kind: "f
       : label(d);
   const choose = (d: Drawn) => d.node?.person && setSelected(d.node.person);
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <ChartFrame
         title={t(`viz.chart.${kind}`)}
         summary={a.summary}
@@ -152,9 +152,10 @@ function FanSvg({ svgRef, drawn, generations, fill, label, aria, onChoose, selec
   const W = 900;
   const H = 500;
   const cx = W / 2;
-  const cy = H - 30;
-  const rRoot = 64;
-  const ring = Math.min(110, (H - 50 - rRoot) / generations);
+  const cy = H - 20;
+  const rRoot = 60;
+  // the semicircle must fit both half the width and the height
+  const ring = Math.min(110, (Math.min(W / 2 - 10, H - 40) - rRoot) / generations);
   return (
     <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="group" aria-label="fan">
       {drawn

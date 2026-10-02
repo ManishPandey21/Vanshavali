@@ -192,3 +192,17 @@ Status as of 2 Oct 2026: items marked *(prepared)* have everything they need in 
 - [ ] Weekly automatic `apt` security updates verified (unattended-upgrades is enabled by
   bootstrap).
 - [ ] People-list index when any tree approaches 100k people (performance.md trigger).
+
+## Heritage visualization milestone (before enabling the features on the pilot)
+- [ ] The `reminders` scheduler service is running (`docker compose ps reminders`) and a test
+      reminder ("Send me a test" on the Reminders page) arrives by email.
+- [ ] SMS / WhatsApp stay `disabled` unless a provider is configured end to end
+      (`docs/operations/notification-providers.md`: credentials in the secret manager, DLT
+      registration for SMS, approved WhatsApp template, a verified test number).
+- [ ] **Remotion licence** checked for the operating organisation (free only for individuals,
+      non-profits and companies of up to 3 people); otherwise keep `VSH_RENDER_BACKEND=disabled`.
+- [ ] If renders are enabled: render-worker image built and deployed (`--profile render`), 2 CPUs /
+      3 GB, Noto fonts present (Hindi names render correctly in a test export), one poster and one
+      MP4 produced on the pilot.
+- [ ] Retention for render artifacts and delivery history agreed (deferred in code).
+

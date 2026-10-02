@@ -62,7 +62,7 @@ export function layout(nodes: Map<string, SimNode>, edges: Map<string, GraphEdge
           dy = Math.random() - 0.5;
           d2 = 0.5;
         }
-        const f = 2200 / d2;
+        const f = 900 / d2;
         a.vx += dx * f;
         a.vy += dy * f;
         b.vx -= dx * f;
@@ -86,13 +86,13 @@ export function layout(nodes: Map<string, SimNode>, edges: Map<string, GraphEdge
       b.vy -= (dy / d) * k;
       if (e.kind === "parent") {
         // parents sit above children
-        a.vy -= 0.6;
-        b.vy += 0.6;
+        a.vy -= 0.3;
+        b.vy += 0.3;
       }
     }
     for (const n of list) {
-      n.vx += (W / 2 - n.x) * 0.002;
-      n.vy += (H / 2 - n.y) * 0.002;
+      n.vx += (W / 2 - n.x) * 0.01;
+      n.vy += (H / 2 - n.y) * 0.01;
       if (!n.pinned) {
         n.x += Math.max(-20, Math.min(20, n.vx * cool));
         n.y += Math.max(-20, Math.min(20, n.vy * cool));
@@ -101,6 +101,20 @@ export function layout(nodes: Map<string, SimNode>, edges: Map<string, GraphEdge
       n.vy *= 0.5;
     }
   }
+}
+
+/** A view transform that fits every node inside the canvas (with room for labels). */
+export function fitView(nodes: Iterable<SimNode>): { x: number; y: number; k: number } {
+  const list = [...nodes];
+  if (!list.length) return { x: 0, y: 0, k: 1 };
+  const xs = list.map((n) => n.x);
+  const ys = list.map((n) => n.y);
+  const minX = Math.min(...xs) - 70;
+  const maxX = Math.max(...xs) + 70;
+  const minY = Math.min(...ys) - 40;
+  const maxY = Math.max(...ys) + 50;
+  const k = Math.max(0.3, Math.min(1.6, W / (maxX - minX), H / (maxY - minY)));
+  return { x: (W - (maxX - minX) * k) / 2 - minX * k, y: (H - (maxY - minY) * k) / 2 - minY * k, k };
 }
 
 /** Shortest path over the loaded edges (any relationship), for "how is this person connected?". */
@@ -140,7 +154,7 @@ export function NodeGraph({ rootId }: { rootId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [groupBy, setGroupBy] = useState<GroupBy>("branch");
+  const [groupBy, setGroupBy] = useState<GroupBy>("living");
   const [branchFilter, setBranchFilter] = useState("");
   const [villageFilter, setVillageFilter] = useState("");
   const [withEvents, setWithEvents] = useState(false);
@@ -160,6 +174,7 @@ export function NodeGraph({ rootId }: { rootId: string }) {
         const n = nodes.current.get(id);
         if (n && anchor) n.data = { ...n.data, expandable: false };
         layout(nodes.current, edges.current);
+        setView(fitView(nodes.current.values()));
         redraw();
       } catch (e) {
         setError(e);
@@ -260,7 +275,7 @@ export function NodeGraph({ rootId }: { rootId: string }) {
   );
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <ChartFrame
         title={t("viz.chart.graph")}
         summary={t("viz.graphSummary", { count: list.filter((n) => n.data.person).length, edges: edgeList.length })}
@@ -274,7 +289,7 @@ export function NodeGraph({ rootId }: { rootId: string }) {
           <div className="no-print absolute right-2 top-2 z-10 flex gap-1">
             <Button size="sm" variant="secondary" onClick={() => zoom(1.25)} aria-label={t("viz.zoomIn")} icon={<Plus className="size-4" aria-hidden />} />
             <Button size="sm" variant="secondary" onClick={() => zoom(0.8)} aria-label={t("viz.zoomOut")} icon={<Minus className="size-4" aria-hidden />} />
-            <Button size="sm" variant="secondary" onClick={() => setView({ x: 0, y: 0, k: 1 })} aria-label={t("viz.resetView")} icon={<RotateCcw className="size-4" aria-hidden />} />
+            <Button size="sm" variant="secondary" onClick={() => setView(fitView(nodes.current.values()))} aria-label={t("viz.resetView")} icon={<RotateCcw className="size-4" aria-hidden />} />
           </div>
           {loading && list.length === 0 && <Spinner />}
           <svg

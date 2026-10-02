@@ -41,7 +41,22 @@ MAX_PHOTO_BYTES = 600 * 1024
 OTHER = "__other__"
 
 
-def _years(birth: str | None, death: str | None, status: ProfileStatus) -> str | None:
+def _short(display: str | None, year: int | None) -> str | None:
+    """Charts show years: "c. 1900" stays, "12 Oct 1950" becomes "1950"."""
+    if year is None:
+        return display
+    qualifier = f"{display.split(' ')[0]} " if display and not display[0].isdigit() else ""
+    return f"{qualifier}{year}"
+
+
+def _years(
+    birth: str | None,
+    death: str | None,
+    status: ProfileStatus,
+    birth_year: int | None = None,
+    death_year: int | None = None,
+) -> str | None:
+    birth, death = _short(birth, birth_year), _short(death, death_year)
     if not birth and not death:
         return None
     if status == ProfileStatus.DECEASED:
@@ -54,7 +69,7 @@ def _card(p: VizPerson | PersonSummary, color_key: str | None = None) -> dict[st
         return {
             "id": str(p.id),
             "name": p.display_name,
-            "years": _years(p.birth_display, p.death_display, p.profile_status),
+            "years": _years(p.birth_display, p.death_display, p.profile_status, p.birth_year, p.death_year),
             "birthPlace": p.birth_place.name if p.birth_place else None,
             "village": p.village,
             "living": p.profile_status == ProfileStatus.LIVING,
@@ -64,7 +79,7 @@ def _card(p: VizPerson | PersonSummary, color_key: str | None = None) -> dict[st
     return {
         "id": str(p.id),
         "name": p.display_name,
-        "years": _years(p.birth_display, p.death_display, p.profile_status),
+        "years": _years(p.birth_display, p.death_display, p.profile_status, p.birth_year, p.death_year),
         "living": p.profile_status == ProfileStatus.LIVING,
         "colorKey": color_key,
     }
@@ -304,7 +319,7 @@ def _event_timeline(ctx: TreeContext, s: RenderSettings) -> tuple[dict[str, Any]
         "kind": "event_timeline",
         "person": {
             "name": p.display_name,
-            "years": _years(p.birth_display, p.death_display, p.profile_status),
+            "years": _years(p.birth_display, p.death_display, p.profile_status, p.birth_year, p.death_year),
         },
         "events": events,
     }
