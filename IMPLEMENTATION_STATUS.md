@@ -4,20 +4,22 @@ Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERI
 tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
-Last verified: 2026-10-02 (pilot deployment and operational validation;
-[docs/release/production-readiness.md](docs/release/production-readiness.md),
+Last verified: 2026-10-02 (heritage visualization milestone, on top of the pilot deployment and
+operational validation; [docs/release/production-readiness.md](docs/release/production-readiness.md),
 [docs/release/pilot-go-live-checklist.md](docs/release/pilot-go-live-checklist.md)).
-- Backend: `uv run pytest` **345 passed** as the RLS-restricted app role, including the migration
-  roundtrip; ruff, ruff format, ruff `S`, mypy, pip-audit clean. Migrations from a clean database:
-  one head, `alembic check` clean, full downgrade and re-upgrade (also a CI step now).
-- Frontend: lint, typecheck, Vitest (122), build and npm audit (0 vulnerabilities) green; OpenAPI
-  types unchanged.
-- Playwright: 26 tests in 12 specs, all passing.
-- Deploy configuration: pilot compose renders, Caddyfile valid, 18 alert rules + promtool unit
-  tests, shellcheck and actionlint clean.
-- Pilot stack exercised end to end in the sandbox (staging drill, edge test, performance through
-  the stack): `docs/release/evidence/pilot-2026-10-02/`.
-- DAST (ZAP, executed 1 Oct): baseline 0 FAIL/0 WARN; ID-aware API scan 0 FAIL/0 WARN, 0 server errors.
+- Backend: `uv run pytest` **385 passed, 3 skipped** as the RLS-restricted app role, including the
+  migration roundtrip and a real Remotion render through the API (`VSH_TEST_REMOTION=1`); ruff,
+  ruff format, mypy clean. Migrations from a clean database: one head, `alembic check` clean, full
+  downgrade and re-upgrade.
+- Frontend: lint, typecheck, Vitest (137), build and npm audit (0 vulnerabilities) green; OpenAPI
+  types regenerated.
+- Renderer (`renderer/`): typecheck, real-render smoke test (5 posters, 2 MP4s), npm audit clean.
+- Playwright: 27 tests in 13 specs, all passing (the new `heritage-visualization.spec.ts` also
+  passes with the real Remotion renderer); the a11y audit now also covers the 10 new pages and 3 new
+  profile tabs in en/hi.
+- Earlier (pilot validation, unchanged by this milestone): deploy configuration (compose, Caddyfile,
+  18 alert rules + promtool tests, shellcheck, actionlint), pilot stack exercised end to end
+  (`docs/release/evidence/pilot-2026-10-02/`), DAST (ZAP, 1 Oct) 0 FAIL/0 WARN.
 
 ## Platform / Phase 0
 
