@@ -7,7 +7,7 @@ import { PASSWORD, openVerificationLink, uniqueEmail } from "./helpers";
  */
 test("signed-out visitors land on the heritage page and can begin a tree from it", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: /Preserving the threads of tradition/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Preserving the Threads of Tradition/ })).toBeVisible();
   await expect(page.getByText("॥ वसुधैव कुटुम्बकम् ॥").first()).toBeVisible();
   await expect(page.getByText(/for preserving Indian family heritage/)).toBeVisible();
 
@@ -15,7 +15,7 @@ test("signed-out visitors land on the heritage page and can begin a tree from it
   await expect(page.getByRole("heading", { level: 1, name: /परंपरा के धागों को सहेजते हुए/ })).toBeVisible();
   await page.getByRole("combobox", { name: "भाषा" }).first().selectOption("en");
 
-  await page.getByRole("link", { name: /Begin your family tree/ }).click();
+  await page.getByRole("link", { name: /Begin your family tree/ }).first().click();
   await expect(page).toHaveURL(/\/login$/);
   await page.getByRole("link", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/register$/);

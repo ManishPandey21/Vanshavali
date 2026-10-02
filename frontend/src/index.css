@@ -28,8 +28,34 @@
   --color-leaf-700: #22643a;
   --color-indigo-deep: #26336b;
 
+  /* Landing page (editorial heritage design). Fonts are self-hosted, imported by the landing page. */
+  --font-heritage: "Playfair Display", "Noto Serif Devanagari", Georgia, serif;
+  --font-garamond: "EB Garamond", "Noto Serif Devanagari", Georgia, serif;
+  --color-cream: #f7f0e4;
+  --color-sand: #eee4d1;
+  --color-cocoa: #2b231c;
+  --color-cocoa-soft: #3a2f25;
+  --color-rust: #a8482a;
+  --color-terracotta: #8b3a1f;
+  --color-gold: #c9a24c;
+  --color-mustard: #b8a14a;
+  --color-umber: #6b5a4a;
+
   /* Landing hero: slow cinematic pan. Used only behind motion-safe:. */
   --animate-kenburns: kenburns 38s ease-in-out infinite alternate;
+  /* Landing hero text rises in on load; also only behind motion-safe:. */
+  --animate-rise: rise 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 28px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
   @keyframes kenburns {
     from {
@@ -130,4 +156,49 @@
 ::-webkit-scrollbar-thumb {
   background: #c4a97d;
   border-radius: 4px;
+}
+
+/*
+ * Scroll reveal for the landing page (see pages/landing/Reveal.tsx). Content is visible by default;
+ * only once the script has armed an element ([data-reveal="armed"]) is it hidden until it scrolls
+ * into view, and never for visitors who prefer reduced motion.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal="armed"] {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0);
+  }
+  /* "unveil" wipes an inner wrapper open from the top. The clip sits on the wrapper, not on the
+     observed element, because a fully clipped target never reports as intersecting. */
+  [data-reveal="armed"][data-reveal-variant="unveil"] {
+    opacity: 1;
+    transform: scale(0.97);
+  }
+  [data-reveal="armed"] > [data-reveal-inner] {
+    clip-path: inset(0 0 100% 0);
+  }
+  [data-reveal="shown"] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 900ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  [data-reveal="shown"] > [data-reveal-inner] {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 1400ms cubic-bezier(0.65, 0, 0.35, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  /* The family-tree "thread": a line that draws itself once its section is shown. */
+  [data-reveal] .thread-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  [data-reveal="armed"] .thread-path {
+    stroke-dashoffset: 1;
+  }
+  [data-reveal="shown"] .thread-path {
+    transition: stroke-dashoffset 2200ms cubic-bezier(0.65, 0, 0.35, 1) 300ms;
+  }
 }
