@@ -71,6 +71,8 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Heritage | Attribute → group mapping (jati, community, religion) plus per-assertion level | `test_heritage_family.py` |
 | Documents and property | Object level plus vault/property permissions (ADR-0004, ADR-0010) | module tests |
 | Photos imported with GEDCOM | Each photo becomes a document with its person's privacy level, the strictest of them when one photo shows several people; photos of people who are not imported, or of no one, are not stored (ADR-0013) | `test_gedcom_photos.py::test_photo_privacy_follows_the_person` |
+| Operational logs, metrics and job queues | Route templates only (no raw paths or query strings, so no signed tokens), no bodies, cookies or headers; masked email addresses; job descriptions without arguments, and failed jobs expire after 7 days; GEDCOM and storage failures logged by type only; metrics carry fixed low-cardinality labels, never IDs or names; the pilot edge (Caddy) keeps no access log (T18, T31; `docs/operations/monitoring-alerting.md`) | `test_observability.py`, `test_pilot_ops.py` |
+| Backups | Database dumps are encrypted with age before leaving the database host; the identity is kept offline. Document objects are already app-encrypted; backup copies stay in an Indian region (ADR-0014, backup-restore runbook) | drill (`deploy/pilot/drill/run-drill.sh`) |
 | Exports | GEDCOM export applies the exporter's view. Living people are excluded by default. Sensitive data needs `privacy.manage` and is audited. | `test_gedcom.py` |
 
 ## 5. Subject rights and deletion (PRS §29, §31, §54)

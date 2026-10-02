@@ -7,6 +7,11 @@
 > now **resolved** by the PRS and ADRs 0001–0010. **Still open:** Q6 (which regional calendars
 > beyond Gregorian/Julian/Vikram Samvat/Shaka), Q8 (UI languages beyond en/hi), Q12 (hosting
 > region and RPO/RTO). None of these block development.
+>
+> **Update (Oct 2026, pilot):** Q12's topology is decided by ADR-0014: an Indian region, one VM,
+> managed PostgreSQL and S3. The provider account and the RPO/RTO targets still need the owner's
+> confirmation. The proposed targets, and the drill that measures them, are in
+> `docs/operations/backup-restore-runbook.md`.
 
 These came out of a grill-me style review at project start. Each one blocks or shapes an ADR.
 Record the owner's answer here and update the ADR it affects.
