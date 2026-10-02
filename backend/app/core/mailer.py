@@ -24,12 +24,16 @@ from email.utils import formatdate, make_msgid, parseaddr
 from pathlib import Path
 from typing import Any
 
+from app.core import events
 from app.core.config import get_settings
 from app.core.jobs import enqueue
 
 log = logging.getLogger("app.mail")
 
 REDACTED = "[redacted]"
+# A failed delivery (SMTP outage, auth failure) is retried by the worker after these delays (seconds).
+# The last attempt is about 21 minutes after the first; verification links stay valid for 48 hours.
+RETRY_INTERVALS_S = (60, 300, 900)
 # Any long URL-safe token (our tokens are 43 chars) in a path segment or query value.
 _TOKEN_RE = re.compile(r"(?:(?<=[/=#])|(?<=%23))[A-Za-z0-9_-]{32,}")
 
@@ -59,8 +63,9 @@ def send(
         "kind": kind,
     }
     try:
-        enqueue(deliver, payload)
+        enqueue(deliver, payload, retry_intervals=RETRY_INTERVALS_S)
     except Exception as exc:
+        events.record("mail_send_failed")
         log.error("email (%s) to=%s could not be sent: %s", kind, mask_address(to), type(exc).__name__)
 
 
@@ -88,12 +93,23 @@ def deliver(payload: dict[str, Any]) -> None:
     """Job entry point: build and hand the message to the configured backend."""
     backend = get_settings().mail_backend
     msg = build_message(payload)
-    if backend == "smtp":
-        _deliver_smtp(msg)
-    elif backend == "file":
-        _deliver_file(msg, payload)
-    else:
-        _deliver_console(payload)
+    try:
+        if backend == "smtp":
+            _deliver_smtp(msg)
+        elif backend == "file":
+            _deliver_file(msg, payload)
+        else:
+            _deliver_console(payload)
+    except Exception as exc:
+        # Type only: SMTP replies can quote the message or the recipient. The job fails and is retried.
+        events.record("mail_delivery_failed")
+        log.warning(
+            "email (%s) to=%s delivery attempt failed: %s",
+            payload.get("kind"),
+            mask_address(payload["to"]),
+            type(exc).__name__,
+        )
+        raise
 
 
 def _deliver_console(payload: dict[str, Any]) -> None:
