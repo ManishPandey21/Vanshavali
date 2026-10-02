@@ -29,8 +29,10 @@
 		-Via
 	}
 
-	# GEDCOM import packages (zip/GEDZIP with photos) up to VSH_MAX_GEDCOM_PACKAGE_BYTES (250 MB)
-	@imports path_regexp imports ^/api/v1/trees/[^/]+/imports$
+	# GEDCOM imports: packages (zip/GEDZIP with photos) up to VSH_MAX_GEDCOM_PACKAGE_BYTES (250 MB),
+	# and the commit, which writes the whole import in one request: ~17 ms per person measured, so
+	# 10,000 people take ~170 s (pilot benchmark, Oct 2026). 600 s covers ~35,000 people.
+	@imports path_regexp imports ^/api/v1/trees/[^/]+/imports(/[^/]+/commit)?$
 	handle @imports {
 		request_body {
 			max_size 260MB
@@ -43,7 +45,7 @@
 			lb_try_duration 10s
 			fail_duration 10s
 			transport http {
-				response_header_timeout 300s
+				response_header_timeout 600s
 			}
 		}
 	}

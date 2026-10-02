@@ -210,11 +210,9 @@ lost="$(in_net "$SMOKE_PW" <<'PY'
 import http.cookiejar, json, sys, urllib.request
 jar = http.cookiejar.CookieJar()
 op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-op.open("https://pilot.test/api/v1/auth/providers", timeout=30)
-csrf = next(c.value for c in jar if c.name == "vsh_csrf")
 op.open(urllib.request.Request("https://pilot.test/api/v1/auth/login", method="POST",
     data=json.dumps({"email": "smoke@drill.example.org", "password": sys.argv[1]}).encode(),
-    headers={"Content-Type": "application/json", "X-CSRF-Token": csrf}), timeout=30)
+    headers={"Content-Type": "application/json"}), timeout=30)
 names = [t["name"] for t in json.load(op.open("https://pilot.test/api/v1/trees", timeout=30))]
 print("absent" if "After backup" not in names else "present")
 PY
