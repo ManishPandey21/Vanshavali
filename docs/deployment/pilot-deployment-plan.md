@@ -74,7 +74,7 @@ S3, in an Indian region. Kubernetes and multi-region are not needed at this scal
 |---|---|---|
 | Purpose | Every release first; restore drills; performance certification; penetration test | Invited families |
 | Data | Synthetic only (smoke trees, `seed_demo`, synthetic 10k tree). **Never real family data** | Real |
-| VM | Smaller is fine (2–4 vCPU / 8 GB) | 4 vCPU / 8–16 GB |
+| VM | Smaller is fine (2–4 vCPU / 8 GB) | 4 vCPU / 8 GB with the default 2 backend replicas + 1 worker; **16 GB for 4 replicas** (each backend process measured at 560–780 MiB under load, ClamAV ~1 GB) |
 | Database / buckets | Own instance and buckets | Own instance and buckets |
 | Keys, SMTP identity, Google client | Own | Own |
 | GitHub environment | `staging` (one approver) | `pilot` (a second person approves) |
@@ -161,10 +161,11 @@ The biggest lever is the VM size, the second the managed DB class. Re-certify pe
 changing either.
 
 ## 8. Scaling assumptions
-- **Measured** (sandbox, shared 4 vCPU; not production capacity):
-  - p95 ≤ 101 ms for single users;
-  - 0% errors with p95 ≤ 353 ms up to 50 req/s on a 10k-person tree;
-  - 503 shedding instead of collapse beyond that (performance.md).
+- **Measured through this exact stack** (2 Oct; sandbox, shared 4 vCPU; not production capacity):
+  - p95 ≤ 195 ms for single users, every operation;
+  - 0% errors, with every operation's p95 under 500 ms up to 40 req/s (50 req/s on overall p95),
+    on a 10k-person tree;
+  - fast 503 shedding beyond that (performance.md, "Pilot stack in the sandbox").
 - **Pilot load:** tens of users, single-digit req/s at peak, far below the measured capacity.
   **Certify on the staging VM** (go-live checklist) and keep peak under 70% of the certified
   rate.
@@ -177,6 +178,8 @@ changing either.
   5. managed container hosting.
 
   None needs a code change. Each needs a new certification run.
+- **Imports:** a GEDCOM commit runs in one request at about 15–17 ms per person (10,000 people
+  take ~170 s; proxies allow 600 s). The trigger to move it to the job queue is in performance.md.
 - **Workers:** one OCR job per worker replica. A burst of 50 scanned pages with 2 workers drains
   in minutes. `JobBacklog` alerts if not.
 - **Storage:** grows with uploads; there is no hot path on it. Bucket storage is effectively
