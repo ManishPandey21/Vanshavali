@@ -11,6 +11,7 @@ import uuid
 
 from sqlalchemy import select
 
+from app.core import events
 from app.core.db import bind_tree, get_sessionmaker
 from app.core.storage import StorageError, get_store
 from app.models import Document
@@ -37,6 +38,7 @@ def process_document(document_id: str, tree_id: str, force_ocr: bool = False) ->
             data = get_store().get(doc.storage_key)
         except StorageError:
             log.error("document %s: original could not be read from storage", doc.id)
+            events.record("storage_error")
             doc.preview_status = ProcessingStatus.FAILED
             if doc.ocr_status == ProcessingStatus.PENDING:
                 doc.ocr_status = ProcessingStatus.FAILED
@@ -54,6 +56,7 @@ def process_document(document_id: str, tree_id: str, force_ocr: bool = False) ->
                 doc.preview_status = ProcessingStatus.COMPLETED
             except Exception as exc:  # corrupt/unsupported image data must not break the pipeline
                 log.warning("document %s: preview failed (%s)", doc.id, type(exc).__name__)
+                events.record("document_preview_failed")
                 db.rollback()
                 reloaded = db.get(Document, doc.id)
                 if reloaded is None:  # document removed meanwhile; nothing left to process
@@ -71,6 +74,7 @@ def process_document(document_id: str, tree_id: str, force_ocr: bool = False) ->
                 db.commit()
             except Exception as exc:
                 log.warning("document %s: OCR/extraction failed (%s)", doc.id, type(exc).__name__)
+                events.record("document_ocr_failed")
                 db.rollback()
                 reloaded = db.get(Document, doc.id)
                 if reloaded is None:

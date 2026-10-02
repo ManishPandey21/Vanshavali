@@ -1,0 +1,120 @@
+# Alert rules for the pilot (docs/operations/monitoring-alerting.md has the response for each).
+# Queue/job/event metrics are cluster-wide (every replica reports the same Redis-backed values), so
+# they are aggregated with max(); HTTP metrics are per process and summed.
+groups:
+  - name: vanshavali-availability
+    rules:
+      - alert: ApiReplicaDown
+        expr: up{job="vanshavali-api"} == 0
+        for: 2m
+        labels: { severity: page }
+        annotations:
+          summary: "API replica {{ $labels.instance }} is not answering /metrics"
+      - alert: NoApiReplicas
+        expr: absent(up{job="vanshavali-api"} == 1)
+        for: 2m
+        labels: { severity: page }
+        annotations:
+          summary: "No API replica is up"
+      - alert: DatabaseUnavailable
+        expr: max(vsh_db_up) == 0
+        for: 1m
+        labels: { severity: page }
+        annotations:
+          summary: "The API cannot reach PostgreSQL"
+      - alert: HighServerErrorRate
+        expr: |
+          sum(rate(vsh_http_requests_total{status="5xx"}[5m]))
+            / clamp_min(sum(rate(vsh_http_requests_total[5m])), 0.01) > 0.05
+          and sum(rate(vsh_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels: { severity: page }
+        annotations:
+          summary: "More than 5% of API requests fail with 5xx"
+      - alert: SustainedHighLatency
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(vsh_http_request_duration_seconds_bucket{route!~".*/(imports|documents|exports/.*)$"}[10m]))) > 0.5
+        for: 15m
+        labels: { severity: warn }
+        annotations:
+          summary: "API p95 above 500 ms for 15 minutes (PRS §49 target)"
+      - alert: LoadShedding
+        expr: sum(rate(vsh_requests_shed_total[5m])) > 0
+        for: 10m
+        labels: { severity: warn }
+        annotations:
+          summary: "Admission control is refusing requests (503 server_busy): add a backend replica"
+
+  - name: vanshavali-jobs
+    rules:
+      - alert: JobQueueUnreachable
+        expr: max(vsh_queue_up) == 0
+        for: 2m
+        labels: { severity: page }
+        annotations:
+          summary: "Redis (job queue, rate limits) is not answering"
+      - alert: NoWorkers
+        expr: max(vsh_workers) == 0
+        for: 5m
+        labels: { severity: page }
+        annotations:
+          summary: "No background worker is running: uploads stay unscanned and email is not sent"
+      - alert: JobBacklog
+        expr: max(vsh_jobs_queued) > 50
+        for: 15m
+        labels: { severity: warn }
+        annotations:
+          summary: "More than 50 jobs waiting for 15 minutes ({{ $value }})"
+      - alert: JobFailures
+        expr: max(increase(vsh_job_runs_total{outcome="failed"}[30m])) > 5
+        labels: { severity: warn }
+        annotations:
+          summary: "Background jobs are failing ({{ $labels.job }})"
+      - alert: EmailDeliveryFailing
+        expr: max(increase(vsh_events_total{event=~"mail_delivery_failed|mail_send_failed"}[30m])) > 3
+        labels: { severity: page }
+        annotations:
+          summary: "Email delivery is failing: registration and password reset are blocked"
+      - alert: StorageErrors
+        expr: max(increase(vsh_events_total{event="storage_error"}[15m])) > 0
+        labels: { severity: page }
+        annotations:
+          summary: "Object storage errors: documents cannot be stored or read"
+      - alert: GedcomImportFailures
+        expr: max(increase(vsh_events_total{event="gedcom_import_failed"}[1h])) > 2
+        labels: { severity: warn }
+        annotations:
+          summary: "Several GEDCOM imports failed in the last hour"
+
+  - name: vanshavali-host
+    rules:
+      - alert: DiskSpaceLow
+        expr: |
+          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"} < 0.15
+        for: 10m
+        labels: { severity: page }
+        annotations:
+          summary: "Less than 15% disk free on {{ $labels.mountpoint }}"
+      - alert: MemoryPressure
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.10
+        for: 10m
+        labels: { severity: warn }
+        annotations:
+          summary: "Less than 10% memory available"
+      - alert: BackupFailed
+        expr: vsh_backup_last_status == 0
+        labels: { severity: page }
+        annotations:
+          summary: "The last backup run failed ({{ $labels.label }})"
+      - alert: BackupStale
+        expr: time() - vsh_backup_last_success_timestamp_seconds > 26 * 3600
+        labels: { severity: page }
+        annotations:
+          summary: "No successful backup for more than 26 hours"
+      - alert: BackupMetricsMissing
+        expr: absent(vsh_backup_last_success_timestamp_seconds)
+        for: 26h
+        labels: { severity: warn }
+        annotations:
+          summary: "backup.sh has never reported success on this host"

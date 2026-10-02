@@ -3,16 +3,58 @@
 from __future__ import annotations
 
 import base64
+import binascii
+import ipaddress
+import logging
+from email.utils import parseaddr
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Development-only keys. Production refuses to start with these (see validate_production).
 _DEV_STANDARD_KEY = base64.b64encode(b"vanshavali-dev-standard-key-32b!").decode()
 _DEV_VAULT_KEY = base64.b64encode(b"vanshavali-dev-vault-key-32bytes").decode()
 _DEV_SIGNING_KEY = "vanshavali-dev-signing-key-change-me"
+
+log = logging.getLogger(__name__)
+
+
+def unsafe_forwarded_allow_ips(value: str) -> list[str]:
+    """Entries of a FORWARDED_ALLOW_IPS list that would let any client choose its own IP.
+
+    uvicorn trusts ``X-Forwarded-For`` from these peers. ``*`` or a /0 network means every client
+    is "trusted", so the rate limits, audit IPs and session IPs become client-controlled (threat T30).
+    """
+    bad = []
+    for entry in (e.strip() for e in value.split(",")):
+        if not entry:
+            continue
+        if entry == "*":
+            bad.append(entry)
+            continue
+        try:
+            if ipaddress.ip_network(entry, strict=False).prefixlen == 0:
+                bad.append(entry)
+        except ValueError:
+            continue  # a hostname or unix socket path: uvicorn matches it literally
+    return bad
+
+
+def _is_loopback_only(value: str) -> bool:
+    entries = [e.strip() for e in value.split(",") if e.strip()]
+    try:
+        return bool(entries) and all(ipaddress.ip_network(e, strict=False).is_loopback for e in entries)
+    except ValueError:
+        return False
+
+
+def _key_is_32_bytes(raw: str) -> bool:
+    try:
+        return len(base64.b64decode(raw, validate=True)) == 32
+    except (binascii.Error, ValueError):
+        return False
 
 
 class Settings(BaseSettings):
@@ -22,6 +64,11 @@ class Settings(BaseSettings):
     app_name: str = "Vanshavali"
     api_prefix: str = "/api/v1"
     public_base_url: str = "http://localhost:3000"
+    # Read by uvicorn itself (no VSH_ prefix): the reverse proxies whose X-Forwarded-For is trusted.
+    # Mirrored here only so production can refuse an unsafe value at start-up.
+    forwarded_allow_ips: str = Field(
+        default="127.0.0.1", validation_alias=AliasChoices("FORWARDED_ALLOW_IPS")
+    )
 
     database_url: str = "postgresql+psycopg://vanshavali:vanshavali@localhost:5432/vanshavali"
     redis_url: str = "redis://localhost:6379/0"
@@ -142,18 +189,39 @@ class Settings(BaseSettings):
                 problems.append("VSH_SCANNER must be 'clamd' in production")
             if self.standard_data_key == _DEV_STANDARD_KEY or self.vault_data_key == _DEV_VAULT_KEY:
                 problems.append("data keys must be set from a secret manager in production")
+            elif not (_key_is_32_bytes(self.standard_data_key) and _key_is_32_bytes(self.vault_data_key)):
+                problems.append(
+                    "VSH_STANDARD_DATA_KEY and VSH_VAULT_DATA_KEY must be 32 bytes, base64-encoded"
+                )
             if self.signing_key == _DEV_SIGNING_KEY:
                 problems.append("VSH_SIGNING_KEY must be set in production")
+            elif len(self.signing_key) < 32:
+                problems.append("VSH_SIGNING_KEY must be at least 32 characters")
+            if bad := unsafe_forwarded_allow_ips(self.forwarded_allow_ips):
+                problems.append(
+                    f"FORWARDED_ALLOW_IPS must list only the reverse proxies in front of the API, not {bad}"
+                )
+            if "*" in self.cors_origins:
+                problems.append("VSH_CORS_ORIGINS must list the real origin, not '*'")
+            if not self.public_base_url.startswith("https://"):
+                problems.append("VSH_PUBLIC_BASE_URL must use https in production")
             if self.mail_backend != "smtp":
                 problems.append("VSH_MAIL_BACKEND must be 'smtp' in production")
             elif not self.smtp_host or not self.smtp_starttls:
                 problems.append("VSH_SMTP_HOST must be set and STARTTLS enabled in production")
+            if parseaddr(self.mail_from)[1].lower().endswith("@localhost"):
+                problems.append("VSH_MAIL_FROM must be an address on your sending domain (SPF/DKIM)")
             if not self.cookie_secure:
                 problems.append("VSH_COOKIE_SECURE must be true in production")
             if self.google_enabled and not self.google_callback_uri.startswith("https://"):
                 problems.append("the Google redirect URI must use https in production")
             if problems:
                 raise ValueError("; ".join(problems))
+            if _is_loopback_only(self.forwarded_allow_ips):
+                log.warning(
+                    "FORWARDED_ALLOW_IPS trusts only loopback: behind a reverse proxy every client shares "
+                    "the proxy's address, so per-IP rate limits apply to all users together"
+                )
         return self
 
 

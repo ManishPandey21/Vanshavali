@@ -24,6 +24,7 @@ from app.core.observability import (
     incoming_request_id,
     metrics,
     request_id_var,
+    runtime_metrics,
 )
 from app.models.rls import POLICY_NAME, RLS_TABLES
 
@@ -125,6 +126,7 @@ def create_app() -> FastAPI:
             await asyncio.wait_for(slots.acquire(), timeout=settings.admission_wait_s)
         except TimeoutError:
             admission_log.warning("admission limit (%d in progress) reached; shedding request", limit)
+            metrics.inc_shed()
             return JSONResponse(
                 status_code=503,
                 headers={"Retry-After": "2"},
@@ -209,7 +211,8 @@ def create_app() -> FastAPI:
             raise NotFound()
         if not hmac.compare_digest(given.encode(), f"Bearer {expected}".encode()):
             raise Unauthorized()
-        return PlainTextResponse(metrics.render(), media_type="text/plain; version=0.0.4")
+        body = metrics.render() + runtime_metrics(settings)
+        return PlainTextResponse(body, media_type="text/plain; version=0.0.4")
 
     return app
 

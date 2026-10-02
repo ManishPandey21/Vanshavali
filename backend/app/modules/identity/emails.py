@@ -136,7 +136,6 @@ def _render(
         f'<p><a href="{escape(url)}">{escape(c["action"])}</a></p>'
         + "".join(f'<p style="font-size:13px;color:#555">{escape(u)}</p>' for u in urls)
         + f'<p style="font-size:13px;color:#555">{escape(c["footer"])}</p>'
-        f'<p style="font-size:13px;color:#555">{escape(c["footer"])}</p>'
         "<p>— Vanshavali</p></body></html>"
     )
     return c["subject"], text, html

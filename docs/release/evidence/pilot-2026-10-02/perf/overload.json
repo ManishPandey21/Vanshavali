@@ -1,0 +1,186 @@
+{
+  "slo_p95_ms": 500.0,
+  "capacity_rps": null,
+  "runs": [
+    {
+      "rate": 70.0,
+      "meets_slo": false,
+      "report": {
+        "mode": "open",
+        "base_url": "https://pilot.test",
+        "people": 10000,
+        "sessions": 40,
+        "target_rps": 70.0,
+        "excluded": [],
+        "loadavg_1m_before_after": [
+          9.8,
+          39.3
+        ],
+        "dropped": 0,
+        "generator_lag_ms": {
+          "p50": 1.1,
+          "p99": 19.5
+        },
+        "cpus": 4,
+        "duration_s": 40.0,
+        "requests": 2842,
+        "throughput_rps": 71.0,
+        "errors": 261,
+        "error_rate": 0.0918,
+        "overall": {
+          "p50": 1496.7,
+          "p95": 2750.0,
+          "p99": 3704.5
+        },
+        "endpoints": [
+          {
+            "endpoint": "people list",
+            "write": false,
+            "count": 501,
+            "rps": 12.5,
+            "errors": 42,
+            "p50": 1494.0,
+            "p95": 2295.0,
+            "p99": 2750.0,
+            "max": 3105.1,
+            "codes": {
+              "200": 459,
+              "503": 42
+            }
+          },
+          {
+            "endpoint": "person profile",
+            "write": false,
+            "count": 609,
+            "rps": 15.2,
+            "errors": 61,
+            "p50": 1252.4,
+            "p95": 1867.0,
+            "p99": 2271.8,
+            "max": 2595.4,
+            "codes": {
+              "200": 548,
+              "503": 61
+            }
+          },
+          {
+            "endpoint": "family view",
+            "write": false,
+            "count": 409,
+            "rps": 10.2,
+            "errors": 37,
+            "p50": 1347.0,
+            "p95": 2111.0,
+            "p99": 2386.7,
+            "max": 2533.9,
+            "codes": {
+              "200": 372,
+              "503": 37
+            }
+          },
+          {
+            "endpoint": "ancestors d10",
+            "write": false,
+            "count": 261,
+            "rps": 6.5,
+            "errors": 15,
+            "p50": 1628.5,
+            "p95": 2370.3,
+            "p99": 2663.8,
+            "max": 3032.0,
+            "codes": {
+              "200": 246,
+              "503": 15
+            }
+          },
+          {
+            "endpoint": "descendants d4",
+            "write": false,
+            "count": 105,
+            "rps": 2.6,
+            "errors": 15,
+            "p50": 1422.6,
+            "p95": 2312.9,
+            "p99": 2647.3,
+            "max": 3006.1,
+            "codes": {
+              "200": 90,
+              "503": 15
+            }
+          },
+          {
+            "endpoint": "search",
+            "write": false,
+            "count": 272,
+            "rps": 6.8,
+            "errors": 24,
+            "p50": 1630.4,
+            "p95": 2407.1,
+            "p99": 2871.3,
+            "max": 3163.8,
+            "codes": {
+              "200": 248,
+              "503": 24
+            }
+          },
+          {
+            "endpoint": "relationship path",
+            "write": false,
+            "count": 267,
+            "rps": 6.7,
+            "errors": 32,
+            "p50": 2577.6,
+            "p95": 4015.2,
+            "p99": 4448.5,
+            "max": 4601.3,
+            "codes": {
+              "200": 235,
+              "503": 32
+            }
+          },
+          {
+            "endpoint": "add person",
+            "write": true,
+            "count": 224,
+            "rps": 5.6,
+            "errors": 19,
+            "p50": 1594.0,
+            "p95": 2470.8,
+            "p99": 2786.8,
+            "max": 3295.2,
+            "codes": {
+              "201": 205,
+              "503": 19
+            }
+          },
+          {
+            "endpoint": "add relative",
+            "write": true,
+            "count": 194,
+            "rps": 4.8,
+            "errors": 16,
+            "p50": 1927.9,
+            "p95": 2941.9,
+            "p99": 3053.9,
+            "max": 3148.7,
+            "codes": {
+              "201": 178,
+              "503": 16
+            }
+          }
+        ],
+        "error_samples": {
+          "family view": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "descendants d4": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "people list": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "relationship path": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "search": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "add person": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "person profile": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "ancestors d10": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}",
+          "add relative": "503 {\"error\":{\"code\":\"server_busy\",\"message\":\"The service is busy. Please try again in a moment.\",\"details\":null}}"
+        }
+      }
+    }
+  ]
+}

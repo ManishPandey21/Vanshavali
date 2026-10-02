@@ -1,0 +1,32 @@
+{
+ "version": "drill2",
+ "people": 10000,
+ "backup": "vanshavali-20261002T045102Z-drill",
+ "phases_ms": {
+  "A_deploy": 59401,
+  "B_email": 1567,
+  "C_seed": 14259,
+  "D_backup": 10167,
+  "F_destroy": 7075,
+  "G1_restore_data": 13948,
+  "G2_start_stack": 52892,
+  "G3_verify": 1888,
+  "G4_post_restore_smoke": 1945
+ },
+ "rpo_boundary_s": 9,
+ "rto_ms_disaster_to_verified": 75820,
+ "writes_after_backup": "absent (expected absent)",
+ "restore": {
+  "backup": "vanshavali-20261002T045102Z-drill",
+  "recovery_point_utc": "2026-10-02T04:51:06Z",
+  "restored_at_utc": "2026-10-02T04:51:36Z",
+  "ms": {
+   "fetch": 4221,
+   "pg_restore": 1976,
+   "migrate": 3853,
+   "objects": 1547,
+   "verify": 1787,
+   "total": 13899
+  }
+ }
+}

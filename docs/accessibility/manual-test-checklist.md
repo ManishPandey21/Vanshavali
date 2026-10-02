@@ -65,8 +65,9 @@ voices; VoiceOver: "Lekha"; TalkBack: Google TTS Hindi) and turn on automatic la
    are linked to their fields.
 
 ### G. Mobile (iOS VoiceOver and TalkBack)
-1. The bottom navigation is reachable by swipe and its items are named. **Known issue:** "More"
-   is not marked as current when the current page is one of its items.
+1. The bottom navigation is reachable by swipe and its items are named. When the current page is
+   one of the "More" items, "More" is announced as current (fixed 1 Oct 2026, `TreeLayout.test.tsx`;
+   confirm with the reader).
 2. Focus is never hidden under the bottom bar while moving through a long form.
 3. At 200% text size, nothing is cut off and there is no sideways scrolling.
 
@@ -100,7 +101,73 @@ the same as English). They say nothing about whether it is correct, natural or l
 Also check the **accessible names** in Hindi (button labels, chart node labels, live-region
 messages). These are what screen readers speak, and some never appear on screen.
 
-## 4. Recording results
+## 4. Pilot verification pack (October 2026)
 
-Add one row per reader to the "Accessibility" section of `docs/release/production-readiness.md`.
+Run this before inviting pilot families. Use the **staging** environment, a fresh account and the
+demo tree. **Nothing below has been run yet.** Automated tests (axe, keyboard and semantics checks
+in `e2e/tests/a11y.spec.ts`) pass, but they do not substitute for these checks.
+
+### Matrix for the pilot
+
+| # | Reader | Browser / platform | Scenarios | Languages |
+|---|---|---|---|---|
+| P1 | NVDA (latest) | Chrome, Windows 11 | A, I, J, B, C, E, F | en + hi |
+| P2 | NVDA (latest) | Firefox, Windows 11 | A, C, D, J | en |
+| P3 | JAWS (latest) | Chrome, Windows 11 | A, C, E, F | en |
+| P4 | JAWS (latest) | Edge, Windows 11 | A, I, J | en |
+| P5 | VoiceOver | Safari, macOS | A, B, C, D, I | en + hi |
+| P6 | VoiceOver | Safari, iOS | A, C, G | en |
+| P7 | TalkBack | Chrome, Android | A, C, G, J | en + hi |
+
+**Pilot minimum:** P1, P5 and P7. The rest is required before public launch (go-live checklist).
+
+### Flows to cover (mapped to the scenarios)
+
+| Flow | Scenario | What to listen for |
+|---|---|---|
+| Login | A + below | labels read; wrong password announced and focused; "Forgot password" reachable |
+| Registration | A.2 | each field's label and requirement read; password rules announced before submit; "Check your email" heading announced |
+| Consent (family-data statement, profile claim) | A.3–A.4, claim page | the **whole statement** read before the checkbox; the checkbox unticked by default; claim page usable without sight |
+| Create tree | A.4 | the name field labelled; success announced; focus moves to the new tree |
+| Add person | A.4, B.1 | dialogs trap focus and return it; Devanagari names switch voice in lists |
+| Family-tree navigation | C | arrow keys in the chart; list view as the alternative; route changes announced |
+| Forms (dates, places, privacy) | B, F | date precision explained; errors linked to fields; required fields marked in text |
+| Documents | E | upload progress and scan result announced; previews named; OCR text reachable |
+| Property | F | fractions read meaningfully; the legal notice read; parcel tables have headers |
+| Search | I (below) | result count announced; results reachable by heading or list navigation; "no results" announced |
+| Error states | J (below) | every error reaches the reader without moving the mouse |
+
+### I. Search
+1. Use the global search with a Latin name, then with a Devanagari name. The number of results is
+   announced (live region). Results are a list with names and life years, and the person's
+   privacy hides living details as it does on screen.
+2. A search with no results announces "no results" and keeps focus in the search box.
+
+### J. Error states
+1. Wrong password: the error is announced and focus lands on it or on the field. Repeat until
+   rate-limited: the "too many attempts" message is announced and says when to retry.
+2. Submit an empty required field in "Add person": the error is announced and linked
+   (`aria-describedby`), and focus moves to the first invalid field.
+3. Go offline (airplane mode) and save: the network error is announced, and nothing is silently
+   lost.
+4. Open a tree you are not a member of (a copied URL): the "not found" page has a heading and a
+   way back.
+5. Upload a file that is too large or of an unsupported type: the reason is announced.
+
+## 5. Recording results
+
+Fill in this table, then add a summary row to `docs/release/production-readiness.md`. Leave a
+row empty until someone has run it. **Never pre-fill a result.**
+
+| # | Tester | Date | Reader + version | Browser + version | Scenarios run | Pass / fail / blocked | Issues opened |
+|---|---|---|---|---|---|---|---|
+| P1 | | | | | | | |
+| P2 | | | | | | | |
+| P3 | | | | | | | |
+| P4 | | | | | | | |
+| P5 | | | | | | | |
+| P6 | | | | | | | |
+| P7 | | | | | | | |
+
+The Hindi language review has its own pack and sign-off: `docs/localization/hindi-review-checklist.md`.
 Open an issue for every failure, with the scenario number, reader, browser and steps to reproduce.

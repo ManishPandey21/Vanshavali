@@ -327,3 +327,91 @@ no 5xx other than the shed responses.
   to **50 req/s** on this 4 vCPU shared host, where the database and generator also run.
 - **Not claimed:** production capacity. Run `ops/loadtest/certify.sh` on the staging host
   (runbook above) and size the fleet from that result.
+
+## Pilot stack in the sandbox (2 Oct 2026)
+The same protocol, now run against the **deployed pilot topology** (ADR-0014): `deploy/pilot/compose.yml`
+behind Caddy with TLS (local CA), 4 single-process backend replicas as the RLS app role, 2 workers,
+Redis, ClamAV, PostgreSQL 16 in a container standing in for the managed instance (non-superuser
+owner). The generator ran on the same 4-vCPU shared host, so this is **still not a dedicated
+staging host** and does not certify production capacity. The test image had no Tesseract (no
+Debian mirror in the sandbox), so the upload pipeline below excludes OCR.
+
+Commands and raw results: `docs/release/evidence/pilot-2026-10-02/perf/` (`run.sh`, `run.log`,
+`sequential.json`, `sweep-{1,2,3}.json`, `overload.json`, `pipeline.json`, `resources.md`,
+`per-endpoint.md`). Pipeline benchmark: `ops/loadtest/pipeline_bench.py`.
+
+**Sequential** (1 user, 50 timed requests per operation, 10,000 people): every operation p95 ≤
+**195 ms** (people list 195, search 171, relationship path 104, writes ≤ 73). It is slower than the
+101 ms measured against uvicorn directly, because the generator opens a new TLS connection per
+request (no keep-alive, the same as before), so each request pays a full TLS handshake through
+Caddy.
+
+**Sustained (open loop, 3 runs, 40 s per rate):** 0% errors at every rate in all three runs.
+Generator lag p99 ≤ 15 ms and no dropped arrivals, so these are server numbers.
+
+| Rate (req/s) | 10 | 20 | 30 | 40 | 50 |
+|---|---|---|---|---|---|
+| overall p95, runs 1/2/3 (ms) | 104/100/101 | 109/104/106 | 131/127/126 | 189/180/197 | 257/275/287 |
+| worst operation p95 of the 3 runs (ms) | 129 | 147 | 206 | 287 | **549** (relationship path) |
+
+- **Overall capacity:** p95 ≤ 500 ms up to **50 req/s**, the same as the 1 Oct native run.
+- **Strict per-operation capacity:** every operation's p95 stays under 500 ms in every run up to
+  **40 req/s**. At 50 req/s the relationship path reached 549 ms in one run of three.
+
+**Overload, 70 req/s:**
+- 9.2% of requests shed as fast `503 server_busy`;
+- p95 2.75 s;
+- no unhandled errors, no collapse.
+
+**Resources during the sweeps** (5 s samples):
+
+| Container | Typical CPU | Peak CPU | Peak memory |
+|---|---|---|---|
+| Each backend process | ~25% | ~100–120% | **560–780 MiB** |
+| PostgreSQL | 32% | 82% | 404 MiB |
+| Caddy | ≤ 18% | — | 44 MiB |
+| ClamAV | idle | — | 947 MiB resident |
+
+- Backend memory is about 145 MiB at idle; the 10k-tree traversals and lists grow it.
+- **Database:** at most 61 connections (4 × 15 pool budget), 100% buffer-cache hits, 49k commits.
+
+**Pipelines** (`pipeline_bench.py`, through Caddy):
+
+| Workload | Result |
+|---|---|
+| Property history: 40 events + 6-generation parcel subdivision chain | full record p95 **39 ms**; leaf lineage p95 **27 ms** (100 sequential reads) |
+| Document upload: 20 JPEG photos (~1 MB), 5 at a time, 2 workers | upload p95 265 ms; upload → scanned clean + previews p50 10.8 s / p95 17.0 s; **67 documents/min**, queue-bound (OCR excluded) |
+| GEDCOM import, 1,000 people (87 KiB) | report 0.2 s; commit **14.3 s** |
+| GEDCOM import, 10,000 people (896 KiB) | report 14.8 s; commit **165 s** |
+| OCR concurrency | measured natively on 1 Oct: 4 concurrent jobs 0.3 s each after the `OMP_THREAD_LIMIT=1` fix; guarded by `test_concurrent_ocr_jobs_do_not_thrash` |
+
+### Found while measuring (fixed)
+1. **Writes committed after the response was sent.**
+   - **Root cause:** FastAPI's default dependency scope runs `get_db`'s commit **after** the
+     response.
+   - **Effects:** a client acting immediately on a 201 could get 404 from another replica (the
+     benchmark committed an import right after uploading it). A commit failure was invisible to
+     the client, who had already been told it succeeded.
+   - **Fix:** `Depends(get_db, scope="function")` commits before responding
+     (`test_a_failed_commit_is_an_error_not_a_success` fails without it).
+2. **Proxy timeouts shorter than a large import commit.** The 10,000-person commit took 169 s;
+   Caddy and nginx gave up at 120 s with a 504 while the import went on to succeed. The import
+   upload and commit routes now get 600 s, about 35,000 people at the measured rate.
+
+### Known limitation (trigger recorded)
+- **Import commit runs in the request.** It writes about 15–17 ms per person, one request for the
+  whole file.
+- **Acceptable for the pilot:** typical family GEDCOMs hold hundreds to a few thousand people,
+  i.e. seconds to under a minute.
+- **Trigger:** if imports above about 20,000 people are expected, or users report long waits,
+  move the commit to the job queue with a progress indicator, and batch its inserts.
+
+### Verdict (unchanged in kind)
+- **Met in the sandbox:** PRS §49 `p95 < 500 ms` through the full pilot edge for normal use, and
+  for sustained load up to 40 req/s (every operation) or 50 req/s (overall p95).
+- **Not claimed:** production capacity. The go-live checklist still requires the staging-host run
+  above.
+- **Pilot sizing:**
+  - 4 backend replicas need about 3 GB at peak, ClamAV about 1 GB and the OS 1 GB, so choose a
+    **16 GB** VM for 4 replicas; 8 GB fits 2 replicas.
+  - A pilot of tens of families is far below 40 req/s.

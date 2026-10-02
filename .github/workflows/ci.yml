@@ -4,12 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call: # the deploy gate (deploy-pilot.yml) runs this whole workflow first
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # event in the key: a deploy's gate run on main must not cancel (or be cancelled by) the push run
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -48,6 +50,16 @@ jobs:
         env:
           VSH_TEST_ADMIN_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres
         run: uv run pytest -q --cov=app --cov-report=term-missing:skip-covered
+      - name: Migrations from a clean database (upgrade, model drift check, downgrade, upgrade)
+        env:
+          PGPASSWORD: vanshavali
+          VSH_DATABASE_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/vsh_migrations
+        run: |
+          psql -h localhost -U vanshavali -d postgres -c "CREATE DATABASE vsh_migrations"
+          uv run alembic upgrade head
+          uv run alembic check
+          uv run alembic downgrade base
+          uv run alembic upgrade head
       - name: Seed demo data on a migrated database
         env:
           PGPASSWORD: vanshavali
@@ -136,3 +148,29 @@ jobs:
       - run: docker compose config -q
       - run: docker build -t vanshavali-backend ./backend
       - run: docker build -t vanshavali-frontend ./frontend
+
+  # Pilot deployment configuration (deploy/pilot): the files deploy.sh runs must be valid.
+  deploy-config:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose file renders with the example settings
+        run: |
+          mkdir -p /tmp/vsh-conf && for f in deploy/pilot/env/*.env.example; do
+            cp "$f" "/tmp/vsh-conf/$(basename "$f" .example)"; done
+          VSH_CONFIG_DIR=/tmp/vsh-conf VSH_VERSION=ci docker compose \
+            --env-file /tmp/vsh-conf/compose.env -f deploy/pilot/compose.yml --profile release --profile tools \
+            --profile monitoring config -q
+      - name: Caddyfile is valid
+        run: |
+          docker run --rm -e VSH_DOMAIN=pilot.example.org -e VSH_TLS=ops@example.org \
+            -v "$PWD/deploy/pilot/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.10-alpine \
+            caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: Alert rules load and their unit tests pass
+        run: |
+          docker run --rm -v "$PWD/deploy/pilot/monitoring:/m:ro" -w /m --entrypoint promtool \
+            prom/prometheus:v3.5.0 check rules alerts.yml
+          docker run --rm -v "$PWD/deploy/pilot/monitoring:/m:ro" -w /m --entrypoint promtool \
+            prom/prometheus:v3.5.0 test rules alerts.test.yml
+      - name: Shell scripts (shellcheck)
+        run: shellcheck -x -P SCRIPTDIR deploy/pilot/scripts/*.sh deploy/pilot/drill/run-drill.sh ops/backup/drill.sh ops/loadtest/*.sh

@@ -1,0 +1,811 @@
+{
+  "slo_p95_ms": 500.0,
+  "capacity_rps": 50.0,
+  "runs": [
+    {
+      "rate": 10.0,
+      "meets_slo": true,
+      "report": {
+        "mode": "open",
+        "base_url": "https://pilot.test",
+        "people": 10000,
+        "sessions": 40,
+        "target_rps": 10.0,
+        "excluded": [],
+        "loadavg_1m_before_after": [
+          13.6,
+          7.0
+        ],
+        "dropped": 0,
+        "generator_lag_ms": {
+          "p50": 1.0,
+          "p99": 2.7
+        },
+        "cpus": 4,
+        "duration_s": 40.0,
+        "requests": 413,
+        "throughput_rps": 10.3,
+        "errors": 0,
+        "error_rate": 0.0,
+        "overall": {
+          "p50": 54.5,
+          "p95": 99.7,
+          "p99": 123.2
+        },
+        "endpoints": [
+          {
+            "endpoint": "people list",
+            "write": false,
+            "count": 74,
+            "rps": 1.9,
+            "errors": 0,
+            "p50": 58.9,
+            "p95": 77.7,
+            "p99": 89.7,
+            "max": 93.4,
+            "codes": {
+              "200": 74
+            }
+          },
+          {
+            "endpoint": "person profile",
+            "write": false,
+            "count": 98,
+            "rps": 2.5,
+            "errors": 0,
+            "p50": 35.2,
+            "p95": 47.0,
+            "p99": 82.9,
+            "max": 192.7,
+            "codes": {
+              "200": 98
+            }
+          },
+          {
+            "endpoint": "family view",
+            "write": false,
+            "count": 63,
+            "rps": 1.6,
+            "errors": 0,
+            "p50": 44.5,
+            "p95": 63.7,
+            "p99": 67.5,
+            "max": 70.1,
+            "codes": {
+              "200": 63
+            }
+          },
+          {
+            "endpoint": "ancestors d10",
+            "write": false,
+            "count": 28,
+            "rps": 0.7,
+            "errors": 0,
+            "p50": 60.6,
+            "p95": 78.6,
+            "p99": 93.6,
+            "max": 93.6,
+            "codes": {
+              "200": 28
+            }
+          },
+          {
+            "endpoint": "descendants d4",
+            "write": false,
+            "count": 12,
+            "rps": 0.3,
+            "errors": 0,
+            "p50": 54.5,
+            "p95": 59.5,
+            "p99": 62.2,
+            "max": 62.2,
+            "codes": {
+              "200": 12
+            }
+          },
+          {
+            "endpoint": "search",
+            "write": false,
+            "count": 33,
+            "rps": 0.8,
+            "errors": 0,
+            "p50": 70.0,
+            "p95": 89.0,
+            "p99": 285.8,
+            "max": 285.8,
+            "codes": {
+              "200": 33
+            }
+          },
+          {
+            "endpoint": "relationship path",
+            "write": false,
+            "count": 36,
+            "rps": 0.9,
+            "errors": 0,
+            "p50": 99.7,
+            "p95": 121.5,
+            "p99": 274.2,
+            "max": 274.2,
+            "codes": {
+              "200": 36
+            }
+          },
+          {
+            "endpoint": "add person",
+            "write": true,
+            "count": 32,
+            "rps": 0.8,
+            "errors": 0,
+            "p50": 47.6,
+            "p95": 59.1,
+            "p99": 69.4,
+            "max": 69.4,
+            "codes": {
+              "201": 32
+            }
+          },
+          {
+            "endpoint": "add relative",
+            "write": true,
+            "count": 37,
+            "rps": 0.9,
+            "errors": 0,
+            "p50": 62.1,
+            "p95": 71.9,
+            "p99": 75.9,
+            "max": 75.9,
+            "codes": {
+              "201": 37
+            }
+          }
+        ],
+        "error_samples": {}
+      }
+    },
+    {
+      "rate": 20.0,
+      "meets_slo": true,
+      "report": {
+        "mode": "open",
+        "base_url": "https://pilot.test",
+        "people": 10000,
+        "sessions": 40,
+        "target_rps": 20.0,
+        "excluded": [],
+        "loadavg_1m_before_after": [
+          7.0,
+          4.4
+        ],
+        "dropped": 0,
+        "generator_lag_ms": {
+          "p50": 0.9,
+          "p99": 2.9
+        },
+        "cpus": 4,
+        "duration_s": 40.0,
+        "requests": 853,
+        "throughput_rps": 21.3,
+        "errors": 0,
+        "error_rate": 0.0,
+        "overall": {
+          "p50": 52.5,
+          "p95": 103.7,
+          "p99": 147.1
+        },
+        "endpoints": [
+          {
+            "endpoint": "people list",
+            "write": false,
+            "count": 143,
+            "rps": 3.6,
+            "errors": 0,
+            "p50": 55.7,
+            "p95": 94.9,
+            "p99": 123.6,
+            "max": 221.3,
+            "codes": {
+              "200": 143
+            }
+          },
+          {
+            "endpoint": "person profile",
+            "write": false,
+            "count": 188,
+            "rps": 4.7,
+            "errors": 0,
+            "p50": 34.1,
+            "p95": 48.0,
+            "p99": 51.6,
+            "max": 167.3,
+            "codes": {
+              "200": 188
+            }
+          },
+          {
+            "endpoint": "family view",
+            "write": false,
+            "count": 128,
+            "rps": 3.2,
+            "errors": 0,
+            "p50": 42.1,
+            "p95": 69.8,
+            "p99": 123.0,
+            "max": 242.3,
+            "codes": {
+              "200": 128
+            }
+          },
+          {
+            "endpoint": "ancestors d10",
+            "write": false,
+            "count": 72,
+            "rps": 1.8,
+            "errors": 0,
+            "p50": 60.1,
+            "p95": 88.9,
+            "p99": 125.3,
+            "max": 226.2,
+            "codes": {
+              "200": 72
+            }
+          },
+          {
+            "endpoint": "descendants d4",
+            "write": false,
+            "count": 29,
+            "rps": 0.7,
+            "errors": 0,
+            "p50": 54.0,
+            "p95": 70.8,
+            "p99": 72.6,
+            "max": 72.6,
+            "codes": {
+              "200": 29
+            }
+          },
+          {
+            "endpoint": "search",
+            "write": false,
+            "count": 72,
+            "rps": 1.8,
+            "errors": 0,
+            "p50": 75.0,
+            "p95": 103.8,
+            "p99": 141.3,
+            "max": 231.1,
+            "codes": {
+              "200": 72
+            }
+          },
+          {
+            "endpoint": "relationship path",
+            "write": false,
+            "count": 77,
+            "rps": 1.9,
+            "errors": 0,
+            "p50": 99.3,
+            "p95": 147.1,
+            "p99": 247.2,
+            "max": 310.0,
+            "codes": {
+              "200": 77
+            }
+          },
+          {
+            "endpoint": "add person",
+            "write": true,
+            "count": 73,
+            "rps": 1.8,
+            "errors": 0,
+            "p50": 46.0,
+            "p95": 64.6,
+            "p99": 70.9,
+            "max": 100.4,
+            "codes": {
+              "201": 73
+            }
+          },
+          {
+            "endpoint": "add relative",
+            "write": true,
+            "count": 71,
+            "rps": 1.8,
+            "errors": 0,
+            "p50": 60.5,
+            "p95": 83.3,
+            "p99": 103.6,
+            "max": 106.1,
+            "codes": {
+              "201": 71
+            }
+          }
+        ],
+        "error_samples": {}
+      }
+    },
+    {
+      "rate": 30.0,
+      "meets_slo": true,
+      "report": {
+        "mode": "open",
+        "base_url": "https://pilot.test",
+        "people": 10000,
+        "sessions": 40,
+        "target_rps": 30.0,
+        "excluded": [],
+        "loadavg_1m_before_after": [
+          4.4,
+          3.8
+        ],
+        "dropped": 0,
+        "generator_lag_ms": {
+          "p50": 1.0,
+          "p99": 4.8
+        },
+        "cpus": 4,
+        "duration_s": 40.0,
+        "requests": 1261,
+        "throughput_rps": 31.5,
+        "errors": 0,
+        "error_rate": 0.0,
+        "overall": {
+          "p50": 56.1,
+          "p95": 127.2,
+          "p99": 210.0
+        },
+        "endpoints": [
+          {
+            "endpoint": "people list",
+            "write": false,
+            "count": 227,
+            "rps": 5.7,
+            "errors": 0,
+            "p50": 57.8,
+            "p95": 117.5,
+            "p99": 228.0,
+            "max": 278.7,
+            "codes": {
+              "200": 227
+            }
+          },
+          {
+            "endpoint": "person profile",
+            "write": false,
+            "count": 285,
+            "rps": 7.1,
+            "errors": 0,
+            "p50": 35.4,
+            "p95": 67.2,
+            "p99": 83.3,
+            "max": 168.9,
+            "codes": {
+              "200": 285
+            }
+          },
+          {
+            "endpoint": "family view",
+            "write": false,
+            "count": 184,
+            "rps": 4.6,
+            "errors": 0,
+            "p50": 44.1,
+            "p95": 101.0,
+            "p99": 205.9,
+            "max": 243.7,
+            "codes": {
+              "200": 184
+            }
+          },
+          {
+            "endpoint": "ancestors d10",
+            "write": false,
+            "count": 117,
+            "rps": 2.9,
+            "errors": 0,
+            "p50": 63.6,
+            "p95": 106.7,
+            "p99": 229.1,
+            "max": 235.0,
+            "codes": {
+              "200": 117
+            }
+          },
+          {
+            "endpoint": "descendants d4",
+            "write": false,
+            "count": 43,
+            "rps": 1.1,
+            "errors": 0,
+            "p50": 55.3,
+            "p95": 90.1,
+            "p99": 102.2,
+            "max": 102.2,
+            "codes": {
+              "200": 43
+            }
+          },
+          {
+            "endpoint": "search",
+            "write": false,
+            "count": 103,
+            "rps": 2.6,
+            "errors": 0,
+            "p50": 81.6,
+            "p95": 139.0,
+            "p99": 273.1,
+            "max": 360.8,
+            "codes": {
+              "200": 103
+            }
+          },
+          {
+            "endpoint": "relationship path",
+            "write": false,
+            "count": 111,
+            "rps": 2.8,
+            "errors": 0,
+            "p50": 106.7,
+            "p95": 176.1,
+            "p99": 221.1,
+            "max": 227.2,
+            "codes": {
+              "200": 111
+            }
+          },
+          {
+            "endpoint": "add person",
+            "write": true,
+            "count": 99,
+            "rps": 2.5,
+            "errors": 0,
+            "p50": 48.7,
+            "p95": 82.7,
+            "p99": 100.0,
+            "max": 134.1,
+            "codes": {
+              "201": 99
+            }
+          },
+          {
+            "endpoint": "add relative",
+            "write": true,
+            "count": 92,
+            "rps": 2.3,
+            "errors": 0,
+            "p50": 61.8,
+            "p95": 106.2,
+            "p99": 129.6,
+            "max": 164.3,
+            "codes": {
+              "201": 92
+            }
+          }
+        ],
+        "error_samples": {}
+      }
+    },
+    {
+      "rate": 40.0,
+      "meets_slo": true,
+      "report": {
+        "mode": "open",
+        "base_url": "https://pilot.test",
+        "people": 10000,
+        "sessions": 40,
+        "target_rps": 40.0,
+        "excluded": [],
+        "loadavg_1m_before_after": [
+          3.8,
+          4.7
+        ],
+        "dropped": 0,
+        "generator_lag_ms": {
+          "p50": 1.0,
+          "p99": 8.0
+        },
+        "cpus": 4,
+        "duration_s": 40.0,
+        "requests": 1643,
+        "throughput_rps": 41.1,
+        "errors": 0,
+        "error_rate": 0.0,
+        "overall": {
+          "p50": 66.9,
+          "p95": 179.9,
+          "p99": 331.6
+        },
+        "endpoints": [
+          {
+            "endpoint": "people list",
+            "write": false,
+            "count": 293,
+            "rps": 7.3,
+            "errors": 0,
+            "p50": 69.2,
+            "p95": 150.8,
+            "p99": 250.9,
+            "max": 425.3,
+            "codes": {
+              "200": 293
+            }
+          },
+          {
+            "endpoint": "person profile",
+            "write": false,
+            "count": 359,
+            "rps": 9.0,
+            "errors": 0,
+            "p50": 41.7,
+            "p95": 96.7,
+            "p99": 159.1,
+            "max": 307.6,
+            "codes": {
+              "200": 359
+            }
+          },
+          {
+            "endpoint": "family view",
+            "write": false,
+            "count": 239,
+            "rps": 6.0,
+            "errors": 0,
+            "p50": 52.8,
+            "p95": 146.8,
+            "p99": 218.4,
+            "max": 262.5,
+            "codes": {
+              "200": 239
+            }
+          },
+          {
+            "endpoint": "ancestors d10",
+            "write": false,
+            "count": 158,
+            "rps": 4.0,
+            "errors": 0,
+            "p50": 74.7,
+            "p95": 173.7,
+            "p99": 276.1,
+            "max": 416.2,
+            "codes": {
+              "200": 158
+            }
+          },
+          {
+            "endpoint": "descendants d4",
+            "write": false,
+            "count": 53,
+            "rps": 1.3,
+            "errors": 0,
+            "p50": 65.3,
+            "p95": 181.4,
+            "p99": 203.3,
+            "max": 225.1,
+            "codes": {
+              "200": 53
+            }
+          },
+          {
+            "endpoint": "search",
+            "write": false,
+            "count": 146,
+            "rps": 3.6,
+            "errors": 0,
+            "p50": 91.5,
+            "p95": 257.6,
+            "p99": 484.9,
+            "max": 503.0,
+            "codes": {
+              "200": 146
+            }
+          },
+          {
+            "endpoint": "relationship path",
+            "write": false,
+            "count": 149,
+            "rps": 3.7,
+            "errors": 0,
+            "p50": 123.9,
+            "p95": 286.7,
+            "p99": 572.1,
+            "max": 584.0,
+            "codes": {
+              "200": 149
+            }
+          },
+          {
+            "endpoint": "add person",
+            "write": true,
+            "count": 129,
+            "rps": 3.2,
+            "errors": 0,
+            "p50": 60.8,
+            "p95": 152.7,
+            "p99": 255.2,
+            "max": 368.6,
+            "codes": {
+              "201": 129
+            }
+          },
+          {
+            "endpoint": "add relative",
+            "write": true,
+            "count": 117,
+            "rps": 2.9,
+            "errors": 0,
+            "p50": 74.1,
+            "p95": 178.9,
+            "p99": 373.7,
+            "max": 406.7,
+            "codes": {
+              "201": 117
+            }
+          }
+        ],
+        "error_samples": {}
+      }
+    },
+    {
+      "rate": 50.0,
+      "meets_slo": true,
+      "report": {
+        "mode": "open",
+        "base_url": "https://pilot.test",
+        "people": 10000,
+        "sessions": 40,
+        "target_rps": 50.0,
+        "excluded": [],
+        "loadavg_1m_before_after": [
+          4.7,
+          4.9
+        ],
+        "dropped": 0,
+        "generator_lag_ms": {
+          "p50": 1.0,
+          "p99": 14.5
+        },
+        "cpus": 4,
+        "duration_s": 40.0,
+        "requests": 2048,
+        "throughput_rps": 51.2,
+        "errors": 0,
+        "error_rate": 0.0,
+        "overall": {
+          "p50": 82.0,
+          "p95": 275.1,
+          "p99": 467.6
+        },
+        "endpoints": [
+          {
+            "endpoint": "people list",
+            "write": false,
+            "count": 371,
+            "rps": 9.3,
+            "errors": 0,
+            "p50": 81.6,
+            "p95": 235.6,
+            "p99": 361.0,
+            "max": 691.4,
+            "codes": {
+              "200": 371
+            }
+          },
+          {
+            "endpoint": "person profile",
+            "write": false,
+            "count": 440,
+            "rps": 11.0,
+            "errors": 0,
+            "p50": 49.3,
+            "p95": 135.7,
+            "p99": 193.3,
+            "max": 561.7,
+            "codes": {
+              "200": 440
+            }
+          },
+          {
+            "endpoint": "family view",
+            "write": false,
+            "count": 290,
+            "rps": 7.2,
+            "errors": 0,
+            "p50": 65.6,
+            "p95": 182.4,
+            "p99": 314.4,
+            "max": 523.3,
+            "codes": {
+              "200": 290
+            }
+          },
+          {
+            "endpoint": "ancestors d10",
+            "write": false,
+            "count": 188,
+            "rps": 4.7,
+            "errors": 0,
+            "p50": 94.7,
+            "p95": 273.2,
+            "p99": 399.2,
+            "max": 586.7,
+            "codes": {
+              "200": 188
+            }
+          },
+          {
+            "endpoint": "descendants d4",
+            "write": false,
+            "count": 71,
+            "rps": 1.8,
+            "errors": 0,
+            "p50": 73.3,
+            "p95": 220.9,
+            "p99": 319.7,
+            "max": 347.4,
+            "codes": {
+              "200": 71
+            }
+          },
+          {
+            "endpoint": "search",
+            "write": false,
+            "count": 187,
+            "rps": 4.7,
+            "errors": 0,
+            "p50": 111.2,
+            "p95": 390.0,
+            "p99": 632.1,
+            "max": 680.0,
+            "codes": {
+              "200": 187
+            }
+          },
+          {
+            "endpoint": "relationship path",
+            "write": false,
+            "count": 189,
+            "rps": 4.7,
+            "errors": 0,
+            "p50": 158.9,
+            "p95": 446.2,
+            "p99": 646.0,
+            "max": 855.1,
+            "codes": {
+              "200": 189
+            }
+          },
+          {
+            "endpoint": "add person",
+            "write": true,
+            "count": 166,
+            "rps": 4.2,
+            "errors": 0,
+            "p50": 69.0,
+            "p95": 228.8,
+            "p99": 296.0,
+            "max": 393.4,
+            "codes": {
+              "201": 166
+            }
+          },
+          {
+            "endpoint": "add relative",
+            "write": true,
+            "count": 146,
+            "rps": 3.6,
+            "errors": 0,
+            "p50": 90.5,
+            "p95": 298.1,
+            "p99": 617.3,
+            "max": 653.1,
+            "codes": {
+              "201": 146
+            }
+          }
+        ],
+        "error_samples": {}
+      }
+    }
+  ]
+}

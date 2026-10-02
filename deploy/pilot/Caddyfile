@@ -1,0 +1,77 @@
+# Edge for the pilot stack (ADR-0014): TLS, HTTP->HTTPS, upload limits, routing.
+#
+# - Certificates: issued and renewed automatically (ACME, HTTP-01/TLS-ALPN-01). DNS must point
+#   VSH_DOMAIN at this VM and ports 80/443 must be open. VSH_TLS is the ACME contact email, or
+#   "internal" (a local CA) for drills where no public DNS exists.
+# - Client IP: Caddy is the first proxy. It does not trust incoming X-Forwarded-For (no
+#   trusted_proxies), so it sends the API the address it actually saw. The API trusts only Caddy's
+#   fixed address (FORWARDED_ALLOW_IPS in compose.yml; threat T30).
+# - No access log here: request URIs carry signed download tokens in query strings. The API logs
+#   every request by route template (docs/operations/deployment.md, "Observability").
+{
+	admin off
+	servers {
+		timeouts {
+			read_body 5m
+			read_header 30s
+			idle 2m
+		}
+	}
+}
+
+{$VSH_DOMAIN} {
+	tls {$VSH_TLS}
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		-Server
+		-Via
+	}
+
+	# GEDCOM imports: packages (zip/GEDZIP with photos) up to VSH_MAX_GEDCOM_PACKAGE_BYTES (250 MB),
+	# and the commit, which writes the whole import in one request: ~17 ms per person measured, so
+	# 10,000 people take ~170 s (pilot benchmark, Oct 2026). 600 s covers ~35,000 people.
+	@imports path_regexp imports ^/api/v1/trees/[^/]+/imports(/[^/]+/commit)?$
+	handle @imports {
+		request_body {
+			max_size 260MB
+		}
+		reverse_proxy {
+			dynamic a backend 8000 {
+				refresh 5s
+			}
+			lb_policy least_conn
+			lb_try_duration 10s
+			fail_duration 10s
+			transport http {
+				response_header_timeout 600s
+			}
+		}
+	}
+
+	# Everything else under /api: documents and photos up to VSH_MAX_UPLOAD_BYTES (50 MB)
+	handle /api/* {
+		request_body {
+			max_size 55MB
+		}
+		reverse_proxy {
+			dynamic a backend 8000 {
+				refresh 5s
+			}
+			lb_policy least_conn
+			lb_try_duration 10s
+			fail_duration 10s
+			transport http {
+				response_header_timeout 120s
+			}
+		}
+	}
+
+	# The SPA (nginx adds its CSP and security headers)
+	handle {
+		reverse_proxy frontend:8080
+	}
+}
+
+# Bare-IP or unknown-host requests get nothing (no default site, no certificate for the IP).

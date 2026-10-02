@@ -1,0 +1,62 @@
+{
+ "base_url": "https://pilot.test",
+ "property_history": {
+  "events": 40,
+  "parcel_depth": 6,
+  "property_detail_ms": {
+   "n": 100,
+   "p50": 30.5,
+   "p95": 38.6,
+   "p99": 40.5,
+   "max": 45.5,
+   "mean": 31.1
+  },
+  "leaf_lineage_ms": {
+   "n": 100,
+   "p50": 20.0,
+   "p95": 26.5,
+   "p99": 29.6,
+   "max": 31.2,
+   "mean": 20.8
+  }
+ },
+ "uploads": {
+  "documents": 20,
+  "concurrency": 5,
+  "avg_bytes": 916107,
+  "upload_ms": {
+   "n": 20,
+   "p50": 200.4,
+   "p95": 264.6,
+   "p99": 492.2,
+   "max": 492.2,
+   "mean": 206.9
+  },
+  "upload_to_processed_ms": {
+   "n": 20,
+   "p50": 10759.3,
+   "p95": 17049.5,
+   "p99": 17149.8,
+   "max": 17149.8,
+   "mean": 9848.2
+  },
+  "wall_s": 17.8,
+  "processed_per_min": 67.4
+ },
+ "imports": {
+  "1000_people": {
+   "bytes": 89502,
+   "upload_and_report_ms": 201,
+   "commit_ms": 14341,
+   "status": "committed",
+   "created": null
+  },
+  "10000_people": {
+   "bytes": 917535,
+   "upload_and_report_ms": 14846,
+   "commit_ms": 165367,
+   "status": "committed",
+   "created": null
+  }
+ }
+}

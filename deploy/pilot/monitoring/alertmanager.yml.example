@@ -1,0 +1,22 @@
+# /etc/vanshavali/alertmanager.yml (chmod 600: holds SMTP credentials). Copy and fill in.
+route:
+  receiver: ops-email
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [severity="page"]
+      receiver: ops-email
+      repeat_interval: 1h
+
+receivers:
+  - name: ops-email
+    email_configs:
+      - to: ops@example.org
+        from: alerts@example.org
+        smarthost: email-smtp.ap-south-1.amazonaws.com:587
+        auth_username: CHANGE_ME
+        auth_password: CHANGE_ME
+        require_tls: true
+        send_resolved: true
