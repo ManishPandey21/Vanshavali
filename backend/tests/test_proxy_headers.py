@@ -53,8 +53,30 @@ def test_wildcard_trust_is_exactly_the_bug():
     assert _client_ip("*", NGINX, f"{SPOOFED}, {REAL}") == SPOOFED
 
 
-@pytest.mark.parametrize("path", ["backend/Dockerfile", "docker-compose.yml", ".github/workflows/dast.yml"])
+@pytest.mark.parametrize(
+    "path",
+    ["backend/Dockerfile", "docker-compose.yml", ".github/workflows/dast.yml", "deploy/pilot/compose.yml"],
+)
 def test_shipped_configuration_never_trusts_every_proxy(path: str):
     root = Path(__file__).resolve().parents[2]
     text = (root / path).read_text()
     assert not re.search(r"forwarded-allow-ips\W+\*|FORWARDED_ALLOW_IPS\W+[\"']?\*", text), path
+
+
+def test_pilot_backend_trusts_exactly_the_caddy_address():
+    """The pilot edge (ADR-0014): Caddy is the only proxy, pinned to one address, and trusts no one."""
+    from app.core.config import unsafe_forwarded_allow_ips
+
+    root = Path(__file__).resolve().parents[2] / "deploy/pilot"
+    compose = (root / "compose.yml").read_text()
+    trusted = re.search(r"FORWARDED_ALLOW_IPS:\s*([0-9.]+)\s", compose)
+    caddy = re.search(r"\n  caddy:\n.*?ipv4_address:\s*([0-9.]+)", compose, re.S)
+    assert trusted and caddy and trusted.group(1) == caddy.group(1)
+    assert unsafe_forwarded_allow_ips(trusted.group(1)) == []
+    # Caddy must not trust X-Forwarded-For from clients, or the client chooses its IP again
+    caddyfile = "\n".join(
+        line for line in (root / "Caddyfile").read_text().splitlines() if not line.lstrip().startswith("#")
+    )
+    assert "trusted_proxies" not in caddyfile
+    # and its address is what the client-IP test in lib.sh/run_smoke resolves the public name to
+    assert caddy.group(1) in (root / "scripts/lib.sh").read_text()

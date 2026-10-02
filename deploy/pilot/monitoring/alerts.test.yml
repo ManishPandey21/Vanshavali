@@ -1,0 +1,96 @@
+# promtool test rules alerts.test.yml — run by CI (deploy-config job) and before changing alerts.yml.
+rule_files: [alerts.yml]
+evaluation_interval: 30s
+tests:
+  - name: 5xx above 5% pages; a healthy service stays quiet
+    interval: 30s
+    input_series:
+      - series: 'vsh_http_requests_total{job="vanshavali-api",method="GET",route="/api/v1/trees",status="2xx"}'
+        values: '0+60x30'
+      - series: 'vsh_http_requests_total{job="vanshavali-api",method="GET",route="/api/v1/trees",status="5xx"}'
+        values: '0+0x10 0+10x20'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: HighServerErrorRate
+        exp_alerts: []
+      - eval_time: 14m
+        alertname: HighServerErrorRate
+        exp_alerts:
+          - exp_labels: { severity: page }
+            exp_annotations: { summary: "More than 5% of API requests fail with 5xx" }
+
+  - name: database down pages after a minute
+    interval: 30s
+    input_series:
+      - series: 'vsh_db_up{instance="172.30.0.5:8000",job="vanshavali-api"}'
+        values: '1 1 0 0 0 0 0'
+      - series: 'vsh_db_up{instance="172.30.0.6:8000",job="vanshavali-api"}'
+        values: '1 1 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: DatabaseUnavailable
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: DatabaseUnavailable
+        exp_alerts:
+          - exp_labels: { severity: page }
+            exp_annotations: { summary: "The API cannot reach PostgreSQL" }
+
+  - name: email failures page; one failure does not
+    interval: 1m
+    input_series:
+      - series: 'vsh_events_total{event="mail_delivery_failed",instance="a",job="vanshavali-api"}'
+        values: '0 1 1 1 1 1 2 3 4 5 6'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: EmailDeliveryFailing
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: EmailDeliveryFailing
+        exp_alerts:
+          - exp_labels: { severity: page }
+            exp_annotations: { summary: "Email delivery is failing: registration and password reset are blocked" }
+
+  - name: stale backup pages after 26 hours; a failed run pages at once
+    interval: 1h
+    input_series:
+      - series: 'vsh_backup_last_success_timestamp_seconds{instance="node-exporter:9100",job="node"}'
+        values: '0x30'
+      - series: 'vsh_backup_last_status{instance="node-exporter:9100",job="node",label="nightly"}'
+        values: '1x25 0x5'
+    alert_rule_test:
+      - eval_time: 25h
+        alertname: BackupStale
+        exp_alerts: []
+      - eval_time: 27h
+        alertname: BackupStale
+        exp_alerts:
+          - exp_labels: { severity: page, instance: "node-exporter:9100", job: node }
+            exp_annotations: { summary: "No successful backup for more than 26 hours" }
+      - eval_time: 27h
+        alertname: BackupFailed
+        exp_alerts:
+          - exp_labels: { severity: page, instance: "node-exporter:9100", job: node, label: nightly }
+            exp_annotations: { summary: "The last backup run failed (nightly)" }
+
+  - name: queue backlog and no workers
+    interval: 1m
+    input_series:
+      - series: 'vsh_jobs_queued{instance="a",job="vanshavali-api"}'
+        values: '0 10 60+1x30'
+      - series: 'vsh_workers{instance="a",job="vanshavali-api"}'
+        values: '1 1 1 0 0 0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: JobBacklog
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: JobBacklog
+        exp_alerts:
+          - exp_labels: { severity: warn }
+            exp_annotations: { summary: "More than 50 jobs waiting for 15 minutes (78)" }
+      - eval_time: 9m
+        alertname: NoWorkers
+        exp_alerts:
+          - exp_labels: { severity: page }
+            exp_annotations: { summary: "No background worker is running: uploads stay unscanned and email is not sent" }

@@ -1,0 +1,193 @@
+# Pilot / staging stack (ADR-0014): one VM, managed PostgreSQL and S3. Not for local development
+# (use the repository's docker-compose.yml). Run it through deploy/pilot/scripts/deploy.sh, which
+# passes the non-secret settings file:
+#
+#   docker compose --env-file /etc/vanshavali/compose.env -f deploy/pilot/compose.yml ...
+#
+# Secrets live in $VSH_CONFIG_DIR/app.env (backend, worker) and $VSH_CONFIG_DIR/migrate.env (schema
+# owner, release step only); see docs/deployment/environment-variables.md. Only Caddy publishes ports.
+name: vanshavali
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "20m", max-file: "5" }
+
+x-backend: &backend
+  image: ${IMAGE_PREFIX:?set IMAGE_PREFIX}/vanshavali-backend:${VSH_VERSION:?set VSH_VERSION}
+  env_file: ["${VSH_CONFIG_DIR:-/etc/vanshavali}/app.env"]
+  environment: &backend-env
+    VSH_ENV: production
+    VSH_LOG_FORMAT: json
+    VSH_JOB_MODE: rq
+    VSH_RATE_LIMIT_BACKEND: redis
+    VSH_REDIS_URL: redis://redis:6379/0
+    VSH_STORAGE_BACKEND: s3
+    VSH_SCANNER: clamd
+    VSH_CLAMD_HOST: clamav
+    VSH_CLAMD_PORT: "3310"
+    VSH_MAIL_BACKEND: smtp
+    VSH_COOKIE_SECURE: "true"
+    VSH_PUBLIC_BASE_URL: https://${VSH_DOMAIN:?set VSH_DOMAIN}
+    VSH_CORS_ORIGINS: '["https://${VSH_DOMAIN}"]'
+    # The only proxy in front of the API is Caddy, pinned to this address below (threat T30).
+    FORWARDED_ALLOW_IPS: 172.30.0.10
+  read_only: true
+  tmpfs: ["/tmp"]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  restart: unless-stopped
+  logging: *logging
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      VSH_DOMAIN: ${VSH_DOMAIN}
+      # An email address (ACME account contact), or "internal" for a locally trusted CA (drills only).
+      VSH_TLS: ${VSH_TLS:?set VSH_TLS to the ACME contact email}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [frontend]
+    networks:
+      default:
+        ipv4_address: 172.30.0.10
+    logging: *logging
+
+  frontend:
+    image: ${IMAGE_PREFIX}/vanshavali-frontend:${VSH_VERSION}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/var/cache/nginx", "/var/run", "/tmp"]
+    logging: *logging
+
+  backend:
+    <<: *backend
+    # One uvicorn process per container; scale with replicas so Prometheus can scrape each process.
+    command:
+      - uvicorn
+      - app.main:app
+      - --host=0.0.0.0
+      - --port=8000
+      - --proxy-headers
+      - --no-access-log
+      - --timeout-graceful-shutdown=20
+    deploy:
+      replicas: ${BACKEND_REPLICAS:-2}
+    stop_grace_period: 30s
+    depends_on:
+      redis: { condition: service_healthy }
+      clamav: { condition: service_healthy }
+
+  worker:
+    <<: *backend
+    # OCR concurrency = worker replicas (each job uses one tesseract thread, OMP_THREAD_LIMIT=1).
+    command: ["python", "-m", "app.cli.worker"]
+    healthcheck:
+      disable: true
+    deploy:
+      replicas: ${WORKER_REPLICAS:-1}
+    stop_grace_period: 120s # let a running OCR job finish (warm shutdown)
+    depends_on:
+      redis: { condition: service_healthy }
+      clamav: { condition: service_healthy }
+
+  # Release step (deploy.sh): migrations as the schema owner, then the RLS-bound app role and grants.
+  migrate:
+    <<: *backend
+    env_file: ["${VSH_CONFIG_DIR:-/etc/vanshavali}/app.env", "${VSH_CONFIG_DIR:-/etc/vanshavali}/migrate.env"]
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.ensure_app_role"]
+    restart: "no"
+    healthcheck:
+      disable: true
+    profiles: [release]
+
+  # Daily maintenance and operator tools (cron runs: docker compose run --rm tools python -m ...).
+  tools:
+    <<: *backend
+    command: ["python", "-m", "app.cli.maintenance", "--help"]
+    restart: "no"
+    healthcheck:
+      disable: true
+    profiles: [tools]
+
+  redis:
+    image: redis:7-alpine
+    # AOF: queued jobs (email, OCR) survive a restart. noeviction: never drop jobs silently.
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "noeviction"]
+    volumes: [redis_data:/data]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 10
+    logging: *logging
+
+  clamav:
+    image: clamav/clamav:1.4
+    volumes: [clamav_db:/var/lib/clamav]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      retries: 20
+      start_period: 180s
+    logging: *logging
+
+  # ---- monitoring (profile "monitoring"; see docs/operations/monitoring-alerting.md)
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [monitoring]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+    ports: ["127.0.0.1:9090:9090"] # host loopback only: reach it through an SSH tunnel
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ${VSH_CONFIG_DIR:-/etc/vanshavali}/metrics_token:/etc/prometheus/metrics_token:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    logging: *logging
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    profiles: [monitoring]
+    command: [--config.file=/etc/alertmanager/alertmanager.yml]
+    ports: ["127.0.0.1:9093:9093"]
+    volumes:
+      - ${VSH_CONFIG_DIR:-/etc/vanshavali}/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    restart: unless-stopped
+    logging: *logging
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    profiles: [monitoring]
+    command:
+      - --path.rootfs=/host
+      - --collector.textfile.directory=/textfile
+      - --web.listen-address=:9100
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+      - /var/lib/vanshavali/textfile:/textfile:ro
+    restart: unless-stopped
+    logging: *logging
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  caddy_data:
+  caddy_config:
+  redis_data:
+  clamav_db:
+  prometheus_data:
+  alertmanager_data:

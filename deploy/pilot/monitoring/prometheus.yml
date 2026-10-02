@@ -1,0 +1,30 @@
+# Prometheus for the pilot stack (profile "monitoring"). Alert rules: alerts.yml.
+# Runbook for every alert: docs/operations/monitoring-alerting.md
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files: [/etc/prometheus/alerts.yml]
+
+alerting:
+  alertmanagers:
+    - static_configs: [{ targets: ["alertmanager:9093"] }]
+
+scrape_configs:
+  # Every backend replica (one uvicorn process each): Compose DNS returns all replica addresses.
+  - job_name: vanshavali-api
+    metrics_path: /api/v1/metrics
+    authorization:
+      credentials_file: /etc/prometheus/metrics_token
+    dns_sd_configs:
+      - names: [backend]
+        type: A
+        port: 8000
+        refresh_interval: 30s
+
+  # Host: CPU, memory, disk, and the backup textfile metrics written by backup.sh
+  - job_name: node
+    static_configs: [{ targets: ["node-exporter:9100"] }]
+
+  - job_name: prometheus
+    static_configs: [{ targets: ["localhost:9090"] }]

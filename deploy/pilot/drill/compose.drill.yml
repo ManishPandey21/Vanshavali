@@ -1,0 +1,60 @@
+# Staging drill override (deploy/pilot/drill/run-drill.sh): stand-ins for the MANAGED services so the
+# real pilot stack (compose.yml, Caddyfile, scripts) can be exercised on one machine without a cloud
+# account. Never use it for the pilot itself.
+#   pgmanaged  PostgreSQL 16 with a non-superuser schema owner (like a managed instance's admin role)
+#   s3         moto (S3 API: versioning, conditional writes) for the document and backup buckets
+#   smtp       aiosmtpd sink that REQUIRES STARTTLS and stores each message (drill CA certificate)
+x-drill-ca: &drill-ca
+  SSL_CERT_FILE: /drill/ca.crt
+
+services:
+  pgmanaged:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${DRILL_PG_ADMIN_PASSWORD:?}
+      POSTGRES_DB: postgres
+    volumes:
+      - pgmanaged:/var/lib/postgresql/data
+      - ${DRILL_DIR:?}/pg-init.sql:/docker-entrypoint-initdb.d/10-owner.sql:ro
+    ports: ["127.0.0.1:${DRILL_PG_PORT:-55432}:5432"] # seeding the synthetic 10k-person tree from the host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 3s
+      retries: 40
+
+  s3:
+    image: ${DRILL_TOOLS_IMAGE:-vsh-drill-tools:local}
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        RUN pip install --no-cache-dir "moto[server]==5.1.*" "aiosmtpd==1.4.*"
+    command: ["moto_server", "-H", "0.0.0.0", "-p", "5000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:5000/moto-api/')"]
+      interval: 3s
+      retries: 40
+
+  smtp:
+    image: ${DRILL_TOOLS_IMAGE:-vsh-drill-tools:local}
+    command: ["python", "/drill/smtp_sink.py"]
+    volumes:
+      - ${DRILL_DIR}:/drill:ro
+      - ${DRILL_DIR}/mail:/mail
+
+  backend:
+    environment: *drill-ca
+    volumes: ["${DRILL_DIR}/ca.crt:/drill/ca.crt:ro"]
+    depends_on:
+      pgmanaged: { condition: service_healthy }
+      s3: { condition: service_healthy }
+  worker:
+    environment: *drill-ca
+    volumes: ["${DRILL_DIR}/ca.crt:/drill/ca.crt:ro"]
+  migrate:
+    depends_on:
+      pgmanaged: { condition: service_healthy }
+
+volumes:
+  pgmanaged:
