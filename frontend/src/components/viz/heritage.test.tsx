@@ -9,6 +9,7 @@ import { ReminderDialog } from "../events/ReminderControl";
 import { StoryTimeline } from "./StoryTimeline";
 import { AncestryChart, DEFAULT_ANCESTRY } from "./AncestryChart";
 import { AnimatedExport } from "./AnimatedExport";
+import { abbreviateSurname } from "../../lib/fanLabel";
 
 type Handler = (url: string, init?: RequestInit) => unknown;
 
@@ -190,6 +191,66 @@ describe("fan and pedigree charts", () => {
     // text alternative
     await user.click(screen.getByText("Show as a table / list"));
     expect(screen.getAllByRole("row").length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe("fan-chart names", () => {
+  const person = (id: string, name: string) => ({ id, display_name: name, profile_status: "deceased" as const, birth_display: "1900" });
+  const node = (slot: number, name: string) => ({ slot, generation: Math.floor(Math.log2(slot)), side: "paternal" as const, hidden: false, person: person(`s${slot}`, name) });
+  const deep: AncestryOut = {
+    root_id: "s1",
+    generations: 5,
+    summary: "Ancestors over 5 generations.",
+    missing_slots: [],
+    nodes: [
+      { ...node(1, "Aarav Venkataraman Pandey"), side: "self" },
+      node(2, "Rohan Pandey"),
+      node(3, "Priya"),
+      node(8, "Ram Prasad Pandey"), // generation 3: previously clipped
+      node(12, "Hari Shankar Tiwari"),
+      node(16, "Venkataraman Subramaniam Iyer"), // generation 4
+      node(32, "Chandrashekhar Bhattacharya"), // generation 5: the narrowest sectors
+      node(33, "Om"),
+    ],
+  };
+
+  it("fits each name inside its sector at every generation, keeping the full name accessible", async () => {
+    mockFetch((url) => (url.includes("/viz/ancestry") ? deep : url.includes("/branches") ? [] : url.includes("render-jobs") ? [] : {}));
+    renderWithProviders(<AncestryChart kind="fan" rootId="s1" settings={{ ...DEFAULT_ANCESTRY, generations: 5 }} onSettings={() => undefined} />);
+    const shown = (name: RegExp) => screen.getByRole("button", { name }).querySelector("text")!;
+    // short names stay whole
+    expect((await screen.findByRole("button", { name: /^Rohan Pandey/ })).querySelector("text")).toHaveTextContent(/^Rohan Pandey$/);
+    expect(shown(/^Priya/)).toHaveTextContent(/^Priya$/);
+    expect(shown(/^Om,/)).toHaveTextContent(/^Om$/);
+    // long names degrade (smaller, abbreviated or cut) but are never cut mid-sector by a neighbour
+    for (const [re, full] of [
+      [/^Ram Prasad Pandey/, "Ram Prasad Pandey"],
+      [/^Hari Shankar Tiwari/, "Hari Shankar Tiwari"],
+      [/^Venkataraman Subramaniam Iyer/, "Venkataraman Subramaniam Iyer"],
+      [/^Chandrashekhar Bhattacharya/, "Chandrashekhar Bhattacharya"],
+      [/^Aarav Venkataraman Pandey/, "Aarav Venkataraman Pandey"],
+    ] as const) {
+      const g = screen.getByRole("button", { name: re });
+      expect(g).toHaveAccessibleName(expect.stringContaining(full));
+      const text = g.querySelector("text")!;
+      expect(text.textContent!.length).toBeGreaterThan(1);
+      const label = text.textContent!;
+      // the whole name, the name with the surname abbreviated, or a cut of that ending in "…"
+      const abbreviated = abbreviateSurname(full);
+      expect(label === full || label === abbreviated || (label.endsWith("…") && abbreviated.startsWith(label.slice(0, -1)))).toBe(true);
+    }
+    expect(shown(/^Venkataraman Subramaniam Iyer/).textContent).not.toBe("Venkataraman Subramaniam Iyer");
+    expect(shown(/^Chandrashekhar Bhattacharya/).textContent).toMatch(/…$/);
+    // every sector label is clipped to its own sector, with a unique clip path
+    const svg = screen.getByRole("group", { name: "fan" });
+    // (the clip is on an unrotated wrapper: on the rotated <text> it would be rotated with it)
+    expect(svg.querySelector("text[clip-path]")).toBeNull();
+    const clipped = [...svg.querySelectorAll("g[clip-path]")];
+    expect(clipped.length).toBeGreaterThanOrEqual(7);
+    for (const g of clipped) expect(g.getAttribute("transform")).toBeNull();
+    const ids = clipped.map((t) => t.getAttribute("clip-path")!.match(/url\(#(.+)\)/)![1]);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) expect(svg.querySelector(`clipPath[id="${id}"] path`)).not.toBeNull();
   });
 });
 

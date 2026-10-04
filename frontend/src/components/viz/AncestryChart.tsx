@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AncestryNode, AncestryOut, VizPerson } from "../../api/types";
 import { useAncestry } from "../../api/hooks/viz";
 import { useBranches } from "../../api/hooks/family";
 import { useTreeCtx } from "../../lib/tree-context";
+import { fitFanLabel } from "../../lib/fanLabel";
 import { buildLegend, COLOR_BYS, colorKey, HIDDEN_COLOR, MISSING_FILL, yearsLabel, type ColorBy } from "../../lib/vizColors";
 import { ErrorAlert, Spinner } from "../ui/feedback";
 import { Checkbox, Field, Select } from "../ui/form";
@@ -156,6 +157,10 @@ function FanSvg({ svgRef, drawn, generations, fill, label, aria, onChoose, selec
   const rRoot = 60;
   // the semicircle must fit both half the width and the height
   const ring = Math.min(110, (Math.min(W / 2 - 10, H - 40) - rRoot) / generations);
+  const clipBase = `fan${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const root = drawn.find((d) => d.slot === 1);
+  // the root name sits 28px above the centre; keep it inside the semicircle's chord there
+  const rootLabel = root ? fitFanLabel(label(root), { length: 2 * Math.sqrt(rRoot ** 2 - 40 ** 2) - 8, thickness: 20, maxFont: 13, minFont: 9 }) : null;
   return (
     <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="group" aria-label="fan">
       {drawn
@@ -177,8 +182,16 @@ function FanSvg({ svgRef, drawn, generations, fill, label, aria, onChoose, selec
           const radial = g >= 3;
           const rot = radial ? (deg > 270 || deg < 90 ? deg : deg + 180) : deg + 90;
           const isSel = d.node?.person?.id === selected && !!selected;
-          const fs = g <= 2 ? 15 : g === 3 ? 12 : g === 4 ? 10 : 8;
-          const max = g <= 2 ? 20 : g === 3 ? 16 : g === 4 ? 14 : 10;
+          const maxFont = g <= 2 ? 15 : g === 3 ? 12 : g === 4 ? 10 : 8;
+          const minFont = g <= 2 ? 11 : g === 3 ? 9 : 8;
+          // radial labels run from the inner to the outer edge and are limited by the inner arc's
+          // width; tangential ones run along the arc and must keep their ends inside the sector
+          const cap = Math.min(maxFont, (r1 - r0) * 0.75);
+          const space = radial
+            ? { length: r1 - r0 - 8, thickness: r0 * span - 2 }
+            : { length: 2 * Math.min(rl * Math.tan(span / 2) * 0.92, Math.sqrt(Math.max(0, (r1 - 2) ** 2 - (rl + cap / 2) ** 2))) - 8, thickness: r1 - r0 };
+          const fitted = d.node === null ? { text: "?", fontSize: Math.min(maxFont, 12) } : fitFanLabel(label(d), { ...space, maxFont, minFont });
+          const clipId = `${clipBase}-${d.slot}`;
           return (
             <g
               key={d.slot}
@@ -197,10 +210,18 @@ function FanSvg({ svgRef, drawn, generations, fill, label, aria, onChoose, selec
                 strokeWidth={isSel ? 3 : 1.5}
                 strokeDasharray={d.node === null ? "4 3" : undefined}
               />
-              {g <= 6 && (
-                <text x={tx} y={ty} transform={`rotate(${rot} ${tx} ${ty})`} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={d.node?.person ? "#fff" : "#57534e"} fontWeight={600} pointerEvents="none">
-                  {d.node === null ? "?" : truncate(label(d), max)}
-                </text>
+              {g <= 6 && fitted.text && (
+                <>
+                  <clipPath id={clipId}>
+                    <path d={arcPath(cx, cy, r0, r1, a0, a1)} />
+                  </clipPath>
+                  {/* the clip sits on an unrotated group so it is applied in the chart's own coordinates */}
+                  <g clipPath={`url(#${clipId})`}>
+                    <text x={tx} y={ty} transform={`rotate(${rot} ${tx} ${ty})`} textAnchor="middle" dominantBaseline="middle" fontSize={fitted.fontSize} fill={d.node?.person ? "#fff" : "#57534e"} fontWeight={600} pointerEvents="none">
+                      {fitted.text}
+                    </text>
+                  </g>
+                </>
               )}
             </g>
           );
@@ -210,8 +231,8 @@ function FanSvg({ svgRef, drawn, generations, fill, label, aria, onChoose, selec
         .map((d) => (
           <g key="root" tabIndex={0} role="button" aria-label={aria(d)} onClick={() => onChoose(d)} onKeyDown={keyActivate(() => onChoose(d))} className="cursor-pointer focus:outline-none">
             <path d={arcPath(cx, cy, 0, rRoot, Math.PI, 2 * Math.PI)} fill="#9f1239" />
-            <text x={cx} y={cy - 28} textAnchor="middle" fontSize={13} fontWeight={700} fill="#fff" pointerEvents="none">
-              {truncate(label(d), 14)}
+            <text x={cx} y={cy - 28} textAnchor="middle" fontSize={rootLabel?.fontSize || 13} fontWeight={700} fill="#fff" pointerEvents="none">
+              {rootLabel?.text}
             </text>
             <text x={cx} y={cy - 12} textAnchor="middle" fontSize={11} fill="#fff" pointerEvents="none">
               {d.node?.person ? yearsLabel(d.node.person) : ""}
