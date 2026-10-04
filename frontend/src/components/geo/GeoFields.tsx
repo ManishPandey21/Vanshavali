@@ -93,10 +93,10 @@ export function GeoFields({ value, onChange, showErrors, canPrivacy, coarsened }
         <p className="mt-3 rounded-md bg-parchment-deep p-2 text-sm">{t("geo.coarsenedEdit")}</p>
       ) : (
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Field label={t("geo.latitude")} hint="25.3912" error={showErrors && (errs.latitude || errs.pair) ? t(errs.pair ? "geo.pairError" : "geo.latError") : null}>
+          <Field label={t("geo.latitude")} hint={t("geo.latitudeExample", { value: "25.3912" })} error={showErrors && (errs.latitude || errs.pair) ? t(errs.pair ? "geo.pairError" : "geo.latError") : null}>
             {(p) => <TextInput {...p} inputMode="decimal" value={value.latitude} onChange={(e) => set({ latitude: e.target.value })} />}
           </Field>
-          <Field label={t("geo.longitude")} hint="82.5712" error={showErrors && errs.longitude ? t("geo.lngError") : null}>
+          <Field label={t("geo.longitude")} hint={t("geo.longitudeExample", { value: "82.5712" })} error={showErrors && errs.longitude ? t("geo.lngError") : null}>
             {(p) => <TextInput {...p} inputMode="decimal" value={value.longitude} onChange={(e) => set({ longitude: e.target.value })} />}
           </Field>
           <Field label={t("geo.precision")} hint={t("geo.precisionHint")}>

@@ -2385,6 +2385,8 @@
     "mapLabelHint": "जैसे \"पांडे का गाँव\"",
     "latitude": "अक्षांश",
     "longitude": "देशांतर",
+    "latitudeExample": "जैसे {{value}}",
+    "longitudeExample": "जैसे {{value}}",
     "precision": "कितना सटीक?",
     "precisionHint": "जितनी जानकारी है उससे अधिक सटीकता न बताएँ।",
     "confidence": "स्थान पर भरोसा",
