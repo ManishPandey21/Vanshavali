@@ -1,22 +1,20 @@
 import { useEffect, useRef, type CSSProperties, type ElementType, type ReactNode } from "react";
 
 /**
- * Fades and lifts its content into place the first time it scrolls into view ("unveil" wipes an
- * inner wrapper open from the top instead). The content is in the page and visible from the start: it is only
- * hidden once this script has armed it, and only when IntersectionObserver exists and the visitor
- * has not asked for reduced motion (the CSS lives in index.css under [data-reveal]).
+ * Fades and lifts its content into place the first time it scrolls into view. The content is in
+ * the page and visible from the start: it is only hidden once this script has armed it, and only
+ * when IntersectionObserver exists and the visitor has not asked for reduced motion (the CSS lives
+ * in index.css under [data-reveal]).
  */
 export function Reveal({
   as: Tag = "div",
   delay = 0,
-  variant = "rise",
   className = "",
   children,
   ...rest
 }: {
   as?: ElementType;
   delay?: number;
-  variant?: "rise" | "unveil";
   className?: string;
   children: ReactNode;
 } & Record<string, unknown>) {
@@ -45,12 +43,11 @@ export function Reveal({
   return (
     <Tag
       ref={ref}
-      data-reveal-variant={variant}
       className={className}
       style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}
       {...rest}
     >
-      {variant === "unveil" ? <div data-reveal-inner="">{children}</div> : children}
+      {children}
     </Tag>
   );
 }
