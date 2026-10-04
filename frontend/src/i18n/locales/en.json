@@ -2173,9 +2173,20 @@
           "body": "Living relatives are visible only to the family members you invite."
         }
       },
-      "alt": "The Vanshavali tree viewer in Hindi, showing three generations of the Sharma family: Suresh and Kamala Sharma, their sons Ramesh and Mahesh with their wives Sunita and Geeta, and grandchildren Aarav, Anaya and Kabir.",
-      "caption": "The real tree viewer, in Hindi. Grandparents who have passed away show their years; the lock marks living relatives whose details stay within the family.",
-      "note": "Sign in or create an account to start. Your tree stays private unless you choose otherwise."
+      "alt": "An animated family tree growing generation by generation: Suresh and Kamala Sharma, their sons Ramesh and Mahesh with their wives Sunita and Geeta, and grandchildren Aarav, Anaya and Kabir. It ends by naming the relationship: Suresh is Aarav's dādā, his father's father.",
+      "caption": "Built the way families build theirs: one generation at a time. Those who have passed away show their years; the lock marks living relatives whose details stay within the family.",
+      "note": "Sign in or create an account to start. Your tree stays private unless you choose otherwise.",
+      "tree": {
+        "chrome": "Vanshavali · Sharma family · Family tree",
+        "title": "The Sharma family tree",
+        "living": "Living · private",
+        "kin": "Suresh is Aarav's दादा (dādā) — his father's father",
+        "replay": "Watch it grow again",
+        "people_one": "person",
+        "people_other": "people",
+        "generations_one": "generation",
+        "generations_other": "generations"
+      }
     },
     "traditions": {
       "leaf": {

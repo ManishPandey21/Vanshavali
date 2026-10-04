@@ -168,15 +168,6 @@
     opacity: 0;
     transform: translate3d(0, 32px, 0);
   }
-  /* "unveil" wipes an inner wrapper open from the top. The clip sits on the wrapper, not on the
-     observed element, because a fully clipped target never reports as intersecting. */
-  [data-reveal="armed"][data-reveal-variant="unveil"] {
-    opacity: 1;
-    transform: scale(0.97);
-  }
-  [data-reveal="armed"] > [data-reveal-inner] {
-    clip-path: inset(0 0 100% 0);
-  }
   [data-reveal="shown"] {
     opacity: 1;
     transform: none;
@@ -184,22 +175,6 @@
       opacity 900ms cubic-bezier(0.2, 0.7, 0.2, 1),
       transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1);
     transition-delay: var(--reveal-delay, 0ms);
-  }
-  [data-reveal="shown"] > [data-reveal-inner] {
-    clip-path: inset(0 0 0 0);
-    transition: clip-path 1400ms cubic-bezier(0.65, 0, 0.35, 1);
-    transition-delay: var(--reveal-delay, 0ms);
-  }
-  /* The family-tree "thread": a line that draws itself once its section is shown. */
-  [data-reveal] .thread-path {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 0;
-  }
-  [data-reveal="armed"] .thread-path {
-    stroke-dashoffset: 1;
-  }
-  [data-reveal="shown"] .thread-path {
-    transition: stroke-dashoffset 2200ms cubic-bezier(0.65, 0, 0.35, 1) 300ms;
   }
 }
 
@@ -215,5 +190,44 @@
   svg {
     max-width: 100% !important;
     height: auto !important;
+  }
+}
+
+/*
+ * The landing page's growing family tree (pages/landing/GrowingTree.tsx): people and lines are
+ * hidden until their stage is reached ("is-on"). Without a motion preference of no-preference the
+ * finished tree simply shows.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .gt-node {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.94);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      opacity 600ms ease,
+      transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .gt-node.is-on {
+    opacity: 1;
+    transform: none;
+  }
+  .gt-line,
+  .gt-kin {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 800ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .gt-kin {
+    transition-duration: 1600ms;
+  }
+  .gt-line.is-on,
+  .gt-kin.is-on {
+    stroke-dashoffset: 0;
+  }
+  .gt-card {
+    transition:
+      fill 600ms ease,
+      stroke 600ms ease;
   }
 }

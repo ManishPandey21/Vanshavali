@@ -13,6 +13,7 @@ import "@fontsource/eb-garamond/500.css";
 import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
+import { GrowingTree } from "./GrowingTree";
 import { Reveal } from "./Reveal";
 
 /**
@@ -306,29 +307,8 @@ export function LandingPage() {
                 </ul>
               </div>
 
-              <Reveal as="figure" variant="unveil" delay={200} className="relative m-0">
-                <svg className="pointer-events-none absolute -top-10 -left-10 hidden h-[calc(100%+5rem)] w-24 text-rust/50 lg:block" viewBox="0 0 96 400" fill="none" aria-hidden>
-                  <path className="thread-path" pathLength={1} d="M80 4 C 10 80, 90 140, 30 210 S 70 330, 20 396" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <div className="overflow-hidden rounded-2xl border border-cocoa/10 bg-white shadow-2xl shadow-cocoa/15">
-                  <div className="flex items-center gap-2 border-b border-cocoa/10 bg-cream px-4 py-2.5" aria-hidden>
-                    <span className="size-2.5 rounded-full bg-rust/40" />
-                    <span className="size-2.5 rounded-full bg-gold/60" />
-                    <span className="size-2.5 rounded-full bg-leaf-700/30" />
-                    <span className="ml-3 truncate font-sans text-xs text-umber" lang="hi">
-                      वंशावली · शर्मा परिवार · वंशवृक्ष
-                    </span>
-                  </div>
-                  <img
-                    src="/landing/tree-viewer-hi.png"
-                    width={2256}
-                    height={1472}
-                    loading="lazy"
-                    decoding="async"
-                    alt={t("landing.archive.alt")}
-                    className="block h-auto w-full"
-                  />
-                </div>
+              <Reveal as="figure" delay={200} className="m-0 min-w-0">
+                <GrowingTree />
                 <figcaption className="mt-4 text-center text-sm text-umber italic">{t("landing.archive.caption")}</figcaption>
               </Reveal>
             </div>
