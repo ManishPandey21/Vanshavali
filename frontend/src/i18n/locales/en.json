@@ -2385,6 +2385,8 @@
     "mapLabelHint": "e.g. \"Pandey ka gaon\"",
     "latitude": "Latitude",
     "longitude": "Longitude",
+    "latitudeExample": "e.g. {{value}}",
+    "longitudeExample": "e.g. {{value}}",
     "precision": "How precise?",
     "precisionHint": "Never claim more precision than you have.",
     "confidence": "Confidence in the location",
