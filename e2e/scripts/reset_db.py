@@ -36,6 +36,7 @@ target = make_url(admin_url).set(database=db_name).render_as_string(hide_passwor
 backend = Path(__file__).resolve().parents[2] / "backend"
 env = {**os.environ, "VSH_DATABASE_URL": target}
 subprocess.run(["uv", "run", "alembic", "upgrade", "head"], cwd=backend, env=env, check=True)
+subprocess.run(["uv", "run", "python", "-m", "app.cli.load_vocabularies"], cwd=backend, env=env, check=True)
 app_role = os.environ.get("VSH_E2E_APP_ROLE", "vsh_app_e2e")
 role_env = {**env, "VSH_APP_DB_ROLE": app_role, "VSH_APP_DB_PASSWORD": app_role}
 subprocess.run(["uv", "run", "python", "-m", "app.cli.ensure_app_role"], cwd=backend, env=role_env, check=True)

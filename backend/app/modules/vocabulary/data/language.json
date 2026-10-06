@@ -1,0 +1,564 @@
+{
+ "code": "language",
+ "name": "Language",
+ "description": "Languages (ISO 639 codes / BCP-47 primary tags): the 22 Eighth Schedule languages, English and major unscheduled Indian languages, plus Persian for historical records.",
+ "version": "2026.10.1",
+ "source": "ISO 639; English/Hindi/native names from Unicode CLDR where available, otherwise curated",
+ "license": "CLDR data under the Unicode License v3",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "as",
+   "label": "Assamese",
+   "labels": {
+    "hi": "असमिया",
+    "native": "অসমীয়া"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "as"
+   }
+  },
+  {
+   "code": "bn",
+   "label": "Bengali",
+   "labels": {
+    "hi": "बंगाली",
+    "native": "বাংলা"
+   },
+   "aliases": [
+    "Bangla"
+   ],
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "bn"
+   }
+  },
+  {
+   "code": "brx",
+   "label": "Bodo",
+   "labels": {
+    "hi": "बोडो",
+    "native": "बर’"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "brx"
+   }
+  },
+  {
+   "code": "doi",
+   "label": "Dogri",
+   "labels": {
+    "hi": "डोगरी"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "doi"
+   }
+  },
+  {
+   "code": "gu",
+   "label": "Gujarati",
+   "labels": {
+    "hi": "गुजराती",
+    "native": "ગુજરાતી"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "gu"
+   }
+  },
+  {
+   "code": "hi",
+   "label": "Hindi",
+   "labels": {
+    "hi": "हिन्दी"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "hi"
+   }
+  },
+  {
+   "code": "kn",
+   "label": "Kannada",
+   "labels": {
+    "hi": "कन्नड़",
+    "native": "ಕನ್ನಡ"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "kn"
+   }
+  },
+  {
+   "code": "ks",
+   "label": "Kashmiri",
+   "labels": {
+    "hi": "कश्मीरी",
+    "native": "کٲشُر"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "ks"
+   }
+  },
+  {
+   "code": "kok",
+   "label": "Konkani",
+   "labels": {
+    "hi": "कोंकणी"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "kok"
+   }
+  },
+  {
+   "code": "mai",
+   "label": "Maithili",
+   "labels": {
+    "hi": "मैथिली"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "mai"
+   }
+  },
+  {
+   "code": "ml",
+   "label": "Malayalam",
+   "labels": {
+    "hi": "मलयालम",
+    "native": "മലയാളം"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "ml"
+   }
+  },
+  {
+   "code": "mni",
+   "label": "Manipuri (Meitei)",
+   "labels": {
+    "hi": "मणिपुरी",
+    "native": "ꯃꯤꯇꯩꯂꯣꯟ"
+   },
+   "aliases": [
+    "Meitei",
+    "Meiteilon"
+   ],
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "mni"
+   }
+  },
+  {
+   "code": "mr",
+   "label": "Marathi",
+   "labels": {
+    "hi": "मराठी"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "mr"
+   }
+  },
+  {
+   "code": "ne",
+   "label": "Nepali",
+   "labels": {
+    "hi": "नेपाली"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "ne"
+   }
+  },
+  {
+   "code": "or",
+   "label": "Odia",
+   "labels": {
+    "hi": "ओड़िया",
+    "native": "ଓଡ଼ିଆ"
+   },
+   "aliases": [
+    "Oriya"
+   ],
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "or"
+   }
+  },
+  {
+   "code": "pa",
+   "label": "Punjabi",
+   "labels": {
+    "hi": "पंजाबी",
+    "native": "ਪੰਜਾਬੀ"
+   },
+   "aliases": [
+    "Panjabi",
+    "Gurmukhi"
+   ],
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "pa"
+   }
+  },
+  {
+   "code": "sa",
+   "label": "Sanskrit",
+   "labels": {
+    "hi": "संस्कृत",
+    "native": "संस्कृतम्"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "sa"
+   }
+  },
+  {
+   "code": "sat",
+   "label": "Santali",
+   "labels": {
+    "hi": "संथाली",
+    "native": "ᱥᱟᱱᱛᱟᱲᱤ"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "sat"
+   }
+  },
+  {
+   "code": "sd",
+   "label": "Sindhi",
+   "labels": {
+    "hi": "सिंधी",
+    "native": "سنڌي"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "sd"
+   }
+  },
+  {
+   "code": "ta",
+   "label": "Tamil",
+   "labels": {
+    "hi": "तमिल",
+    "native": "தமிழ்"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "ta"
+   }
+  },
+  {
+   "code": "te",
+   "label": "Telugu",
+   "labels": {
+    "hi": "तेलुगू",
+    "native": "తెలుగు"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "te"
+   }
+  },
+  {
+   "code": "ur",
+   "label": "Urdu",
+   "labels": {
+    "hi": "उर्दू",
+    "native": "اردو"
+   },
+   "tags": [
+    "eighth_schedule"
+   ],
+   "attributes": {
+    "iso_639": "ur"
+   }
+  },
+  {
+   "code": "en",
+   "label": "English",
+   "labels": {
+    "hi": "अंग्रेज़ी"
+   },
+   "attributes": {
+    "iso_639": "en"
+   }
+  },
+  {
+   "code": "awa",
+   "label": "Awadhi",
+   "labels": {
+    "hi": "अवधी"
+   },
+   "attributes": {
+    "iso_639": "awa"
+   }
+  },
+  {
+   "code": "bho",
+   "label": "Bhojpuri",
+   "labels": {
+    "hi": "भोजपुरी"
+   },
+   "attributes": {
+    "iso_639": "bho"
+   }
+  },
+  {
+   "code": "mag",
+   "label": "Magahi",
+   "labels": {
+    "hi": "मगही"
+   },
+   "attributes": {
+    "iso_639": "mag"
+   }
+  },
+  {
+   "code": "bns",
+   "label": "Bundeli",
+   "labels": {
+    "hi": "बुंदेली"
+   },
+   "attributes": {
+    "iso_639": "bns"
+   }
+  },
+  {
+   "code": "hne",
+   "label": "Chhattisgarhi",
+   "labels": {
+    "hi": "छत्तीसगढ़ी"
+   },
+   "attributes": {
+    "iso_639": "hne"
+   }
+  },
+  {
+   "code": "gbm",
+   "label": "Garhwali",
+   "labels": {
+    "hi": "गढ़वाली",
+    "native": "गढ़वळि"
+   },
+   "attributes": {
+    "iso_639": "gbm"
+   }
+  },
+  {
+   "code": "kfy",
+   "label": "Kumaoni",
+   "labels": {
+    "hi": "कुमाऊँनी"
+   },
+   "attributes": {
+    "iso_639": "kfy"
+   }
+  },
+  {
+   "code": "bgc",
+   "label": "Haryanvi",
+   "labels": {
+    "hi": "हरियाणवी"
+   },
+   "attributes": {
+    "iso_639": "bgc"
+   }
+  },
+  {
+   "code": "raj",
+   "label": "Rajasthani",
+   "labels": {
+    "hi": "राजस्थानी"
+   },
+   "aliases": [
+    "Marwari"
+   ],
+   "attributes": {
+    "iso_639": "raj"
+   }
+  },
+  {
+   "code": "mwr",
+   "label": "Marwari",
+   "labels": {
+    "hi": "मारवाड़ी"
+   },
+   "attributes": {
+    "iso_639": "mwr"
+   }
+  },
+  {
+   "code": "kfr",
+   "label": "Kutchi",
+   "labels": {
+    "hi": "कच्छी",
+    "native": "કચ્છી"
+   },
+   "attributes": {
+    "iso_639": "kfr"
+   }
+  },
+  {
+   "code": "tcy",
+   "label": "Tulu",
+   "labels": {
+    "hi": "तुलु",
+    "native": "ತುಳು"
+   },
+   "attributes": {
+    "iso_639": "tcy"
+   }
+  },
+  {
+   "code": "kfa",
+   "label": "Kodava",
+   "labels": {
+    "hi": "कोडवा",
+    "native": "ಕೊಡವ"
+   },
+   "attributes": {
+    "iso_639": "kfa"
+   }
+  },
+  {
+   "code": "kha",
+   "label": "Khasi",
+   "labels": {
+    "hi": "खासी"
+   },
+   "attributes": {
+    "iso_639": "kha"
+   }
+  },
+  {
+   "code": "lus",
+   "label": "Mizo",
+   "labels": {
+    "hi": "मिज़ो"
+   },
+   "aliases": [
+    "Lushai"
+   ],
+   "attributes": {
+    "iso_639": "lus"
+   }
+  },
+  {
+   "code": "grt",
+   "label": "Garo",
+   "labels": {
+    "hi": "गारो"
+   },
+   "attributes": {
+    "iso_639": "grt"
+   }
+  },
+  {
+   "code": "gon",
+   "label": "Gondi",
+   "labels": {
+    "hi": "गाँडी"
+   },
+   "attributes": {
+    "iso_639": "gon"
+   }
+  },
+  {
+   "code": "bhb",
+   "label": "Bhili",
+   "labels": {
+    "hi": "भीली"
+   },
+   "attributes": {
+    "iso_639": "bhb"
+   }
+  },
+  {
+   "code": "hoc",
+   "label": "Ho",
+   "labels": {
+    "hi": "हो"
+   },
+   "attributes": {
+    "iso_639": "hoc"
+   }
+  },
+  {
+   "code": "kru",
+   "label": "Kurukh",
+   "labels": {
+    "hi": "कुरूख"
+   },
+   "aliases": [
+    "Oraon"
+   ],
+   "attributes": {
+    "iso_639": "kru"
+   }
+  },
+  {
+   "code": "fa",
+   "label": "Persian",
+   "labels": {
+    "hi": "फ़ारसी",
+    "native": "فارسی"
+   },
+   "aliases": [
+    "Farsi"
+   ],
+   "attributes": {
+    "iso_639": "fa"
+   }
+  }
+ ]
+}

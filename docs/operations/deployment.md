@@ -8,7 +8,7 @@ docker compose up --build
 docker compose run --rm backend python -m app.cli.seed_demo   # optional demo family
 ```
 Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), migrate (a one-off
-`alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
+`alembic upgrade head` and `app.cli.load_vocabularies` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
 
 ## Production shape
@@ -33,6 +33,7 @@ The general rules below still apply to any topology:
   (ADR-0002 §7). Never point `VSH_DATABASE_URL` for the API or workers at the owner or a superuser.
   `/health/ready` reports `rls: false` if you do.
 - Release: build images → run `alembic upgrade head` as the owner → run
+  `python -m app.cli.load_vocabularies` (idempotent reference-data upsert, ADR-0019) → run
   `python -m app.cli.ensure_app_role` (idempotent; takes `VSH_APP_DB_ROLE` and
   `VSH_APP_DB_PASSWORD`) → roll backend and worker.
   Migrations must be backward compatible with the previous app version (expand/contract).

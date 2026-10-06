@@ -1,0 +1,1782 @@
+{
+ "code": "kin_term",
+ "name": "Kin term",
+ "description": "Indian kin terms and the primitive path each one expands to (ADR-0018). Steps: rel (parent/child/sibling/spouse), optional sex of the person reached, optional seniority relative to the person before the step. Never stored as a relationship type.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "pita",
+   "label": "Father (Pita)",
+   "labels": {
+    "hi": "पिता"
+   },
+   "aliases": [
+    "Father",
+    "Papa",
+    "Pitaji",
+    "Bapu",
+    "Abba",
+    "पापा",
+    "बाबूजी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father"
+   }
+  },
+  {
+   "code": "mata",
+   "label": "Mother (Mata)",
+   "labels": {
+    "hi": "माता"
+   },
+   "aliases": [
+    "Mother",
+    "Maa",
+    "Mataji",
+    "Ammi",
+    "Amma",
+    "माँ"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "mother"
+   }
+  },
+  {
+   "code": "beta",
+   "label": "Son (Beta)",
+   "labels": {
+    "hi": "बेटा"
+   },
+   "aliases": [
+    "Son",
+    "Putra",
+    "पुत्र"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "son"
+   }
+  },
+  {
+   "code": "beti",
+   "label": "Daughter (Beti)",
+   "labels": {
+    "hi": "बेटी"
+   },
+   "aliases": [
+    "Daughter",
+    "Putri",
+    "पुत्री"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "daughter"
+   }
+  },
+  {
+   "code": "bhai",
+   "label": "Brother (Bhai)",
+   "labels": {
+    "hi": "भाई"
+   },
+   "aliases": [
+    "Brother",
+    "Bhaiya",
+    "भैया"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "brother"
+   }
+  },
+  {
+   "code": "bahan",
+   "label": "Sister (Bahan)",
+   "labels": {
+    "hi": "बहन"
+   },
+   "aliases": [
+    "Sister",
+    "Behen",
+    "Didi",
+    "दीदी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "sister"
+   }
+  },
+  {
+   "code": "pati",
+   "label": "Husband (Pati)",
+   "labels": {
+    "hi": "पति"
+   },
+   "aliases": [
+    "Husband"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "husband"
+   }
+  },
+  {
+   "code": "patni",
+   "label": "Wife (Patni)",
+   "labels": {
+    "hi": "पत्नी"
+   },
+   "aliases": [
+    "Wife",
+    "Biwi",
+    "बीवी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "wife"
+   }
+  },
+  {
+   "code": "dada",
+   "label": "Dada (paternal grandfather)",
+   "labels": {
+    "hi": "दादा"
+   },
+   "aliases": [
+    "Dadaji",
+    "Baba",
+    "Grandfather (paternal)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's father"
+   }
+  },
+  {
+   "code": "dadi",
+   "label": "Dadi (paternal grandmother)",
+   "labels": {
+    "hi": "दादी"
+   },
+   "aliases": [
+    "Dadiji",
+    "Amma",
+    "Grandmother (paternal)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "parent",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's mother"
+   }
+  },
+  {
+   "code": "nana",
+   "label": "Nana (maternal grandfather)",
+   "labels": {
+    "hi": "नाना"
+   },
+   "aliases": [
+    "Nanaji",
+    "Grandfather (maternal)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "mother's father"
+   }
+  },
+  {
+   "code": "nani",
+   "label": "Nani (maternal grandmother)",
+   "labels": {
+    "hi": "नानी"
+   },
+   "aliases": [
+    "Naniji",
+    "Grandmother (maternal)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "parent",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "mother's mother"
+   }
+  },
+  {
+   "code": "pardada",
+   "label": "Pardada (paternal great-grandfather)",
+   "labels": {
+    "hi": "परदादा"
+   },
+   "aliases": [
+    "Great-grandfather"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's father's father"
+   }
+  },
+  {
+   "code": "pardadi",
+   "label": "Pardadi (paternal great-grandmother)",
+   "labels": {
+    "hi": "परदादी"
+   },
+   "aliases": [
+    "Great-grandmother"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "parent",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's father's mother"
+   }
+  },
+  {
+   "code": "tau",
+   "label": "Tau (father's elder brother)",
+   "labels": {
+    "hi": "ताऊ"
+   },
+   "aliases": [
+    "Tauji",
+    "Bade papa",
+    "ताऊजी",
+    "बड़े पापा"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's elder brother"
+   }
+  },
+  {
+   "code": "tai",
+   "label": "Tai (Tau's wife)",
+   "labels": {
+    "hi": "ताई"
+   },
+   "aliases": [
+    "Taiji",
+    "Badi mummy",
+    "ताईजी"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's elder brother's wife"
+   }
+  },
+  {
+   "code": "chacha",
+   "label": "Chacha (father's younger brother)",
+   "labels": {
+    "hi": "चाचा"
+   },
+   "aliases": [
+    "Chachaji",
+    "Kaka",
+    "चाचाजी"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "younger"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's younger brother"
+   }
+  },
+  {
+   "code": "chachi",
+   "label": "Chachi (Chacha's wife)",
+   "labels": {
+    "hi": "चाची"
+   },
+   "aliases": [
+    "Chachiji",
+    "Kaki"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "younger"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's younger brother's wife"
+   }
+  },
+  {
+   "code": "bua",
+   "label": "Bua (father's sister)",
+   "labels": {
+    "hi": "बुआ"
+   },
+   "aliases": [
+    "Buaji",
+    "Phuphi",
+    "Phupho",
+    "फूफी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's sister"
+   }
+  },
+  {
+   "code": "phupha",
+   "label": "Phupha (Bua's husband)",
+   "labels": {
+    "hi": "फूफा"
+   },
+   "aliases": [
+    "Fufa",
+    "Phuphaji",
+    "फूफाजी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's sister's husband"
+   }
+  },
+  {
+   "code": "mama",
+   "label": "Mama (mother's brother)",
+   "labels": {
+    "hi": "मामा"
+   },
+   "aliases": [
+    "Mamaji",
+    "मामाजी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "mother's brother"
+   }
+  },
+  {
+   "code": "mami",
+   "label": "Mami (Mama's wife)",
+   "labels": {
+    "hi": "मामी"
+   },
+   "aliases": [
+    "Mamiji"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "mother's brother's wife"
+   }
+  },
+  {
+   "code": "mausi",
+   "label": "Mausi (mother's sister)",
+   "labels": {
+    "hi": "मौसी"
+   },
+   "aliases": [
+    "Masi",
+    "Mausiji",
+    "मासी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "mother's sister"
+   }
+  },
+  {
+   "code": "mausa",
+   "label": "Mausa (Mausi's husband)",
+   "labels": {
+    "hi": "मौसा"
+   },
+   "aliases": [
+    "Mausaji",
+    "Masad"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "mother's sister's husband"
+   }
+  },
+  {
+   "code": "bhatija",
+   "label": "Bhatija (brother's son)",
+   "labels": {
+    "hi": "भतीजा"
+   },
+   "aliases": [
+    "Nephew (brother's son)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "male"
+     },
+     {
+      "rel": "child",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "brother's son"
+   }
+  },
+  {
+   "code": "bhatiji",
+   "label": "Bhatiji (brother's daughter)",
+   "labels": {
+    "hi": "भतीजी"
+   },
+   "aliases": [
+    "Niece (brother's daughter)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "male"
+     },
+     {
+      "rel": "child",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "brother's daughter"
+   }
+  },
+  {
+   "code": "bhanja",
+   "label": "Bhanja (sister's son)",
+   "labels": {
+    "hi": "भांजा"
+   },
+   "aliases": [
+    "Bhanje",
+    "Nephew (sister's son)",
+    "भानजा"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "child",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "sister's son"
+   }
+  },
+  {
+   "code": "bhanji",
+   "label": "Bhanji (sister's daughter)",
+   "labels": {
+    "hi": "भांजी"
+   },
+   "aliases": [
+    "Niece (sister's daughter)",
+    "भानजी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "child",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "sister's daughter"
+   }
+  },
+  {
+   "code": "pota",
+   "label": "Pota (son's son)",
+   "labels": {
+    "hi": "पोता"
+   },
+   "aliases": [
+    "Grandson (son's son)",
+    "Pautra",
+    "पौत्र"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "male"
+     },
+     {
+      "rel": "child",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "son's son"
+   }
+  },
+  {
+   "code": "poti",
+   "label": "Poti (son's daughter)",
+   "labels": {
+    "hi": "पोती"
+   },
+   "aliases": [
+    "Granddaughter (son's daughter)",
+    "Pautri"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "male"
+     },
+     {
+      "rel": "child",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "son's daughter"
+   }
+  },
+  {
+   "code": "nati",
+   "label": "Nati (daughter's son)",
+   "labels": {
+    "hi": "नाती"
+   },
+   "aliases": [
+    "Grandson (daughter's son)",
+    "Dauhitra",
+    "दौहित्र"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "female"
+     },
+     {
+      "rel": "child",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "daughter's son"
+   }
+  },
+  {
+   "code": "natin",
+   "label": "Natin (daughter's daughter)",
+   "labels": {
+    "hi": "नातिन"
+   },
+   "aliases": [
+    "Granddaughter (daughter's daughter)",
+    "Natni"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "female"
+     },
+     {
+      "rel": "child",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "daughter's daughter"
+   }
+  },
+  {
+   "code": "sasur",
+   "label": "Sasur (father-in-law)",
+   "labels": {
+    "hi": "ससुर"
+   },
+   "aliases": [
+    "Father-in-law",
+    "Sasurji",
+    "Shvashur"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "spouse's father"
+   }
+  },
+  {
+   "code": "saas",
+   "label": "Saas (mother-in-law)",
+   "labels": {
+    "hi": "सास"
+   },
+   "aliases": [
+    "Mother-in-law",
+    "Saasu",
+    "Saasuma"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse"
+     },
+     {
+      "rel": "parent",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "spouse's mother"
+   }
+  },
+  {
+   "code": "jeth",
+   "label": "Jeth (husband's elder brother)",
+   "labels": {
+    "hi": "जेठ"
+   },
+   "aliases": [
+    "Jethji",
+    "Jetha"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "husband's elder brother"
+   }
+  },
+  {
+   "code": "jethani",
+   "label": "Jethani (Jeth's wife)",
+   "labels": {
+    "hi": "जेठानी"
+   },
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "husband's elder brother's wife"
+   }
+  },
+  {
+   "code": "devar",
+   "label": "Devar (husband's younger brother)",
+   "labels": {
+    "hi": "देवर"
+   },
+   "aliases": [
+    "Dewar"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "younger"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "husband's younger brother"
+   }
+  },
+  {
+   "code": "devrani",
+   "label": "Devrani (Devar's wife)",
+   "labels": {
+    "hi": "देवरानी"
+   },
+   "aliases": [
+    "Dewrani"
+   ],
+   "tags": [
+    "region:hindi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "younger"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "husband's younger brother's wife"
+   }
+  },
+  {
+   "code": "nanad",
+   "label": "Nanad (husband's sister)",
+   "labels": {
+    "hi": "ननद"
+   },
+   "aliases": [
+    "Nanand",
+    "Nanadi"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "husband's sister"
+   }
+  },
+  {
+   "code": "nandoi",
+   "label": "Nandoi (Nanad's husband)",
+   "labels": {
+    "hi": "ननदोई"
+   },
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "husband's sister's husband"
+   }
+  },
+  {
+   "code": "saala",
+   "label": "Saala (wife's brother)",
+   "labels": {
+    "hi": "साला"
+   },
+   "aliases": [
+    "Sala",
+    "Brother-in-law (wife's brother)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "wife's brother"
+   }
+  },
+  {
+   "code": "salhaj",
+   "label": "Salhaj (wife's brother's wife)",
+   "labels": {
+    "hi": "सलहज"
+   },
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "wife's brother's wife"
+   }
+  },
+  {
+   "code": "saali",
+   "label": "Saali (wife's sister)",
+   "labels": {
+    "hi": "साली"
+   },
+   "aliases": [
+    "Sali",
+    "Sister-in-law (wife's sister)"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "wife's sister"
+   }
+  },
+  {
+   "code": "saadhu",
+   "label": "Saadhu (wife's sister's husband)",
+   "labels": {
+    "hi": "साढ़ू"
+   },
+   "aliases": [
+    "Sadhu",
+    "Sandhu",
+    "Co-brother"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "spouse",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "wife's sister's husband"
+   }
+  },
+  {
+   "code": "jija",
+   "label": "Jija (sister's husband)",
+   "labels": {
+    "hi": "जीजा"
+   },
+   "aliases": [
+    "Jijaji",
+    "Bahnoi",
+    "बहनोई"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "female"
+     },
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "sister's husband"
+   }
+  },
+  {
+   "code": "bhabhi",
+   "label": "Bhabhi (brother's wife)",
+   "labels": {
+    "hi": "भाभी"
+   },
+   "aliases": [
+    "Bhabhiji",
+    "Bhauji",
+    "भौजी"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "sibling",
+      "sex": "male"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "brother's wife"
+   }
+  },
+  {
+   "code": "damad",
+   "label": "Damad (daughter's husband)",
+   "labels": {
+    "hi": "दामाद"
+   },
+   "aliases": [
+    "Son-in-law",
+    "Jamai",
+    "जमाई"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "female"
+     },
+     {
+      "rel": "spouse",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "daughter's husband"
+   }
+  },
+  {
+   "code": "bahu",
+   "label": "Bahu (son's wife)",
+   "labels": {
+    "hi": "बहू"
+   },
+   "aliases": [
+    "Daughter-in-law",
+    "Putravadhu",
+    "पुत्रवधू"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child",
+      "sex": "male"
+     },
+     {
+      "rel": "spouse",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "son's wife"
+   }
+  },
+  {
+   "code": "samdhi",
+   "label": "Samdhi (child's father-in-law)",
+   "labels": {
+    "hi": "समधी"
+   },
+   "aliases": [
+    "Samdhiji"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child"
+     },
+     {
+      "rel": "spouse"
+     },
+     {
+      "rel": "parent",
+      "sex": "male"
+     }
+    ],
+    "quick_add": false,
+    "sex_hint": "male",
+    "gloss": "child's spouse's father"
+   }
+  },
+  {
+   "code": "samdhan",
+   "label": "Samdhan (child's mother-in-law)",
+   "labels": {
+    "hi": "समधन"
+   },
+   "aliases": [
+    "Samdhin"
+   ],
+   "tags": [
+    "region:hindi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "child"
+     },
+     {
+      "rel": "spouse"
+     },
+     {
+      "rel": "parent",
+      "sex": "female"
+     }
+    ],
+    "quick_add": false,
+    "sex_hint": "female",
+    "gloss": "child's spouse's mother"
+   }
+  },
+  {
+   "code": "mr:kaka",
+   "label": "Kaka (father's brother)",
+   "labels": {
+    "hi": "काका",
+    "mr": "काका"
+   },
+   "aliases": [
+    "Kakaa"
+   ],
+   "tags": [
+    "region:marathi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's brother"
+   }
+  },
+  {
+   "code": "mr:atya",
+   "label": "Atya (father's sister)",
+   "labels": {
+    "hi": "आत्या",
+    "mr": "आत्या"
+   },
+   "aliases": [
+    "Aatya"
+   ],
+   "tags": [
+    "region:marathi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's sister"
+   }
+  },
+  {
+   "code": "mr:mavshi",
+   "label": "Mavshi (mother's sister)",
+   "labels": {
+    "hi": "मावशी",
+    "mr": "मावशी"
+   },
+   "aliases": [
+    "Mausi"
+   ],
+   "tags": [
+    "region:marathi"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "female"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "mother's sister"
+   }
+  },
+  {
+   "code": "ta:periyappa",
+   "label": "Periyappa (father's elder brother)",
+   "labels": {
+    "hi": "पेरियप्पा",
+    "ta": "பெரியப்பா"
+   },
+   "aliases": [
+    "Periappa"
+   ],
+   "tags": [
+    "region:tamil",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's elder brother"
+   }
+  },
+  {
+   "code": "ta:chithappa",
+   "label": "Chithappa (father's younger brother)",
+   "labels": {
+    "hi": "चित्तप्पा",
+    "ta": "சித்தப்பா"
+   },
+   "aliases": [
+    "Chitappa",
+    "Sithappa"
+   ],
+   "tags": [
+    "region:tamil",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "younger"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's younger brother"
+   }
+  },
+  {
+   "code": "ta:athai",
+   "label": "Athai (father's sister)",
+   "labels": {
+    "hi": "अत्तै",
+    "ta": "அத்தை"
+   },
+   "aliases": [
+    "Attai",
+    "Atthai"
+   ],
+   "tags": [
+    "region:tamil"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "female"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "female",
+    "gloss": "father's sister"
+   }
+  },
+  {
+   "code": "bn:jethu",
+   "label": "Jethu (father's elder brother)",
+   "labels": {
+    "hi": "जेठू",
+    "bn": "জেঠু"
+   },
+   "aliases": [
+    "Jethamoshai",
+    "Jyatha"
+   ],
+   "tags": [
+    "region:bengali",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's elder brother"
+   }
+  },
+  {
+   "code": "bn:kaku",
+   "label": "Kaku (father's younger brother)",
+   "labels": {
+    "hi": "काकू",
+    "bn": "কাকু"
+   },
+   "aliases": [
+    "Kaka"
+   ],
+   "tags": [
+    "region:bengali",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "younger"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's younger brother"
+   }
+  },
+  {
+   "code": "pa:taya",
+   "label": "Taya (father's elder brother)",
+   "labels": {
+    "hi": "ताया",
+    "pa": "ਤਾਇਆ"
+   },
+   "aliases": [
+    "Tayaji"
+   ],
+   "tags": [
+    "region:punjabi",
+    "needs_seniority"
+   ],
+   "attributes": {
+    "path": [
+     {
+      "rel": "parent",
+      "sex": "male"
+     },
+     {
+      "rel": "sibling",
+      "sex": "male",
+      "seniority": "elder"
+     }
+    ],
+    "quick_add": true,
+    "sex_hint": "male",
+    "gloss": "father's elder brother"
+   }
+  }
+ ]
+}

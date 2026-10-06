@@ -116,6 +116,8 @@ graph LR
 | Coordinates are optional and carry a precision; restricted coordinates are coarsened for lower roles | `place.location_precision`, `place.coordinate_privacy`, `genealogy.geo` |
 | Reminders are personal and opt-in; each occurrence × lead × channel is delivered at most once | `uq_event_reminder`, `uq_notification_delivery_once` (ADR-0016) |
 | A render shows only what its requester could see and is visible only to them (and admins) | `render.payloads` built as the requester (ADR-0017) |
+| Reference vocabularies are typing aids: they suggest, never validate input away or infer a value; records store a term code *and* the text as recorded | `vocabulary` / `vocabulary_term` (ADR-0019) |
+| Kin terms (Tau, Chacha, Mama…) are never stored as relationship types; each expands to primitive edges | `kin_term.attributes.path` (ADR-0018, proposed) |
 
 ## 3a. Heritage visualization extensions (ADR-0015, ADR-0016, ADR-0017)
 
@@ -134,6 +136,22 @@ erDiagram
   RENDER_JOB ||--o{ RENDER_ARTIFACT : "poster / mp4"
   PLACE { string district string state string country string location_precision string coordinate_privacy }
   EVENT { string title string category string significance }
+```
+
+## 3b. Reference vocabularies (ADR-0019)
+
+Global reference data with no `tree_id`: no row-level security and no personal data. Lists cascade
+through their parent vocabulary (country → state → district → sub-district, religion → sampradaya,
+calendar system → month). Loaded by `app.cli.load_vocabularies` from `backend/app/modules/vocabulary/data`;
+districts and sub-districts are imported from LGD downloads.
+
+```mermaid
+erDiagram
+  VOCABULARY ||--o{ VOCABULARY_TERM : "terms"
+  VOCABULARY |o--o{ VOCABULARY : "parent vocabulary (cascade)"
+  VOCABULARY_TERM |o--o{ VOCABULARY_TERM : "parent term (state -> district)"
+  VOCABULARY { string code PK string parent_vocabulary_code string version string source }
+  VOCABULARY_TERM { string code string label jsonb labels array aliases array tags jsonb attributes string search_text bool is_active }
 ```
 
 ## 4. Traversal strategy

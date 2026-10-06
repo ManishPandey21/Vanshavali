@@ -1,0 +1,426 @@
+{
+ "code": "sampradaya",
+ "name": "Sampradaya / sect",
+ "description": "Tradition or sect within a religion; filtered by the selected religion.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": "religion",
+ "terms": [
+  {
+   "code": "shaiva",
+   "label": "Shaiva",
+   "labels": {
+    "hi": "शैव"
+   },
+   "aliases": [
+    "Shaivism",
+    "Saiva"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "vaishnava",
+   "label": "Vaishnava",
+   "labels": {
+    "hi": "वैष्णव"
+   },
+   "aliases": [
+    "Vaishnavism",
+    "Vaishnav"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "shakta",
+   "label": "Shakta",
+   "labels": {
+    "hi": "शाक्त"
+   },
+   "aliases": [
+    "Shaktism"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "smarta",
+   "label": "Smarta",
+   "labels": {
+    "hi": "स्मार्त"
+   },
+   "aliases": [
+    "Smartha"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "sri_vaishnava",
+   "label": "Sri Vaishnava",
+   "labels": {
+    "hi": "श्री वैष्णव"
+   },
+   "aliases": [
+    "Ramanuja sampradaya",
+    "Iyengar"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "madhva",
+   "label": "Madhva",
+   "labels": {
+    "hi": "माध्व"
+   },
+   "aliases": [
+    "Dvaita",
+    "Madhwa"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "gaudiya",
+   "label": "Gaudiya Vaishnava",
+   "labels": {
+    "hi": "गौड़ीय वैष्णव"
+   },
+   "aliases": [
+    "Chaitanya"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "pushtimarg",
+   "label": "Pushtimarg",
+   "labels": {
+    "hi": "पुष्टिमार्ग"
+   },
+   "aliases": [
+    "Vallabha sampradaya"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "swaminarayan",
+   "label": "Swaminarayan",
+   "labels": {
+    "hi": "स्वामीनारायण"
+   },
+   "parent": "hindu"
+  },
+  {
+   "code": "warkari",
+   "label": "Warkari",
+   "labels": {
+    "hi": "वारकरी"
+   },
+   "aliases": [
+    "Varkari"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "lingayat",
+   "label": "Lingayat / Veerashaiva",
+   "labels": {
+    "hi": "लिंगायत"
+   },
+   "aliases": [
+    "Veerashaiva",
+    "Virashaiva"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "arya_samaj",
+   "label": "Arya Samaj",
+   "labels": {
+    "hi": "आर्य समाज"
+   },
+   "aliases": [
+    "Aryasamaji"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "kabirpanth",
+   "label": "Kabir Panth",
+   "labels": {
+    "hi": "कबीरपंथ"
+   },
+   "aliases": [
+    "Kabirpanthi"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "nath",
+   "label": "Nath",
+   "labels": {
+    "hi": "नाथ"
+   },
+   "aliases": [
+    "Nath sampradaya",
+    "Gorakhnathi"
+   ],
+   "parent": "hindu"
+  },
+  {
+   "code": "sunni",
+   "label": "Sunni",
+   "labels": {
+    "hi": "सुन्नी"
+   },
+   "parent": "muslim"
+  },
+  {
+   "code": "shia",
+   "label": "Shia",
+   "labels": {
+    "hi": "शिया"
+   },
+   "aliases": [
+    "Shia Ithna Ashari"
+   ],
+   "parent": "muslim"
+  },
+  {
+   "code": "dawoodi_bohra",
+   "label": "Dawoodi Bohra",
+   "labels": {
+    "hi": "दाऊदी बोहरा"
+   },
+   "aliases": [
+    "Bohra"
+   ],
+   "parent": "muslim"
+  },
+  {
+   "code": "ismaili",
+   "label": "Ismaili (Khoja)",
+   "labels": {
+    "hi": "इस्माइली"
+   },
+   "aliases": [
+    "Khoja",
+    "Nizari"
+   ],
+   "parent": "muslim"
+  },
+  {
+   "code": "ahmadiyya",
+   "label": "Ahmadiyya",
+   "labels": {
+    "hi": "अहमदिया"
+   },
+   "aliases": [
+    "Ahmadi"
+   ],
+   "parent": "muslim"
+  },
+  {
+   "code": "sufi",
+   "label": "Sufi",
+   "labels": {
+    "hi": "सूफ़ी"
+   },
+   "aliases": [
+    "Chishti",
+    "Qadiri",
+    "Naqshbandi"
+   ],
+   "parent": "muslim"
+  },
+  {
+   "code": "namdhari",
+   "label": "Namdhari",
+   "labels": {
+    "hi": "नामधारी"
+   },
+   "aliases": [
+    "Kuka"
+   ],
+   "parent": "sikh"
+  },
+  {
+   "code": "nirankari",
+   "label": "Nirankari",
+   "labels": {
+    "hi": "निरंकारी"
+   },
+   "parent": "sikh"
+  },
+  {
+   "code": "udasi",
+   "label": "Udasi",
+   "labels": {
+    "hi": "उदासी"
+   },
+   "parent": "sikh"
+  },
+  {
+   "code": "shvetambara",
+   "label": "Shvetambara",
+   "labels": {
+    "hi": "श्वेतांबर"
+   },
+   "aliases": [
+    "Swetambar",
+    "Murtipujak"
+   ],
+   "parent": "jain"
+  },
+  {
+   "code": "digambara",
+   "label": "Digambara",
+   "labels": {
+    "hi": "दिगंबर"
+   },
+   "aliases": [
+    "Digambar"
+   ],
+   "parent": "jain"
+  },
+  {
+   "code": "sthanakvasi",
+   "label": "Sthanakvasi",
+   "labels": {
+    "hi": "स्थानकवासी"
+   },
+   "parent": "jain"
+  },
+  {
+   "code": "terapanthi",
+   "label": "Terapanthi",
+   "labels": {
+    "hi": "तेरापंथी"
+   },
+   "aliases": [
+    "Terapanth"
+   ],
+   "parent": "jain"
+  },
+  {
+   "code": "theravada",
+   "label": "Theravada",
+   "labels": {
+    "hi": "थेरवाद"
+   },
+   "parent": "buddhist"
+  },
+  {
+   "code": "mahayana",
+   "label": "Mahayana",
+   "labels": {
+    "hi": "महायान"
+   },
+   "parent": "buddhist"
+  },
+  {
+   "code": "vajrayana",
+   "label": "Vajrayana",
+   "labels": {
+    "hi": "वज्रयान"
+   },
+   "aliases": [
+    "Tibetan Buddhism"
+   ],
+   "parent": "buddhist"
+  },
+  {
+   "code": "navayana",
+   "label": "Navayana",
+   "labels": {
+    "hi": "नवयान"
+   },
+   "aliases": [
+    "Ambedkarite Buddhism"
+   ],
+   "parent": "buddhist"
+  },
+  {
+   "code": "catholic",
+   "label": "Roman Catholic",
+   "labels": {
+    "hi": "रोमन कैथोलिक"
+   },
+   "aliases": [
+    "Catholic"
+   ],
+   "parent": "christian"
+  },
+  {
+   "code": "syro_malabar",
+   "label": "Syro-Malabar",
+   "labels": {
+    "hi": "सीरो-मालाबार"
+   },
+   "aliases": [
+    "Syrian Catholic"
+   ],
+   "parent": "christian"
+  },
+  {
+   "code": "malankara_orthodox",
+   "label": "Malankara Orthodox",
+   "labels": {
+    "hi": "मलंकरा ऑर्थोडॉक्स"
+   },
+   "aliases": [
+    "Orthodox Syrian"
+   ],
+   "parent": "christian"
+  },
+  {
+   "code": "mar_thoma",
+   "label": "Mar Thoma",
+   "labels": {
+    "hi": "मार थोमा"
+   },
+   "parent": "christian"
+  },
+  {
+   "code": "csi",
+   "label": "Church of South India",
+   "labels": {
+    "hi": "चर्च ऑफ़ साउथ इंडिया"
+   },
+   "aliases": [
+    "CSI"
+   ],
+   "parent": "christian"
+  },
+  {
+   "code": "cni",
+   "label": "Church of North India",
+   "labels": {
+    "hi": "चर्च ऑफ़ नॉर्थ इंडिया"
+   },
+   "aliases": [
+    "CNI"
+   ],
+   "parent": "christian"
+  },
+  {
+   "code": "protestant",
+   "label": "Protestant (other)",
+   "labels": {
+    "hi": "प्रोटेस्टेंट"
+   },
+   "aliases": [
+    "Baptist",
+    "Lutheran",
+    "Methodist",
+    "Presbyterian"
+   ],
+   "parent": "christian"
+  },
+  {
+   "code": "pentecostal",
+   "label": "Pentecostal",
+   "labels": {
+    "hi": "पेंटेकोस्टल"
+   },
+   "parent": "christian"
+  }
+ ]
+}

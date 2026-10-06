@@ -86,7 +86,7 @@ services:
       VSH_DATABASE_URL: postgresql+psycopg://vanshavali:${POSTGRES_PASSWORD:-vanshavali}@postgres:5432/vanshavali
       VSH_APP_DB_ROLE: vanshavali_app
       VSH_APP_DB_PASSWORD: ${APP_DB_PASSWORD:-vanshavali-app}
-    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.ensure_app_role"]
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.load_vocabularies && python -m app.cli.ensure_app_role"]
     depends_on: { postgres: { condition: service_healthy } }
 
   backend:

@@ -1,0 +1,3855 @@
+{
+ "code": "country",
+ "name": "Country",
+ "description": "Countries (ISO 3166-1, names from Unicode CLDR) plus historical entities with dates.",
+ "version": "2026.10.1",
+ "source": "ISO 3166-1 via pycountry; English and Hindi names from Unicode CLDR (generated once); historical entries curated",
+ "license": "ISO 3166 codes; CLDR data under the Unicode License v3",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "IN",
+   "label": "India",
+   "labels": {
+    "hi": "भारत"
+   },
+   "aliases": [
+    "IND",
+    "Republic of India",
+    "Bharat",
+    "Hindustan",
+    "भारतवर्ष"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "IND",
+    "iso_numeric": "356"
+   }
+  },
+  {
+   "code": "NP",
+   "label": "Nepal",
+   "labels": {
+    "hi": "नेपाल"
+   },
+   "aliases": [
+    "Federal Democratic Republic of Nepal",
+    "NPL"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "NPL",
+    "iso_numeric": "524"
+   }
+  },
+  {
+   "code": "PK",
+   "label": "Pakistan",
+   "labels": {
+    "hi": "पाकिस्तान"
+   },
+   "aliases": [
+    "Islamic Republic of Pakistan",
+    "PAK"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "PAK",
+    "iso_numeric": "586"
+   }
+  },
+  {
+   "code": "BD",
+   "label": "Bangladesh",
+   "labels": {
+    "hi": "बांग्लादेश"
+   },
+   "aliases": [
+    "BGD",
+    "People's Republic of Bangladesh",
+    "East Bengal"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "BGD",
+    "iso_numeric": "050"
+   }
+  },
+  {
+   "code": "LK",
+   "label": "Sri Lanka",
+   "labels": {
+    "hi": "श्रीलंका"
+   },
+   "aliases": [
+    "Democratic Socialist Republic of Sri Lanka",
+    "LKA",
+    "Ceylon"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "LKA",
+    "iso_numeric": "144"
+   }
+  },
+  {
+   "code": "AE",
+   "label": "United Arab Emirates",
+   "labels": {
+    "hi": "संयुक्त अरब अमीरात"
+   },
+   "aliases": [
+    "ARE",
+    "UAE",
+    "Dubai"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "ARE",
+    "iso_numeric": "784"
+   }
+  },
+  {
+   "code": "GB",
+   "label": "United Kingdom",
+   "labels": {
+    "hi": "यूनाइटेड किंगडम"
+   },
+   "aliases": [
+    "GBR",
+    "United Kingdom of Great Britain and Northern Ireland",
+    "UK",
+    "England",
+    "Britain",
+    "Vilayat"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "GBR",
+    "iso_numeric": "826"
+   }
+  },
+  {
+   "code": "US",
+   "label": "United States",
+   "labels": {
+    "hi": "संयुक्त राज्य"
+   },
+   "aliases": [
+    "USA",
+    "United States of America",
+    "USA",
+    "America"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "USA",
+    "iso_numeric": "840"
+   }
+  },
+  {
+   "code": "CA",
+   "label": "Canada",
+   "labels": {
+    "hi": "कनाडा"
+   },
+   "aliases": [
+    "CAN"
+   ],
+   "tags": [
+    "diaspora_common"
+   ],
+   "attributes": {
+    "iso_alpha3": "CAN",
+    "iso_numeric": "124"
+   }
+  },
+  {
+   "code": "AF",
+   "label": "Afghanistan",
+   "labels": {
+    "hi": "अफ़गानिस्तान"
+   },
+   "aliases": [
+    "AFG",
+    "Islamic Republic of Afghanistan"
+   ],
+   "attributes": {
+    "iso_alpha3": "AFG",
+    "iso_numeric": "004"
+   }
+  },
+  {
+   "code": "AL",
+   "label": "Albania",
+   "labels": {
+    "hi": "अल्बानिया"
+   },
+   "aliases": [
+    "ALB",
+    "Republic of Albania"
+   ],
+   "attributes": {
+    "iso_alpha3": "ALB",
+    "iso_numeric": "008"
+   }
+  },
+  {
+   "code": "DZ",
+   "label": "Algeria",
+   "labels": {
+    "hi": "अल्जीरिया"
+   },
+   "aliases": [
+    "DZA",
+    "People's Democratic Republic of Algeria"
+   ],
+   "attributes": {
+    "iso_alpha3": "DZA",
+    "iso_numeric": "012"
+   }
+  },
+  {
+   "code": "AS",
+   "label": "American Samoa",
+   "labels": {
+    "hi": "अमेरिकी समोआ"
+   },
+   "aliases": [
+    "ASM"
+   ],
+   "attributes": {
+    "iso_alpha3": "ASM",
+    "iso_numeric": "016"
+   }
+  },
+  {
+   "code": "AD",
+   "label": "Andorra",
+   "labels": {
+    "hi": "एंडोरा"
+   },
+   "aliases": [
+    "AND",
+    "Principality of Andorra"
+   ],
+   "attributes": {
+    "iso_alpha3": "AND",
+    "iso_numeric": "020"
+   }
+  },
+  {
+   "code": "AO",
+   "label": "Angola",
+   "labels": {
+    "hi": "अंगोला"
+   },
+   "aliases": [
+    "AGO",
+    "Republic of Angola"
+   ],
+   "attributes": {
+    "iso_alpha3": "AGO",
+    "iso_numeric": "024"
+   }
+  },
+  {
+   "code": "AI",
+   "label": "Anguilla",
+   "labels": {
+    "hi": "एंग्विला"
+   },
+   "aliases": [
+    "AIA"
+   ],
+   "attributes": {
+    "iso_alpha3": "AIA",
+    "iso_numeric": "660"
+   }
+  },
+  {
+   "code": "AQ",
+   "label": "Antarctica",
+   "labels": {
+    "hi": "अंटार्कटिका"
+   },
+   "aliases": [
+    "ATA"
+   ],
+   "attributes": {
+    "iso_alpha3": "ATA",
+    "iso_numeric": "010"
+   }
+  },
+  {
+   "code": "AG",
+   "label": "Antigua & Barbuda",
+   "labels": {
+    "hi": "एंटिगुआ और बरबुडा"
+   },
+   "aliases": [
+    "ATG",
+    "Antigua and Barbuda"
+   ],
+   "attributes": {
+    "iso_alpha3": "ATG",
+    "iso_numeric": "028"
+   }
+  },
+  {
+   "code": "AR",
+   "label": "Argentina",
+   "labels": {
+    "hi": "अर्जेंटीना"
+   },
+   "aliases": [
+    "ARG",
+    "Argentine Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "ARG",
+    "iso_numeric": "032"
+   }
+  },
+  {
+   "code": "AM",
+   "label": "Armenia",
+   "labels": {
+    "hi": "आर्मेनिया"
+   },
+   "aliases": [
+    "ARM",
+    "Republic of Armenia"
+   ],
+   "attributes": {
+    "iso_alpha3": "ARM",
+    "iso_numeric": "051"
+   }
+  },
+  {
+   "code": "AW",
+   "label": "Aruba",
+   "labels": {
+    "hi": "अरूबा"
+   },
+   "aliases": [
+    "ABW"
+   ],
+   "attributes": {
+    "iso_alpha3": "ABW",
+    "iso_numeric": "533"
+   }
+  },
+  {
+   "code": "AU",
+   "label": "Australia",
+   "labels": {
+    "hi": "ऑस्ट्रेलिया"
+   },
+   "aliases": [
+    "AUS"
+   ],
+   "attributes": {
+    "iso_alpha3": "AUS",
+    "iso_numeric": "036"
+   }
+  },
+  {
+   "code": "AT",
+   "label": "Austria",
+   "labels": {
+    "hi": "ऑस्ट्रिया"
+   },
+   "aliases": [
+    "AUT",
+    "Republic of Austria"
+   ],
+   "attributes": {
+    "iso_alpha3": "AUT",
+    "iso_numeric": "040"
+   }
+  },
+  {
+   "code": "AZ",
+   "label": "Azerbaijan",
+   "labels": {
+    "hi": "अज़रबैजान"
+   },
+   "aliases": [
+    "AZE",
+    "Republic of Azerbaijan"
+   ],
+   "attributes": {
+    "iso_alpha3": "AZE",
+    "iso_numeric": "031"
+   }
+  },
+  {
+   "code": "BS",
+   "label": "Bahamas",
+   "labels": {
+    "hi": "बहामास"
+   },
+   "aliases": [
+    "BHS",
+    "Commonwealth of the Bahamas"
+   ],
+   "attributes": {
+    "iso_alpha3": "BHS",
+    "iso_numeric": "044"
+   }
+  },
+  {
+   "code": "BH",
+   "label": "Bahrain",
+   "labels": {
+    "hi": "बहरीन"
+   },
+   "aliases": [
+    "BHR",
+    "Kingdom of Bahrain"
+   ],
+   "attributes": {
+    "iso_alpha3": "BHR",
+    "iso_numeric": "048"
+   }
+  },
+  {
+   "code": "BB",
+   "label": "Barbados",
+   "labels": {
+    "hi": "बारबाडोस"
+   },
+   "aliases": [
+    "BRB"
+   ],
+   "attributes": {
+    "iso_alpha3": "BRB",
+    "iso_numeric": "052"
+   }
+  },
+  {
+   "code": "BY",
+   "label": "Belarus",
+   "labels": {
+    "hi": "बेलारूस"
+   },
+   "aliases": [
+    "BLR",
+    "Republic of Belarus"
+   ],
+   "attributes": {
+    "iso_alpha3": "BLR",
+    "iso_numeric": "112"
+   }
+  },
+  {
+   "code": "BE",
+   "label": "Belgium",
+   "labels": {
+    "hi": "बेल्जियम"
+   },
+   "aliases": [
+    "BEL",
+    "Kingdom of Belgium"
+   ],
+   "attributes": {
+    "iso_alpha3": "BEL",
+    "iso_numeric": "056"
+   }
+  },
+  {
+   "code": "BZ",
+   "label": "Belize",
+   "labels": {
+    "hi": "बेलीज़"
+   },
+   "aliases": [
+    "BLZ"
+   ],
+   "attributes": {
+    "iso_alpha3": "BLZ",
+    "iso_numeric": "084"
+   }
+  },
+  {
+   "code": "BJ",
+   "label": "Benin",
+   "labels": {
+    "hi": "बेनिन"
+   },
+   "aliases": [
+    "BEN",
+    "Republic of Benin"
+   ],
+   "attributes": {
+    "iso_alpha3": "BEN",
+    "iso_numeric": "204"
+   }
+  },
+  {
+   "code": "BM",
+   "label": "Bermuda",
+   "labels": {
+    "hi": "बरमूडा"
+   },
+   "aliases": [
+    "BMU"
+   ],
+   "attributes": {
+    "iso_alpha3": "BMU",
+    "iso_numeric": "060"
+   }
+  },
+  {
+   "code": "BT",
+   "label": "Bhutan",
+   "labels": {
+    "hi": "भूटान"
+   },
+   "aliases": [
+    "BTN",
+    "Kingdom of Bhutan"
+   ],
+   "attributes": {
+    "iso_alpha3": "BTN",
+    "iso_numeric": "064"
+   }
+  },
+  {
+   "code": "BO",
+   "label": "Bolivia",
+   "labels": {
+    "hi": "बोलीविया"
+   },
+   "aliases": [
+    "BOL",
+    "Bolivia, Plurinational State of",
+    "Plurinational State of Bolivia"
+   ],
+   "attributes": {
+    "iso_alpha3": "BOL",
+    "iso_numeric": "068"
+   }
+  },
+  {
+   "code": "BA",
+   "label": "Bosnia & Herzegovina",
+   "labels": {
+    "hi": "बोस्निया और हर्ज़ेगोविना"
+   },
+   "aliases": [
+    "BIH",
+    "Bosnia and Herzegovina",
+    "Republic of Bosnia and Herzegovina"
+   ],
+   "attributes": {
+    "iso_alpha3": "BIH",
+    "iso_numeric": "070"
+   }
+  },
+  {
+   "code": "BW",
+   "label": "Botswana",
+   "labels": {
+    "hi": "बोत्स्वाना"
+   },
+   "aliases": [
+    "BWA",
+    "Republic of Botswana"
+   ],
+   "attributes": {
+    "iso_alpha3": "BWA",
+    "iso_numeric": "072"
+   }
+  },
+  {
+   "code": "BV",
+   "label": "Bouvet Island",
+   "labels": {
+    "hi": "बोवेत द्वीप"
+   },
+   "aliases": [
+    "BVT"
+   ],
+   "attributes": {
+    "iso_alpha3": "BVT",
+    "iso_numeric": "074"
+   }
+  },
+  {
+   "code": "BR",
+   "label": "Brazil",
+   "labels": {
+    "hi": "ब्राज़ील"
+   },
+   "aliases": [
+    "BRA",
+    "Federative Republic of Brazil"
+   ],
+   "attributes": {
+    "iso_alpha3": "BRA",
+    "iso_numeric": "076"
+   }
+  },
+  {
+   "code": "IO",
+   "label": "British Indian Ocean Territory",
+   "labels": {
+    "hi": "ब्रिटिश हिंद महासागरीय क्षेत्र"
+   },
+   "aliases": [
+    "IOT"
+   ],
+   "attributes": {
+    "iso_alpha3": "IOT",
+    "iso_numeric": "086"
+   }
+  },
+  {
+   "code": "VG",
+   "label": "British Virgin Islands",
+   "labels": {
+    "hi": "ब्रिटिश वर्जिन द्वीपसमूह"
+   },
+   "aliases": [
+    "VGB",
+    "Virgin Islands, British"
+   ],
+   "attributes": {
+    "iso_alpha3": "VGB",
+    "iso_numeric": "092"
+   }
+  },
+  {
+   "code": "BN",
+   "label": "Brunei",
+   "labels": {
+    "hi": "ब्रूनेई"
+   },
+   "aliases": [
+    "BRN",
+    "Brunei Darussalam"
+   ],
+   "attributes": {
+    "iso_alpha3": "BRN",
+    "iso_numeric": "096"
+   }
+  },
+  {
+   "code": "BG",
+   "label": "Bulgaria",
+   "labels": {
+    "hi": "बुल्गारिया"
+   },
+   "aliases": [
+    "BGR",
+    "Republic of Bulgaria"
+   ],
+   "attributes": {
+    "iso_alpha3": "BGR",
+    "iso_numeric": "100"
+   }
+  },
+  {
+   "code": "BF",
+   "label": "Burkina Faso",
+   "labels": {
+    "hi": "बुर्किना फ़ासो"
+   },
+   "aliases": [
+    "BFA"
+   ],
+   "attributes": {
+    "iso_alpha3": "BFA",
+    "iso_numeric": "854"
+   }
+  },
+  {
+   "code": "BI",
+   "label": "Burundi",
+   "labels": {
+    "hi": "बुरुंडी"
+   },
+   "aliases": [
+    "BDI",
+    "Republic of Burundi"
+   ],
+   "attributes": {
+    "iso_alpha3": "BDI",
+    "iso_numeric": "108"
+   }
+  },
+  {
+   "code": "KH",
+   "label": "Cambodia",
+   "labels": {
+    "hi": "कंबोडिया"
+   },
+   "aliases": [
+    "KHM",
+    "Kingdom of Cambodia"
+   ],
+   "attributes": {
+    "iso_alpha3": "KHM",
+    "iso_numeric": "116"
+   }
+  },
+  {
+   "code": "CM",
+   "label": "Cameroon",
+   "labels": {
+    "hi": "कैमरून"
+   },
+   "aliases": [
+    "CMR",
+    "Republic of Cameroon"
+   ],
+   "attributes": {
+    "iso_alpha3": "CMR",
+    "iso_numeric": "120"
+   }
+  },
+  {
+   "code": "CV",
+   "label": "Cape Verde",
+   "labels": {
+    "hi": "केप वर्ड"
+   },
+   "aliases": [
+    "CPV",
+    "Cabo Verde",
+    "Republic of Cabo Verde"
+   ],
+   "attributes": {
+    "iso_alpha3": "CPV",
+    "iso_numeric": "132"
+   }
+  },
+  {
+   "code": "BQ",
+   "label": "Caribbean Netherlands",
+   "labels": {
+    "hi": "कैरिबियन नीदरलैंड"
+   },
+   "aliases": [
+    "BES",
+    "Bonaire, Sint Eustatius and Saba"
+   ],
+   "attributes": {
+    "iso_alpha3": "BES",
+    "iso_numeric": "535"
+   }
+  },
+  {
+   "code": "KY",
+   "label": "Cayman Islands",
+   "labels": {
+    "hi": "कैमेन द्वीपसमूह"
+   },
+   "aliases": [
+    "CYM"
+   ],
+   "attributes": {
+    "iso_alpha3": "CYM",
+    "iso_numeric": "136"
+   }
+  },
+  {
+   "code": "CF",
+   "label": "Central African Republic",
+   "labels": {
+    "hi": "मध्य अफ़्रीकी गणराज्य"
+   },
+   "aliases": [
+    "CAF"
+   ],
+   "attributes": {
+    "iso_alpha3": "CAF",
+    "iso_numeric": "140"
+   }
+  },
+  {
+   "code": "TD",
+   "label": "Chad",
+   "labels": {
+    "hi": "चाड"
+   },
+   "aliases": [
+    "Republic of Chad",
+    "TCD"
+   ],
+   "attributes": {
+    "iso_alpha3": "TCD",
+    "iso_numeric": "148"
+   }
+  },
+  {
+   "code": "CL",
+   "label": "Chile",
+   "labels": {
+    "hi": "चिली"
+   },
+   "aliases": [
+    "CHL",
+    "Republic of Chile"
+   ],
+   "attributes": {
+    "iso_alpha3": "CHL",
+    "iso_numeric": "152"
+   }
+  },
+  {
+   "code": "CN",
+   "label": "China",
+   "labels": {
+    "hi": "चीन"
+   },
+   "aliases": [
+    "CHN",
+    "People's Republic of China"
+   ],
+   "attributes": {
+    "iso_alpha3": "CHN",
+    "iso_numeric": "156"
+   }
+  },
+  {
+   "code": "CX",
+   "label": "Christmas Island",
+   "labels": {
+    "hi": "क्रिसमस द्वीप"
+   },
+   "aliases": [
+    "CXR"
+   ],
+   "attributes": {
+    "iso_alpha3": "CXR",
+    "iso_numeric": "162"
+   }
+  },
+  {
+   "code": "CC",
+   "label": "Cocos (Keeling) Islands",
+   "labels": {
+    "hi": "कोकोस (कीलिंग) द्वीपसमूह"
+   },
+   "aliases": [
+    "CCK"
+   ],
+   "attributes": {
+    "iso_alpha3": "CCK",
+    "iso_numeric": "166"
+   }
+  },
+  {
+   "code": "CO",
+   "label": "Colombia",
+   "labels": {
+    "hi": "कोलंबिया"
+   },
+   "aliases": [
+    "COL",
+    "Republic of Colombia"
+   ],
+   "attributes": {
+    "iso_alpha3": "COL",
+    "iso_numeric": "170"
+   }
+  },
+  {
+   "code": "KM",
+   "label": "Comoros",
+   "labels": {
+    "hi": "कोमोरोस"
+   },
+   "aliases": [
+    "COM",
+    "Union of the Comoros"
+   ],
+   "attributes": {
+    "iso_alpha3": "COM",
+    "iso_numeric": "174"
+   }
+  },
+  {
+   "code": "CG",
+   "label": "Congo - Brazzaville",
+   "labels": {
+    "hi": "कांगो – ब्राज़ाविल"
+   },
+   "aliases": [
+    "COG",
+    "Congo",
+    "Republic of the Congo"
+   ],
+   "attributes": {
+    "iso_alpha3": "COG",
+    "iso_numeric": "178"
+   }
+  },
+  {
+   "code": "CD",
+   "label": "Congo - Kinshasa",
+   "labels": {
+    "hi": "कांगो - किंशासा"
+   },
+   "aliases": [
+    "COD",
+    "Congo, The Democratic Republic of the"
+   ],
+   "attributes": {
+    "iso_alpha3": "COD",
+    "iso_numeric": "180"
+   }
+  },
+  {
+   "code": "CK",
+   "label": "Cook Islands",
+   "labels": {
+    "hi": "कुक द्वीपसमूह"
+   },
+   "aliases": [
+    "COK"
+   ],
+   "attributes": {
+    "iso_alpha3": "COK",
+    "iso_numeric": "184"
+   }
+  },
+  {
+   "code": "CR",
+   "label": "Costa Rica",
+   "labels": {
+    "hi": "कोस्टारिका"
+   },
+   "aliases": [
+    "CRI",
+    "Republic of Costa Rica"
+   ],
+   "attributes": {
+    "iso_alpha3": "CRI",
+    "iso_numeric": "188"
+   }
+  },
+  {
+   "code": "HR",
+   "label": "Croatia",
+   "labels": {
+    "hi": "क्रोएशिया"
+   },
+   "aliases": [
+    "HRV",
+    "Republic of Croatia"
+   ],
+   "attributes": {
+    "iso_alpha3": "HRV",
+    "iso_numeric": "191"
+   }
+  },
+  {
+   "code": "CU",
+   "label": "Cuba",
+   "labels": {
+    "hi": "क्यूबा"
+   },
+   "aliases": [
+    "CUB",
+    "Republic of Cuba"
+   ],
+   "attributes": {
+    "iso_alpha3": "CUB",
+    "iso_numeric": "192"
+   }
+  },
+  {
+   "code": "CW",
+   "label": "Curaçao",
+   "labels": {
+    "hi": "कुरासाओ"
+   },
+   "aliases": [
+    "CUW"
+   ],
+   "attributes": {
+    "iso_alpha3": "CUW",
+    "iso_numeric": "531"
+   }
+  },
+  {
+   "code": "CY",
+   "label": "Cyprus",
+   "labels": {
+    "hi": "साइप्रस"
+   },
+   "aliases": [
+    "CYP",
+    "Republic of Cyprus"
+   ],
+   "attributes": {
+    "iso_alpha3": "CYP",
+    "iso_numeric": "196"
+   }
+  },
+  {
+   "code": "CZ",
+   "label": "Czechia",
+   "labels": {
+    "hi": "चेकिया"
+   },
+   "aliases": [
+    "CZE",
+    "Czech Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "CZE",
+    "iso_numeric": "203"
+   }
+  },
+  {
+   "code": "CI",
+   "label": "Côte d’Ivoire",
+   "labels": {
+    "hi": "कोत दिवुआर"
+   },
+   "aliases": [
+    "CIV",
+    "Côte d'Ivoire",
+    "Republic of Côte d'Ivoire"
+   ],
+   "attributes": {
+    "iso_alpha3": "CIV",
+    "iso_numeric": "384"
+   }
+  },
+  {
+   "code": "DK",
+   "label": "Denmark",
+   "labels": {
+    "hi": "डेनमार्क"
+   },
+   "aliases": [
+    "DNK",
+    "Kingdom of Denmark"
+   ],
+   "attributes": {
+    "iso_alpha3": "DNK",
+    "iso_numeric": "208"
+   }
+  },
+  {
+   "code": "DJ",
+   "label": "Djibouti",
+   "labels": {
+    "hi": "जिबूती"
+   },
+   "aliases": [
+    "DJI",
+    "Republic of Djibouti"
+   ],
+   "attributes": {
+    "iso_alpha3": "DJI",
+    "iso_numeric": "262"
+   }
+  },
+  {
+   "code": "DM",
+   "label": "Dominica",
+   "labels": {
+    "hi": "डोमिनिका"
+   },
+   "aliases": [
+    "Commonwealth of Dominica",
+    "DMA"
+   ],
+   "attributes": {
+    "iso_alpha3": "DMA",
+    "iso_numeric": "212"
+   }
+  },
+  {
+   "code": "DO",
+   "label": "Dominican Republic",
+   "labels": {
+    "hi": "डोमिनिकन गणराज्य"
+   },
+   "aliases": [
+    "DOM"
+   ],
+   "attributes": {
+    "iso_alpha3": "DOM",
+    "iso_numeric": "214"
+   }
+  },
+  {
+   "code": "EC",
+   "label": "Ecuador",
+   "labels": {
+    "hi": "इक्वाडोर"
+   },
+   "aliases": [
+    "ECU",
+    "Republic of Ecuador"
+   ],
+   "attributes": {
+    "iso_alpha3": "ECU",
+    "iso_numeric": "218"
+   }
+  },
+  {
+   "code": "EG",
+   "label": "Egypt",
+   "labels": {
+    "hi": "मिस्र"
+   },
+   "aliases": [
+    "Arab Republic of Egypt",
+    "EGY"
+   ],
+   "attributes": {
+    "iso_alpha3": "EGY",
+    "iso_numeric": "818"
+   }
+  },
+  {
+   "code": "SV",
+   "label": "El Salvador",
+   "labels": {
+    "hi": "अल सल्वाडोर"
+   },
+   "aliases": [
+    "Republic of El Salvador",
+    "SLV"
+   ],
+   "attributes": {
+    "iso_alpha3": "SLV",
+    "iso_numeric": "222"
+   }
+  },
+  {
+   "code": "GQ",
+   "label": "Equatorial Guinea",
+   "labels": {
+    "hi": "इक्वेटोरियल गिनी"
+   },
+   "aliases": [
+    "GNQ",
+    "Republic of Equatorial Guinea"
+   ],
+   "attributes": {
+    "iso_alpha3": "GNQ",
+    "iso_numeric": "226"
+   }
+  },
+  {
+   "code": "ER",
+   "label": "Eritrea",
+   "labels": {
+    "hi": "इरिट्रिया"
+   },
+   "aliases": [
+    "ERI",
+    "the State of Eritrea"
+   ],
+   "attributes": {
+    "iso_alpha3": "ERI",
+    "iso_numeric": "232"
+   }
+  },
+  {
+   "code": "EE",
+   "label": "Estonia",
+   "labels": {
+    "hi": "एस्टोनिया"
+   },
+   "aliases": [
+    "EST",
+    "Republic of Estonia"
+   ],
+   "attributes": {
+    "iso_alpha3": "EST",
+    "iso_numeric": "233"
+   }
+  },
+  {
+   "code": "SZ",
+   "label": "Eswatini",
+   "labels": {
+    "hi": "एस्वाटिनी"
+   },
+   "aliases": [
+    "Kingdom of Eswatini",
+    "SWZ"
+   ],
+   "attributes": {
+    "iso_alpha3": "SWZ",
+    "iso_numeric": "748"
+   }
+  },
+  {
+   "code": "ET",
+   "label": "Ethiopia",
+   "labels": {
+    "hi": "इथियोपिया"
+   },
+   "aliases": [
+    "ETH",
+    "Federal Democratic Republic of Ethiopia"
+   ],
+   "attributes": {
+    "iso_alpha3": "ETH",
+    "iso_numeric": "231"
+   }
+  },
+  {
+   "code": "FK",
+   "label": "Falkland Islands",
+   "labels": {
+    "hi": "फ़ॉकलैंड द्वीपसमूह"
+   },
+   "aliases": [
+    "FLK",
+    "Falkland Islands (Malvinas)"
+   ],
+   "attributes": {
+    "iso_alpha3": "FLK",
+    "iso_numeric": "238"
+   }
+  },
+  {
+   "code": "FO",
+   "label": "Faroe Islands",
+   "labels": {
+    "hi": "फ़ेरो द्वीपसमूह"
+   },
+   "aliases": [
+    "FRO"
+   ],
+   "attributes": {
+    "iso_alpha3": "FRO",
+    "iso_numeric": "234"
+   }
+  },
+  {
+   "code": "FJ",
+   "label": "Fiji",
+   "labels": {
+    "hi": "फ़िजी"
+   },
+   "aliases": [
+    "FJI",
+    "Republic of Fiji"
+   ],
+   "attributes": {
+    "iso_alpha3": "FJI",
+    "iso_numeric": "242"
+   }
+  },
+  {
+   "code": "FI",
+   "label": "Finland",
+   "labels": {
+    "hi": "फ़िनलैंड"
+   },
+   "aliases": [
+    "FIN",
+    "Republic of Finland"
+   ],
+   "attributes": {
+    "iso_alpha3": "FIN",
+    "iso_numeric": "246"
+   }
+  },
+  {
+   "code": "FR",
+   "label": "France",
+   "labels": {
+    "hi": "फ़्रांस"
+   },
+   "aliases": [
+    "FRA",
+    "French Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "FRA",
+    "iso_numeric": "250"
+   }
+  },
+  {
+   "code": "GF",
+   "label": "French Guiana",
+   "labels": {
+    "hi": "फ़्रेंच गुयाना"
+   },
+   "aliases": [
+    "GUF"
+   ],
+   "attributes": {
+    "iso_alpha3": "GUF",
+    "iso_numeric": "254"
+   }
+  },
+  {
+   "code": "PF",
+   "label": "French Polynesia",
+   "labels": {
+    "hi": "फ़्रेंच पोलिनेशिया"
+   },
+   "aliases": [
+    "PYF"
+   ],
+   "attributes": {
+    "iso_alpha3": "PYF",
+    "iso_numeric": "258"
+   }
+  },
+  {
+   "code": "TF",
+   "label": "French Southern Territories",
+   "labels": {
+    "hi": "फ़्रांसीसी दक्षिणी क्षेत्र"
+   },
+   "aliases": [
+    "ATF"
+   ],
+   "attributes": {
+    "iso_alpha3": "ATF",
+    "iso_numeric": "260"
+   }
+  },
+  {
+   "code": "GA",
+   "label": "Gabon",
+   "labels": {
+    "hi": "गैबॉन"
+   },
+   "aliases": [
+    "GAB",
+    "Gabonese Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "GAB",
+    "iso_numeric": "266"
+   }
+  },
+  {
+   "code": "GM",
+   "label": "Gambia",
+   "labels": {
+    "hi": "गाम्बिया"
+   },
+   "aliases": [
+    "GMB",
+    "Republic of the Gambia"
+   ],
+   "attributes": {
+    "iso_alpha3": "GMB",
+    "iso_numeric": "270"
+   }
+  },
+  {
+   "code": "GE",
+   "label": "Georgia",
+   "labels": {
+    "hi": "जॉर्जिया"
+   },
+   "aliases": [
+    "GEO"
+   ],
+   "attributes": {
+    "iso_alpha3": "GEO",
+    "iso_numeric": "268"
+   }
+  },
+  {
+   "code": "DE",
+   "label": "Germany",
+   "labels": {
+    "hi": "जर्मनी"
+   },
+   "aliases": [
+    "DEU",
+    "Federal Republic of Germany"
+   ],
+   "attributes": {
+    "iso_alpha3": "DEU",
+    "iso_numeric": "276"
+   }
+  },
+  {
+   "code": "GH",
+   "label": "Ghana",
+   "labels": {
+    "hi": "घाना"
+   },
+   "aliases": [
+    "GHA",
+    "Republic of Ghana"
+   ],
+   "attributes": {
+    "iso_alpha3": "GHA",
+    "iso_numeric": "288"
+   }
+  },
+  {
+   "code": "GI",
+   "label": "Gibraltar",
+   "labels": {
+    "hi": "जिब्राल्टर"
+   },
+   "aliases": [
+    "GIB"
+   ],
+   "attributes": {
+    "iso_alpha3": "GIB",
+    "iso_numeric": "292"
+   }
+  },
+  {
+   "code": "GR",
+   "label": "Greece",
+   "labels": {
+    "hi": "यूनान"
+   },
+   "aliases": [
+    "GRC",
+    "Hellenic Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "GRC",
+    "iso_numeric": "300"
+   }
+  },
+  {
+   "code": "GL",
+   "label": "Greenland",
+   "labels": {
+    "hi": "ग्रीनलैंड"
+   },
+   "aliases": [
+    "GRL"
+   ],
+   "attributes": {
+    "iso_alpha3": "GRL",
+    "iso_numeric": "304"
+   }
+  },
+  {
+   "code": "GD",
+   "label": "Grenada",
+   "labels": {
+    "hi": "ग्रेनाडा"
+   },
+   "aliases": [
+    "GRD"
+   ],
+   "attributes": {
+    "iso_alpha3": "GRD",
+    "iso_numeric": "308"
+   }
+  },
+  {
+   "code": "GP",
+   "label": "Guadeloupe",
+   "labels": {
+    "hi": "ग्वाडेलूप"
+   },
+   "aliases": [
+    "GLP"
+   ],
+   "attributes": {
+    "iso_alpha3": "GLP",
+    "iso_numeric": "312"
+   }
+  },
+  {
+   "code": "GU",
+   "label": "Guam",
+   "labels": {
+    "hi": "गुआम"
+   },
+   "aliases": [
+    "GUM"
+   ],
+   "attributes": {
+    "iso_alpha3": "GUM",
+    "iso_numeric": "316"
+   }
+  },
+  {
+   "code": "GT",
+   "label": "Guatemala",
+   "labels": {
+    "hi": "ग्वाटेमाला"
+   },
+   "aliases": [
+    "GTM",
+    "Republic of Guatemala"
+   ],
+   "attributes": {
+    "iso_alpha3": "GTM",
+    "iso_numeric": "320"
+   }
+  },
+  {
+   "code": "GG",
+   "label": "Guernsey",
+   "labels": {
+    "hi": "गर्नसी"
+   },
+   "aliases": [
+    "GGY"
+   ],
+   "attributes": {
+    "iso_alpha3": "GGY",
+    "iso_numeric": "831"
+   }
+  },
+  {
+   "code": "GN",
+   "label": "Guinea",
+   "labels": {
+    "hi": "गिनी"
+   },
+   "aliases": [
+    "GIN",
+    "Republic of Guinea"
+   ],
+   "attributes": {
+    "iso_alpha3": "GIN",
+    "iso_numeric": "324"
+   }
+  },
+  {
+   "code": "GW",
+   "label": "Guinea-Bissau",
+   "labels": {
+    "hi": "गिनी-बिसाउ"
+   },
+   "aliases": [
+    "GNB",
+    "Republic of Guinea-Bissau"
+   ],
+   "attributes": {
+    "iso_alpha3": "GNB",
+    "iso_numeric": "624"
+   }
+  },
+  {
+   "code": "GY",
+   "label": "Guyana",
+   "labels": {
+    "hi": "गुयाना"
+   },
+   "aliases": [
+    "GUY",
+    "Republic of Guyana"
+   ],
+   "attributes": {
+    "iso_alpha3": "GUY",
+    "iso_numeric": "328"
+   }
+  },
+  {
+   "code": "HT",
+   "label": "Haiti",
+   "labels": {
+    "hi": "हैती"
+   },
+   "aliases": [
+    "HTI",
+    "Republic of Haiti"
+   ],
+   "attributes": {
+    "iso_alpha3": "HTI",
+    "iso_numeric": "332"
+   }
+  },
+  {
+   "code": "HM",
+   "label": "Heard & McDonald Islands",
+   "labels": {
+    "hi": "हर्ड द्वीप और मैकडोनॉल्ड द्वीपसमूह"
+   },
+   "aliases": [
+    "HMD",
+    "Heard Island and McDonald Islands"
+   ],
+   "attributes": {
+    "iso_alpha3": "HMD",
+    "iso_numeric": "334"
+   }
+  },
+  {
+   "code": "HN",
+   "label": "Honduras",
+   "labels": {
+    "hi": "होंडूरास"
+   },
+   "aliases": [
+    "HND",
+    "Republic of Honduras"
+   ],
+   "attributes": {
+    "iso_alpha3": "HND",
+    "iso_numeric": "340"
+   }
+  },
+  {
+   "code": "HK",
+   "label": "Hong Kong SAR China",
+   "labels": {
+    "hi": "हाँग काँग (चीन विशेष प्रशासनिक क्षेत्र)"
+   },
+   "aliases": [
+    "HKG",
+    "Hong Kong",
+    "Hong Kong Special Administrative Region of China"
+   ],
+   "attributes": {
+    "iso_alpha3": "HKG",
+    "iso_numeric": "344"
+   }
+  },
+  {
+   "code": "HU",
+   "label": "Hungary",
+   "labels": {
+    "hi": "हंगरी"
+   },
+   "aliases": [
+    "HUN"
+   ],
+   "attributes": {
+    "iso_alpha3": "HUN",
+    "iso_numeric": "348"
+   }
+  },
+  {
+   "code": "IS",
+   "label": "Iceland",
+   "labels": {
+    "hi": "आइसलैंड"
+   },
+   "aliases": [
+    "ISL",
+    "Republic of Iceland"
+   ],
+   "attributes": {
+    "iso_alpha3": "ISL",
+    "iso_numeric": "352"
+   }
+  },
+  {
+   "code": "ID",
+   "label": "Indonesia",
+   "labels": {
+    "hi": "इंडोनेशिया"
+   },
+   "aliases": [
+    "IDN",
+    "Republic of Indonesia"
+   ],
+   "attributes": {
+    "iso_alpha3": "IDN",
+    "iso_numeric": "360"
+   }
+  },
+  {
+   "code": "IR",
+   "label": "Iran",
+   "labels": {
+    "hi": "ईरान"
+   },
+   "aliases": [
+    "IRN",
+    "Iran, Islamic Republic of",
+    "Islamic Republic of Iran",
+    "Persia"
+   ],
+   "attributes": {
+    "iso_alpha3": "IRN",
+    "iso_numeric": "364"
+   }
+  },
+  {
+   "code": "IQ",
+   "label": "Iraq",
+   "labels": {
+    "hi": "इराक"
+   },
+   "aliases": [
+    "IRQ",
+    "Republic of Iraq"
+   ],
+   "attributes": {
+    "iso_alpha3": "IRQ",
+    "iso_numeric": "368"
+   }
+  },
+  {
+   "code": "IE",
+   "label": "Ireland",
+   "labels": {
+    "hi": "आयरलैंड"
+   },
+   "aliases": [
+    "IRL"
+   ],
+   "attributes": {
+    "iso_alpha3": "IRL",
+    "iso_numeric": "372"
+   }
+  },
+  {
+   "code": "IM",
+   "label": "Isle of Man",
+   "labels": {
+    "hi": "आइल ऑफ़ मैन"
+   },
+   "aliases": [
+    "IMN"
+   ],
+   "attributes": {
+    "iso_alpha3": "IMN",
+    "iso_numeric": "833"
+   }
+  },
+  {
+   "code": "IL",
+   "label": "Israel",
+   "labels": {
+    "hi": "इज़राइल"
+   },
+   "aliases": [
+    "ISR",
+    "State of Israel"
+   ],
+   "attributes": {
+    "iso_alpha3": "ISR",
+    "iso_numeric": "376"
+   }
+  },
+  {
+   "code": "IT",
+   "label": "Italy",
+   "labels": {
+    "hi": "इटली"
+   },
+   "aliases": [
+    "ITA",
+    "Italian Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "ITA",
+    "iso_numeric": "380"
+   }
+  },
+  {
+   "code": "JM",
+   "label": "Jamaica",
+   "labels": {
+    "hi": "जमैका"
+   },
+   "aliases": [
+    "JAM"
+   ],
+   "attributes": {
+    "iso_alpha3": "JAM",
+    "iso_numeric": "388"
+   }
+  },
+  {
+   "code": "JP",
+   "label": "Japan",
+   "labels": {
+    "hi": "जापान"
+   },
+   "aliases": [
+    "JPN"
+   ],
+   "attributes": {
+    "iso_alpha3": "JPN",
+    "iso_numeric": "392"
+   }
+  },
+  {
+   "code": "JE",
+   "label": "Jersey",
+   "labels": {
+    "hi": "जर्सी"
+   },
+   "aliases": [
+    "JEY"
+   ],
+   "attributes": {
+    "iso_alpha3": "JEY",
+    "iso_numeric": "832"
+   }
+  },
+  {
+   "code": "JO",
+   "label": "Jordan",
+   "labels": {
+    "hi": "जॉर्डन"
+   },
+   "aliases": [
+    "Hashemite Kingdom of Jordan",
+    "JOR"
+   ],
+   "attributes": {
+    "iso_alpha3": "JOR",
+    "iso_numeric": "400"
+   }
+  },
+  {
+   "code": "KZ",
+   "label": "Kazakhstan",
+   "labels": {
+    "hi": "कज़ाखस्तान"
+   },
+   "aliases": [
+    "KAZ",
+    "Republic of Kazakhstan"
+   ],
+   "attributes": {
+    "iso_alpha3": "KAZ",
+    "iso_numeric": "398"
+   }
+  },
+  {
+   "code": "KE",
+   "label": "Kenya",
+   "labels": {
+    "hi": "केन्या"
+   },
+   "aliases": [
+    "KEN",
+    "Republic of Kenya"
+   ],
+   "attributes": {
+    "iso_alpha3": "KEN",
+    "iso_numeric": "404"
+   }
+  },
+  {
+   "code": "KI",
+   "label": "Kiribati",
+   "labels": {
+    "hi": "किरिबाती"
+   },
+   "aliases": [
+    "KIR",
+    "Republic of Kiribati"
+   ],
+   "attributes": {
+    "iso_alpha3": "KIR",
+    "iso_numeric": "296"
+   }
+  },
+  {
+   "code": "KW",
+   "label": "Kuwait",
+   "labels": {
+    "hi": "कुवैत"
+   },
+   "aliases": [
+    "KWT",
+    "State of Kuwait"
+   ],
+   "attributes": {
+    "iso_alpha3": "KWT",
+    "iso_numeric": "414"
+   }
+  },
+  {
+   "code": "KG",
+   "label": "Kyrgyzstan",
+   "labels": {
+    "hi": "किर्गिज़स्तान"
+   },
+   "aliases": [
+    "KGZ",
+    "Kyrgyz Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "KGZ",
+    "iso_numeric": "417"
+   }
+  },
+  {
+   "code": "LA",
+   "label": "Laos",
+   "labels": {
+    "hi": "लाओस"
+   },
+   "aliases": [
+    "LAO",
+    "Lao People's Democratic Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "LAO",
+    "iso_numeric": "418"
+   }
+  },
+  {
+   "code": "LV",
+   "label": "Latvia",
+   "labels": {
+    "hi": "लातविया"
+   },
+   "aliases": [
+    "LVA",
+    "Republic of Latvia"
+   ],
+   "attributes": {
+    "iso_alpha3": "LVA",
+    "iso_numeric": "428"
+   }
+  },
+  {
+   "code": "LB",
+   "label": "Lebanon",
+   "labels": {
+    "hi": "लेबनान"
+   },
+   "aliases": [
+    "LBN",
+    "Lebanese Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "LBN",
+    "iso_numeric": "422"
+   }
+  },
+  {
+   "code": "LS",
+   "label": "Lesotho",
+   "labels": {
+    "hi": "लेसोथो"
+   },
+   "aliases": [
+    "Kingdom of Lesotho",
+    "LSO"
+   ],
+   "attributes": {
+    "iso_alpha3": "LSO",
+    "iso_numeric": "426"
+   }
+  },
+  {
+   "code": "LR",
+   "label": "Liberia",
+   "labels": {
+    "hi": "लाइबेरिया"
+   },
+   "aliases": [
+    "LBR",
+    "Republic of Liberia"
+   ],
+   "attributes": {
+    "iso_alpha3": "LBR",
+    "iso_numeric": "430"
+   }
+  },
+  {
+   "code": "LY",
+   "label": "Libya",
+   "labels": {
+    "hi": "लीबिया"
+   },
+   "aliases": [
+    "LBY"
+   ],
+   "attributes": {
+    "iso_alpha3": "LBY",
+    "iso_numeric": "434"
+   }
+  },
+  {
+   "code": "LI",
+   "label": "Liechtenstein",
+   "labels": {
+    "hi": "लिचेंस्टीन"
+   },
+   "aliases": [
+    "LIE",
+    "Principality of Liechtenstein"
+   ],
+   "attributes": {
+    "iso_alpha3": "LIE",
+    "iso_numeric": "438"
+   }
+  },
+  {
+   "code": "LT",
+   "label": "Lithuania",
+   "labels": {
+    "hi": "लिथुआनिया"
+   },
+   "aliases": [
+    "LTU",
+    "Republic of Lithuania"
+   ],
+   "attributes": {
+    "iso_alpha3": "LTU",
+    "iso_numeric": "440"
+   }
+  },
+  {
+   "code": "LU",
+   "label": "Luxembourg",
+   "labels": {
+    "hi": "लग्ज़मबर्ग"
+   },
+   "aliases": [
+    "Grand Duchy of Luxembourg",
+    "LUX"
+   ],
+   "attributes": {
+    "iso_alpha3": "LUX",
+    "iso_numeric": "442"
+   }
+  },
+  {
+   "code": "MO",
+   "label": "Macao SAR China",
+   "labels": {
+    "hi": "मकाऊ (विशेष प्रशासनिक क्षेत्र चीन)"
+   },
+   "aliases": [
+    "MAC",
+    "Macao",
+    "Macao Special Administrative Region of China"
+   ],
+   "attributes": {
+    "iso_alpha3": "MAC",
+    "iso_numeric": "446"
+   }
+  },
+  {
+   "code": "MG",
+   "label": "Madagascar",
+   "labels": {
+    "hi": "मेडागास्कर"
+   },
+   "aliases": [
+    "MDG",
+    "Republic of Madagascar"
+   ],
+   "attributes": {
+    "iso_alpha3": "MDG",
+    "iso_numeric": "450"
+   }
+  },
+  {
+   "code": "MW",
+   "label": "Malawi",
+   "labels": {
+    "hi": "मलावी"
+   },
+   "aliases": [
+    "MWI",
+    "Republic of Malawi"
+   ],
+   "attributes": {
+    "iso_alpha3": "MWI",
+    "iso_numeric": "454"
+   }
+  },
+  {
+   "code": "MY",
+   "label": "Malaysia",
+   "labels": {
+    "hi": "मलेशिया"
+   },
+   "aliases": [
+    "MYS",
+    "Malaya"
+   ],
+   "attributes": {
+    "iso_alpha3": "MYS",
+    "iso_numeric": "458"
+   }
+  },
+  {
+   "code": "MV",
+   "label": "Maldives",
+   "labels": {
+    "hi": "मालदीव"
+   },
+   "aliases": [
+    "MDV",
+    "Republic of Maldives"
+   ],
+   "attributes": {
+    "iso_alpha3": "MDV",
+    "iso_numeric": "462"
+   }
+  },
+  {
+   "code": "ML",
+   "label": "Mali",
+   "labels": {
+    "hi": "माली"
+   },
+   "aliases": [
+    "MLI",
+    "Republic of Mali"
+   ],
+   "attributes": {
+    "iso_alpha3": "MLI",
+    "iso_numeric": "466"
+   }
+  },
+  {
+   "code": "MT",
+   "label": "Malta",
+   "labels": {
+    "hi": "माल्टा"
+   },
+   "aliases": [
+    "MLT",
+    "Republic of Malta"
+   ],
+   "attributes": {
+    "iso_alpha3": "MLT",
+    "iso_numeric": "470"
+   }
+  },
+  {
+   "code": "MH",
+   "label": "Marshall Islands",
+   "labels": {
+    "hi": "मार्शल द्वीपसमूह"
+   },
+   "aliases": [
+    "MHL",
+    "Republic of the Marshall Islands"
+   ],
+   "attributes": {
+    "iso_alpha3": "MHL",
+    "iso_numeric": "584"
+   }
+  },
+  {
+   "code": "MQ",
+   "label": "Martinique",
+   "labels": {
+    "hi": "मार्टीनिक"
+   },
+   "aliases": [
+    "MTQ"
+   ],
+   "attributes": {
+    "iso_alpha3": "MTQ",
+    "iso_numeric": "474"
+   }
+  },
+  {
+   "code": "MR",
+   "label": "Mauritania",
+   "labels": {
+    "hi": "मॉरिटानिया"
+   },
+   "aliases": [
+    "Islamic Republic of Mauritania",
+    "MRT"
+   ],
+   "attributes": {
+    "iso_alpha3": "MRT",
+    "iso_numeric": "478"
+   }
+  },
+  {
+   "code": "MU",
+   "label": "Mauritius",
+   "labels": {
+    "hi": "मॉरीशस"
+   },
+   "aliases": [
+    "MUS",
+    "Republic of Mauritius"
+   ],
+   "attributes": {
+    "iso_alpha3": "MUS",
+    "iso_numeric": "480"
+   }
+  },
+  {
+   "code": "YT",
+   "label": "Mayotte",
+   "labels": {
+    "hi": "मायोते"
+   },
+   "aliases": [
+    "MYT"
+   ],
+   "attributes": {
+    "iso_alpha3": "MYT",
+    "iso_numeric": "175"
+   }
+  },
+  {
+   "code": "MX",
+   "label": "Mexico",
+   "labels": {
+    "hi": "मैक्सिको"
+   },
+   "aliases": [
+    "MEX",
+    "United Mexican States"
+   ],
+   "attributes": {
+    "iso_alpha3": "MEX",
+    "iso_numeric": "484"
+   }
+  },
+  {
+   "code": "FM",
+   "label": "Micronesia",
+   "labels": {
+    "hi": "माइक्रोनेशिया"
+   },
+   "aliases": [
+    "FSM",
+    "Federated States of Micronesia",
+    "Micronesia, Federated States of"
+   ],
+   "attributes": {
+    "iso_alpha3": "FSM",
+    "iso_numeric": "583"
+   }
+  },
+  {
+   "code": "MD",
+   "label": "Moldova",
+   "labels": {
+    "hi": "मॉल्डोवा"
+   },
+   "aliases": [
+    "MDA",
+    "Moldova, Republic of",
+    "Republic of Moldova"
+   ],
+   "attributes": {
+    "iso_alpha3": "MDA",
+    "iso_numeric": "498"
+   }
+  },
+  {
+   "code": "MC",
+   "label": "Monaco",
+   "labels": {
+    "hi": "मोनाको"
+   },
+   "aliases": [
+    "MCO",
+    "Principality of Monaco"
+   ],
+   "attributes": {
+    "iso_alpha3": "MCO",
+    "iso_numeric": "492"
+   }
+  },
+  {
+   "code": "MN",
+   "label": "Mongolia",
+   "labels": {
+    "hi": "मंगोलिया"
+   },
+   "aliases": [
+    "MNG"
+   ],
+   "attributes": {
+    "iso_alpha3": "MNG",
+    "iso_numeric": "496"
+   }
+  },
+  {
+   "code": "ME",
+   "label": "Montenegro",
+   "labels": {
+    "hi": "मोंटेनेग्रो"
+   },
+   "aliases": [
+    "MNE"
+   ],
+   "attributes": {
+    "iso_alpha3": "MNE",
+    "iso_numeric": "499"
+   }
+  },
+  {
+   "code": "MS",
+   "label": "Montserrat",
+   "labels": {
+    "hi": "मोंटसेरात"
+   },
+   "aliases": [
+    "MSR"
+   ],
+   "attributes": {
+    "iso_alpha3": "MSR",
+    "iso_numeric": "500"
+   }
+  },
+  {
+   "code": "MA",
+   "label": "Morocco",
+   "labels": {
+    "hi": "मोरक्को"
+   },
+   "aliases": [
+    "Kingdom of Morocco",
+    "MAR"
+   ],
+   "attributes": {
+    "iso_alpha3": "MAR",
+    "iso_numeric": "504"
+   }
+  },
+  {
+   "code": "MZ",
+   "label": "Mozambique",
+   "labels": {
+    "hi": "मोज़ांबिक"
+   },
+   "aliases": [
+    "MOZ",
+    "Republic of Mozambique"
+   ],
+   "attributes": {
+    "iso_alpha3": "MOZ",
+    "iso_numeric": "508"
+   }
+  },
+  {
+   "code": "MM",
+   "label": "Myanmar (Burma)",
+   "labels": {
+    "hi": "म्यांमार (बर्मा)"
+   },
+   "aliases": [
+    "MMR",
+    "Myanmar",
+    "Republic of Myanmar",
+    "Burma"
+   ],
+   "attributes": {
+    "iso_alpha3": "MMR",
+    "iso_numeric": "104"
+   }
+  },
+  {
+   "code": "NA",
+   "label": "Namibia",
+   "labels": {
+    "hi": "नामीबिया"
+   },
+   "aliases": [
+    "NAM",
+    "Republic of Namibia"
+   ],
+   "attributes": {
+    "iso_alpha3": "NAM",
+    "iso_numeric": "516"
+   }
+  },
+  {
+   "code": "NR",
+   "label": "Nauru",
+   "labels": {
+    "hi": "नाउरु"
+   },
+   "aliases": [
+    "NRU",
+    "Republic of Nauru"
+   ],
+   "attributes": {
+    "iso_alpha3": "NRU",
+    "iso_numeric": "520"
+   }
+  },
+  {
+   "code": "NL",
+   "label": "Netherlands",
+   "labels": {
+    "hi": "नीदरलैंड"
+   },
+   "aliases": [
+    "Kingdom of the Netherlands",
+    "NLD"
+   ],
+   "attributes": {
+    "iso_alpha3": "NLD",
+    "iso_numeric": "528"
+   }
+  },
+  {
+   "code": "NC",
+   "label": "New Caledonia",
+   "labels": {
+    "hi": "न्यू कैलेडोनिया"
+   },
+   "aliases": [
+    "NCL"
+   ],
+   "attributes": {
+    "iso_alpha3": "NCL",
+    "iso_numeric": "540"
+   }
+  },
+  {
+   "code": "NZ",
+   "label": "New Zealand",
+   "labels": {
+    "hi": "न्यूज़ीलैंड"
+   },
+   "aliases": [
+    "NZL"
+   ],
+   "attributes": {
+    "iso_alpha3": "NZL",
+    "iso_numeric": "554"
+   }
+  },
+  {
+   "code": "NI",
+   "label": "Nicaragua",
+   "labels": {
+    "hi": "निकारागुआ"
+   },
+   "aliases": [
+    "NIC",
+    "Republic of Nicaragua"
+   ],
+   "attributes": {
+    "iso_alpha3": "NIC",
+    "iso_numeric": "558"
+   }
+  },
+  {
+   "code": "NE",
+   "label": "Niger",
+   "labels": {
+    "hi": "नाइजर"
+   },
+   "aliases": [
+    "NER",
+    "Republic of the Niger"
+   ],
+   "attributes": {
+    "iso_alpha3": "NER",
+    "iso_numeric": "562"
+   }
+  },
+  {
+   "code": "NG",
+   "label": "Nigeria",
+   "labels": {
+    "hi": "नाइजीरिया"
+   },
+   "aliases": [
+    "Federal Republic of Nigeria",
+    "NGA"
+   ],
+   "attributes": {
+    "iso_alpha3": "NGA",
+    "iso_numeric": "566"
+   }
+  },
+  {
+   "code": "NU",
+   "label": "Niue",
+   "labels": {
+    "hi": "नीयू"
+   },
+   "aliases": [
+    "NIU"
+   ],
+   "attributes": {
+    "iso_alpha3": "NIU",
+    "iso_numeric": "570"
+   }
+  },
+  {
+   "code": "NF",
+   "label": "Norfolk Island",
+   "labels": {
+    "hi": "नॉरफ़ॉक द्वीप"
+   },
+   "aliases": [
+    "NFK"
+   ],
+   "attributes": {
+    "iso_alpha3": "NFK",
+    "iso_numeric": "574"
+   }
+  },
+  {
+   "code": "KP",
+   "label": "North Korea",
+   "labels": {
+    "hi": "उत्तर कोरिया"
+   },
+   "aliases": [
+    "Democratic People's Republic of Korea",
+    "Korea, Democratic People's Republic of",
+    "PRK"
+   ],
+   "attributes": {
+    "iso_alpha3": "PRK",
+    "iso_numeric": "408"
+   }
+  },
+  {
+   "code": "MK",
+   "label": "North Macedonia",
+   "labels": {
+    "hi": "उत्तरी मकदूनिया"
+   },
+   "aliases": [
+    "MKD",
+    "Republic of North Macedonia"
+   ],
+   "attributes": {
+    "iso_alpha3": "MKD",
+    "iso_numeric": "807"
+   }
+  },
+  {
+   "code": "MP",
+   "label": "Northern Mariana Islands",
+   "labels": {
+    "hi": "उत्तरी मारियाना द्वीपसमूह"
+   },
+   "aliases": [
+    "Commonwealth of the Northern Mariana Islands",
+    "MNP"
+   ],
+   "attributes": {
+    "iso_alpha3": "MNP",
+    "iso_numeric": "580"
+   }
+  },
+  {
+   "code": "NO",
+   "label": "Norway",
+   "labels": {
+    "hi": "नॉर्वे"
+   },
+   "aliases": [
+    "Kingdom of Norway",
+    "NOR"
+   ],
+   "attributes": {
+    "iso_alpha3": "NOR",
+    "iso_numeric": "578"
+   }
+  },
+  {
+   "code": "OM",
+   "label": "Oman",
+   "labels": {
+    "hi": "ओमान"
+   },
+   "aliases": [
+    "OMN",
+    "Sultanate of Oman"
+   ],
+   "attributes": {
+    "iso_alpha3": "OMN",
+    "iso_numeric": "512"
+   }
+  },
+  {
+   "code": "PW",
+   "label": "Palau",
+   "labels": {
+    "hi": "पलाऊ"
+   },
+   "aliases": [
+    "PLW",
+    "Republic of Palau"
+   ],
+   "attributes": {
+    "iso_alpha3": "PLW",
+    "iso_numeric": "585"
+   }
+  },
+  {
+   "code": "PS",
+   "label": "Palestinian Territories",
+   "labels": {
+    "hi": "फ़िलिस्तीनी क्षेत्र"
+   },
+   "aliases": [
+    "PSE",
+    "Palestine, State of",
+    "the State of Palestine"
+   ],
+   "attributes": {
+    "iso_alpha3": "PSE",
+    "iso_numeric": "275"
+   }
+  },
+  {
+   "code": "PA",
+   "label": "Panama",
+   "labels": {
+    "hi": "पनामा"
+   },
+   "aliases": [
+    "PAN",
+    "Republic of Panama"
+   ],
+   "attributes": {
+    "iso_alpha3": "PAN",
+    "iso_numeric": "591"
+   }
+  },
+  {
+   "code": "PG",
+   "label": "Papua New Guinea",
+   "labels": {
+    "hi": "पापुआ न्यू गिनी"
+   },
+   "aliases": [
+    "Independent State of Papua New Guinea",
+    "PNG"
+   ],
+   "attributes": {
+    "iso_alpha3": "PNG",
+    "iso_numeric": "598"
+   }
+  },
+  {
+   "code": "PY",
+   "label": "Paraguay",
+   "labels": {
+    "hi": "पराग्वे"
+   },
+   "aliases": [
+    "PRY",
+    "Republic of Paraguay"
+   ],
+   "attributes": {
+    "iso_alpha3": "PRY",
+    "iso_numeric": "600"
+   }
+  },
+  {
+   "code": "PE",
+   "label": "Peru",
+   "labels": {
+    "hi": "पेरू"
+   },
+   "aliases": [
+    "PER",
+    "Republic of Peru"
+   ],
+   "attributes": {
+    "iso_alpha3": "PER",
+    "iso_numeric": "604"
+   }
+  },
+  {
+   "code": "PH",
+   "label": "Philippines",
+   "labels": {
+    "hi": "फ़िलिपींस"
+   },
+   "aliases": [
+    "PHL",
+    "Republic of the Philippines"
+   ],
+   "attributes": {
+    "iso_alpha3": "PHL",
+    "iso_numeric": "608"
+   }
+  },
+  {
+   "code": "PN",
+   "label": "Pitcairn Islands",
+   "labels": {
+    "hi": "पिटकैर्न द्वीपसमूह"
+   },
+   "aliases": [
+    "PCN",
+    "Pitcairn"
+   ],
+   "attributes": {
+    "iso_alpha3": "PCN",
+    "iso_numeric": "612"
+   }
+  },
+  {
+   "code": "PL",
+   "label": "Poland",
+   "labels": {
+    "hi": "पोलैंड"
+   },
+   "aliases": [
+    "POL",
+    "Republic of Poland"
+   ],
+   "attributes": {
+    "iso_alpha3": "POL",
+    "iso_numeric": "616"
+   }
+  },
+  {
+   "code": "PT",
+   "label": "Portugal",
+   "labels": {
+    "hi": "पुर्तगाल"
+   },
+   "aliases": [
+    "PRT",
+    "Portuguese Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "PRT",
+    "iso_numeric": "620"
+   }
+  },
+  {
+   "code": "PR",
+   "label": "Puerto Rico",
+   "labels": {
+    "hi": "पोर्टो रिको"
+   },
+   "aliases": [
+    "PRI"
+   ],
+   "attributes": {
+    "iso_alpha3": "PRI",
+    "iso_numeric": "630"
+   }
+  },
+  {
+   "code": "QA",
+   "label": "Qatar",
+   "labels": {
+    "hi": "क़तर"
+   },
+   "aliases": [
+    "QAT",
+    "State of Qatar"
+   ],
+   "attributes": {
+    "iso_alpha3": "QAT",
+    "iso_numeric": "634"
+   }
+  },
+  {
+   "code": "RO",
+   "label": "Romania",
+   "labels": {
+    "hi": "रोमानिया"
+   },
+   "aliases": [
+    "ROU"
+   ],
+   "attributes": {
+    "iso_alpha3": "ROU",
+    "iso_numeric": "642"
+   }
+  },
+  {
+   "code": "RU",
+   "label": "Russia",
+   "labels": {
+    "hi": "रूस"
+   },
+   "aliases": [
+    "RUS",
+    "Russian Federation"
+   ],
+   "attributes": {
+    "iso_alpha3": "RUS",
+    "iso_numeric": "643"
+   }
+  },
+  {
+   "code": "RW",
+   "label": "Rwanda",
+   "labels": {
+    "hi": "रवांडा"
+   },
+   "aliases": [
+    "RWA",
+    "Rwandese Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "RWA",
+    "iso_numeric": "646"
+   }
+  },
+  {
+   "code": "RE",
+   "label": "Réunion",
+   "labels": {
+    "hi": "रियूनियन"
+   },
+   "aliases": [
+    "REU"
+   ],
+   "attributes": {
+    "iso_alpha3": "REU",
+    "iso_numeric": "638"
+   }
+  },
+  {
+   "code": "WS",
+   "label": "Samoa",
+   "labels": {
+    "hi": "समोआ"
+   },
+   "aliases": [
+    "Independent State of Samoa",
+    "WSM"
+   ],
+   "attributes": {
+    "iso_alpha3": "WSM",
+    "iso_numeric": "882"
+   }
+  },
+  {
+   "code": "SM",
+   "label": "San Marino",
+   "labels": {
+    "hi": "सैन मेरीनो"
+   },
+   "aliases": [
+    "Republic of San Marino",
+    "SMR"
+   ],
+   "attributes": {
+    "iso_alpha3": "SMR",
+    "iso_numeric": "674"
+   }
+  },
+  {
+   "code": "SA",
+   "label": "Saudi Arabia",
+   "labels": {
+    "hi": "सऊदी अरब"
+   },
+   "aliases": [
+    "Kingdom of Saudi Arabia",
+    "SAU"
+   ],
+   "attributes": {
+    "iso_alpha3": "SAU",
+    "iso_numeric": "682"
+   }
+  },
+  {
+   "code": "SN",
+   "label": "Senegal",
+   "labels": {
+    "hi": "सेनेगल"
+   },
+   "aliases": [
+    "Republic of Senegal",
+    "SEN"
+   ],
+   "attributes": {
+    "iso_alpha3": "SEN",
+    "iso_numeric": "686"
+   }
+  },
+  {
+   "code": "RS",
+   "label": "Serbia",
+   "labels": {
+    "hi": "सर्बिया"
+   },
+   "aliases": [
+    "Republic of Serbia",
+    "SRB"
+   ],
+   "attributes": {
+    "iso_alpha3": "SRB",
+    "iso_numeric": "688"
+   }
+  },
+  {
+   "code": "SC",
+   "label": "Seychelles",
+   "labels": {
+    "hi": "सेशेल्स"
+   },
+   "aliases": [
+    "Republic of Seychelles",
+    "SYC"
+   ],
+   "attributes": {
+    "iso_alpha3": "SYC",
+    "iso_numeric": "690"
+   }
+  },
+  {
+   "code": "SL",
+   "label": "Sierra Leone",
+   "labels": {
+    "hi": "सिएरा लियोन"
+   },
+   "aliases": [
+    "Republic of Sierra Leone",
+    "SLE"
+   ],
+   "attributes": {
+    "iso_alpha3": "SLE",
+    "iso_numeric": "694"
+   }
+  },
+  {
+   "code": "SG",
+   "label": "Singapore",
+   "labels": {
+    "hi": "सिंगापुर"
+   },
+   "aliases": [
+    "Republic of Singapore",
+    "SGP"
+   ],
+   "attributes": {
+    "iso_alpha3": "SGP",
+    "iso_numeric": "702"
+   }
+  },
+  {
+   "code": "SX",
+   "label": "Sint Maarten",
+   "labels": {
+    "hi": "सिंट मार्टिन"
+   },
+   "aliases": [
+    "SXM",
+    "Sint Maarten (Dutch part)"
+   ],
+   "attributes": {
+    "iso_alpha3": "SXM",
+    "iso_numeric": "534"
+   }
+  },
+  {
+   "code": "SK",
+   "label": "Slovakia",
+   "labels": {
+    "hi": "स्लोवाकिया"
+   },
+   "aliases": [
+    "SVK",
+    "Slovak Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "SVK",
+    "iso_numeric": "703"
+   }
+  },
+  {
+   "code": "SI",
+   "label": "Slovenia",
+   "labels": {
+    "hi": "स्लोवेनिया"
+   },
+   "aliases": [
+    "Republic of Slovenia",
+    "SVN"
+   ],
+   "attributes": {
+    "iso_alpha3": "SVN",
+    "iso_numeric": "705"
+   }
+  },
+  {
+   "code": "SB",
+   "label": "Solomon Islands",
+   "labels": {
+    "hi": "सोलोमन द्वीपसमूह"
+   },
+   "aliases": [
+    "SLB"
+   ],
+   "attributes": {
+    "iso_alpha3": "SLB",
+    "iso_numeric": "090"
+   }
+  },
+  {
+   "code": "SO",
+   "label": "Somalia",
+   "labels": {
+    "hi": "सोमालिया"
+   },
+   "aliases": [
+    "Federal Republic of Somalia",
+    "SOM"
+   ],
+   "attributes": {
+    "iso_alpha3": "SOM",
+    "iso_numeric": "706"
+   }
+  },
+  {
+   "code": "ZA",
+   "label": "South Africa",
+   "labels": {
+    "hi": "दक्षिण अफ़्रीका"
+   },
+   "aliases": [
+    "Republic of South Africa",
+    "ZAF"
+   ],
+   "attributes": {
+    "iso_alpha3": "ZAF",
+    "iso_numeric": "710"
+   }
+  },
+  {
+   "code": "GS",
+   "label": "South Georgia & South Sandwich Islands",
+   "labels": {
+    "hi": "दक्षिण जॉर्जिया और दक्षिण सैंडविच द्वीपसमूह"
+   },
+   "aliases": [
+    "SGS",
+    "South Georgia and the South Sandwich Islands"
+   ],
+   "attributes": {
+    "iso_alpha3": "SGS",
+    "iso_numeric": "239"
+   }
+  },
+  {
+   "code": "KR",
+   "label": "South Korea",
+   "labels": {
+    "hi": "दक्षिण कोरिया"
+   },
+   "aliases": [
+    "KOR",
+    "Korea, Republic of"
+   ],
+   "attributes": {
+    "iso_alpha3": "KOR",
+    "iso_numeric": "410"
+   }
+  },
+  {
+   "code": "SS",
+   "label": "South Sudan",
+   "labels": {
+    "hi": "दक्षिण सूडान"
+   },
+   "aliases": [
+    "Republic of South Sudan",
+    "SSD"
+   ],
+   "attributes": {
+    "iso_alpha3": "SSD",
+    "iso_numeric": "728"
+   }
+  },
+  {
+   "code": "ES",
+   "label": "Spain",
+   "labels": {
+    "hi": "स्पेन"
+   },
+   "aliases": [
+    "ESP",
+    "Kingdom of Spain"
+   ],
+   "attributes": {
+    "iso_alpha3": "ESP",
+    "iso_numeric": "724"
+   }
+  },
+  {
+   "code": "BL",
+   "label": "St. Barthélemy",
+   "labels": {
+    "hi": "सेंट बार्थेलेमी"
+   },
+   "aliases": [
+    "BLM",
+    "Saint Barthélemy"
+   ],
+   "attributes": {
+    "iso_alpha3": "BLM",
+    "iso_numeric": "652"
+   }
+  },
+  {
+   "code": "SH",
+   "label": "St. Helena",
+   "labels": {
+    "hi": "सेंट हेलेना"
+   },
+   "aliases": [
+    "SHN",
+    "Saint Helena, Ascension and Tristan da Cunha"
+   ],
+   "attributes": {
+    "iso_alpha3": "SHN",
+    "iso_numeric": "654"
+   }
+  },
+  {
+   "code": "KN",
+   "label": "St. Kitts & Nevis",
+   "labels": {
+    "hi": "सेंट किट्स और नेविस"
+   },
+   "aliases": [
+    "KNA",
+    "Saint Kitts and Nevis"
+   ],
+   "attributes": {
+    "iso_alpha3": "KNA",
+    "iso_numeric": "659"
+   }
+  },
+  {
+   "code": "LC",
+   "label": "St. Lucia",
+   "labels": {
+    "hi": "सेंट लूसिया"
+   },
+   "aliases": [
+    "LCA",
+    "Saint Lucia"
+   ],
+   "attributes": {
+    "iso_alpha3": "LCA",
+    "iso_numeric": "662"
+   }
+  },
+  {
+   "code": "MF",
+   "label": "St. Martin",
+   "labels": {
+    "hi": "सेंट मार्टिन"
+   },
+   "aliases": [
+    "MAF",
+    "Saint Martin (French part)"
+   ],
+   "attributes": {
+    "iso_alpha3": "MAF",
+    "iso_numeric": "663"
+   }
+  },
+  {
+   "code": "PM",
+   "label": "St. Pierre & Miquelon",
+   "labels": {
+    "hi": "सेंट पिएरे और मिक्वेलान"
+   },
+   "aliases": [
+    "SPM",
+    "Saint Pierre and Miquelon"
+   ],
+   "attributes": {
+    "iso_alpha3": "SPM",
+    "iso_numeric": "666"
+   }
+  },
+  {
+   "code": "VC",
+   "label": "St. Vincent & Grenadines",
+   "labels": {
+    "hi": "सेंट विंसेंट और ग्रेनाडाइंस"
+   },
+   "aliases": [
+    "Saint Vincent and the Grenadines",
+    "VCT"
+   ],
+   "attributes": {
+    "iso_alpha3": "VCT",
+    "iso_numeric": "670"
+   }
+  },
+  {
+   "code": "SD",
+   "label": "Sudan",
+   "labels": {
+    "hi": "सूडान"
+   },
+   "aliases": [
+    "Republic of the Sudan",
+    "SDN"
+   ],
+   "attributes": {
+    "iso_alpha3": "SDN",
+    "iso_numeric": "729"
+   }
+  },
+  {
+   "code": "SR",
+   "label": "Suriname",
+   "labels": {
+    "hi": "सूरीनाम"
+   },
+   "aliases": [
+    "Republic of Suriname",
+    "SUR"
+   ],
+   "attributes": {
+    "iso_alpha3": "SUR",
+    "iso_numeric": "740"
+   }
+  },
+  {
+   "code": "SJ",
+   "label": "Svalbard & Jan Mayen",
+   "labels": {
+    "hi": "स्वालबार्ड और जान मायेन"
+   },
+   "aliases": [
+    "SJM",
+    "Svalbard and Jan Mayen"
+   ],
+   "attributes": {
+    "iso_alpha3": "SJM",
+    "iso_numeric": "744"
+   }
+  },
+  {
+   "code": "SE",
+   "label": "Sweden",
+   "labels": {
+    "hi": "स्वीडन"
+   },
+   "aliases": [
+    "Kingdom of Sweden",
+    "SWE"
+   ],
+   "attributes": {
+    "iso_alpha3": "SWE",
+    "iso_numeric": "752"
+   }
+  },
+  {
+   "code": "CH",
+   "label": "Switzerland",
+   "labels": {
+    "hi": "स्विट्ज़रलैंड"
+   },
+   "aliases": [
+    "CHE",
+    "Swiss Confederation"
+   ],
+   "attributes": {
+    "iso_alpha3": "CHE",
+    "iso_numeric": "756"
+   }
+  },
+  {
+   "code": "SY",
+   "label": "Syria",
+   "labels": {
+    "hi": "सीरिया"
+   },
+   "aliases": [
+    "SYR",
+    "Syrian Arab Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "SYR",
+    "iso_numeric": "760"
+   }
+  },
+  {
+   "code": "ST",
+   "label": "São Tomé & Príncipe",
+   "labels": {
+    "hi": "साओ टोम और प्रिंसिपे"
+   },
+   "aliases": [
+    "Democratic Republic of Sao Tome and Principe",
+    "STP",
+    "Sao Tome and Principe"
+   ],
+   "attributes": {
+    "iso_alpha3": "STP",
+    "iso_numeric": "678"
+   }
+  },
+  {
+   "code": "TW",
+   "label": "Taiwan",
+   "labels": {
+    "hi": "ताइवान"
+   },
+   "aliases": [
+    "TWN",
+    "Taiwan, Province of China"
+   ],
+   "attributes": {
+    "iso_alpha3": "TWN",
+    "iso_numeric": "158"
+   }
+  },
+  {
+   "code": "TJ",
+   "label": "Tajikistan",
+   "labels": {
+    "hi": "ताजिकिस्तान"
+   },
+   "aliases": [
+    "Republic of Tajikistan",
+    "TJK"
+   ],
+   "attributes": {
+    "iso_alpha3": "TJK",
+    "iso_numeric": "762"
+   }
+  },
+  {
+   "code": "TZ",
+   "label": "Tanzania",
+   "labels": {
+    "hi": "तंज़ानिया"
+   },
+   "aliases": [
+    "TZA",
+    "Tanzania, United Republic of",
+    "United Republic of Tanzania"
+   ],
+   "attributes": {
+    "iso_alpha3": "TZA",
+    "iso_numeric": "834"
+   }
+  },
+  {
+   "code": "TH",
+   "label": "Thailand",
+   "labels": {
+    "hi": "थाईलैंड"
+   },
+   "aliases": [
+    "Kingdom of Thailand",
+    "THA",
+    "Siam"
+   ],
+   "attributes": {
+    "iso_alpha3": "THA",
+    "iso_numeric": "764"
+   }
+  },
+  {
+   "code": "TL",
+   "label": "Timor-Leste",
+   "labels": {
+    "hi": "तिमोर-लेस्त"
+   },
+   "aliases": [
+    "Democratic Republic of Timor-Leste",
+    "TLS"
+   ],
+   "attributes": {
+    "iso_alpha3": "TLS",
+    "iso_numeric": "626"
+   }
+  },
+  {
+   "code": "TG",
+   "label": "Togo",
+   "labels": {
+    "hi": "टोगो"
+   },
+   "aliases": [
+    "TGO",
+    "Togolese Republic"
+   ],
+   "attributes": {
+    "iso_alpha3": "TGO",
+    "iso_numeric": "768"
+   }
+  },
+  {
+   "code": "TK",
+   "label": "Tokelau",
+   "labels": {
+    "hi": "तोकेलाउ"
+   },
+   "aliases": [
+    "TKL"
+   ],
+   "attributes": {
+    "iso_alpha3": "TKL",
+    "iso_numeric": "772"
+   }
+  },
+  {
+   "code": "TO",
+   "label": "Tonga",
+   "labels": {
+    "hi": "टोंगा"
+   },
+   "aliases": [
+    "Kingdom of Tonga",
+    "TON"
+   ],
+   "attributes": {
+    "iso_alpha3": "TON",
+    "iso_numeric": "776"
+   }
+  },
+  {
+   "code": "TT",
+   "label": "Trinidad & Tobago",
+   "labels": {
+    "hi": "त्रिनिदाद और टोबैगो"
+   },
+   "aliases": [
+    "Republic of Trinidad and Tobago",
+    "TTO",
+    "Trinidad and Tobago"
+   ],
+   "attributes": {
+    "iso_alpha3": "TTO",
+    "iso_numeric": "780"
+   }
+  },
+  {
+   "code": "TN",
+   "label": "Tunisia",
+   "labels": {
+    "hi": "ट्यूनीशिया"
+   },
+   "aliases": [
+    "Republic of Tunisia",
+    "TUN"
+   ],
+   "attributes": {
+    "iso_alpha3": "TUN",
+    "iso_numeric": "788"
+   }
+  },
+  {
+   "code": "TM",
+   "label": "Turkmenistan",
+   "labels": {
+    "hi": "तुर्कमेनिस्तान"
+   },
+   "aliases": [
+    "TKM"
+   ],
+   "attributes": {
+    "iso_alpha3": "TKM",
+    "iso_numeric": "795"
+   }
+  },
+  {
+   "code": "TC",
+   "label": "Turks & Caicos Islands",
+   "labels": {
+    "hi": "तुर्क और कैकोज़ द्वीपसमूह"
+   },
+   "aliases": [
+    "TCA",
+    "Turks and Caicos Islands"
+   ],
+   "attributes": {
+    "iso_alpha3": "TCA",
+    "iso_numeric": "796"
+   }
+  },
+  {
+   "code": "TV",
+   "label": "Tuvalu",
+   "labels": {
+    "hi": "तुवालू"
+   },
+   "aliases": [
+    "TUV"
+   ],
+   "attributes": {
+    "iso_alpha3": "TUV",
+    "iso_numeric": "798"
+   }
+  },
+  {
+   "code": "TR",
+   "label": "Türkiye",
+   "labels": {
+    "hi": "तुर्किये"
+   },
+   "aliases": [
+    "Republic of Türkiye",
+    "TUR"
+   ],
+   "attributes": {
+    "iso_alpha3": "TUR",
+    "iso_numeric": "792"
+   }
+  },
+  {
+   "code": "UM",
+   "label": "U.S. Outlying Islands",
+   "labels": {
+    "hi": "यू॰एस॰ आउटलाइंग द्वीपसमूह"
+   },
+   "aliases": [
+    "UMI",
+    "United States Minor Outlying Islands"
+   ],
+   "attributes": {
+    "iso_alpha3": "UMI",
+    "iso_numeric": "581"
+   }
+  },
+  {
+   "code": "VI",
+   "label": "U.S. Virgin Islands",
+   "labels": {
+    "hi": "यू॰एस॰ वर्जिन द्वीपसमूह"
+   },
+   "aliases": [
+    "VIR",
+    "Virgin Islands of the United States",
+    "Virgin Islands, U.S."
+   ],
+   "attributes": {
+    "iso_alpha3": "VIR",
+    "iso_numeric": "850"
+   }
+  },
+  {
+   "code": "UG",
+   "label": "Uganda",
+   "labels": {
+    "hi": "युगांडा"
+   },
+   "aliases": [
+    "Republic of Uganda",
+    "UGA"
+   ],
+   "attributes": {
+    "iso_alpha3": "UGA",
+    "iso_numeric": "800"
+   }
+  },
+  {
+   "code": "UA",
+   "label": "Ukraine",
+   "labels": {
+    "hi": "यूक्रेन"
+   },
+   "aliases": [
+    "UKR"
+   ],
+   "attributes": {
+    "iso_alpha3": "UKR",
+    "iso_numeric": "804"
+   }
+  },
+  {
+   "code": "UY",
+   "label": "Uruguay",
+   "labels": {
+    "hi": "उरूग्वे"
+   },
+   "aliases": [
+    "Eastern Republic of Uruguay",
+    "URY"
+   ],
+   "attributes": {
+    "iso_alpha3": "URY",
+    "iso_numeric": "858"
+   }
+  },
+  {
+   "code": "UZ",
+   "label": "Uzbekistan",
+   "labels": {
+    "hi": "उज़्बेकिस्तान"
+   },
+   "aliases": [
+    "Republic of Uzbekistan",
+    "UZB"
+   ],
+   "attributes": {
+    "iso_alpha3": "UZB",
+    "iso_numeric": "860"
+   }
+  },
+  {
+   "code": "VU",
+   "label": "Vanuatu",
+   "labels": {
+    "hi": "वनुआतू"
+   },
+   "aliases": [
+    "Republic of Vanuatu",
+    "VUT"
+   ],
+   "attributes": {
+    "iso_alpha3": "VUT",
+    "iso_numeric": "548"
+   }
+  },
+  {
+   "code": "VA",
+   "label": "Vatican City",
+   "labels": {
+    "hi": "वेटिकन सिटी"
+   },
+   "aliases": [
+    "Holy See (Vatican City State)",
+    "VAT"
+   ],
+   "attributes": {
+    "iso_alpha3": "VAT",
+    "iso_numeric": "336"
+   }
+  },
+  {
+   "code": "VE",
+   "label": "Venezuela",
+   "labels": {
+    "hi": "वेनेज़ुएला"
+   },
+   "aliases": [
+    "Bolivarian Republic of Venezuela",
+    "VEN",
+    "Venezuela, Bolivarian Republic of"
+   ],
+   "attributes": {
+    "iso_alpha3": "VEN",
+    "iso_numeric": "862"
+   }
+  },
+  {
+   "code": "VN",
+   "label": "Vietnam",
+   "labels": {
+    "hi": "वियतनाम"
+   },
+   "aliases": [
+    "Socialist Republic of Viet Nam",
+    "VNM",
+    "Viet Nam"
+   ],
+   "attributes": {
+    "iso_alpha3": "VNM",
+    "iso_numeric": "704"
+   }
+  },
+  {
+   "code": "WF",
+   "label": "Wallis & Futuna",
+   "labels": {
+    "hi": "वालिस और फ़्यूचूना"
+   },
+   "aliases": [
+    "WLF",
+    "Wallis and Futuna"
+   ],
+   "attributes": {
+    "iso_alpha3": "WLF",
+    "iso_numeric": "876"
+   }
+  },
+  {
+   "code": "EH",
+   "label": "Western Sahara",
+   "labels": {
+    "hi": "पश्चिमी सहारा"
+   },
+   "aliases": [
+    "ESH"
+   ],
+   "attributes": {
+    "iso_alpha3": "ESH",
+    "iso_numeric": "732"
+   }
+  },
+  {
+   "code": "YE",
+   "label": "Yemen",
+   "labels": {
+    "hi": "यमन"
+   },
+   "aliases": [
+    "Republic of Yemen",
+    "YEM"
+   ],
+   "attributes": {
+    "iso_alpha3": "YEM",
+    "iso_numeric": "887"
+   }
+  },
+  {
+   "code": "ZM",
+   "label": "Zambia",
+   "labels": {
+    "hi": "ज़ाम्बिया"
+   },
+   "aliases": [
+    "Republic of Zambia",
+    "ZMB"
+   ],
+   "attributes": {
+    "iso_alpha3": "ZMB",
+    "iso_numeric": "894"
+   }
+  },
+  {
+   "code": "ZW",
+   "label": "Zimbabwe",
+   "labels": {
+    "hi": "ज़िम्बाब्वे"
+   },
+   "aliases": [
+    "Republic of Zimbabwe",
+    "ZWE",
+    "Rhodesia"
+   ],
+   "attributes": {
+    "iso_alpha3": "ZWE",
+    "iso_numeric": "716"
+   }
+  },
+  {
+   "code": "AX",
+   "label": "Åland Islands",
+   "labels": {
+    "hi": "एलैंड द्वीपसमूह"
+   },
+   "aliases": [
+    "ALA"
+   ],
+   "attributes": {
+    "iso_alpha3": "ALA",
+    "iso_numeric": "248"
+   }
+  },
+  {
+   "code": "hist:british_india",
+   "label": "British India",
+   "labels": {
+    "hi": "ब्रिटिश भारत"
+   },
+   "aliases": [
+    "Indian Empire",
+    "British Raj"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "valid_to": 1947
+   }
+  },
+  {
+   "code": "hist:east_pakistan",
+   "label": "East Pakistan",
+   "labels": {
+    "hi": "पूर्वी पाकिस्तान"
+   },
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "valid_from": 1955,
+    "valid_to": 1971,
+    "successor": "BD"
+   }
+  },
+  {
+   "code": "hist:portuguese_india",
+   "label": "Portuguese India",
+   "labels": {
+    "hi": "पुर्तगाली भारत"
+   },
+   "aliases": [
+    "Estado da India",
+    "Goa, Daman and Diu"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "valid_to": 1961,
+    "successor": "IN"
+   }
+  },
+  {
+   "code": "hist:french_india",
+   "label": "French India",
+   "labels": {
+    "hi": "फ़्रांसीसी भारत"
+   },
+   "aliases": [
+    "Pondichéry",
+    "Établissements français de l'Inde"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "valid_to": 1954,
+    "successor": "IN"
+   }
+  },
+  {
+   "code": "hist:hyderabad_deccan",
+   "label": "Hyderabad State (Nizam)",
+   "labels": {
+    "hi": "हैदराबाद रियासत"
+   },
+   "aliases": [
+    "Hyderabad Deccan"
+   ],
+   "tags": [
+    "historical",
+    "princely_state"
+   ],
+   "attributes": {
+    "valid_to": 1948,
+    "successor": "IN"
+   }
+  },
+  {
+   "code": "hist:burma_british",
+   "label": "Burma (British)",
+   "labels": {
+    "hi": "बर्मा"
+   },
+   "aliases": [
+    "British Burma"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "valid_to": 1948,
+    "successor": "MM"
+   }
+  }
+ ]
+}

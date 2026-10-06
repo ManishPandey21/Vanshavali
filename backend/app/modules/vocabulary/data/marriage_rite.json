@@ -1,0 +1,113 @@
+{
+ "code": "marriage_rite",
+ "name": "Marriage rite",
+ "description": "How a marriage was solemnised.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "hindu_vedic",
+   "label": "Hindu (Vedic / customary)",
+   "labels": {
+    "hi": "हिन्दू विवाह (वैदिक)"
+   },
+   "aliases": [
+    "Vivah",
+    "Saat phere",
+    "Saptapadi",
+    "Shaadi"
+   ]
+  },
+  {
+   "code": "arya_samaj",
+   "label": "Arya Samaj",
+   "labels": {
+    "hi": "आर्य समाज विवाह"
+   }
+  },
+  {
+   "code": "anand_karaj",
+   "label": "Anand Karaj (Sikh)",
+   "labels": {
+    "hi": "आनंद कारज"
+   },
+   "aliases": [
+    "Lavan"
+   ]
+  },
+  {
+   "code": "nikah",
+   "label": "Nikah (Muslim)",
+   "labels": {
+    "hi": "निकाह"
+   }
+  },
+  {
+   "code": "christian",
+   "label": "Christian (church)",
+   "labels": {
+    "hi": "ईसाई विवाह"
+   },
+   "aliases": [
+    "Church wedding",
+    "Holy matrimony"
+   ]
+  },
+  {
+   "code": "buddhist",
+   "label": "Buddhist",
+   "labels": {
+    "hi": "बौद्ध विवाह"
+   }
+  },
+  {
+   "code": "jain",
+   "label": "Jain",
+   "labels": {
+    "hi": "जैन विवाह"
+   }
+  },
+  {
+   "code": "parsi_lagan",
+   "label": "Parsi (Lagan / Ashirvad)",
+   "labels": {
+    "hi": "पारसी विवाह"
+   },
+   "aliases": [
+    "Lagan",
+    "Ashirvad"
+   ]
+  },
+  {
+   "code": "jewish",
+   "label": "Jewish",
+   "labels": {
+    "hi": "यहूदी विवाह"
+   },
+   "aliases": [
+    "Kiddushin"
+   ]
+  },
+  {
+   "code": "special_marriage_act",
+   "label": "Civil — Special Marriage Act",
+   "labels": {
+    "hi": "विशेष विवाह अधिनियम"
+   },
+   "aliases": [
+    "Court marriage",
+    "SMA",
+    "Registered marriage"
+   ]
+  },
+  {
+   "code": "customary_tribal",
+   "label": "Customary / tribal",
+   "labels": {
+    "hi": "रीति-रिवाज / जनजातीय"
+   }
+  }
+ ]
+}

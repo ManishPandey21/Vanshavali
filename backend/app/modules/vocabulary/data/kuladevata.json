@@ -1,0 +1,743 @@
+{
+ "code": "kuladevata",
+ "name": "Kuladevata / Kuladevi",
+ "description": "Seed list of family deities with a well-known shrine. Most families' kuladevata is local; anything typed is accepted and becomes a suggestion within that tree.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "khandoba",
+   "label": "Khandoba",
+   "labels": {
+    "hi": "खंडोबा"
+   },
+   "aliases": [
+    "Malhari",
+    "Martand Bhairav",
+    "Mallanna",
+    "Mailar"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Jejuri"
+   }
+  },
+  {
+   "code": "tulja_bhavani",
+   "label": "Tulja Bhavani",
+   "labels": {
+    "hi": "तुळजा भवानी"
+   },
+   "aliases": [
+    "Tuljabhavani",
+    "Bhavani",
+    "तुलजा भवानी"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Tuljapur"
+   }
+  },
+  {
+   "code": "mahalakshmi_kolhapur",
+   "label": "Mahalakshmi (Ambabai)",
+   "labels": {
+    "hi": "महालक्ष्मी"
+   },
+   "aliases": [
+    "Ambabai",
+    "Karveer Nivasini"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Kolhapur"
+   }
+  },
+  {
+   "code": "renuka_mahur",
+   "label": "Renuka",
+   "labels": {
+    "hi": "रेणुका"
+   },
+   "aliases": [
+    "Renuka Mata",
+    "Renukamba"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Mahur"
+   }
+  },
+  {
+   "code": "yellamma",
+   "label": "Yellamma",
+   "labels": {
+    "hi": "येल्लम्मा"
+   },
+   "aliases": [
+    "Renuka Yellamma",
+    "Ellamma"
+   ],
+   "tags": [
+    "region:KA"
+   ],
+   "attributes": {
+    "shrine": "Saundatti"
+   }
+  },
+  {
+   "code": "ekvira",
+   "label": "Ekvira",
+   "labels": {
+    "hi": "एकवीरा"
+   },
+   "aliases": [
+    "Ekveera",
+    "Ekvira Aai"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Karla"
+   }
+  },
+  {
+   "code": "saptashrungi",
+   "label": "Saptashrungi",
+   "labels": {
+    "hi": "सप्तशृंगी"
+   },
+   "aliases": [
+    "Saptashringi",
+    "Vani Devi"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Vani (Nashik)"
+   }
+  },
+  {
+   "code": "jogeshwari",
+   "label": "Jogeshwari",
+   "labels": {
+    "hi": "जोगेश्वरी"
+   },
+   "aliases": [
+    "Yogeshwari"
+   ],
+   "tags": [
+    "region:MH"
+   ],
+   "attributes": {
+    "shrine": "Ambajogai"
+   }
+  },
+  {
+   "code": "vaishno_devi",
+   "label": "Vaishno Devi",
+   "labels": {
+    "hi": "वैष्णो देवी"
+   },
+   "aliases": [
+    "Mata Vaishno Devi",
+    "Sherawali"
+   ],
+   "tags": [
+    "region:JK"
+   ],
+   "attributes": {
+    "shrine": "Katra"
+   }
+  },
+  {
+   "code": "jwala_ji",
+   "label": "Jwala Ji",
+   "labels": {
+    "hi": "ज्वाला जी"
+   },
+   "aliases": [
+    "Jwalamukhi",
+    "Jwala Devi"
+   ],
+   "tags": [
+    "region:HP"
+   ],
+   "attributes": {
+    "shrine": "Jawalamukhi (Kangra)"
+   }
+  },
+  {
+   "code": "naina_devi",
+   "label": "Naina Devi",
+   "labels": {
+    "hi": "नैना देवी"
+   },
+   "aliases": [
+    "Naina Mata"
+   ],
+   "tags": [
+    "region:HP"
+   ],
+   "attributes": {
+    "shrine": "Bilaspur"
+   }
+  },
+  {
+   "code": "chintpurni",
+   "label": "Chintpurni",
+   "labels": {
+    "hi": "चिंतपूर्णी"
+   },
+   "aliases": [
+    "Chhinnamastika (Chintpurni)"
+   ],
+   "tags": [
+    "region:HP"
+   ],
+   "attributes": {
+    "shrine": "Una"
+   }
+  },
+  {
+   "code": "mansa_devi",
+   "label": "Mansa Devi",
+   "labels": {
+    "hi": "मनसा देवी"
+   },
+   "aliases": [
+    "Manasa Devi"
+   ],
+   "tags": [
+    "region:UK"
+   ],
+   "attributes": {
+    "shrine": "Haridwar / Panchkula"
+   }
+  },
+  {
+   "code": "golu_devta",
+   "label": "Golu Devta",
+   "labels": {
+    "hi": "गोलू देवता"
+   },
+   "aliases": [
+    "Gollu Devta",
+    "Goljyu"
+   ],
+   "tags": [
+    "region:UK"
+   ],
+   "attributes": {
+    "shrine": "Chitai / Ghorakhal"
+   }
+  },
+  {
+   "code": "sharda_maihar",
+   "label": "Sharda Mata",
+   "labels": {
+    "hi": "शारदा माता"
+   },
+   "aliases": [
+    "Sharda Devi",
+    "Maihar Devi"
+   ],
+   "tags": [
+    "region:MP"
+   ],
+   "attributes": {
+    "shrine": "Maihar"
+   }
+  },
+  {
+   "code": "vindhyavasini",
+   "label": "Vindhyavasini",
+   "labels": {
+    "hi": "विंध्यवासिनी"
+   },
+   "aliases": [
+    "Vindhyeshwari"
+   ],
+   "tags": [
+    "region:UP"
+   ],
+   "attributes": {
+    "shrine": "Vindhyachal"
+   }
+  },
+  {
+   "code": "kamakhya",
+   "label": "Kamakhya",
+   "labels": {
+    "hi": "कामाख्या"
+   },
+   "aliases": [
+    "Kamakhya Devi"
+   ],
+   "tags": [
+    "region:AS"
+   ],
+   "attributes": {
+    "shrine": "Guwahati"
+   }
+  },
+  {
+   "code": "karni_mata",
+   "label": "Karni Mata",
+   "labels": {
+    "hi": "करणी माता"
+   },
+   "aliases": [
+    "Karniji"
+   ],
+   "tags": [
+    "region:RJ"
+   ],
+   "attributes": {
+    "shrine": "Deshnok"
+   }
+  },
+  {
+   "code": "jeen_mata",
+   "label": "Jeen Mata",
+   "labels": {
+    "hi": "जीण माता"
+   },
+   "aliases": [
+    "Jeenmata",
+    "Jeen Bhavani"
+   ],
+   "tags": [
+    "region:RJ"
+   ],
+   "attributes": {
+    "shrine": "Sikar"
+   }
+  },
+  {
+   "code": "shakambhari",
+   "label": "Shakambhari",
+   "labels": {
+    "hi": "शाकम्भरी"
+   },
+   "aliases": [
+    "Shakumbhari"
+   ],
+   "tags": [
+    "pan_indian"
+   ],
+   "attributes": {
+    "shrine": "Sambhar (RJ) / Saharanpur (UP)"
+   }
+  },
+  {
+   "code": "ashapura",
+   "label": "Ashapura",
+   "labels": {
+    "hi": "आशापुरा"
+   },
+   "aliases": [
+    "Ashapura Mata"
+   ],
+   "tags": [
+    "region:GJ"
+   ],
+   "attributes": {
+    "shrine": "Mata no Madh (Kutch)"
+   }
+  },
+  {
+   "code": "ambaji",
+   "label": "Ambaji",
+   "labels": {
+    "hi": "अम्बाजी"
+   },
+   "aliases": [
+    "Amba Mata",
+    "Arasuri Ambaji"
+   ],
+   "tags": [
+    "region:GJ"
+   ],
+   "attributes": {
+    "shrine": "Ambaji (Banaskantha)"
+   }
+  },
+  {
+   "code": "bahuchara",
+   "label": "Bahuchara",
+   "labels": {
+    "hi": "बहुचरा"
+   },
+   "aliases": [
+    "Bahuchar Mata",
+    "Becharaji"
+   ],
+   "tags": [
+    "region:GJ"
+   ],
+   "attributes": {
+    "shrine": "Becharaji"
+   }
+  },
+  {
+   "code": "khodiyar",
+   "label": "Khodiyar",
+   "labels": {
+    "hi": "खोडियार"
+   },
+   "aliases": [
+    "Khodiyar Maa"
+   ],
+   "tags": [
+    "region:GJ"
+   ],
+   "attributes": {
+    "shrine": "Rajpara (Bhavnagar)"
+   }
+  },
+  {
+   "code": "chamunda_chotila",
+   "label": "Chamunda (Chotila)",
+   "labels": {
+    "hi": "चामुंडा"
+   },
+   "aliases": [
+    "Chamunda Maa"
+   ],
+   "tags": [
+    "region:GJ"
+   ],
+   "attributes": {
+    "shrine": "Chotila"
+   }
+  },
+  {
+   "code": "mahamaya_ratanpur",
+   "label": "Mahamaya",
+   "labels": {
+    "hi": "महामाया"
+   },
+   "aliases": [
+    "Mahamaya Devi"
+   ],
+   "tags": [
+    "region:CG"
+   ],
+   "attributes": {
+    "shrine": "Ratanpur"
+   }
+  },
+  {
+   "code": "danteshwari",
+   "label": "Danteshwari",
+   "labels": {
+    "hi": "दंतेश्वरी"
+   },
+   "aliases": [
+    "Danteshwari Mai"
+   ],
+   "tags": [
+    "region:CG"
+   ],
+   "attributes": {
+    "shrine": "Dantewada"
+   }
+  },
+  {
+   "code": "tara_tarini",
+   "label": "Tara Tarini",
+   "labels": {
+    "hi": "तारा तारिणी"
+   },
+   "aliases": [
+    "Taratarini"
+   ],
+   "tags": [
+    "region:OD"
+   ],
+   "attributes": {
+    "shrine": "Ganjam"
+   }
+  },
+  {
+   "code": "samaleswari",
+   "label": "Samaleswari",
+   "labels": {
+    "hi": "समलेश्वरी"
+   },
+   "aliases": [
+    "Samlei",
+    "Samaleshwari"
+   ],
+   "tags": [
+    "region:OD"
+   ],
+   "attributes": {
+    "shrine": "Sambalpur"
+   }
+  },
+  {
+   "code": "chhinnamastika_rajrappa",
+   "label": "Chhinnamastika",
+   "labels": {
+    "hi": "छिन्नमस्तिका"
+   },
+   "aliases": [
+    "Chhinnamasta"
+   ],
+   "tags": [
+    "region:JH"
+   ],
+   "attributes": {
+    "shrine": "Rajrappa"
+   }
+  },
+  {
+   "code": "tara_tarapith",
+   "label": "Tara Maa",
+   "labels": {
+    "hi": "तारा माँ"
+   },
+   "aliases": [
+    "Tarapith",
+    "Ma Tara"
+   ],
+   "tags": [
+    "region:WB"
+   ],
+   "attributes": {
+    "shrine": "Tarapith"
+   }
+  },
+  {
+   "code": "mookambika",
+   "label": "Mookambika",
+   "labels": {
+    "hi": "मूकाम्बिका"
+   },
+   "aliases": [
+    "Mookambike",
+    "Kollur Mookambika"
+   ],
+   "tags": [
+    "region:KA"
+   ],
+   "attributes": {
+    "shrine": "Kollur"
+   }
+  },
+  {
+   "code": "chamundeshwari",
+   "label": "Chamundeshwari",
+   "labels": {
+    "hi": "चामुंडेश्वरी"
+   },
+   "aliases": [
+    "Chamundi"
+   ],
+   "tags": [
+    "region:KA"
+   ],
+   "attributes": {
+    "shrine": "Mysuru"
+   }
+  },
+  {
+   "code": "manjunatha",
+   "label": "Manjunatha",
+   "labels": {
+    "hi": "मंजुनाथ"
+   },
+   "aliases": [
+    "Manjunatha Swamy"
+   ],
+   "tags": [
+    "region:KA"
+   ],
+   "attributes": {
+    "shrine": "Dharmasthala"
+   }
+  },
+  {
+   "code": "kodungallur_bhagavathi",
+   "label": "Kodungallur Bhagavathi",
+   "labels": {
+    "hi": "कोडुंगल्लूर भगवती"
+   },
+   "aliases": [
+    "Kurumba Bhagavathi"
+   ],
+   "tags": [
+    "region:KL"
+   ],
+   "attributes": {
+    "shrine": "Kodungallur"
+   }
+  },
+  {
+   "code": "chottanikkara_bhagavathi",
+   "label": "Chottanikkara Bhagavathi",
+   "labels": {
+    "hi": "चोट्टानिक्करा भगवती"
+   },
+   "aliases": [
+    "Chottanikkara Amma"
+   ],
+   "tags": [
+    "region:KL"
+   ],
+   "attributes": {
+    "shrine": "Chottanikkara"
+   }
+  },
+  {
+   "code": "venkateshwara",
+   "label": "Venkateshwara",
+   "labels": {
+    "hi": "वेंकटेश्वर"
+   },
+   "aliases": [
+    "Balaji",
+    "Srinivasa",
+    "Venkatachalapathy"
+   ],
+   "tags": [
+    "region:AP"
+   ],
+   "attributes": {
+    "shrine": "Tirumala"
+   }
+  },
+  {
+   "code": "ayyanar",
+   "label": "Ayyanar",
+   "labels": {
+    "hi": "अय्यनार"
+   },
+   "aliases": [
+    "Kula Deivam Ayyanar",
+    "Ayyanarappan"
+   ],
+   "tags": [
+    "region:TN"
+   ]
+  },
+  {
+   "code": "bhairav",
+   "label": "Bhairav",
+   "labels": {
+    "hi": "भैरव"
+   },
+   "aliases": [
+    "Bhairon",
+    "Bhairavnath",
+    "Kal Bhairav"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  },
+  {
+   "code": "hanuman",
+   "label": "Hanuman",
+   "labels": {
+    "hi": "हनुमान"
+   },
+   "aliases": [
+    "Bajrangbali",
+    "Maruti",
+    "Anjaneya"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  },
+  {
+   "code": "ganesha",
+   "label": "Ganesha",
+   "labels": {
+    "hi": "गणेश"
+   },
+   "aliases": [
+    "Ganpati",
+    "Vinayaka",
+    "Ganapathi"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  },
+  {
+   "code": "shiva",
+   "label": "Shiva",
+   "labels": {
+    "hi": "शिव"
+   },
+   "aliases": [
+    "Mahadev",
+    "Shankar",
+    "Bholenath"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  },
+  {
+   "code": "kali",
+   "label": "Kali",
+   "labels": {
+    "hi": "काली"
+   },
+   "aliases": [
+    "Kalika",
+    "Mahakali"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  },
+  {
+   "code": "durga",
+   "label": "Durga",
+   "labels": {
+    "hi": "दुर्गा"
+   },
+   "aliases": [
+    "Bhavani",
+    "Sherawali",
+    "Jagdamba"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  },
+  {
+   "code": "gram_devata",
+   "label": "Gram Devata (village deity)",
+   "labels": {
+    "hi": "ग्राम देवता"
+   },
+   "aliases": [
+    "Gramadevata",
+    "Dihwar",
+    "Kshetrapal"
+   ],
+   "tags": [
+    "pan_indian"
+   ]
+  }
+ ]
+}

@@ -2812,6 +2812,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/vocabularies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Vocabularies */
+        get: operations["list_vocabularies_api_v1_vocabularies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vocabularies/{code}/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Terms */
+        get: operations["list_terms_api_v1_vocabularies__code__terms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -5855,6 +5889,13 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** Page[TermOut] */
+        Page_TermOut_: {
+            /** Items */
+            items: components["schemas"]["TermOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** ParcelGroupOut */
         ParcelGroupOut: {
             parent: components["schemas"]["ParcelRef"];
@@ -8087,6 +8128,29 @@ export interface components {
             /** Display Name */
             display_name: string;
         };
+        /** TermOut */
+        TermOut: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /** Aliases */
+            aliases: string[];
+            /** Tags */
+            tags: string[];
+            /** Attributes */
+            attributes: {
+                [key: string]: unknown;
+            };
+            /** Parent Code */
+            parent_code?: string | null;
+            /** Is Active */
+            is_active: boolean;
+        };
         /**
          * TimePrecision
          * @enum {string}
@@ -8404,6 +8468,25 @@ export interface components {
              */
             event_count?: number;
             completeness?: components["schemas"]["Completeness"] | null;
+        };
+        /** VocabularyOut */
+        VocabularyOut: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Parent Vocabulary */
+            parent_vocabulary?: string | null;
+            /** Version */
+            version: string;
+            /** Source */
+            source?: string | null;
+            /** License */
+            license?: string | null;
+            /** Term Count */
+            term_count: number;
         };
     };
     responses: never;
@@ -15443,6 +15526,66 @@ export interface operations {
                 };
                 content: {
                     "application/zip": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_vocabularies_api_v1_vocabularies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyOut"][];
+                };
+            };
+        };
+    };
+    list_terms_api_v1_vocabularies__code__terms_get: {
+        parameters: {
+            query?: {
+                /** @description Search text in any script */
+                q?: string | null;
+                /** @description Parent term code (cascade) */
+                parent?: string | null;
+                tag?: string | null;
+                include_inactive?: boolean;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_TermOut_"];
                 };
             };
             /** @description Validation Error */

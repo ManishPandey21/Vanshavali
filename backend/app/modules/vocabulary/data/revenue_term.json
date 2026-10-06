@@ -1,0 +1,275 @@
+{
+ "code": "revenue_term",
+ "name": "Land-record term",
+ "description": "Names of Indian land and revenue records, tagged with the states that use them.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "khasra",
+   "label": "Khasra (plot number / field register)",
+   "labels": {
+    "hi": "खसरा"
+   },
+   "aliases": [
+    "Khasra number",
+    "Plot number"
+   ],
+   "tags": [
+    "region:UP",
+    "region:MP",
+    "region:RJ",
+    "region:HR",
+    "region:PB",
+    "region:BR",
+    "region:UK",
+    "region:CG"
+   ]
+  },
+  {
+   "code": "khatauni",
+   "label": "Khatauni (record of rights)",
+   "labels": {
+    "hi": "खतौनी"
+   },
+   "aliases": [
+    "Khatoni"
+   ],
+   "tags": [
+    "region:UP",
+    "region:UK",
+    "region:MP"
+   ]
+  },
+  {
+   "code": "khata",
+   "label": "Khata (holding / account number)",
+   "labels": {
+    "hi": "खाता"
+   },
+   "aliases": [
+    "Khata number",
+    "Khatian"
+   ],
+   "tags": [
+    "region:UP",
+    "region:BR",
+    "region:KA",
+    "region:WB",
+    "region:OD"
+   ]
+  },
+  {
+   "code": "khewat",
+   "label": "Khewat (ownership holding number)",
+   "labels": {
+    "hi": "खेवट"
+   },
+   "tags": [
+    "region:HR",
+    "region:PB",
+    "region:HP"
+   ]
+  },
+  {
+   "code": "jamabandi",
+   "label": "Jamabandi (record of rights)",
+   "labels": {
+    "hi": "जमाबंदी"
+   },
+   "aliases": [
+    "Fard",
+    "Fard jamabandi"
+   ],
+   "tags": [
+    "region:HR",
+    "region:PB",
+    "region:HP",
+    "region:RJ",
+    "region:BR"
+   ]
+  },
+  {
+   "code": "girdawari",
+   "label": "Girdawari (crop inspection record)",
+   "labels": {
+    "hi": "गिरदावरी"
+   },
+   "aliases": [
+    "Khasra girdawari"
+   ],
+   "tags": [
+    "region:HR",
+    "region:PB",
+    "region:RJ"
+   ]
+  },
+  {
+   "code": "mutation",
+   "label": "Mutation (Dakhil-Kharij / Intqal)",
+   "labels": {
+    "hi": "दाखिल-खारिज"
+   },
+   "aliases": [
+    "Intqal",
+    "Inteqal",
+    "Namantaran",
+    "Ferfar",
+    "Mutation entry",
+    "नामांतरण"
+   ]
+  },
+  {
+   "code": "satbara",
+   "label": "7/12 extract (Satbara Utara)",
+   "labels": {
+    "hi": "सातबारा उतारा"
+   },
+   "aliases": [
+    "7/12",
+    "Saat Baara",
+    "Satbara"
+   ],
+   "tags": [
+    "region:MH"
+   ]
+  },
+  {
+   "code": "8a_extract",
+   "label": "8-A extract (holding)",
+   "labels": {
+    "hi": "८-अ उतारा"
+   },
+   "aliases": [
+    "8A",
+    "Aath-A"
+   ],
+   "tags": [
+    "region:MH"
+   ]
+  },
+  {
+   "code": "ror",
+   "label": "Record of Rights (RoR / Khatian)",
+   "labels": {
+    "hi": "अधिकार अभिलेख"
+   },
+   "aliases": [
+    "RoR",
+    "Khatian",
+    "Parcha"
+   ],
+   "tags": [
+    "region:WB",
+    "region:OD",
+    "region:BR",
+    "region:AS"
+   ]
+  },
+  {
+   "code": "parcha",
+   "label": "Parcha (land slip)",
+   "labels": {
+    "hi": "पर्चा"
+   },
+   "tags": [
+    "region:BR",
+    "region:JH"
+   ]
+  },
+  {
+   "code": "patta",
+   "label": "Patta (title deed / lease)",
+   "labels": {
+    "hi": "पट्टा"
+   },
+   "aliases": [
+    "Patta passbook"
+   ],
+   "tags": [
+    "region:TN",
+    "region:AP",
+    "region:TS",
+    "region:KL",
+    "region:AS"
+   ]
+  },
+  {
+   "code": "chitta",
+   "label": "Chitta (ownership register)",
+   "labels": {
+    "hi": "चिट्टा"
+   },
+   "tags": [
+    "region:TN"
+   ]
+  },
+  {
+   "code": "adangal",
+   "label": "Adangal (village account)",
+   "labels": {
+    "hi": "अडंगल"
+   },
+   "aliases": [
+    "Pahani"
+   ],
+   "tags": [
+    "region:TN",
+    "region:AP"
+   ]
+  },
+  {
+   "code": "pahani",
+   "label": "Pahani / RTC (Record of Rights, Tenancy and Crops)",
+   "labels": {
+    "hi": "पहाणी"
+   },
+   "aliases": [
+    "RTC",
+    "Pahani patrika"
+   ],
+   "tags": [
+    "region:KA",
+    "region:TS"
+   ]
+  },
+  {
+   "code": "survey_number",
+   "label": "Survey number",
+   "labels": {
+    "hi": "सर्वे नंबर"
+   },
+   "aliases": [
+    "Sy. No.",
+    "Survey no."
+   ]
+  },
+  {
+   "code": "gat_number",
+   "label": "Gat number",
+   "labels": {
+    "hi": "गट नंबर"
+   },
+   "aliases": [
+    "Gat no."
+   ],
+   "tags": [
+    "region:MH"
+   ]
+  },
+  {
+   "code": "bigha_register",
+   "label": "Bhu-naksha / cadastral map",
+   "labels": {
+    "hi": "भू-नक्शा"
+   },
+   "aliases": [
+    "Bhu naksha",
+    "Cadastral map",
+    "Shajra"
+   ]
+  }
+ ]
+}

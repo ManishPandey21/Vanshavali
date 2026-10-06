@@ -44,6 +44,7 @@ createuser -s vanshavali && createdb -O vanshavali vanshavali   # password: vans
 cd backend
 uv sync
 uv run alembic upgrade head
+uv run python -m app.cli.load_vocabularies   # reference lists: gotra, states, kin terms… (ADR-0019)
 uv run python -m app.cli.seed_demo        # optional
 uv run uvicorn app.main:app --reload --port 8000
 

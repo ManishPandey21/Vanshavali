@@ -1,0 +1,343 @@
+{
+ "code": "title",
+ "name": "Title / honorific",
+ "description": "Honorifics written before a name in records (Shri, Smt., Late, Pandit, Sardar, Begum, …).",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "shri",
+   "label": "Shri",
+   "labels": {
+    "hi": "श्री"
+   },
+   "aliases": [
+    "Sri",
+    "Shree",
+    "Mr",
+    "Sree",
+    "Thiru",
+    "திரு"
+   ]
+  },
+  {
+   "code": "smt",
+   "label": "Smt.",
+   "labels": {
+    "hi": "श्रीमती"
+   },
+   "aliases": [
+    "Shrimati",
+    "Srimati",
+    "Mrs",
+    "Thirumathi",
+    "திருமதி"
+   ]
+  },
+  {
+   "code": "kumari",
+   "label": "Kumari",
+   "labels": {
+    "hi": "कुमारी"
+   },
+   "aliases": [
+    "Km.",
+    "Miss",
+    "Selvi",
+    "செல்வி"
+   ]
+  },
+  {
+   "code": "sushri",
+   "label": "Sushri",
+   "labels": {
+    "hi": "सुश्री"
+   },
+   "aliases": [
+    "Ms"
+   ]
+  },
+  {
+   "code": "late",
+   "label": "Late (Swargiya / Marhoom)",
+   "labels": {
+    "hi": "स्व."
+   },
+   "aliases": [
+    "Late",
+    "Swargiya",
+    "Swargiy",
+    "Marhoom",
+    "स्वर्गीय",
+    "मरहूम",
+    "Kailashvasi"
+   ]
+  },
+  {
+   "code": "dr",
+   "label": "Dr.",
+   "labels": {
+    "hi": "डॉ."
+   },
+   "aliases": [
+    "Doctor",
+    "डॉक्टर"
+   ]
+  },
+  {
+   "code": "pandit",
+   "label": "Pandit",
+   "labels": {
+    "hi": "पंडित"
+   },
+   "aliases": [
+    "Pt.",
+    "Pandith"
+   ]
+  },
+  {
+   "code": "acharya",
+   "label": "Acharya",
+   "labels": {
+    "hi": "आचार्य"
+   }
+  },
+  {
+   "code": "swami",
+   "label": "Swami",
+   "labels": {
+    "hi": "स्वामी"
+   }
+  },
+  {
+   "code": "mahant",
+   "label": "Mahant",
+   "labels": {
+    "hi": "महंत"
+   }
+  },
+  {
+   "code": "thakur",
+   "label": "Thakur",
+   "labels": {
+    "hi": "ठाकुर"
+   },
+   "aliases": [
+    "Thakkar"
+   ]
+  },
+  {
+   "code": "kunwar",
+   "label": "Kunwar",
+   "labels": {
+    "hi": "कुँवर"
+   },
+   "aliases": [
+    "Kanwar",
+    "Kuar"
+   ]
+  },
+  {
+   "code": "rao",
+   "label": "Rao",
+   "labels": {
+    "hi": "राव"
+   }
+  },
+  {
+   "code": "raja",
+   "label": "Raja",
+   "labels": {
+    "hi": "राजा"
+   }
+  },
+  {
+   "code": "rani",
+   "label": "Rani",
+   "labels": {
+    "hi": "रानी"
+   }
+  },
+  {
+   "code": "rai_bahadur",
+   "label": "Rai Bahadur",
+   "labels": {
+    "hi": "राय बहादुर"
+   },
+   "aliases": [
+    "Rai Saheb",
+    "Rao Bahadur"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "khan_bahadur",
+   "label": "Khan Bahadur",
+   "labels": {
+    "hi": "ख़ान बहादुर"
+   },
+   "aliases": [
+    "Khan Saheb"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "lala",
+   "label": "Lala",
+   "labels": {
+    "hi": "लाला"
+   }
+  },
+  {
+   "code": "seth",
+   "label": "Seth",
+   "labels": {
+    "hi": "सेठ"
+   },
+   "aliases": [
+    "Sheth",
+    "Shet"
+   ]
+  },
+  {
+   "code": "babu",
+   "label": "Babu",
+   "labels": {
+    "hi": "बाबू"
+   }
+  },
+  {
+   "code": "chaudhary",
+   "label": "Chaudhary",
+   "labels": {
+    "hi": "चौधरी"
+   },
+   "aliases": [
+    "Chaudhari",
+    "Choudhury",
+    "Chowdhury"
+   ],
+   "tags": [
+    "also_surname"
+   ]
+  },
+  {
+   "code": "sardar",
+   "label": "Sardar",
+   "labels": {
+    "hi": "सरदार"
+   },
+   "aliases": [
+    "S."
+   ]
+  },
+  {
+   "code": "sardarni",
+   "label": "Sardarni",
+   "labels": {
+    "hi": "सरदारनी"
+   }
+  },
+  {
+   "code": "giani",
+   "label": "Giani",
+   "labels": {
+    "hi": "ज्ञानी"
+   },
+   "aliases": [
+    "Gyani"
+   ]
+  },
+  {
+   "code": "sant",
+   "label": "Sant",
+   "labels": {
+    "hi": "संत"
+   }
+  },
+  {
+   "code": "mian",
+   "label": "Mian",
+   "labels": {
+    "hi": "मियाँ"
+   },
+   "aliases": [
+    "Miyan"
+   ]
+  },
+  {
+   "code": "begum",
+   "label": "Begum",
+   "labels": {
+    "hi": "बेगम"
+   }
+  },
+  {
+   "code": "mirza",
+   "label": "Mirza",
+   "labels": {
+    "hi": "मिर्ज़ा"
+   }
+  },
+  {
+   "code": "sayyid",
+   "label": "Sayyid",
+   "labels": {
+    "hi": "सैयद"
+   },
+   "aliases": [
+    "Syed",
+    "Saiyed"
+   ],
+   "tags": [
+    "also_surname"
+   ]
+  },
+  {
+   "code": "haji",
+   "label": "Haji",
+   "labels": {
+    "hi": "हाजी"
+   },
+   "aliases": [
+    "Hajji",
+    "Hajjan"
+   ]
+  },
+  {
+   "code": "maulana",
+   "label": "Maulana",
+   "labels": {
+    "hi": "मौलाना"
+   },
+   "aliases": [
+    "Moulana"
+   ]
+  },
+  {
+   "code": "ustad",
+   "label": "Ustad",
+   "labels": {
+    "hi": "उस्ताद"
+   }
+  },
+  {
+   "code": "rev",
+   "label": "Rev.",
+   "labels": {
+    "hi": "रेव."
+   },
+   "aliases": [
+    "Reverend",
+    "Father",
+    "Fr."
+   ]
+  }
+ ]
+}

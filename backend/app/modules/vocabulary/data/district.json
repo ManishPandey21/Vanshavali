@@ -1,0 +1,11 @@
+{
+ "code": "district",
+ "name": "District",
+ "description": "Districts of India. Imported from an LGD (Local Government Directory) download with `python -m app.cli.load_vocabularies --lgd-districts <csv>`; districts change often, so they are never typed in by hand.",
+ "version": "2026.10.1",
+ "source": "LGD — Local Government Directory, Government of India (lgdirectory.gov.in)",
+ "license": "Government Open Data License – India",
+ "parent_vocabulary": "state",
+ "terms": [],
+ "external_import": "lgd_districts"
+}

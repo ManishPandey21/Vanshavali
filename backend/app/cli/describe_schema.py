@@ -61,6 +61,7 @@ GROUPS = {
         "family_data_attestation",
     ],
     "Interchange": ["import_job", "export_job", "gedcom_extension"],
+    "Reference vocabularies (global, not tree-scoped)": ["vocabulary", "vocabulary_term"],
     "Audit": ["audit_event"],
 }
 

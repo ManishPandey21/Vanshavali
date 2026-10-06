@@ -1,0 +1,173 @@
+{
+ "code": "calendar_system",
+ "name": "Calendar system",
+ "description": "Calendar a date was recorded in. `date_calendar` maps to the stored GenealogicalDate calendar; `months` names the month list to offer; offsets are hints, never applied silently.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "gregorian",
+   "label": "Gregorian (CE / AD)",
+   "labels": {
+    "hi": "ग्रेगोरियन (ईसवी)"
+   },
+   "aliases": [
+    "CE",
+    "AD",
+    "English calendar",
+    "ईस्वी"
+   ],
+   "attributes": {
+    "date_calendar": "gregorian",
+    "months": "gregorian"
+   }
+  },
+  {
+   "code": "julian",
+   "label": "Julian",
+   "labels": {
+    "hi": "जूलियन"
+   },
+   "attributes": {
+    "date_calendar": "julian",
+    "months": "gregorian"
+   }
+  },
+  {
+   "code": "vikram_samvat",
+   "label": "Vikram Samvat (VS)",
+   "labels": {
+    "hi": "विक्रम संवत"
+   },
+   "aliases": [
+    "VS",
+    "Samvat",
+    "Bikrami",
+    "संवत"
+   ],
+   "attributes": {
+    "date_calendar": "vikram_samvat",
+    "months": "hindu_lunar",
+    "era": "VS",
+    "ce_offset_approx": -57
+   }
+  },
+  {
+   "code": "shaka",
+   "label": "Shaka Samvat (Saka)",
+   "labels": {
+    "hi": "शक संवत"
+   },
+   "aliases": [
+    "Saka",
+    "Shalivahana Shaka",
+    "Indian national calendar"
+   ],
+   "attributes": {
+    "date_calendar": "shaka",
+    "months": "hindu_lunar",
+    "era": "Saka",
+    "ce_offset_approx": 78
+   }
+  },
+  {
+   "code": "hindu_lunar",
+   "label": "Hindu lunisolar (Panchang months)",
+   "labels": {
+    "hi": "हिंदू पंचांग"
+   },
+   "aliases": [
+    "Panchang",
+    "Amanta",
+    "Purnimanta"
+   ],
+   "attributes": {
+    "date_calendar": "other"
+   }
+  },
+  {
+   "code": "hijri",
+   "label": "Hijri (AH)",
+   "labels": {
+    "hi": "हिजरी"
+   },
+   "aliases": [
+    "AH",
+    "Islamic calendar"
+   ],
+   "attributes": {
+    "date_calendar": "hijri",
+    "months": "hijri"
+   }
+  },
+  {
+   "code": "tamil_solar",
+   "label": "Tamil (solar)",
+   "labels": {
+    "hi": "तमिल सौर",
+    "ta": "தமிழ் நாட்காட்டி"
+   },
+   "aliases": [
+    "Thiruvalluvar"
+   ],
+   "attributes": {
+    "date_calendar": "other",
+    "months": "tamil_solar"
+   }
+  },
+  {
+   "code": "bengali",
+   "label": "Bengali (Bangabda)",
+   "labels": {
+    "hi": "बंगाली (बंगाब्द)",
+    "bn": "বঙ্গাব্দ"
+   },
+   "aliases": [
+    "Bangabda",
+    "Bengali San",
+    "BS"
+   ],
+   "attributes": {
+    "date_calendar": "other",
+    "months": "bengali",
+    "era": "Bangabda",
+    "ce_offset_approx": 593
+   }
+  },
+  {
+   "code": "kollam",
+   "label": "Malayalam (Kollam Era)",
+   "labels": {
+    "hi": "मलयालम (कोल्लम)",
+    "ml": "കൊല്ലവർഷം"
+   },
+   "aliases": [
+    "Kollavarsham",
+    "ME",
+    "Malayalam Era"
+   ],
+   "attributes": {
+    "date_calendar": "other",
+    "months": "kollam",
+    "era": "ME",
+    "ce_offset_approx": 824
+   }
+  },
+  {
+   "code": "nanakshahi",
+   "label": "Nanakshahi",
+   "labels": {
+    "hi": "नानकशाही"
+   },
+   "aliases": [
+    "NS"
+   ],
+   "attributes": {
+    "date_calendar": "other",
+    "months": "nanakshahi"
+   }
+  }
+ ]
+}

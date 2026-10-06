@@ -1,6 +1,8 @@
 # Searchable fields catalogue (autocomplete / combobox inventory)
 
-Status: proposal (design reference — no code or schema change yet). Date: 2026-10-06.
+Status: design reference. Date: 2026-10-06. The lists below are stored in the database as reference
+vocabularies ([ADR-0019](adr/0019-reference-vocabularies.md), `GET /api/v1/vocabularies`); kin-term
+quick-add is proposed in [ADR-0018](adr/0018-kin-term-quick-add.md).
 
 Which form fields in Vanshavali should be searchable comboboxes, what each suggests, where the
 vocabulary comes from, and which fallback values each must offer. It builds on what already exists:
@@ -275,9 +277,15 @@ Takri (Takr), Grantha (Gran), Brahmi (Brah).
     chosen and what was typed. Frequent misses show which aliases to add or which vocab entries
     are missing.
 
-## Follow-ups this would need
+## Follow-ups
 
-- ADR: kin-term quick-add (relative birth order, placeholder people) — relationship modelling.
-- ADR: gazetteer import (LGD + GeoNames snapshot, versioning, historical names) — place modelling.
-- `GET /api/v1/vocabularies/{name}` endpoint (typed schema, cached, versioned) + OpenAPI regen.
-- Community review of the gotra and kuladevata seed lists before shipping.
+- Done: reference vocabularies in the database, loaded by `python -m app.cli.load_vocabularies`, with
+  the read-only `/api/v1/vocabularies` API ([ADR-0019](adr/0019-reference-vocabularies.md)).
+- Done: districts and sub-districts import from an LGD download
+  (`load_vocabularies --lgd-districts … --lgd-subdistricts …`). The LGD files themselves must still
+  be downloaded and imported by an operator.
+- Proposed: kin-term quick-add ([ADR-0018](adr/0018-kin-term-quick-add.md)). It needs acceptance
+  before code.
+- Open: switch the frontend comboboxes from `masterData` to the API, add tree-local suggestions
+  (surname, community, kuladevata), and write an ADR for the village/city gazetteer.
+- Open: community review of the gotra and kuladevata seed lists.

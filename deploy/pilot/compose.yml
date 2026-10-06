@@ -128,11 +128,12 @@ services:
       redis: { condition: service_healthy }
     profiles: [render]
 
-  # Release step (deploy.sh): migrations as the schema owner, then the RLS-bound app role and grants.
+  # Release step (deploy.sh): migrations and reference vocabularies (ADR-0019) as the schema owner,
+  # then the RLS-bound app role and grants.
   migrate:
     <<: *backend
     env_file: ["${VSH_CONFIG_DIR:-/etc/vanshavali}/app.env", "${VSH_CONFIG_DIR:-/etc/vanshavali}/migrate.env"]
-    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.ensure_app_role"]
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.load_vocabularies && python -m app.cli.ensure_app_role"]
     restart: "no"
     healthcheck:
       disable: true
