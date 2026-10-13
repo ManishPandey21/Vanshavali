@@ -19,11 +19,16 @@ function truncate(s: string, n: number) {
 export function TreeChart({
   graph,
   onOpen,
+  onSelect,
+  selectedId,
   collapsed,
   onToggleCollapse,
 }: {
   graph: GraphOut;
   onOpen: (personId: string) => void;
+  /** When given, a click selects the person (e.g. for a side panel); Enter still opens the profile. */
+  onSelect?: (personId: string) => void;
+  selectedId?: string | null;
   collapsed: ReadonlySet<string>;
   onToggleCollapse: (id: string) => void;
 }) {
@@ -233,15 +238,15 @@ export function TreeChart({
                   className="cursor-pointer outline-none [&:focus-visible>rect:first-child]:stroke-[3px] [&:focus-visible>rect:first-child]:stroke-kumkum-700"
                   onFocus={() => setFocusId(n.node.id)}
                   onKeyDown={(e) => onNodeKey(e, n.node.id)}
-                  onClick={() => p && onOpen(p.id)}
+                  onClick={() => p && (onSelect ?? onOpen)(p.id)}
                 >
                   <rect
                     width={NODE_W}
                     height={NODE_H}
                     rx={10}
                     fill={hidden ? "#f5f5f4" : isRoot ? "#fdf3ee" : n.node.partner ? "#fffaf0" : "#ffffff"}
-                    stroke={isRoot ? "#9a3412" : hidden ? "#8a7f78" : "#9c8667" /* ≥ 3:1 on white (1.4.11) */}
-                    strokeWidth={isRoot ? 2 : 1}
+                    stroke={p && selectedId === p.id ? "#d99a0b" : isRoot ? "#9a3412" : hidden ? "#8a7f78" : "#9c8667" /* ≥ 3:1 on white (1.4.11) */}
+                    strokeWidth={p && selectedId === p.id ? 3 : isRoot ? 2 : 1}
                     strokeDasharray={hidden ? "4 3" : undefined}
                   />
                   {/* Status bar: shape as well as colour (WCAG 1.4.1) — solid = living, broken = deceased,

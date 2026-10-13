@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import type { GenealogicalDate, PersonSummary, RelationshipType, RelativeIn, UnionOut } from "../../../api/types";
+import type { GenealogicalDate, PersonSummary, RelationshipType, RelativeIn, SexAtBirth, UnionOut } from "../../../api/types";
 import { useAddRelative } from "../../../api/hooks/people";
 import { useTreeCtx } from "../../../lib/tree-context";
 import { emptyDate, normalizeDate, validateDate } from "../../../lib/dates";
@@ -35,6 +35,7 @@ export function AddRelativeDialog({
   relation,
   unions,
   initialUnionId,
+  initialSex,
   onClose,
   onAdded,
 }: {
@@ -42,6 +43,8 @@ export function AddRelativeDialog({
   relation: RelationKind;
   unions: UnionOut[];
   initialUnionId?: string | null;
+  /** Pre-selects sex at birth for a new person ("Add father" / "Add mother"); still editable. */
+  initialSex?: SexAtBirth;
   onClose: () => void;
   onAdded?: (p: PersonSummary) => void;
 }) {
@@ -54,6 +57,7 @@ export function AddRelativeDialog({
   const [draft, setDraft] = useState<PersonDraft>(() => {
     const d = emptyPersonDraft(i18n.language);
     if (relation === "parent" || relation === "spouse") d.profile_status = "unknown";
+    if (initialSex) d.sex_at_birth = initialSex;
     return d;
   });
   const [relType, setRelType] = useState<RelationshipType>(relation === "spouse" ? "spouse" : "biological_parent");

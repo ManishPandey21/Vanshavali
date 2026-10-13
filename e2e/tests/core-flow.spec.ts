@@ -122,6 +122,20 @@ test("register, build a small family and view it", async ({ page }) => {
   await page.getByRole("button", { name: "Descendants" }).click();
   await expect(page.getByRole("link", { name: "Aarav Sharma" })).toBeVisible();
 
+  // ---- family view: parents above, spouse beside, children below; a card opens the side panel
+  await page.getByRole("button", { name: "Family", exact: true }).click();
+  const fam = page.getByRole("region", { name: "Immediate family of Ramesh Sharma" });
+  for (const n of ["Suresh Sharma", "Kamala Sharma", "Sunita Sharma", "Aarav Sharma"]) {
+    await expect(fam.getByRole("button", { name: new RegExp(`^${n}`) })).toBeVisible();
+  }
+  await fam.getByRole("button", { name: /^Aarav Sharma/ }).click();
+  const panel = page.getByRole("complementary", { name: "Aarav Sharma" });
+  await expect(panel.getByRole("heading", { name: "Aarav Sharma" })).toBeFocused();
+  await expect(panel.getByRole("button", { name: /Ramesh Sharma.*Father/ })).toBeVisible();
+  await panel.getByRole("button", { name: "Centre here" }).click();
+  await expect(page.getByRole("heading", { name: "Family tree of Aarav Sharma" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Immediate family of Aarav Sharma" }).getByRole("button", { name: /^Ramesh Sharma/ })).toBeVisible();
+
   // ---- relationship calculator in Hindi: Aarav → Suresh = दादा
   await page.goto(profileUrl);
   await page.getByRole("tab", { name: "Family" }).click();

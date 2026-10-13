@@ -794,7 +794,7 @@
     "genUp_one": "{{count}} generation up",
     "genUp_other": "{{count}} generations up",
     "hiddenNodeLabel": "Private person, generation {{generation}}",
-    "keyboardHelp": "Keyboard: Tab to the chart, arrow keys move between people, Enter opens a profile, Space collapses or expands a branch, Home returns to the start. Drag to pan; Ctrl + scroll or the buttons to zoom.",
+    "keyboardHelp": "Keyboard: Tab to the chart, arrow keys move between people, Enter opens a profile, Space collapses or expands a branch, Home returns to the start. Click a person to see their details beside the chart. Drag to pan; Ctrl + scroll or the buttons to zoom.",
     "statusLegend": "Side bar on each person: solid = living, broken = deceased, outline = not known. Lifespan and status are also in the List view.",
     "legend": "Solid lines: biological · dashed: adoptive/legal · dotted: step/foster · double line: couple",
     "list": "List",
@@ -818,7 +818,57 @@
     "viewMode": "View as",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "partnerNode": "(spouse / partner)"
+    "partnerNode": "(spouse / partner)",
+    "peopleShown_one": "{{count}} person shown",
+    "peopleShown_other": "{{count}} people shown",
+    "family": {
+      "tab": "Family",
+      "label": "Immediate family of {{name}}",
+      "focusMark": "centre of this view",
+      "addFather": "Add father",
+      "addMother": "Add mother",
+      "addSpouse": "Add spouse",
+      "addChild": "Add child",
+      "addSibling": "Add brother or sister",
+      "add": {
+        "parent": "Parent",
+        "spouse": "Spouse",
+        "child": "Child",
+        "sibling": "Brother or sister"
+      },
+      "hint": "Click anyone to see them in the panel; “Centre here” moves the family view to them. Brothers and sisters are shown eldest first."
+    },
+    "panel": {
+      "thisIsYou": "This is you",
+      "yourRelation": "Your {{relation}}",
+      "born": "Born {{date}}",
+      "died": "Died {{date}}",
+      "age_one": "age {{count}}",
+      "age_other": "age {{count}}",
+      "profile": "Profile",
+      "centre": "Centre here",
+      "add": "Add relative",
+      "related": "How related?",
+      "immediateFamily": "Immediate family",
+      "noFamily": "No relatives recorded yet.",
+      "photos_one": "Photos ({{count}})",
+      "photos_other": "Photos ({{count}})",
+      "allPhotos": "All photos"
+    },
+    "role": {
+      "father": "Father",
+      "mother": "Mother",
+      "parent": "Parent",
+      "husband": "Husband",
+      "wife": "Wife",
+      "spouse": "Spouse",
+      "son": "Son",
+      "daughter": "Daughter",
+      "child": "Child",
+      "brother": "Brother",
+      "sister": "Sister",
+      "sibling": "Sibling"
+    }
   },
   "claim": {
     "button": "This is me",
