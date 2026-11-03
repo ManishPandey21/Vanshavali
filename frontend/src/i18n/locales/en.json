@@ -818,7 +818,9 @@
     "viewMode": "View as",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "partnerNode": "(spouse / partner)"
+    "partnerNode": "(spouse / partner)",
+    "you": "You",
+    "youLabel": "This is you"
   },
   "claim": {
     "button": "This is me",
@@ -2830,5 +2832,22 @@
       "shareWithTree": "Share with the tree",
       "save": "Save view"
     }
+  },
+  "home": {
+    "invite": "Invite family",
+    "panoramaTitle": "The family of {{name}}",
+    "generations_one": "{{count}} generation",
+    "generations_other": "{{count}} generations",
+    "inView_one": "{{count}} person in view",
+    "inView_other": "{{count}} people in view",
+    "clickHint": "Click anyone to open their story",
+    "startFrom": "Start from someone else",
+    "backTo": "Back to {{name}}",
+    "openFull": "Open full tree",
+    "emptyTitle": "Your vanshavali starts with one name",
+    "emptyBody": "Add yourself, a parent or the eldest ancestor you know. The family will grow here, generation by generation, as you add relatives.",
+    "addFirst": "Add the first person",
+    "onlyOne": "No children are recorded for {{name}} yet",
+    "addRelatives": "Add their children, spouse or parents"
   }
 }
