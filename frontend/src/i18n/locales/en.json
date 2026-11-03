@@ -2028,7 +2028,10 @@
       "living": "Living",
       "deceased": "Passed away",
       "save": "Save and continue",
-      "skip": "Skip for now"
+      "skip": "Skip for now",
+      "grandfather": "Grandfather (father's father)",
+      "grandfatherHint": "Optional. Added as your father's father, so it needs your father's name.",
+      "fromLanding": "We kept the names you typed on the home page. Check them, then save."
     },
     "consent": {
       "required": "Please tick the box to continue.",
@@ -2109,7 +2112,8 @@
       "start": "Begin your family tree",
       "startShort": "Start your tree",
       "goToTrees": "Go to my family trees",
-      "explore": "Explore the archive"
+      "explore": "Explore the archive",
+      "tryIt": "Try it now — no sign-up"
     },
     "hero": {
       "eyebrow": "Tradition and reverence, kept for every generation",
@@ -2372,6 +2376,46 @@
       "builtWithA": "Built with",
       "builtWithB": "for preserving Indian family heritage.",
       "love": "love"
+    },
+    "plant": {
+      "kicker": "Try it now — no sign-up",
+      "titleA": "Plant your family tree",
+      "titleEm": "in thirty seconds",
+      "lead": "Type four names and watch three generations take root. When you're ready, keep it as a private tree of your own.",
+      "fields": {
+        "self": "Your name",
+        "father": "Your father's name",
+        "mother": "Your mother's name",
+        "grandfather": "Your grandfather's name (father's father)"
+      },
+      "placeholders": {
+        "self": "e.g. Aarav Sharma",
+        "father": "e.g. Ramesh {{surname}}",
+        "mother": "e.g. Sunita {{surname}}",
+        "grandfather": "e.g. Suresh {{surname}}"
+      },
+      "roles": {
+        "self": "You",
+        "father": "Father",
+        "mother": "Mother",
+        "grandfather": "Grandfather"
+      },
+      "treeTitle": "The {{surname}} family",
+      "treeTitleEmpty": "Your family tree",
+      "yourFamily": "your family",
+      "named": "{{n}} of {{total}} named",
+      "generations_one": "{{count}} generation",
+      "generations_other": "{{count}} generations",
+      "previewLabel": "Preview of your family tree",
+      "status": {
+        "empty": "Start with your own name — the first leaf of the tree.",
+        "started": "It's taking root. Add another name to grow the next branch.",
+        "complete": "Three generations of {{surname}} — your vanshavali has begun."
+      },
+      "cta": "Save my family tree — free",
+      "ctaSignedIn": "Save as a new tree",
+      "note": "These names stay in this browser tab until you create your account. Nothing is uploaded yet, and your tree is private by default.",
+      "clear": "Clear names"
     }
   },
   "geo": {

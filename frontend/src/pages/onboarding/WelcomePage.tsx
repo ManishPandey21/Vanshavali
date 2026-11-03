@@ -12,6 +12,7 @@ import { StatementCheckbox } from "../../components/consent/FamilyConsent";
 import { Button, ButtonLink } from "../../components/ui/Button";
 import { ErrorAlert, PageHeader } from "../../components/ui/feedback";
 import { Field, Fieldset, Select, TextInput } from "../../components/ui/form";
+import { clearDraft, loadDraft, splitFullName, type TreeDraft } from "../../lib/treeDraft";
 
 type Step = "notice" | "tree" | "family" | "invite";
 const STEPS: Step[] = ["notice", "tree", "family", "invite"];
@@ -28,10 +29,12 @@ export interface AddedRelative {
   living: boolean;
 }
 
-function splitName(display: string | undefined): { given: string; surname: string } {
-  const parts = (display ?? "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length < 2) return { given: parts[0] ?? "", surname: "" };
-  return { given: parts.slice(0, -1).join(" "), surname: parts[parts.length - 1] ?? "" };
+const splitName = splitFullName;
+
+/** A relative typed on the landing page; a lone given name inherits the family surname. */
+function fromDraft(full: string, surname: string, status: ProfileStatus): RelativeDraft {
+  const n = splitFullName(full);
+  return n.surname ? { ...n, status } : { given: n.given, surname, status };
 }
 
 function personBody(given: string, surname: string, status: ProfileStatus, sex?: SexAtBirth): PersonCreate {
@@ -52,6 +55,8 @@ export function WelcomePage() {
   const [step, setStep] = useState<Step>("notice");
   const [tree, setTree] = useState<TreeOut | null>(null);
   const [added, setAdded] = useState<AddedRelative[]>([]);
+  // Names a visitor sketched on the landing page before signing up ("plant your tree").
+  const [draft] = useState<TreeDraft | null>(() => loadDraft());
   const headingRef = useRef<HTMLHeadingElement>(null);
   const index = STEPS.indexOf(step);
 
@@ -87,6 +92,7 @@ export function WelcomePage() {
           {step === "notice" && <NoticeStep onNext={() => setStep("tree")} />}
           {step === "tree" && (
             <TreeStep
+              suggested={draft ? splitFullName(draft.self).surname : ""}
               onCreated={(tr) => {
                 setTree(tr);
                 setStep("family");
@@ -96,7 +102,9 @@ export function WelcomePage() {
           {step === "family" && tree && (
             <FamilyStep
               tree={tree}
+              draft={draft}
               onDone={(people) => {
+                clearDraft();
                 setAdded(people);
                 setStep("invite");
               }}
@@ -139,10 +147,10 @@ function NoticeStep({ onNext }: { onNext: () => void }) {
   );
 }
 
-function TreeStep({ onCreated }: { onCreated: (t: TreeOut) => void }) {
+function TreeStep({ suggested, onCreated }: { suggested: string; onCreated: (t: TreeOut) => void }) {
   const { t } = useTranslation();
   const create = useCreateTree();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => (suggested ? t("landing.plant.treeTitle", { surname: suggested }) : ""));
   const [submitted, setSubmitted] = useState(false);
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -166,10 +174,20 @@ function TreeStep({ onCreated }: { onCreated: (t: TreeOut) => void }) {
   );
 }
 
-function RelativeFields({ legend, value, onChange }: { legend: string; value: RelativeDraft; onChange: (v: RelativeDraft) => void }) {
+function RelativeFields({
+  legend,
+  description,
+  value,
+  onChange,
+}: {
+  legend: string;
+  description?: string;
+  value: RelativeDraft;
+  onChange: (v: RelativeDraft) => void;
+}) {
   const { t } = useTranslation();
   return (
-    <Fieldset legend={legend} description={t("onboarding.family.optional")}>
+    <Fieldset legend={legend} description={description ?? t("onboarding.family.optional")}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Field label={t("onboarding.family.given")}>{(p) => <TextInput {...p} value={value.given} onChange={(e) => onChange({ ...value, given: e.target.value })} />}</Field>
         <Field label={t("onboarding.family.surname")}>{(p) => <TextInput {...p} value={value.surname} onChange={(e) => onChange({ ...value, surname: e.target.value })} />}</Field>
@@ -186,13 +204,14 @@ function RelativeFields({ legend, value, onChange }: { legend: string; value: Re
   );
 }
 
-function FamilyStep({ tree, onDone }: { tree: TreeOut; onDone: (people: AddedRelative[]) => void }) {
+function FamilyStep({ tree, draft, onDone }: { tree: TreeOut; draft: TreeDraft | null; onDone: (people: AddedRelative[]) => void }) {
   const { t } = useTranslation();
   const me = useMe();
   const attest = useAttest();
-  const [self, setSelf] = useState(() => splitName(me.data?.display_name));
-  const [father, setFather] = useState<RelativeDraft>({ given: "", surname: self.surname, status: "living" });
-  const [mother, setMother] = useState<RelativeDraft>({ given: "", surname: "", status: "living" });
+  const [self, setSelf] = useState(() => (draft?.self.trim() ? splitName(draft.self) : splitName(me.data?.display_name)));
+  const [father, setFather] = useState<RelativeDraft>(() => fromDraft(draft?.father ?? "", self.surname, "living"));
+  const [mother, setMother] = useState<RelativeDraft>(() => fromDraft(draft?.mother ?? "", "", "living"));
+  const [grandfather, setGrandfather] = useState<RelativeDraft>(() => fromDraft(draft?.grandfather ?? "", self.surname, "deceased"));
   // Suggest the account name once it has loaded, unless the user has already typed something.
   const displayName = me.data?.display_name;
   useEffect(() => {
@@ -200,6 +219,7 @@ function FamilyStep({ tree, onDone }: { tree: TreeOut; onDone: (people: AddedRel
     const guess = splitName(displayName);
     setSelf((cur) => (cur.given || cur.surname ? cur : guess));
     setFather((cur) => (cur.surname ? cur : { ...cur, surname: guess.surname }));
+    setGrandfather((cur) => (cur.surname ? cur : { ...cur, surname: guess.surname }));
   }, [displayName]);
   const [consent, setConsent] = useState(false);
   const [statement, setStatement] = useState<StatementOut | null>(null);
@@ -224,16 +244,25 @@ function FamilyStep({ tree, onDone }: { tree: TreeOut; onDone: (people: AddedRel
         saved.current.selfId = person.id;
       }
       const selfId = saved.current.selfId;
-      for (const [key, draft, sex] of [
+      for (const [key, rel, sex] of [
         ["father", father, "male"],
         ["mother", mother, "female"],
       ] as const) {
-        if (!draft.given.trim() || saved.current.parents[key]) continue;
+        if (!rel.given.trim() || saved.current.parents[key]) continue;
         const res = await api.post<RelativeOut>(`/trees/${tree.id}/people/${selfId}/relatives`, {
           relation: "parent",
-          new_person: personBody(draft.given, draft.surname, draft.status, sex),
+          new_person: personBody(rel.given, rel.surname, rel.status, sex),
         });
-        saved.current.parents[key] = { id: res.person.id, name: res.person.display_name, living: draft.status === "living" };
+        saved.current.parents[key] = { id: res.person.id, name: res.person.display_name, living: rel.status === "living" };
+      }
+      // The grandfather is the father's father, so he can only be linked once the father exists.
+      const fatherId = saved.current.parents.father?.id;
+      if (fatherId && grandfather.given.trim() && !saved.current.parents.grandfather) {
+        const res = await api.post<RelativeOut>(`/trees/${tree.id}/people/${fatherId}/relatives`, {
+          relation: "parent",
+          new_person: personBody(grandfather.given, grandfather.surname, grandfather.status, "male"),
+        });
+        saved.current.parents.grandfather = { id: res.person.id, name: res.person.display_name, living: grandfather.status === "living" };
       }
       onDone(Object.values(saved.current.parents));
     } catch (err) {
@@ -246,6 +275,7 @@ function FamilyStep({ tree, onDone }: { tree: TreeOut; onDone: (people: AddedRel
   return (
     <form onSubmit={(e) => void submit(e)} noValidate className="space-y-4">
       <p className="text-sm text-ink-muted">{t("onboarding.family.intro")}</p>
+      {draft && <p className="rounded-lg bg-leaf-50 p-3 text-sm text-leaf-700">{t("onboarding.family.fromLanding")}</p>}
       <Fieldset legend={t("onboarding.family.you")}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("onboarding.family.given")} required error={submitted && selfMissing ? t("common.required") : null}>
@@ -258,6 +288,12 @@ function FamilyStep({ tree, onDone }: { tree: TreeOut; onDone: (people: AddedRel
       </Fieldset>
       <RelativeFields legend={t("onboarding.family.father")} value={father} onChange={setFather} />
       <RelativeFields legend={t("onboarding.family.mother")} value={mother} onChange={setMother} />
+      <RelativeFields
+        legend={t("onboarding.family.grandfather")}
+        description={t("onboarding.family.grandfatherHint")}
+        value={grandfather}
+        onChange={setGrandfather}
+      />
       <StatementCheckbox
         kind="family_data"
         checked={consent}
