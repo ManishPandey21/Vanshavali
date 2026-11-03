@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Heart, Lock, Network, ScrollText, Users } from "lucide-react";
+import { ArrowRight, Heart, Lock, Network, ScrollText, Sprout, Users } from "lucide-react";
 import "@fontsource/playfair-display/400.css";
 import "@fontsource/playfair-display/400-italic.css";
 import "@fontsource/playfair-display/600.css";
@@ -14,11 +14,13 @@ import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import { GrowingTree } from "./GrowingTree";
+import { TreePlanter } from "./TreePlanter";
 import { Reveal } from "./Reveal";
 
 /**
  * Public landing page ("/" for signed-out visitors, "/about" for everyone). Static copy only — it
- * reads no family data, so nothing here can leak a person's details. Editorial heritage design:
+ * reads no family data, so nothing here can leak a person's details. The "plant your tree" builder
+ * keeps what a visitor types in this tab only (lib/treeDraft.ts) and never sends it from here. Editorial heritage design:
  * Playfair Display headings, EB Garamond text, cream/cocoa/terracotta palette, scroll reveals.
  */
 
@@ -219,10 +221,11 @@ export function LandingPage() {
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
                 <a
-                  href="#archive"
-                  className={`inline-flex items-center justify-center border border-cream/50 px-7 py-3.5 ${btnText} text-cream hover:bg-cream/10`}
+                  href="#plant"
+                  className={`inline-flex items-center justify-center gap-2 border border-cream/50 px-7 py-3.5 ${btnText} text-cream hover:bg-cream/10`}
                 >
-                  {t("landing.cta.explore")}
+                  <Sprout className="size-4 text-gold" aria-hidden />
+                  {t("landing.cta.tryIt")}
                 </a>
               </div>
             </div>
@@ -233,6 +236,13 @@ export function LandingPage() {
               {t("landing.hero.chipPrivate")}
             </span>
             <span className="hidden max-w-sm rounded-full bg-rust/90 px-4 py-2 text-cream italic sm:inline-flex">{t("landing.hero.sceneCaption")}</span>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------------- plant your tree (try before signing up) */}
+        <section id="plant" className="relative z-10 scroll-mt-20 bg-gradient-to-b from-cocoa from-[3.5rem] to-cream to-[3.5rem] px-4 pb-4">
+          <div className="mx-auto max-w-5xl">
+            <TreePlanter signedIn={signedIn} />
           </div>
         </section>
 

@@ -103,6 +103,13 @@ transactional only: plain text + simple HTML, no images, tracking pixels or link
 user's preferred language. Registration and reset never reveal whether an email has an account
 (threat model T19). Emailed tokens are stored only as SHA-256 hashes and never audited.
 
+**Landing-page sketch ("plant your tree").** Signed-out visitors can type up to four names (self,
+father, mother, paternal grandfather) on the public landing page to preview a tree. The names are
+kept only in that browser tab's `sessionStorage` (`vsh.treeDraft`, ≤120 chars each), are never sent
+by the landing page, and are erased on "Clear names", when the tab closes, or once onboarding has
+saved them. Onboarding only pre-fills its form from the sketch: nothing is created until the user
+ticks the family-data statement (ADR-0011), exactly as for typed-in names. No new server data flow.
+
 **Open (Q13):** the lawful basis for living relatives who never claim their profile, and legal review of
 the onboarding wording and its Hindi translation.
 

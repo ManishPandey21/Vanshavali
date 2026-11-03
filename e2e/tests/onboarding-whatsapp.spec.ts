@@ -26,7 +26,7 @@ test("onboard a family and bring a relative in through a WhatsApp claim link", a
   // ---- add yourself and your father; the consent box must be ticked first
   await expect(page.getByRole("heading", { name: "Add your family" })).toBeVisible();
   await expect(page.getByRole("group", { name: "You" }).getByLabel("Given name")).toHaveValue("Asha");
-  await page.getByRole("group", { name: "Father" }).getByLabel("Given name").fill("Ravi");
+  await page.getByRole("group", { name: "Father", exact: true }).getByLabel("Given name").fill("Ravi");
   const consent = page.getByRole("checkbox", { name: "I agree to add my family members' names to this private tree, and I confirm I have their permission to do so." });
   await expect(consent).not.toBeChecked();
   await page.getByRole("button", { name: "Save and continue" }).click();
