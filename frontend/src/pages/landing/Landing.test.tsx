@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
+import i18n from "../../i18n";
 import { jsonResponse, renderWithProviders } from "../../test/utils";
 
 const user = { id: "u1", email: "a@example.com", display_name: "A", preferred_language: "en", created_at: "2026-01-01T00:00:00Z", mfa_enabled: false };
@@ -88,5 +89,55 @@ describe("landing page", () => {
     await userEvent.click(screen.getByRole("button", { name: "Clear names" }));
     expect(window.sessionStorage.getItem("vsh.treeDraft")).toBeNull();
     expect(within(preview).queryByText("Aarav Sharma")).not.toBeInTheDocument();
+  });
+
+  it("explains how to begin in three steps, each leading somewhere real", async () => {
+    stubApi(false);
+    renderWithProviders(<App />, { tree: null, route: "/" });
+    const how = await screen.findByRole("region", { name: /Your family's story, in three simple steps/ });
+    const steps = within(how).getAllByRole("listitem");
+    expect(steps.map((li) => within(li).getByRole("heading", { level: 3 }).textContent)).toEqual([
+      "Plant the seed",
+      "Gather the elders' memories",
+      "Invite the family",
+    ]);
+    // each step's action goes to something that exists: the planter on this page, sign-in, the privacy section
+    expect(within(steps[0]!).getByRole("link", { name: /Plant your tree now/ })).toHaveAttribute("href", "#plant");
+    expect(within(steps[1]!).getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/login");
+    expect(within(steps[2]!).getByRole("link", { name: /How we keep it private/ })).toHaveAttribute("href", "#trust");
+    expect(document.getElementById("plant")).not.toBeNull();
+    expect(document.getElementById("trust")).not.toBeNull();
+  });
+
+  it("states the four privacy promises the server enforces, with a way to start", async () => {
+    stubApi(false);
+    renderWithProviders(<App />, { tree: null, route: "/" });
+    const trust = await screen.findByRole("region", { name: /Your family's trust, kept with care/ });
+    expect(within(trust).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Private and invite-only",
+      "Living relatives protected",
+      "You decide who sees what",
+      "Your records stay yours",
+    ]);
+    expect(within(trust).getByText(/shown only to tree admins/)).toBeInTheDocument();
+    expect(within(trust).getByText(/marked public one by one/)).toBeInTheDocument();
+    expect(within(trust).getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/login");
+    // the footer can jump to both new sections (the header row is kept to its five links)
+    expect(screen.getAllByRole("link", { name: "How it works" })[0]).toHaveAttribute("href", "#how");
+    expect(screen.getAllByRole("link", { name: "Privacy" })[0]).toHaveAttribute("href", "#trust");
+  });
+
+  it("renders the new sections in Hindi without repeating the trust word", async () => {
+    stubApi(false);
+    await i18n.changeLanguage("hi");
+    try {
+      renderWithProviders(<App />, { tree: null, route: "/" });
+      expect(await screen.findByRole("region", { name: /आपके परिवार की कहानी/ })).toBeInTheDocument();
+      const trust = screen.getByRole("region", { name: /आपके परिवार का भरोसा/ });
+      expect(within(trust).getByText("विश्वास से सुरक्षित")).toBeInTheDocument();
+      expect(within(trust).queryByText("॥ विश्वास ॥")).not.toBeInTheDocument();
+    } finally {
+      await i18n.changeLanguage("en");
+    }
   });
 });

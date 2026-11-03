@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Heart, Lock, Network, ScrollText, Sprout, Users } from "lucide-react";
+import { ArrowRight, BookOpenText, Download, EyeOff, Heart, Lock, Network, ScrollText, ShieldCheck, Sprout, UserCog, Users, type LucideIcon } from "lucide-react";
 import "@fontsource/playfair-display/400.css";
 import "@fontsource/playfair-display/400-italic.css";
 import "@fontsource/playfair-display/600.css";
@@ -10,6 +10,10 @@ import "@fontsource/playfair-display/700-italic.css";
 import "@fontsource/eb-garamond/400.css";
 import "@fontsource/eb-garamond/400-italic.css";
 import "@fontsource/eb-garamond/500.css";
+// Regular weight for Devanagari serif text (the app bundles only 600/700, which made Hindi body
+// copy and the Sanskrit verses render semibold). unicode-range limits it to Devanagari glyphs:
+// one ~51 KB woff2, fetched on the English page too because it shows Sanskrit verses.
+import "@fontsource/noto-serif-devanagari/400.css";
 import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
@@ -19,7 +23,9 @@ import { Reveal } from "./Reveal";
 
 /**
  * Public landing page ("/" for signed-out visitors, "/about" for everyone). Static copy only — it
- * reads no family data, so nothing here can leak a person's details. The "plant your tree" builder
+ * reads no family data, so nothing here can leak a person's details. Body copy is set in the app's
+ * Noto Sans (with Noto Sans Devanagari for Hindi); Playfair and EB Garamond carry the headings,
+ * quotations and heritage storytelling. The "plant your tree" builder
  * keeps what a visitor types in this tab only (lib/treeDraft.ts) and never sends it from here. Editorial heritage design:
  * Playfair Display headings, EB Garamond text, cream/cocoa/terracotta palette, scroll reveals.
  */
@@ -129,9 +135,17 @@ export function LandingPage() {
     { href: "#stories", label: t("landing.nav.stories") },
     { href: "#timeline", label: t("landing.nav.timeline") },
   ];
+  // The header row is full at five links (more wraps in English at 1024–1440 px), so the two
+  // sections added for trust and getting started are listed in the footer instead.
+  const footerLinks = [
+    navLinks[0]!,
+    { href: "#how", label: t("landing.nav.how") },
+    { href: "#trust", label: t("landing.nav.trust") },
+    ...navLinks.slice(1),
+  ];
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-cream font-garamond text-cocoa">
+    <div className="heritage min-h-dvh overflow-x-hidden bg-cream font-sans text-cocoa">
       <a href="#main" className="sr-only-focusable absolute top-2 left-2 z-50 rounded bg-white px-3 py-2 font-sans text-sm font-medium">
         {t("nav.skipToContent")}
       </a>
@@ -202,7 +216,7 @@ export function LandingPage() {
                 <span className="border border-gold/60 px-3 py-1 text-gold" lang="sa">
                   ॥ परंपरा एवं श्रद्धा ॥
                 </span>
-                <span className="italic">{t("landing.hero.eyebrow")}</span>
+                <span className="font-garamond text-sm italic">{t("landing.hero.eyebrow")}</span>
               </p>
               <h1 id="hero-title" className={`mt-6 font-heritage text-5xl font-bold sm:text-6xl lg:text-[5.2rem] ${hindi ? "leading-[1.3] [&>*]:leading-[1.3]" : "leading-[1.02]"}`}>
                 <span className="block motion-safe:animate-rise [animation-delay:120ms]">{t("landing.hero.titleA")}</span>{" "}
@@ -262,7 +276,7 @@ export function LandingPage() {
               </h2>
             </Reveal>
             <Reveal delay={120}>
-              <p className="mt-10 text-xl leading-relaxed text-umber">
+              <p className="mt-10 font-garamond text-xl leading-relaxed text-umber sm:text-2xl">
                 {t("landing.purpose.p1a")} <em className="text-rust">{t("landing.purpose.p1em")}</em> {t("landing.purpose.p1b")}
               </p>
               <p className="mx-auto mt-6 max-w-2xl font-sans text-sm leading-relaxed text-umber">
@@ -319,7 +333,7 @@ export function LandingPage() {
 
               <Reveal as="figure" delay={200} className="m-0 min-w-0">
                 <GrowingTree />
-                <figcaption className="mt-4 text-center text-sm text-umber italic">{t("landing.archive.caption")}</figcaption>
+                <figcaption className="mt-4 text-center font-garamond text-base text-umber italic">{t("landing.archive.caption")}</figcaption>
               </Reveal>
             </div>
 
@@ -335,6 +349,9 @@ export function LandingPage() {
             </Reveal>
           </div>
         </section>
+
+        <HowItWorks startTo={startTo} startLabel={startLabel} btnText={btnText} />
+        <KeptInTrust startTo={startTo} startLabel={startLabel} btnText={btnText} />
 
         {/* ---------------------------------------------------------------- three traditions */}
         <div id="traditions" className="scroll-mt-20">
@@ -362,7 +379,7 @@ export function LandingPage() {
                       </span>
                       <span className="pb-2">
                         <Eyebrow>{t(`${base}.chapter`)}</Eyebrow>
-                        <span className="mt-1 block text-umber italic">{t(`${base}.subtitle`)}</span>
+                        <span className="mt-1 block font-garamond text-lg text-umber italic">{t(`${base}.subtitle`)}</span>
                       </span>
                     </Reveal>
                     <Reveal delay={100}>
@@ -375,15 +392,15 @@ export function LandingPage() {
                       />
                     </Reveal>
                     <Reveal delay={180}>
-                      <p className="mt-6 text-lg leading-relaxed text-umber first-letter:float-left first-letter:mt-1 first-letter:mr-3 first-letter:font-heritage first-letter:text-6xl first-letter:leading-[0.8] first-letter:text-rust">
+                      <p className="mt-6 font-garamond text-lg leading-relaxed text-umber first-letter:float-left first-letter:mt-1 first-letter:mr-3 first-letter:font-heritage first-letter:text-6xl first-letter:leading-[0.8] first-letter:text-rust">
                         {t(`${base}.p1`)}
                       </p>
-                      <p className="mt-4 text-lg leading-relaxed text-umber">{t(`${base}.p2`)}</p>
+                      <p className="mt-4 font-garamond text-lg leading-relaxed text-umber">{t(`${base}.p2`)}</p>
                       <blockquote className="mt-7 border-l-2 border-rust/50 pl-5">
                         <p className="font-heritage text-xl text-rust italic" lang="sa">
                           {t(`${base}.quote`)}
                         </p>
-                        <p className="mt-1 text-umber italic">“{t(`${base}.quoteMeaning`)}”</p>
+                        <p className="mt-1 font-garamond text-lg text-umber italic">“{t(`${base}.quoteMeaning`)}”</p>
                         <footer className="mt-1 font-sans text-xs text-umber">— {t(`${base}.quoteSource`)}</footer>
                       </blockquote>
                     </Reveal>
@@ -423,7 +440,7 @@ export function LandingPage() {
                   <span className="font-heritage text-4xl leading-none text-gold/70" aria-hidden>
                     “
                   </span>
-                  <p className="mt-2 text-lg leading-relaxed text-cream/85 italic">{t(`landing.keepers.items.${k.key}.body`)}</p>
+                  <p className="mt-2 font-garamond text-xl leading-relaxed text-cream/85 italic">{t(`landing.keepers.items.${k.key}.body`)}</p>
                   <p className="mt-6 flex items-center gap-3 font-sans">
                     <span className="grid size-10 place-items-center rounded-full border border-gold/40 bg-rust/30 text-sm text-gold" lang="hi" aria-hidden>
                       {k.initial}
@@ -541,7 +558,7 @@ export function LandingPage() {
             </p>
           </div>
           <FooterColumn title={t("landing.footer.explore")}>
-            {navLinks.map((l) => (
+            {footerLinks.map((l) => (
               <a key={l.href} href={l.href} className="hover:text-gold">
                 {l.label}
               </a>
@@ -592,5 +609,134 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
       <p className={`font-semibold text-cream ${latin ? "text-[11px] tracking-[0.2em] uppercase" : "text-sm"}`}>{title}</p>
       <div className="mt-4 flex flex-col gap-2 text-sm">{children}</div>
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------- how it works
+ * Three steps, each tied to something that works today: the "Plant your tree" card on this page,
+ * sign-up (adding relatives from any profile, approximate dates, photos and documents), and the
+ * privacy section below (email invitations with a role, private WhatsApp claim links).
+ */
+const STEPS: { key: "seed" | "memories" | "invite"; icon: LucideIcon; numeral: string }[] = [
+  { key: "seed", icon: Sprout, numeral: "१" },
+  { key: "memories", icon: BookOpenText, numeral: "२" },
+  { key: "invite", icon: Users, numeral: "३" },
+];
+
+function HowItWorks({ startTo, startLabel, btnText }: { startTo: string; startLabel: string; btnText: string }) {
+  const { t } = useTranslation();
+  const actions = {
+    seed: { href: "#plant", label: t("landing.how.steps.seed.action"), internal: false },
+    memories: { href: startTo, label: startLabel, internal: true },
+    invite: { href: "#trust", label: t("landing.how.steps.invite.action"), internal: false },
+  } as const;
+  return (
+    <section id="how" aria-labelledby="how-title" className="paper-grain scroll-mt-20 bg-cream px-4 py-20 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <Eyebrow center>{t("landing.how.kicker")}</Eyebrow>
+          <AccentHeading id="how-title" before={t("landing.how.titleA")} accent={t("landing.how.titleEm")} className="mt-5 text-4xl sm:text-5xl" />
+          <p className="mt-5 text-lg leading-relaxed text-umber">{t("landing.how.lead")}</p>
+        </Reveal>
+        {/* The connecting thread: vertical on phones, horizontal through the medallions from md up. */}
+        <ol className="relative mt-14 grid gap-12 before:absolute before:top-2 before:bottom-2 before:left-7 before:w-px before:bg-rust/30 md:grid-cols-3 md:gap-8 md:before:top-7 md:before:right-[16.66%] md:before:bottom-auto md:before:left-[16.66%] md:before:h-px md:before:w-auto">
+          {STEPS.map(({ key, icon: Icon, numeral }, i) => {
+            const a = actions[key];
+            const linkClass = "mt-5 inline-flex items-center gap-1.5 rounded text-sm font-semibold text-rust underline-offset-4 hover:underline";
+            return (
+              <Reveal as="li" key={key} delay={i * 140} className="relative grid grid-cols-[3.5rem_1fr] content-start gap-x-5 md:grid-cols-1 md:text-center">
+                <span className="relative z-10 grid size-14 place-items-center rounded-full border border-rust/40 bg-cream text-rust shadow-sm md:mx-auto" aria-hidden>
+                  <Icon className="size-6" />
+                  <span className="absolute -top-1.5 -right-1.5 grid size-7 place-items-center rounded-full bg-rust font-heritage text-sm leading-none text-cream" lang="hi">
+                    {numeral}
+                  </span>
+                </span>
+                <div className="md:mt-6">
+                  <p className="text-xs font-semibold text-rust">{t("landing.how.stepN", { n: i + 1 })}</p>
+                  <h3 className="mt-1 font-heritage text-2xl font-bold">{t(`landing.how.steps.${key}.title`)}</h3>
+                  <p className="mx-auto mt-3 max-w-sm leading-relaxed text-umber">{t(`landing.how.steps.${key}.body`)}</p>
+                  {a.internal ? (
+                    <Link to={a.href} className={linkClass}>
+                      {a.label}
+                      <ArrowRight className="size-4" aria-hidden />
+                    </Link>
+                  ) : (
+                    <a href={a.href} className={linkClass}>
+                      {a.label}
+                      <ArrowRight className="size-4" aria-hidden />
+                    </a>
+                  )}
+                </div>
+              </Reveal>
+            );
+          })}
+        </ol>
+        <Reveal className="mt-14 text-center" delay={100}>
+          <Link to={startTo} className={`inline-flex items-center gap-2 bg-cocoa px-7 py-3.5 ${btnText} text-cream hover:bg-cocoa-soft`}>
+            {startLabel}
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- kept in trust
+ * Every promise here is enforced by the server today (backend/app/authz/privacy.py and
+ * permissions.py; docs/security/privacy-model.md). Change the copy only together with the code.
+ */
+const PROMISES: { key: "private" | "living" | "control" | "yours"; icon: LucideIcon }[] = [
+  { key: "private", icon: Lock },
+  { key: "living", icon: EyeOff },
+  { key: "control", icon: UserCog },
+  { key: "yours", icon: Download },
+];
+
+function KeptInTrust({ startTo, startLabel, btnText }: { startTo: string; startLabel: string; btnText: string }) {
+  const { t, i18n } = useTranslation();
+  const hindi = i18n.language.startsWith("hi");
+  return (
+    <section id="trust" aria-labelledby="trust-title" className="scroll-mt-20 bg-cream px-4 pb-20 sm:pb-24">
+      <div className="paper-grain-dark mx-auto max-w-6xl overflow-hidden rounded-3xl bg-cocoa px-6 py-14 text-cream shadow-2xl shadow-cocoa/20 sm:px-12 sm:py-16">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <span className="mx-auto grid size-14 place-items-center rounded-full border border-gold/40 bg-cocoa-soft text-gold" aria-hidden>
+            <ShieldCheck className="size-7" />
+          </span>
+          {/* In Hindi the kicker below already says विश्वास; the word would only repeat. */}
+          {!hindi && (
+            <p className="mt-4 font-heritage text-2xl text-gold" lang="hi">
+              ॥ विश्वास ॥
+            </p>
+          )}
+          <div className="mt-3">
+            <Eyebrow tone="gold" center>
+              {t("landing.trust.kicker")}
+            </Eyebrow>
+          </div>
+          <AccentHeading id="trust-title" before={t("landing.trust.titleA")} accent={t("landing.trust.titleEm")} tone="gold" className="mt-5 text-4xl sm:text-5xl" />
+          <p className="mt-5 text-lg leading-relaxed text-cream/80">{t("landing.trust.lead")}</p>
+        </Reveal>
+        <ul className="mt-12 grid gap-x-10 gap-y-8 md:grid-cols-2">
+          {PROMISES.map(({ key, icon: Icon }, i) => (
+            <Reveal as="li" key={key} delay={(i % 2) * 120} className="flex gap-4 border-t border-cream/10 pt-6">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-cream/10 text-gold" aria-hidden>
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <h3 className="font-heritage text-xl font-bold text-cream">{t(`landing.trust.items.${key}.title`)}</h3>
+                <p className="mt-2 leading-relaxed text-cream/75">{t(`landing.trust.items.${key}.body`)}</p>
+              </div>
+            </Reveal>
+          ))}
+        </ul>
+        <Reveal className="mt-12 text-center" delay={80}>
+          <Link to={startTo} className={`inline-flex items-center gap-2 bg-cream px-7 py-3.5 ${btnText} text-cocoa hover:bg-white`}>
+            {startLabel}
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </Reveal>
+      </div>
+    </section>
   );
 }
