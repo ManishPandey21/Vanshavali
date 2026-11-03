@@ -21,11 +21,23 @@ export function TreeChart({
   onOpen,
   collapsed,
   onToggleCollapse,
+  youId,
+  heightClass = "h-[65dvh] min-h-[360px]",
+  minOpenScale,
 }: {
   graph: GraphOut;
   onOpen: (personId: string) => void;
   collapsed: ReadonlySet<string>;
   onToggleCollapse: (id: string) => void;
+  /** The viewer's own profile in this tree, marked "You" wherever it appears in the chart. */
+  youId?: string | null;
+  heightClass?: string;
+  /**
+   * Never open smaller than this scale: a big family first shows a legible part of the tree,
+   * centred on the viewer ("You") or the starting person, instead of shrinking every name to a
+   * speck. "Fit to screen" still shows everyone.
+   */
+  minOpenScale?: number;
 }) {
   const { t } = useTranslation();
   const layout: Layout = useMemo(() => layoutGraph(graph, collapsed), [graph, collapsed]);
@@ -35,6 +47,11 @@ export function TreeChart({
   const [focusId, setFocusId] = useState<string>(layout.rootId);
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   const nodeRefs = useRef(new Map<string, SVGGElement>());
+
+  const youNodeId = useMemo(
+    () => (youId ? [...layout.nodes.values()].find((n) => n.node.person?.id === youId)?.node.id : undefined),
+    [layout, youId],
+  );
 
   const fit = useCallback(() => {
     const el = containerRef.current;
@@ -46,9 +63,26 @@ export function TreeChart({
     setView({ k, x: (w - layout.width * k) / 2, y: Math.max(16, (h - layout.height * k) / 2) });
   }, [layout.width, layout.height]);
 
+  /** The first view: fit everyone, or (when that would be illegible) a readable view around a focus. */
+  const open = useCallback(() => {
+    const el = containerRef.current;
+    const w = el?.clientWidth || 800;
+    const h = el?.clientHeight || 500;
+    const pad = 32;
+    const fitK = Math.min((w - pad) / (layout.width + pad), (h - pad) / (layout.height + pad));
+    const focus = layout.nodes.get(youNodeId ?? layout.rootId);
+    if (!minOpenScale || fitK >= minOpenScale || !focus) return fit();
+    const k = minOpenScale;
+    const x = w / 2 - (focus.x + NODE_W / 2) * k;
+    // the starting person sits near the top, clear of the zoom toolbar (their descendants fill the
+    // view); "You" sits centred
+    const y = youNodeId ? h / 2 - (focus.y + NODE_H / 2) * k : 64 - focus.y * k;
+    setView({ k, x, y });
+  }, [fit, layout, youNodeId, minOpenScale]);
+
   useEffect(() => {
-    fit();
-  }, [fit, graph.root_id, graph.direction]);
+    open();
+  }, [open, graph.root_id, graph.direction]);
 
   useEffect(() => {
     if (!layout.nodes.has(focusId)) setFocusId(layout.rootId);
@@ -172,7 +206,7 @@ export function TreeChart({
       </div>
       <div
         ref={containerRef}
-        className="h-[65dvh] min-h-[360px] w-full cursor-grab touch-none overflow-hidden rounded-xl border border-stone-200 bg-[radial-gradient(circle,_#efe3cc_1px,_transparent_1px)] [background-size:18px_18px] active:cursor-grabbing"
+        className={`${heightClass} w-full cursor-grab touch-none overflow-hidden rounded-xl border border-stone-200 bg-[radial-gradient(circle,_#efe3cc_1px,_transparent_1px)] [background-size:18px_18px] active:cursor-grabbing`}
         onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -202,6 +236,7 @@ export function TreeChart({
               const p = n.node.person;
               const hidden = !p;
               const isRoot = n.node.id === layout.rootId;
+              const isYou = !!p && !!youId && p.id === youId;
               const years = p ? lifespan(p, t) ?? "" : "";
               // Everything the box shows visually (status bar, minor, lock) is also in the accessible name.
               const extras = p
@@ -216,7 +251,8 @@ export function TreeChart({
                   ? t("treeView.nodeLabel", { name: p.display_name, years: years || t("treeView.datesUnknown"), generation: n.node.generation })
                   : t("treeView.hiddenNodeLabel", { generation: n.node.generation })) +
                 (n.node.partner ? ` ${t("treeView.partnerNode")}.` : "") +
-                (extras.length ? ` ${extras.join(", ")}.` : "");
+                (extras.length ? ` ${extras.join(", ")}.` : "") +
+                (isYou ? ` ${t("treeView.youLabel")}.` : "");
               return (
                 <g
                   key={n.node.id}
@@ -256,6 +292,14 @@ export function TreeChart({
                   <text x={14} y={26} fontSize={14} fontWeight={600} fill={hidden ? "#57534e" : "#231a12"} fontStyle={hidden ? "italic" : undefined}>
                     {p ? truncate(p.display_name, 22) : t("person.privatePerson")}
                   </text>
+                  {isYou && (
+                    <g transform={`translate(${NODE_W - 44},-10)`} aria-hidden>
+                      <rect width={40} height={20} rx={10} fill="#9a3412" />
+                      <text x={20} y={14} fontSize={11} fontWeight={700} textAnchor="middle" fill="#fff">
+                        {t("treeView.you")}
+                      </text>
+                    </g>
+                  )}
                   {p && (
                     <text x={14} y={46} fontSize={12} fill="#5c4b3b">
                       {years || t("treeView.datesUnknown")}
