@@ -21,7 +21,13 @@ for (const [composition, props] of Object.entries(fixtures)) {
   const payload = path.join(dir, "payload.json");
   writeFileSync(payload, JSON.stringify({ composition, props }));
   const output = composition === "FanChart" || composition === "EventTimeline" ? "mp4" : "poster";
-  const r = spawnSync(node, [path.join(ROOT, "scripts", "render.mjs"), "--payload", payload, "--out-dir", dir, "--output", output], { encoding: "utf8" });
+  // a render that does not finish in 5 minutes is a failure, never a CI job hanging for hours
+  const r = spawnSync(node, [path.join(ROOT, "scripts", "render.mjs"), "--payload", payload, "--out-dir", dir, "--output", output], {
+    encoding: "utf8",
+    timeout: 5 * 60_000,
+    killSignal: "SIGKILL",
+  });
+  if (r.error) throw new Error(`${composition}: render did not finish (${r.error.message})`);
   const retries = countLaunchRetries(r.stderr);
   totalRetries += retries;
   renders += 1;
