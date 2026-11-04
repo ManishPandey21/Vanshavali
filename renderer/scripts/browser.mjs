@@ -30,6 +30,13 @@ export async function openWithRetry(open, { attempts = 3, onRetry = () => {} } =
   }
 }
 
+/** How many launch retries a render reported: its `browser_launch_retry_N` lines on stderr. */
+export function countLaunchRetries(stderr) {
+  return String(stderr ?? "")
+    .split("\n")
+    .filter((line) => /^browser_launch_retry_\d+$/.test(line.trim())).length;
+}
+
 /** The Chromium every render step shares; close it with `browser.close({ silent: true })`. */
 export function openRenderBrowser() {
   return openWithRetry(
