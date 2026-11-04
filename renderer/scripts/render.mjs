@@ -8,6 +8,7 @@
 import { renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { openRenderBrowser } from "./browser.mjs";
 import { BUNDLE_DIR, CHROMIUM_OPTIONS, browserExecutable } from "./common.mjs";
 
 const ALLOWED = new Set(["FanChart", "PedigreeChart", "FamilyTree", "LifespanTimeline", "EventTimeline"]);
@@ -30,35 +31,44 @@ if (!existsSync(path.join(BUNDLE_DIR, "index.html"))) fail("bundle_missing");
 const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
 if (!ALLOWED.has(payload.composition)) fail("unknown_composition");
 
+// one browser for every step (selectComposition, renderStill, renderMedia), opened with a retry
+const browser = await openRenderBrowser();
 const common = {
   serveUrl: BUNDLE_DIR,
   inputProps: payload.props,
   browserExecutable: browserExecutable(),
   chromiumOptions: CHROMIUM_OPTIONS,
+  puppeteerInstance: browser,
   logLevel: "error",
 };
-const composition = await selectComposition({ ...common, id: payload.composition });
-const posterFrame = Math.min(composition.durationInFrames - 1, Math.round(composition.durationInFrames * 0.72));
-const poster = path.join(outDir, "poster.png");
-await renderStill({ ...common, composition, output: poster, frame: posterFrame, imageFormat: "png" });
-console.log(JSON.stringify({ progress: output === "mp4" ? 0.05 : 1 }));
+let composition;
+let poster;
 let video = null;
-if (output === "mp4") {
-  video = path.join(outDir, "video.mp4");
-  let last = 0;
-  await renderMedia({
-    ...common,
-    composition,
-    codec: "h264",
-    outputLocation: video,
-    concurrency: Number(process.env.REMOTION_CONCURRENCY ?? 2),
-    onProgress: ({ progress }) => {
-      if (progress - last >= 0.05 || progress === 1) {
-        last = progress;
-        console.log(JSON.stringify({ progress: 0.05 + progress * 0.95 }));
-      }
-    },
-  });
+try {
+  composition = await selectComposition({ ...common, id: payload.composition });
+  const posterFrame = Math.min(composition.durationInFrames - 1, Math.round(composition.durationInFrames * 0.72));
+  poster = path.join(outDir, "poster.png");
+  await renderStill({ ...common, composition, output: poster, frame: posterFrame, imageFormat: "png" });
+  console.log(JSON.stringify({ progress: output === "mp4" ? 0.05 : 1 }));
+  if (output === "mp4") {
+    video = path.join(outDir, "video.mp4");
+    let last = 0;
+    await renderMedia({
+      ...common,
+      composition,
+      codec: "h264",
+      outputLocation: video,
+      concurrency: Number(process.env.REMOTION_CONCURRENCY ?? 2),
+      onProgress: ({ progress }) => {
+        if (progress - last >= 0.05 || progress === 1) {
+          last = progress;
+          console.log(JSON.stringify({ progress: 0.05 + progress * 0.95 }));
+        }
+      },
+    });
+  }
+} finally {
+  await browser.close({ silent: true });
 }
 console.log(
   JSON.stringify({

@@ -88,6 +88,11 @@ headless shell if present, else Remotion downloads Chrome Headless Shell (`npx r
 ensure`, done in the Docker image). Fonts: Noto (Devanagari, Tamil, …) must be installed on the
 render host for Indic names (`fonts-noto-core`, `fonts-noto-extra` in the image).
 
+Each render opens **one** Chromium and shares it across `selectComposition`, `renderStill` and
+`renderMedia` (`scripts/browser.mjs`). Remotion allows a fixed 25 s for Chrome to accept the
+connection, which a cold first start can exceed, so that launch, and only a launch timeout, is retried
+up to three times (`browser_launch_retry_N` on stderr). Any other launch error fails at once.
+
 Deployment: `deploy/render-worker/Dockerfile` (Node + bundle + Chromium libraries + Python worker)
 and the opt-in `render-worker` service (compose profile `render`). Give it 2 CPUs and 3 GB; one job
 at a time per worker; `REMOTION_CONCURRENCY` sets frame-render parallelism.
