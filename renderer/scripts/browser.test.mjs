@@ -1,7 +1,7 @@
 // Unit tests for the launch retry (node --test).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isLaunchTimeout, openWithRetry } from "./browser.mjs";
+import { countLaunchRetries, isLaunchTimeout, openWithRetry } from "./browser.mjs";
 
 const timeout = () => new Error("Timed out after 25000 ms while trying to connect to the browser! Chrome logged the following: …");
 
@@ -49,4 +49,11 @@ test("isLaunchTimeout matches only Remotion's connect timeout", () => {
   assert.equal(isLaunchTimeout(timeout()), true);
   assert.equal(isLaunchTimeout(new Error("delayRender() timeout")), false);
   assert.equal(isLaunchTimeout(undefined), false);
+});
+
+test("countLaunchRetries counts only the retry marker lines", () => {
+  assert.equal(countLaunchRetries(""), 0);
+  assert.equal(countLaunchRetries(undefined), 0);
+  assert.equal(countLaunchRetries("browser_launch_retry_1\nbrowser_launch_retry_2\n"), 2);
+  assert.equal(countLaunchRetries("some warning\nbrowser_launch_retry_1\nnot browser_launch_retry_9 here"), 1);
 });
