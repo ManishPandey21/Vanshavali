@@ -30,10 +30,13 @@ if (!existsSync(path.join(BUNDLE_DIR, "index.html"))) fail("bundle_missing");
 const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
 if (!ALLOWED.has(payload.composition)) fail("unknown_composition");
 
+const browser = browserExecutable();
+// first stderr line only (the API reads the last line as an error code): which browser this run uses
+process.stderr.write(`browser=${browser ?? "remotion-headless-shell"}\n`);
 const common = {
   serveUrl: BUNDLE_DIR,
   inputProps: payload.props,
-  browserExecutable: browserExecutable(),
+  browserExecutable: browser,
   chromiumOptions: CHROMIUM_OPTIONS,
   logLevel: "error",
 };
