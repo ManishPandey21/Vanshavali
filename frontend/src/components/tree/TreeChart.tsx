@@ -6,6 +6,8 @@ import { NODE_H, NODE_W, layoutGraph, neighbour, type Layout } from "../../lib/t
 import { lifespan } from "../../lib/dates";
 
 const PAN_STEP = 120;
+/** Height kept free at the top of the chart for the zoom/pan toolbar, so no card opens beneath it. */
+const TOOLBAR_CLEAR = 52;
 
 function truncate(s: string, n: number) {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s;
@@ -24,6 +26,7 @@ export function TreeChart({
   youId,
   heightClass = "h-[65dvh] min-h-[360px]",
   minOpenScale,
+  selectedId,
 }: {
   graph: GraphOut;
   onOpen: (personId: string) => void;
@@ -38,6 +41,8 @@ export function TreeChart({
    * speck. "Fit to screen" still shows everyone.
    */
   minOpenScale?: number;
+  /** The person whose details are shown beside the chart, outlined so the link is visible. */
+  selectedId?: string | null;
 }) {
   const { t } = useTranslation();
   const layout: Layout = useMemo(() => layoutGraph(graph, collapsed), [graph, collapsed]);
@@ -59,8 +64,8 @@ export function TreeChart({
     const w = el.clientWidth || 800;
     const h = el.clientHeight || 500;
     const pad = 32;
-    const k = Math.min(1.2, Math.max(0.3, Math.min((w - pad) / (layout.width + pad), (h - pad) / (layout.height + pad))));
-    setView({ k, x: (w - layout.width * k) / 2, y: Math.max(16, (h - layout.height * k) / 2) });
+    const k = Math.min(1.2, Math.max(0.3, Math.min((w - pad) / (layout.width + pad), (h - pad - TOOLBAR_CLEAR) / (layout.height + pad))));
+    setView({ k, x: (w - layout.width * k) / 2, y: Math.max(TOOLBAR_CLEAR, TOOLBAR_CLEAR + (h - TOOLBAR_CLEAR - layout.height * k) / 2) });
   }, [layout.width, layout.height]);
 
   /** The first view: fit everyone, or (when that would be illegible) a readable view around a focus. */
@@ -69,14 +74,22 @@ export function TreeChart({
     const w = el?.clientWidth || 800;
     const h = el?.clientHeight || 500;
     const pad = 32;
-    const fitK = Math.min((w - pad) / (layout.width + pad), (h - pad) / (layout.height + pad));
+    const fitK = Math.min((w - pad) / (layout.width + pad), (h - pad - TOOLBAR_CLEAR) / (layout.height + pad));
     const focus = layout.nodes.get(youNodeId ?? layout.rootId);
     if (!minOpenScale || fitK >= minOpenScale || !focus) return fit();
     const k = minOpenScale;
-    const x = w / 2 - (focus.x + NODE_W / 2) * k;
-    // the starting person sits near the top, clear of the zoom toolbar (their descendants fill the
-    // view); "You" sits centred
-    const y = youNodeId ? h / 2 - (focus.y + NODE_H / 2) * k : 64 - focus.y * k;
+    const tw = layout.width * k;
+    const th = layout.height * k;
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+    // On each axis: centre the whole tree when it fits, otherwise centre the focus person but never
+    // scroll past the tree's edge (no empty gutter), and keep the top row clear of the toolbar.
+    const x = tw <= w - 32 ? (w - tw) / 2 : clamp(w / 2 - (focus.x + NODE_W / 2) * k, w - tw - 16, 16);
+    const y =
+      th <= h - TOOLBAR_CLEAR - 16
+        ? TOOLBAR_CLEAR + (h - TOOLBAR_CLEAR - 16 - th) / 2
+        : youNodeId
+          ? clamp(h / 2 - (focus.y + NODE_H / 2) * k, h - th - 16, TOOLBAR_CLEAR)
+          : TOOLBAR_CLEAR - focus.y * k; // the starting person at the top, descendants below
     setView({ k, x, y });
   }, [fit, layout, youNodeId, minOpenScale]);
 
@@ -237,6 +250,7 @@ export function TreeChart({
               const hidden = !p;
               const isRoot = n.node.id === layout.rootId;
               const isYou = !!p && !!youId && p.id === youId;
+              const isSelected = !!p && !!selectedId && p.id === selectedId;
               const years = p ? lifespan(p, t) ?? "" : "";
               // Everything the box shows visually (status bar, minor, lock) is also in the accessible name.
               const extras = p
@@ -266,6 +280,7 @@ export function TreeChart({
                   role="button"
                   aria-label={label}
                   aria-expanded={n.children.length ? !n.collapsed : undefined}
+                  aria-current={isSelected ? "true" : undefined}
                   className="cursor-pointer outline-none [&:focus-visible>rect:first-child]:stroke-[3px] [&:focus-visible>rect:first-child]:stroke-kumkum-700"
                   onFocus={() => setFocusId(n.node.id)}
                   onKeyDown={(e) => onNodeKey(e, n.node.id)}
@@ -276,8 +291,8 @@ export function TreeChart({
                     height={NODE_H}
                     rx={10}
                     fill={hidden ? "#f5f5f4" : isRoot ? "#fdf3ee" : n.node.partner ? "#fffaf0" : "#ffffff"}
-                    stroke={isRoot ? "#9a3412" : hidden ? "#8a7f78" : "#9c8667" /* ≥ 3:1 on white (1.4.11) */}
-                    strokeWidth={isRoot ? 2 : 1}
+                    stroke={isSelected || isRoot ? "#9a3412" : hidden ? "#8a7f78" : "#9c8667" /* ≥ 3:1 on white (1.4.11) */}
+                    strokeWidth={isSelected ? 3 : isRoot ? 2 : 1}
                     strokeDasharray={hidden ? "4 3" : undefined}
                   />
                   {/* Status bar: shape as well as colour (WCAG 1.4.1) — solid = living, broken = deceased,

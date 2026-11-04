@@ -140,4 +140,32 @@ describe("landing page", () => {
       await i18n.changeLanguage("en");
     }
   });
+
+  it("lets a visitor explore the sample family in the real tree viewer, without any family data from the server", async () => {
+    const calls = stubApi(false);
+    renderWithProviders(<App />, { tree: null, route: "/" });
+    const watch = await screen.findByRole("button", { name: "Watch it grow" });
+    expect(watch).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getByRole("button", { name: "Explore it yourself" }));
+    expect(screen.getByRole("button", { name: "Explore it yourself" })).toHaveAttribute("aria-pressed", "true");
+
+    const chart = screen.getByRole("group", { name: "Family tree chart" });
+    expect(within(chart).getByRole("button", { name: /^Private person/ })).toBeInTheDocument();
+    expect(within(chart).getByRole("button", { name: /^Aarav Sharma.*This is you\.$/ })).toBeInTheDocument();
+
+    const panel = screen.getByRole("region", { name: "About the person you chose" });
+    expect(within(panel).getByText(/see who they are to Aarav Sharma/)).toBeInTheDocument();
+    await userEvent.click(within(chart).getByRole("button", { name: /^Suresh Sharma/ }));
+    expect(within(chart).getByRole("button", { name: /^Suresh Sharma/ })).toHaveAttribute("aria-current", "true");
+    expect(within(panel).getByText("दादा")).toBeInTheDocument();
+    expect(within(panel).getByText("(father's father)")).toBeInTheDocument();
+    expect(within(panel).getByText(/bahi of births and marriages/)).toBeInTheDocument();
+
+    await userEvent.click(within(chart).getByRole("button", { name: /^Mahesh Sharma/ }));
+    expect(within(panel).getByText("चाचा / ताऊ")).toBeInTheDocument();
+    expect(within(panel).getByText(/visible only to tree admins/)).toBeInTheDocument();
+    expect(within(panel).getByRole("link", { name: /Begin your family tree/ })).toHaveAttribute("href", "/login");
+    // fictional and static: exploring asks the server for nothing
+    expect(calls.every((u) => u.endsWith("/auth/me"))).toBe(true);
+  });
 });

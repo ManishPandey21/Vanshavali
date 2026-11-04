@@ -17,7 +17,7 @@ import "@fontsource/noto-serif-devanagari/400.css";
 import { useMe } from "../../api/hooks/auth";
 import { BrandMark } from "../../components/layout/AppShell";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
-import { GrowingTree } from "./GrowingTree";
+import { FamilyShowcase } from "./SampleExplorer";
 import { TreePlanter } from "./TreePlanter";
 import { Reveal } from "./Reveal";
 
@@ -332,7 +332,7 @@ export function LandingPage() {
               </div>
 
               <Reveal as="figure" delay={200} className="m-0 min-w-0">
-                <GrowingTree />
+                <FamilyShowcase startTo={startTo} startLabel={startLabel} />
                 <figcaption className="mt-4 text-center font-garamond text-base text-umber italic">{t("landing.archive.caption")}</figcaption>
               </Reveal>
             </div>
