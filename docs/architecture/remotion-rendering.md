@@ -93,6 +93,10 @@ Each render opens **one** Chromium and shares it across `selectComposition`, `re
 connection, which a cold first start can exceed, so that launch, and only a launch timeout, is retried
 up to three times (`browser_launch_retry_N` on stderr). Any other launch error fails at once. The smoke test (`npm test`) prints the retry count
 for every render and a total, so a cold start that a retry absorbed stays visible in CI logs.
+Remotion abandons a timed-out Chrome without killing it, and that process would keep `render.mjs`
+alive forever. So each timed-out attempt's new child processes are killed before the retry, and
+a render kills any remaining descendants and exits explicitly (`scripts/procs.mjs`, Linux `/proc`).
+The smoke test gives each render 5 minutes, and the CI job has `timeout-minutes: 30`.
 
 Deployment: `deploy/render-worker/Dockerfile` (Node + bundle + Chromium libraries + Python worker)
 and the opt-in `render-worker` service (compose profile `render`). Give it 2 CPUs and 3 GB; one job
