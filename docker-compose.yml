@@ -123,6 +123,24 @@ services:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
 
+  # Local mail catcher (development only): accepts every message, delivers none, and shows them at
+  # http://localhost:8025. Opt in with the "mail" profile and point the mailer at it (.env.example):
+  #   COMPOSE_PROFILES=mail  VSH_MAIL_BACKEND=smtp  VSH_SMTP_HOST=mailpit  VSH_SMTP_PORT=1025
+  #   VSH_SMTP_STARTTLS=false
+  # SMTP (1025) is reachable only inside this network; the web UI is published on loopback only.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    profiles: [mail]
+    environment:
+      MP_MAX_MESSAGES: "500"
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+    ports: ["127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      retries: 20
+
   frontend:
     build: ./frontend
     depends_on: [backend]

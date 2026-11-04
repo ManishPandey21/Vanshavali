@@ -11,21 +11,38 @@ docker compose run --rm -e VSH_DEMO_PASSWORD -e VSH_SUPERADMIN_PASSWORD backend 
 Seeded accounts and their rules: `docs/operations/dev-accounts.md` (refused outside development/test).
 
 **Email.** By default the local stack uses the `console` mailer: backend and worker logs show each
-message, with its link in development, and nothing is sent. To deliver for real, set these in `.env`;
-compose passes them to the backend and worker:
+message, with its link in development, and nothing is sent. Compose passes the mail settings from
+`.env` to the backend and worker.
+
+To catch real messages locally, use the bundled **Mailpit** (profile `mail`). It accepts every
+message, delivers none, and shows them at http://localhost:8025 (published on loopback only). Set
+in `.env`:
+
+```bash
+COMPOSE_PROFILES=mail
+VSH_MAIL_BACKEND=smtp
+VSH_SMTP_HOST=mailpit
+VSH_SMTP_PORT=1025
+VSH_SMTP_STARTTLS=false
+```
+Then run `docker compose up -d`, sign up at http://localhost:8080, and open the confirmation email in
+Mailpit.
+
+To deliver through a real provider instead:
 
 ```bash
 VSH_MAIL_BACKEND=smtp
 VSH_MAIL_FROM=Vanshavali <no-reply@your-domain.example>
-VSH_SMTP_HOST=smtp.your-provider.example    # or host.docker.internal for a local catcher (Mailpit: port 1025)
+VSH_SMTP_HOST=smtp.your-provider.example
 VSH_SMTP_PORT=587
 VSH_SMTP_USER=...
-VSH_SMTP_PASSWORD='...'                     # single-quote it if it contains $
-VSH_SMTP_STARTTLS=true                      # false only for a local catcher without TLS
+VSH_SMTP_PASSWORD='...'      # single-quote it if it contains $
+VSH_SMTP_STARTTLS=true
 ```
-Recreate the containers (`docker compose up -d backend worker`), then check the settings with
+After changing these, recreate the containers (`docker compose up -d backend worker`) and check with
 `docker compose run --rm backend python -m app.cli.mail_check --send-to you@example.org`.
-Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), migrate (a one-off
+`host.docker.internal` also resolves inside the backend and worker, for a catcher on the host.
+Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), mailpit (opt-in, profile `mail`), migrate (a one-off
 `alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
 
