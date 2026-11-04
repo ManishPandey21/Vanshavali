@@ -21,6 +21,16 @@ x-backend-env: &backend-env
   VSH_COOKIE_SECURE: ${VSH_COOKIE_SECURE:-false}
   VSH_GOOGLE_CLIENT_ID: ${VSH_GOOGLE_CLIENT_ID:-}
   VSH_GOOGLE_CLIENT_SECRET: ${VSH_GOOGLE_CLIENT_SECRET:-}
+  # Email (ADR-0005). console (default) only logs messages, links included in development; set
+  # VSH_MAIL_BACKEND=smtp and VSH_SMTP_* in .env to deliver for real (docs/operations/deployment.md).
+  VSH_MAIL_BACKEND: ${VSH_MAIL_BACKEND:-console}
+  VSH_MAIL_FROM: ${VSH_MAIL_FROM:-Vanshavali <no-reply@localhost>}
+  VSH_SMTP_HOST: ${VSH_SMTP_HOST:-}
+  VSH_SMTP_PORT: ${VSH_SMTP_PORT:-587}
+  VSH_SMTP_USER: ${VSH_SMTP_USER:-}
+  VSH_SMTP_PASSWORD: ${VSH_SMTP_PASSWORD:-}
+  VSH_SMTP_STARTTLS: ${VSH_SMTP_STARTTLS:-true}
+  VSH_SMTP_TIMEOUT_SECONDS: ${VSH_SMTP_TIMEOUT_SECONDS:-20}
   VSH_STANDARD_DATA_KEY: ${VSH_STANDARD_DATA_KEY:-dmFuc2hhdmFsaS1kZXYtc3RhbmRhcmQta2V5LTMyYiE=}
   VSH_VAULT_DATA_KEY: ${VSH_VAULT_DATA_KEY:-dmFuc2hhdmFsaS1kZXYtdmF1bHQta2V5LTMyYnl0ZXM=}
   VSH_SIGNING_KEY: ${VSH_SIGNING_KEY:-vanshavali-dev-signing-key-change-me}
@@ -95,6 +105,8 @@ services:
       <<: *backend-env
       # Trust X-Forwarded-For only from the nginx container (fixed address below), never "*".
       FORWARDED_ALLOW_IPS: 172.28.0.10
+    # lets VSH_SMTP_HOST=host.docker.internal reach a mail catcher on the host (also on Linux)
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
@@ -106,6 +118,7 @@ services:
     build: ./backend
     environment: *backend-env
     command: ["python", "-m", "app.cli.worker"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
