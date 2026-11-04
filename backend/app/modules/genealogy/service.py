@@ -219,8 +219,10 @@ def add_name(ctx: TreeContext, person_id: uuid.UUID, body: NameIn) -> NameRecord
     n = _new_name(ctx, person.id, body)
     ctx.db.add(n)
     ctx.db.flush()
-    if body.is_preferred:
+    if body.is_preferred or person.is_provisional:
         _set_preferred_name(ctx, person, n)
+    if person.is_provisional:  # a provisional person is complete once they have a name (ADR-0020)
+        person.is_provisional = False
     audit.log(ctx, "person.name_added", target_type="person", target_id=person.id)
     return n
 
@@ -487,7 +489,8 @@ def delete_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
 
 
 # ---------------------------------------------------------------- persons
-def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
+def create_person(ctx: TreeContext, body: PersonCreate, *, provisional: bool = False) -> Person:
+    """Create a person. ``provisional`` (Smart Add, ADR-0020): no name yet, flagged until named."""
     ctx.require(Permission.PERSON_WRITE)
     from app.modules.consent.attestation import require_attestation
 
@@ -505,18 +508,20 @@ def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
         notes=body.notes,
         contact_info=body.contact_info,
         residential_address=body.residential_address,
+        is_provisional=provisional,
         created_by=ctx.user_id,
     )
     ctx.db.add(person)
     ctx.db.flush()
-    names = [_new_name(ctx, person.id, n) for n in body.names]
+    names = [] if provisional else [_new_name(ctx, person.id, n) for n in body.names]
     for n in names:
         ctx.db.add(n)
     ctx.db.flush()
-    preferred = next((n for n in names if n.is_preferred), names[0])
-    preferred.is_preferred = True
-    if not body.preferred_display_name:
-        person.preferred_display_name = name_display(preferred)[:300] or "Unnamed"
+    if names:
+        preferred = next((n for n in names if n.is_preferred), names[0])
+        preferred.is_preferred = True
+        if not body.preferred_display_name:
+            person.preferred_display_name = name_display(preferred)[:300] or "Unnamed"
     if not person.scripts_used:
         person.scripts_used = sorted({n.script for n in names if n.script})
     if body.birth:

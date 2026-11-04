@@ -396,6 +396,15 @@ class _Edge(NamedTuple):
 
 Adjacency = dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]]
 
+# Namespace for the virtual parent an explicit sibling pair shares (ADR-0020 §3). Virtual ids never
+# leave the engine: they are stripped from paths and common ancestors before anything is returned.
+_VIRTUAL_PARENT_NS = uuid.UUID("6f1d3c2e-8a54-4b7e-9c10-5a2b7e9d4f31")
+
+
+def virtual_parent_id(a: uuid.UUID, b: uuid.UUID) -> uuid.UUID:
+    lo, hi = sorted((a, b), key=str)
+    return uuid.uuid5(_VIRTUAL_PARENT_NS, f"{lo}:{hi}")
+
 
 class _LazyGraph:
     """Relationship edges loaded on demand, one batched query per BFS frontier.
@@ -410,6 +419,7 @@ class _LazyGraph:
         self.lineages = lineages
         self.loaded: set[uuid.UUID] = set()
         self.seen_edges: set[uuid.UUID] = set()
+        self.virtual: set[uuid.UUID] = set()
         self.deleted = set(
             ctx.db.scalars(
                 select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None))
@@ -455,6 +465,15 @@ class _LazyGraph:
             elif r.type in UNION_TYPES:
                 self._spouses.setdefault(r.person_a_id, []).append((r.person_b_id, r))
                 self._spouses.setdefault(r.person_b_id, []).append((r.person_a_id, r))
+            elif r.type == RelationshipType.SIBLING:
+                # An explicit sibling edge (parents not recorded): the pair shares a virtual parent, so
+                # the calculator resolves brother, uncle, cousin… through it like a real one.
+                v = virtual_parent_id(r.person_a_id, r.person_b_id)
+                self.virtual.add(v)
+                self.loaded.add(v)  # nothing to load from the database for it
+                for child in (r.person_a_id, r.person_b_id):
+                    self._parents.setdefault(child, []).append((v, r))
+                    self._children.setdefault(v, []).append((child, r))
 
 
 class _LazyAdjacency:
@@ -508,8 +527,20 @@ def relationship_path(
     lookup.get_person(ctx, b_id)
     lazy = _LazyGraph(ctx, lineages)
     graph = (lazy.parents, lazy.children, lazy.spouses)
+
+    def real(o: RelationshipPathOut) -> RelationshipPathOut:
+        """Drop virtual sibling parents: they are a calculation device, not people."""
+        if not lazy.virtual:
+            return o
+        return o.model_copy(
+            update={
+                "path": [p for p in o.path if p not in lazy.virtual],
+                "common_ancestor_ids": [c for c in o.common_ancestor_ids if c not in lazy.virtual],
+            }
+        )
+
     # pass 1 without sex data finds the path; only the people it touches are then loaded
-    out = _relationship_path_raw(ctx, a_id, b_id, graph, {})
+    out = real(_relationship_path_raw(ctx, a_id, b_id, graph, {}))
     _parents, _children, spouses = graph
     touched = {p for p in out.path if p is not None} | set(out.common_ancestor_ids)
     visible = set(lookup.visible_subjects(ctx, touched))
@@ -525,7 +556,7 @@ def relationship_path(
         .tuples()
         .all()
     }
-    out = _relationship_path_raw(ctx, a_id, b_id, graph, sex)
+    out = real(_relationship_path_raw(ctx, a_id, b_id, graph, sex))
     return out.model_copy(
         update={
             "path": [p if p in visible else None for p in out.path],

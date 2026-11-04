@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { HeartHandshake, Plus, Unlink, UserPlus } from "lucide-react";
+import { HeartHandshake, Plus, Sparkles, Unlink, UserPlus } from "lucide-react";
 import type { FamilyOut, Lineage, PersonOut, RelatedPerson, UnionOut } from "../../../api/types";
 import { useDeleteRelationship, useFamily } from "../../../api/hooks/people";
 import { useTreeCtx } from "../../../lib/tree-context";
@@ -12,6 +12,7 @@ import { ConfirmDialog } from "../../../components/ui/Dialog";
 import { EmptyState, ErrorAlert, Spinner } from "../../../components/ui/feedback";
 import { Badge } from "../../../components/ui/Badge";
 import { AddRelativeDialog, type RelationKind } from "./AddRelativeDialog";
+import { SmartAddDialog } from "./SmartAddDialog";
 
 export const LINEAGES: Lineage[] = ["biological", "legal", "ritual", "social"];
 
@@ -84,6 +85,7 @@ export function FamilyTab({ person }: { person: PersonOut }) {
   const family = useFamily(treeId, person.id, lineage);
   const [adding, setAdding] = useState<{ relation: RelationKind; unionId?: string | null } | null>(null);
   const [unlinking, setUnlinking] = useState<string | null>(null);
+  const [smartAdd, setSmartAdd] = useState(false);
   const del = useDeleteRelationship(treeId);
   const canWrite = !!person.can_edit && can(Perm.RELATIONSHIP_WRITE);
 
@@ -97,6 +99,9 @@ export function FamilyTab({ person }: { person: PersonOut }) {
       </div>
       {canWrite && (
         <div className="flex flex-wrap gap-2">
+          <Button size="sm" icon={<Sparkles className="size-4" aria-hidden />} onClick={() => setSmartAdd(true)}>
+            {t("smartAdd.open")}
+          </Button>
           {(["parent", "spouse", "child", "sibling"] as const).map((r) => (
             <Button key={r} size="sm" variant="secondary" icon={<UserPlus className="size-4" aria-hidden />} onClick={() => setAdding({ relation: r })}>
               {t(`relatives.add.${r}`)}
@@ -116,6 +121,7 @@ export function FamilyTab({ person }: { person: PersonOut }) {
           onClose={() => setAdding(null)}
         />
       )}
+      {smartAdd && <SmartAddDialog anchor={person} onClose={() => setSmartAdd(false)} />}
       <ConfirmDialog
         open={!!unlinking}
         onClose={() => setUnlinking(null)}

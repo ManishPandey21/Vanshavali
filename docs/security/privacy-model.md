@@ -148,3 +148,21 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   Delivery history is kept with the tree (deleted with it). An automatic retention period for
   render artifacts and delivery history is DEFERRED (proposed: 90 days / 1 year).
 
+
+## 8. Smart Add Relative (ADR-0020)
+
+- **No one is created without being seen.** The plan endpoint writes nothing; the user picks a
+  recorded relative or explicitly chooses "add as unknown for now" at each step, sees every record
+  in a preview, and confirms. An unconfirmed plan leaves no trace.
+- **Provisional people** carry no name and no data except what the user confirms (sex at birth is
+  pre-filled from the chosen relationship but editable and optional). They get the tree's default
+  privacy, like any new person, and count as people for attestation (ADR-0011): the family-data
+  statement is required before Smart Add can create anyone.
+- **Hidden relatives stay hidden.** Candidate lists contain only people the user may see; a hidden
+  parent is reported as a count, never identified, and prevents creating a duplicate parent.
+- **Kinship terms are not stored and do not set identity.** "Mama" becomes edges; gender identity is
+  never set, and sex at birth is only what the client sends.
+- **Age order** ("older than") is family knowledge about two people, private to the tree (RLS), and
+  deleted with either person.
+- **Undo** soft-deletes (restorable) the people an operation created and removes its relationships
+  and age-order records; it is limited to the same user for 30 minutes.

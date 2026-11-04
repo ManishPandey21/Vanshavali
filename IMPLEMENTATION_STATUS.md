@@ -149,3 +149,16 @@ seven new tree-scoped tables).
 | Remotion renderer (`renderer/`): FanChart, PedigreeChart, FamilyTree, LifespanTimeline, EventTimeline; themes, title card, branding, audio slots | VERIFIED | `renderer` `npm test` (real renders: 5 posters + 2 MP4s, ffprobe duration check) | CI job `renderer`. Remotion licence to confirm before production |
 | Render jobs and artifacts (payload as requester, encrypted, separate queue/worker, poster + MP4, progress, quotas, timeouts, signed downloads) | VERIFIED | `test_render_jobs.py` (9, incl. a real Remotion render through the API with `VSH_TEST_REMOTION=1`) | Render worker image `deploy/render-worker/Dockerfile` not built in the sandbox (no Docker daemon); compose profile `render` |
 
+
+## R1 — Smart Add Relative (Nov 2026)
+
+Plan: [docs/architecture/india-master-data-and-smart-forms-plan.md](docs/architecture/india-master-data-and-smart-forms-plan.md) (R1, phases C/D). Decision: ADR-0020. One migration (`3b7e1c9d2a40`, with downgrade; RLS on `relative_age_order`).
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Kinship-term catalogue (51 terms as paths of basic edges, incl. the full North-Indian diagram) | VERIFIED | `test_smart_add.py::test_terms_catalogue` | Controlled values; en/hi labels in the locale files |
+| Plan → confirmed commit → undo API (no writes before confirmation; visible candidates only; hidden relatives counted; duplicate parents refused; cycles and the two-parent cap enforced; undo by the same user within 30 min) | VERIFIED | `test_smart_add.py` (16) | |
+| Provisional people (`person.is_provisional`, cleared by adding a name) | VERIFIED | `test_smart_add.py::test_mama_with_unknown_mother_creates_a_provisional_parent` | Excluding them from exports and counts: next R1 increment |
+| Recorded age order (`relative_age_order`; Tau/Chacha, Jeth/Devar, Bhai Sahab/Saala, optional for Brother/Sister; contradictions refused) | VERIFIED | `test_smart_add.py::test_tau_records_age_order_and_contradiction_is_refused` | Not yet used to pick terms in the calculator (Phase C) |
+| Relationship calculator resolves explicit sibling edges (virtual shared parent, never returned) | VERIFIED | `test_smart_add.py::test_explicit_sibling_from_the_classic_dialog_resolves_uncle_and_cousin` | Also fixes siblings added through the existing dialog |
+| Smart Add wizard (choose → resolve steps → details → preview → confirm → undo; en/hi; phone layout) | VERIFIED | Vitest `SmartAddDialog.test.tsx` (3), Playwright `smart-add.spec.ts` (2, 390 px viewport) | Transliteration suggestion and master-data vocabularies: next R1 increments. Native Hindi review of the new strings outstanding |

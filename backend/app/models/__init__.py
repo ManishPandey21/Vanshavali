@@ -14,7 +14,16 @@ from app.models.documents import (
 )
 from app.models.evidence import Citation, Source
 from app.models.family import BranchMembership, FamilyBranch, Household, HouseholdMembership
-from app.models.genealogy import Event, EventParticipant, MergeRecord, NameRecord, Person, Place, Relationship
+from app.models.genealogy import (
+    Event,
+    EventParticipant,
+    MergeRecord,
+    NameRecord,
+    Person,
+    Place,
+    Relationship,
+    RelativeAgeOrder,
+)
 from app.models.heritage import Assertion
 from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
@@ -75,6 +84,7 @@ __all__ = [
     "PropertyEventParcel",
     "PropertyInterest",
     "Relationship",
+    "RelativeAgeOrder",
     "RenderArtifact",
     "RenderJob",
     "Source",

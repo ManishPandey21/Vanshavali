@@ -243,7 +243,9 @@
     "badge": {
       "minor": "Minor",
       "protected": "Protected",
-      "protectedHint": "Living, minor or unknown-status: sensitive details are restricted"
+      "protectedHint": "Living, minor or unknown-status: sensitive details are restricted",
+      "provisional": "To complete",
+      "provisionalHint": "Added as unknown for now; add a name to complete this person"
     },
     "birthDate": "Birth date",
     "birthPlace": "Birth place",
@@ -2898,5 +2900,305 @@
     "addFirst": "Add the first person",
     "onlyOne": "No children are recorded for {{name}} yet",
     "addRelatives": "Add their children, spouse or parents"
+  },
+  "smartAdd": {
+    "open": "Add a relative",
+    "title": "Add a relative of {{name}}",
+    "titleTerm": "Add {{name}}'s {{term}}",
+    "desc": "Choose the relationship. We'll use relatives already in the tree and show you everything before saving.",
+    "whom": "Whom do you want to add?",
+    "more": "More relations",
+    "back": "Back",
+    "group": {
+      "grandparents": "Grandparents",
+      "paternal": "Father's side",
+      "maternal": "Mother's side",
+      "siblings": "Brothers, sisters and their families",
+      "children": "Children's families",
+      "in_laws": "In-laws"
+    },
+    "hop": {
+      "parent": {
+        "male": "father",
+        "female": "mother",
+        "any": "parent"
+      },
+      "child": {
+        "male": "son",
+        "female": "daughter",
+        "any": "child"
+      },
+      "sibling": {
+        "male": "brother",
+        "female": "sister",
+        "any": "brother or sister"
+      },
+      "spouse": {
+        "male": "husband",
+        "female": "wife",
+        "any": "spouse"
+      }
+    },
+    "thatPerson": "this person",
+    "stepQuestion": "Who is {{name}}'s {{who}}?",
+    "ageNote": {
+      "elder": "Choosing someone here records that they are older than {{name}}.",
+      "younger": "Choosing someone here records that they are younger than {{name}}."
+    },
+    "addUnknown": "Not in the tree yet — add the {{who}} as unknown for now",
+    "hiddenNote_one": "One recorded relative here is private to you. Ask a tree admin if they are the right person.",
+    "hiddenNote_other": "{{count}} recorded relatives here are private to you. Ask a tree admin if one of them is the right person.",
+    "noOptions": "There is no one to choose here, and a new person can't be added at this step. Use the family panel instead, or ask a tree admin.",
+    "blocked": {
+      "two_biological_parents": "This person already has two biological parents recorded, so another one can't be added here."
+    },
+    "givenName": "Given name",
+    "surname": "Surname",
+    "birthYear": "Born about (year)",
+    "birthYearHint": "Optional — an approximate year is fine",
+    "sexHint": "Filled in from the relationship you chose. Change it or leave it as not recorded.",
+    "otherParent": "Other parent",
+    "otherParentNone": "Not recorded / someone else",
+    "relativeAge": "Older or younger than {{name}}?",
+    "age": {
+      "elder": "Older",
+      "younger": "Younger",
+      "unknown": "Don't know"
+    },
+    "moreLater": "You can add dates, places, photos and other names later from their profile.",
+    "err": {
+      "name": "Enter at least a given name or a surname.",
+      "year": "Enter a four-digit year that is not in the future."
+    },
+    "reviewButton": "Review",
+    "confirm": "Confirm and add",
+    "previewIntro": "This is what will be saved:",
+    "preview": {
+      "role": "{{name}}'s {{who}}",
+      "existing": "{{role}}: {{name}} (already in the tree)",
+      "provisional": "{{role}}: not known yet — added as an unnamed person you can complete later",
+      "new": "{{role}}: {{name}} (new)",
+      "sharedParents": "Linked as a child of {{names}}, so they show as a real brother or sister.",
+      "explicitSibling": "Linked directly as a brother or sister (their parents aren't recorded yet).",
+      "age": {
+        "elder": "Recorded as older than {{name}}.",
+        "younger": "Recorded as younger than {{name}}."
+      }
+    },
+    "previewFooter": "Nothing has been saved yet. You can undo this for 30 minutes after confirming.",
+    "unknownPerson": "the unnamed person",
+    "provisionalSex": "Sex at birth of the unnamed person",
+    "added": "{{name}} was added as {{anchor}}'s {{term}}.",
+    "undone": "Undone. Nothing from this addition remains in the tree.",
+    "undo": "Undo",
+    "openProfile": "Open {{name}}'s profile",
+    "provisionalNote": "Unnamed people are marked “To complete”. Add their name from their profile when you know it.",
+    "terms": {
+      "father": {
+        "label": "Father",
+        "meaning": "Papa · पिता"
+      },
+      "mother": {
+        "label": "Mother",
+        "meaning": "Ma · माँ"
+      },
+      "husband": {
+        "label": "Husband",
+        "meaning": "Pati · पति"
+      },
+      "wife": {
+        "label": "Wife",
+        "meaning": "Patni · पत्नी"
+      },
+      "son": {
+        "label": "Son",
+        "meaning": "Beta · बेटा"
+      },
+      "daughter": {
+        "label": "Daughter",
+        "meaning": "Beti · बेटी"
+      },
+      "brother": {
+        "label": "Brother",
+        "meaning": "Bhai · भाई"
+      },
+      "sister": {
+        "label": "Sister",
+        "meaning": "Behen · बहन"
+      },
+      "dada": {
+        "label": "Dada · दादा",
+        "meaning": "Father's father"
+      },
+      "dadi": {
+        "label": "Dadi · दादी",
+        "meaning": "Father's mother"
+      },
+      "nana": {
+        "label": "Nana · नाना",
+        "meaning": "Mother's father"
+      },
+      "nani": {
+        "label": "Nani · नानी",
+        "meaning": "Mother's mother"
+      },
+      "tau": {
+        "label": "Tau · ताऊ",
+        "meaning": "Father's elder brother"
+      },
+      "tai": {
+        "label": "Tai · ताई",
+        "meaning": "Wife of father's elder brother"
+      },
+      "chacha": {
+        "label": "Chacha · चाचा",
+        "meaning": "Father's younger brother"
+      },
+      "chachi": {
+        "label": "Chachi · चाची",
+        "meaning": "Wife of father's younger brother"
+      },
+      "bua": {
+        "label": "Bua · बुआ",
+        "meaning": "Father's sister"
+      },
+      "fufa": {
+        "label": "Fufa · फूफा",
+        "meaning": "Father's sister's husband"
+      },
+      "mama": {
+        "label": "Mama · मामा",
+        "meaning": "Mother's brother"
+      },
+      "mami": {
+        "label": "Mami · मामी",
+        "meaning": "Mother's brother's wife"
+      },
+      "mausi": {
+        "label": "Mausi · मौसी",
+        "meaning": "Mother's sister"
+      },
+      "mausa": {
+        "label": "Mausa · मौसा",
+        "meaning": "Mother's sister's husband"
+      },
+      "bhaiya": {
+        "label": "Bhaiya · भैया",
+        "meaning": "Elder brother"
+      },
+      "didi": {
+        "label": "Didi · दीदी",
+        "meaning": "Elder sister"
+      },
+      "bhabhi": {
+        "label": "Bhabhi · भाभी",
+        "meaning": "Brother's wife"
+      },
+      "jija": {
+        "label": "Jija · जीजा",
+        "meaning": "Sister's husband"
+      },
+      "bhatija": {
+        "label": "Bhatija · भतीजा",
+        "meaning": "Brother's son"
+      },
+      "bhatiji": {
+        "label": "Bhatiji · भतीजी",
+        "meaning": "Brother's daughter"
+      },
+      "bhanja": {
+        "label": "Bhanja · भांजा",
+        "meaning": "Sister's son"
+      },
+      "bhanji": {
+        "label": "Bhanji · भांजी",
+        "meaning": "Sister's daughter"
+      },
+      "bahu": {
+        "label": "Bahu · बहू",
+        "meaning": "Son's wife"
+      },
+      "damaad": {
+        "label": "Damaad · दामाद",
+        "meaning": "Daughter's husband"
+      },
+      "pota": {
+        "label": "Pota · पोता",
+        "meaning": "Son's son"
+      },
+      "poti": {
+        "label": "Poti · पोती",
+        "meaning": "Son's daughter"
+      },
+      "nati": {
+        "label": "Nati · नाती",
+        "meaning": "Daughter's son"
+      },
+      "natin": {
+        "label": "Natin · नातिन",
+        "meaning": "Daughter's daughter"
+      },
+      "sasur": {
+        "label": "Sasur · ससुर",
+        "meaning": "Spouse's father"
+      },
+      "saas": {
+        "label": "Saas · सास",
+        "meaning": "Spouse's mother"
+      },
+      "jeth": {
+        "label": "Jeth · जेठ",
+        "meaning": "Husband's elder brother"
+      },
+      "jethani": {
+        "label": "Jethani · जेठानी",
+        "meaning": "Wife of husband's elder brother"
+      },
+      "devar": {
+        "label": "Devar · देवर",
+        "meaning": "Husband's younger brother"
+      },
+      "devrani": {
+        "label": "Devrani · देवरानी",
+        "meaning": "Wife of husband's younger brother"
+      },
+      "nanad": {
+        "label": "Nanad · ननद",
+        "meaning": "Husband's sister"
+      },
+      "nandoi": {
+        "label": "Nandoi · ननदोई",
+        "meaning": "Husband's sister's husband"
+      },
+      "bhai_sahab": {
+        "label": "Bhai Sahab · भाई साहब",
+        "meaning": "Wife's elder brother"
+      },
+      "saala": {
+        "label": "Saala · साला",
+        "meaning": "Wife's younger brother"
+      },
+      "sahlaj": {
+        "label": "Sahlaj · सलहज",
+        "meaning": "Wife's brother's wife"
+      },
+      "saali": {
+        "label": "Saali · साली",
+        "meaning": "Wife's sister"
+      },
+      "sadhu": {
+        "label": "Sadhu · साढ़ू",
+        "meaning": "Wife's sister's husband"
+      },
+      "samdhi": {
+        "label": "Samdhi · समधी",
+        "meaning": "Your child's father-in-law"
+      },
+      "samdhan": {
+        "label": "Samdhan · समधन",
+        "meaning": "Your child's mother-in-law"
+      }
+    },
+    "continue": "Continue"
   }
 }

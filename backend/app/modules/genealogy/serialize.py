@@ -276,6 +276,7 @@ class Serializer:
             is_minor=s.is_minor if not self.ctx.public else False,
             is_protected=s.is_protected,
             privacy_level=None if self.ctx.public else s.person.privacy_level,
+            is_provisional=s.person.is_provisional,
         )
 
     def summaries(self, subjects: dict[uuid.UUID, Subject]) -> dict[uuid.UUID, PersonSummary]:

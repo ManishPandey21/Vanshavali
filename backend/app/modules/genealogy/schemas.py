@@ -414,6 +414,8 @@ class PersonSummary(ApiModel):
     is_minor: bool = False
     is_protected: bool = False
     privacy_level: PrivacyLevel | None = None
+    # added "as unknown for now" by Smart Add and not yet named (ADR-0020)
+    is_provisional: bool = False
 
 
 class PersonOut(PersonSummary):
