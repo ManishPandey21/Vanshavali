@@ -1,13 +1,14 @@
 # Plan: India Master Data, Smart Forms and the next feature wave
 
-Status: **proposed** (audit and plan written 4 Nov 2026, before any code).
+Status: **proposed, revision 2** (audit and plan written 4 Nov 2026, before any code; revised the
+same day after a design review of PR #27, see §8).
 Input: an external product review that lists the features shown on the landing page, compares
 Vanshavali with Indian and international genealogy platforms, and proposes an India-specific feature
 catalogue, master dropdown data and a roadmap. Its recommended first step is "India Master Data Pack +
 Smart Add Relative Wizard".
 
 This document (1) checks each claim in that review against the code, (2) lists what is missing, and
-(3) sets out a phased plan. It follows the working rules in `CLAUDE.md`: decisions that touch
+(3) sets out a phased plan, delivered as five releases (R1–R5, §4) with acceptance criteria (§5). It follows the working rules in `CLAUDE.md`: decisions that touch
 relationship modelling, privacy, calendars, households or OCR/AI provenance get an ADR **before**
 code, and every phase lists its migrations, APIs, UI, tests and threat-model updates.
 
@@ -75,310 +76,361 @@ does not exist yet.**
    family vocabulary. A stored "Mama" relationship is never created (already the ADR-0003 model).
 2. **Suggest, never infer.** Master data are suggestions. Gotra, Pravara, religion, jati and
    kuladevata are never derived from a surname, place or relative (existing test stays the gate).
-   Choosing "Mama" in Smart Add sets sex = male because the *user* said so, not because of a name.
-3. **Every cultural field accepts Unknown, Not applicable and "Add my own".** Custom values are
-   stored per tree and never leak into the global catalogue without review.
-4. **Privacy-first defaults stay.** New features inherit person privacy, minor protection and RLS.
-   Voice notes, biodata and cross-family links are consent-gated.
-5. **Proposals before facts.** Speech-to-text, OCR, assistant answers and other families' data enter
+   A kinship term chosen in Smart Add establishes a **relationship path only**: it does not set
+   gender identity or any other sensitive attribute (see Phase D).
+3. **Two kinds of list.** *Controlled system values* (roles, privacy levels, relationship types,
+   evidence and review states, date precision…) stay code-validated enums that change only through
+   schema/API evolution. *Reference and cultural suggestions* (gotra, devak, kuladevata,
+   occupation, languages, geography, kinship terms…) live in the master-data service. Unknown,
+   Not applicable and "Add my own" are offered **where they are semantically valid**, not on every
+   dropdown.
+4. **Nothing permanent without the user seeing it.** Composite writes (Smart Add, proposals,
+   imports) show a preview and need explicit confirmation; provisional people are always visibly
+   distinct from confirmed ancestors.
+5. **Privacy-first defaults stay.** New features inherit person privacy, minor protection and RLS,
+   and reuse the existing privacy serializer. Consent, authorisation, retention and deletion rules
+   for any new collection, voice or export workflow are written into the threat and privacy models
+   **before** that phase starts (§6).
+6. **Proposals before facts.** Speech-to-text, OCR, assistant answers and other families' data enter
    as proposals that a person reviews (CLAUDE.md rule 7, ADR-0009).
+7. **Evidence, provenance and approval are separate.** *Evidence status* says how well a fact is
+   supported, *provenance* says where it came from, *review state* says whether the family has
+   approved it. None is folded into another.
 
 ---
 
-## 3. The plan
+## 3. The phases
 
-Priorities follow the review's P0/P1/P2, adjusted for what already exists. Each phase is shippable
-on its own and ends with lint, typecheck, tests, build, Playwright and the a11y audit green.
+The phases A–O are the long-term roadmap. They are **delivered as releases R1–R5** (§4), each
+behind a feature flag, each ending with lint, typecheck, tests, build, a live-stack Playwright run,
+the a11y audit and the acceptance criteria in §5.
 
-### Phase A (P0): India Master Data service — ADR-0018
+### Phase A: India Master Data service — ADR-0018
 
-**Goal.** One versioned, central vocabulary service used by every form.
+**Goal.** One versioned service for *reference and cultural* vocabularies. System enums are out of
+scope (principle 3).
 
+- **Classification first.** ADR-0018 contains a table of every dropdown in the app, marked
+  *controlled enum* or *extensible vocabulary*, and for each vocabulary whether Unknown / Not
+  applicable / Add my own apply. Initial vocabularies: gotra, pravara, devak, kuladevata, kuladevi,
+  kula/vamsha suggestions, occupation, honorific, name format, language (English + 22 Eighth-Schedule
+  languages, ISO 639 codes and scripts), religion/tradition (optional suggestions), family event
+  type suggestions, record source, property type labels, nakshatra, rashi, paksha, tithi, masa,
+  kinship terms. Relationship types, roles, privacy levels, evidence status and review states stay
+  enums with translated labels.
 - **Model (migration, with downgrade).**
-  - `vocabulary` (global): `key` (e.g. `gotra`, `kuladevata`, `occupation`, `honorific`,
-    `marital_status`, `language`, `record_source`, `property_type`), description, owner, version.
-  - `vocabulary_term` (global): stable `code`, `labels` JSONB per language (`en`, `hi`, `ta`…),
-    `aliases` (spellings, romanisations), `scope` (regions/traditions it applies to), `parent_code`
-    (e.g. pravara → gotra), `source` + `source_url`, `status` (`draft` / `reviewed` / `retired`),
-    `valid_from/to`, `updated_at`; history via the append-only audit pattern.
-  - `tree_vocabulary_term` (tree-scoped, RLS): a family's own entries and overrides ("Add my own",
-    preferred spelling). Promotion to global is a manual, reviewed admin action.
-- **API.** `GET /api/v1/vocabularies/{key}?q=&lang=&scope=&parent=` (cursor pagination, ETag,
-  long cache), `GET /t/{tree}/vocabularies/{key}` (global ∪ tree terms),
-  `POST /t/{tree}/vocabularies/{key}/terms` (contributors), admin endpoints for curation.
-- **Seed data packs** (`backend/app/modules/masterdata/packs/*.yaml`, loaded by a CLI importer, each
-  with source and licence): honorifics, living status, date accuracy, family branch, relation type,
-  household type, marital status, name format, occupation, religion/tradition (suggestions, optional),
-  English + 22 Eighth-Schedule languages (with ISO 639 codes and scripts), gotra seed list (the 12 in
-  the review plus the existing 20+, with aliases; **pravara links marked `draft` until a source is
-  attached**), devak (empty + custom), kuladevata/kuladevi (empty catalogue + custom; grown from
-  reviewed submissions), family event types, record type, record source, certainty, verification
-  status, document visibility, property type, property relation, nakshatra (27), rashi (12), paksha,
-  tithi (30), masa (12, amanta/purnimanta names).
-- **Frontend.** `useVocabulary(key)` hook (TanStack Query, long stale time) and one accessible
-  `SmartSelect` (combobox: search by label or alias in any script, grouped "Suggested / Your family
-  / Other", fixed rows *Unknown*, *Not applicable*, *Add my own…*). Replace the gotra datalist, the
-  astrology selects and the free-text occupation/honorific fields. Delete
-  `src/data/masterData/*` once the packs replace them (update CLAUDE.md).
-- **Tests.** Pack schema validation; label-language parity for `en`/`hi`; tree terms isolated across
-  trees (authz + RLS); no inference (extend the gotra test to every cultural vocabulary); SmartSelect
-  component tests (keyboard, screen-reader names, Devanagari search); migration round trip.
+  - `vocabulary` (global): `key`, description, owner, version.
+  - `vocabulary_term` (global): stable `code`, `labels` JSONB per language, `aliases`, `scope`
+    (regions/traditions), `parent_code` (e.g. pravara → gotra), `source` + `source_url`,
+    `status` (`draft` / `reviewed` / `retired`), `valid_from/to`; changes audited.
+  - `tree_vocabulary_term` (tree-scoped, RLS): a family's own entries and preferred spellings.
+    Promotion to global is a manual, reviewed admin action.
+- **Stored values.** Records store the term `code` plus the label as entered; a retired or renamed
+  term never makes an existing record unreadable.
+- **API.** `GET /api/v1/vocabularies/{key}?q=&lang=&scope=&parent=` (cursor pagination, ETag),
+  `GET /t/{tree}/vocabularies/{key}` (global ∪ tree terms), `POST /t/{tree}/vocabularies/{key}/terms`
+  (contributors), admin curation endpoints.
+- **Seed packs** (`backend/app/modules/masterdata/packs/*.yaml`, CLI importer, each with source and
+  licence). Gotra seed with aliases; **pravara links `draft` until sourced**; devak and
+  kuladevata/kuladevi start empty and grow from reviewed family submissions.
+- **Transition plan.**
+  1. Ship the service and packs behind flag `masterdata`; forms keep reading
+     `src/data/masterData/*` and enum labels.
+  2. Switch each form to `SmartSelect` one at a time; existing free-text values stay as entered and
+     are shown as-is (no rewrite of stored data).
+  3. When every consumer is switched and a release has passed, delete `src/data/masterData/*` and
+     update CLAUDE.md. Rollback = turn the flag off; tree-custom terms are kept.
+- **Frontend.** `useVocabulary(key)` and one accessible `SmartSelect` combobox (search label or
+  alias in any script; groups "Suggested / Your family / Other"; Unknown / Not applicable / Add my
+  own only where the vocabulary allows them).
+- **Tests.** Pack schema validation; en/hi label parity; versioning (retired term still renders);
+  tree terms isolated across trees (authz + RLS); no inference across every cultural vocabulary;
+  SmartSelect keyboard, screen-reader names and Devanagari search; migration round trip.
 
-### Phase B (P0): Indian geography reference — ADR-0019
+### Phase B: Indian geography reference — ADR-0019
 
-**Goal.** State → District → Sub-district/Tehsil/Taluka → Village/Town cascade with stable LGD
-codes, PIN lookup, historical names and "My village is not listed".
+**Goal.** State → District → Sub-district/Tehsil/Taluka → Village/Town with stable LGD codes, PIN
+lookup, historical names and "My village is not listed". Runs **in parallel** with R1 and never
+blocks it.
 
-- **Data.** Import the Local Government Directory (states/UTs 36, districts ≈ 780, sub-districts
-  ≈ 7,000, villages ≈ 6.5 lakh, urban local bodies, gram panchayats) from data.gov.in (GODL-India
-  licence: attribution required) and the India Post PIN/post-office directory. Global, read-only
-  tables: `geo_unit` (`lgd_code`, `level`, `parent_lgd_code`, names in English + local script,
-  `valid_from/to`, `successor_codes` for splits/renames), `geo_unit_alias`, `pincode_office`
-  (PIN ↔ office ↔ district, **many-to-many**; never assume one PIN = one village). Versioned
-  snapshots; `app.cli.geo import --snapshot YYYY-MM` is idempotent and reports changes.
-- **Link to tree places.** A tree `place` keeps its own record (privacy, as-recorded text,
-  historical name) and *optionally* references a `geo_unit` via the existing `lgd_code` column. The
-  district/state text fields are filled from the reference but stay editable. Pre-1947 and
-  outside-India places stay free text with a historical-name flag.
-- **API.** `GET /api/v1/geo/units?level=&parent=&q=` (trigram on names and aliases, any script),
-  `GET /api/v1/geo/pincodes/{pin}`. Public reference data, rate-limited, no tree data involved.
-- **UI.** `PlaceCascade` component used by the Places page, birth/death/event places, heritage
-  "Mool gaon / ancestral village" and property parcels. Tehsil label follows the state
-  (Tehsil / Taluka / Mandal / Block). Six-digit PIN field with lookup that *suggests* offices.
-- **"Remember my ancestral village".** When a branch or the claimant's father line has an
-  `ancestral_village` assertion, Smart Add and the heritage form pre-select it as a **suggestion**
-  (visible chip "From the Sharma branch — change"); saving records it as the user's own assertion.
-- **Tests.** Import idempotency and change report; cascade queries p95 < 100 ms on the full village
-  table; PIN many-to-many; historical place preserved on LGD rename; free-text fallback.
-- **Ops.** ≈ 7 lakh rows (< 300 MB with indexes); include in backups; document refresh cadence in
-  `docs/operations/`.
+- **Staged import** (`app.cli.geo import --stage … --snapshot YYYY-MM`, idempotent):
+  1. States/UTs, districts, sub-districts (≈ 8,000 rows).
+  2. Villages and urban local bodies, **state by state** (≈ 6.5 lakh in total).
+  3. India Post PIN/post-office directory (PIN ↔ office ↔ district, many-to-many).
+  4. Optional: gram panchayats.
+- **Provenance checks before activation.** Each snapshot records source URL, download date,
+  licence (GODL-India, attribution), checksum and row counts; an import produces a change report
+  (new, renamed, split, retired codes) that an admin reviews before the snapshot becomes active.
+  The previous snapshot stays available for rollback.
+- **Model.** Global read-only `geo_unit` (`lgd_code`, `level`, `parent_lgd_code`, English and
+  local-script names, `valid_from/to`, `successor_codes`), `geo_unit_alias`, `pincode_office`,
+  `geo_snapshot`. A tree `place` keeps its own record and *optionally* references a unit via the
+  existing `lgd_code`; district/state text is pre-filled but editable. Historical, pre-1947,
+  unlisted and outside-India places stay free text.
+- **API.** `GET /api/v1/geo/units?level=&parent=&q=`, `GET /api/v1/geo/pincodes/{pin}`; public
+  reference data, rate-limited, no tree data.
+- **UI.** `PlaceCascade` (Places, vital and event places, ancestral village, parcels); the tehsil
+  label follows the state (Tehsil / Taluka / Mandal / Block); PIN lookup *suggests* offices.
+- **"Remember my ancestral village".** A branch's `ancestral_village` assertion is offered as a
+  visible, dismissible suggestion; saving records the user's own assertion.
+- **Benchmarks (acceptance).** On the full village table on pilot-sized hardware: cascade children
+  p95 < 50 ms, name search p95 < 150 ms, import of one large state < 5 min, total footprint
+  documented; included in the backup drill.
 
-### Phase C (P0): Kinship engine v2 — "Relationship in my language" — ADR-0020
+### Phase C: Kinship engine v2 — "Relationship in my language" — ADR-0020
 
-**Goal.** Correct regional terms from the viewer's point of view, including elder/younger.
+**Goal.** Correct regional terms from the viewer's point of view, with honest uncertainty.
 
-- **Relative age.** Derive elder/younger from birth dates when both are known. When not, allow an
-  optional `birth_order` on a person within a sibling set, or a `relative_age` (`elder`/`younger`)
-  attribute on a sibling relationship, captured in Smart Add ("Elder brother / Younger brother").
-  This is a relationship-modelling change: ADR first, migration with downgrade.
-- **Move term resolution to the backend.** A `kinship` module with term tables in the master-data
-  service (`vocabulary` key `kinship_term`), keyed on: chain, sex of each hop, relative age where it
-  matters, **speaker's sex** where languages differ, language, and region/tradition.
-  `/relationship-path` returns `terms: [{lang, term, transliteration, alternatives}]` alongside the
-  existing English label and chain. The frontend `kinship.ts` becomes a thin renderer.
-- **Coverage.** Every term in the North-Indian diagram supplied with the review (Dada/Dadi,
-  Nana/Nani, Tau/Tai, Chacha/Chachi, Bua/Fufa, Mama/Mami, Mausi/Mausa, Didi/Jija, Behen/Behnoi,
-  Bhaiya/Bhabhi, Bhai/Bhayo, Bhatija/Bhatiji, Bhanja/Bhanji, Jeth/Jethani, Dewar/Devrani,
-  Nanad/Nandoi, Bhai Sahab/Saala/Sahlaj, Saali/Sadhu, Bahu, Damaad, Samdhi/Samdhan, Pota/Poti,
-  Nati/Natin), then Marathi, Gujarati, Punjabi, Bengali, Tamil, Telugu, Kannada and Malayalam
-  packs, each reviewed by native speakers before `status = reviewed`.
-- **Family vocabulary.** A tree (or branch) can pick its preferred word for a term (e.g. "Bhayo"
-  vs "Bhabhi", "Mausa" vs "Mausaji"), stored as a tree vocabulary override.
-- **"Me" perspective.** If the signed-in user has a claimed profile, profile headers and tree
-  nodes show "Your Mama · मामा — mother's brother", with the path on hover/focus; the relationship
-  calculator defaults "from" to me. Without a claimed profile nothing is assumed.
-- **Tests.** Table-driven engine tests for every diagram term (both speaker sexes, elder/younger,
-  unknown age → both alternatives), privacy (a hidden intermediate person must not leak the term's
-  path), en/hi snapshot tests.
+- **Age order between the right pair.** Terms compare the relevant siblings, not the viewer:
+  Tau vs Chacha compares the uncle with the **father**; Jeth vs Devar compares the brother-in-law
+  with the **husband**; Didi/Bhaiya compare the sibling with the speaker. The engine names the pair
+  it compared in its explanation.
+- **Sources of age order, in precedence:**
+  1. A **family-confirmed** `relative_age` on the sibling pair (`elder` / `younger`), recorded with
+     who confirmed it; it wins over dates.
+  2. Birth dates, only when both are precise enough to order them unambiguously (overlapping
+     ranges, circa dates and conflicting birth claims give no answer).
+  3. Otherwise **unresolved**: both terms are shown ("चाचा / ताऊ") with a prompt "Is he older or
+     younger than your father?" whose answer records (1).
+- **Unknown sex on a hop** gives the neutral reading with alternatives (e.g. "mother's sibling —
+  Mama / Mausi"), never a guess.
+- **Backend term resolution.** A `kinship` module reads term data from the master-data service,
+  keyed on chain, sex of each hop, age order of the relevant pair, speaker's sex where languages
+  differ, language and region. `/relationship-path` returns `terms: [{lang, term,
+  transliteration, alternatives, basis}]` next to the existing label and chain; `kinship.ts`
+  becomes a renderer.
+- **Coverage.** R1: every term in the North-Indian diagram supplied with the review (Dada/Dadi …
+  Samdhi/Samdhan, Nati/Natin) plus half, step and adoptive variants. R4: regional packs (Q14),
+  each `draft` until native-reviewed.
+- **Family vocabulary** overrides (e.g. "Bhayo" vs "Bhabhi") per tree or branch.
+- **"Me" perspective** only when the user has a claimed profile; otherwise nothing is assumed.
 
-### Phase D (P0): Smart Add Relative wizard and progressive profiles
+### Phase D: Smart Add Relative wizard and progressive profiles
 
-**Goal.** "Whom do you want to add?" in one step, with only the information needed now.
+**Goal.** "Whom do you want to add?" in one guided flow that never inserts people the user has not
+seen and confirmed.
 
-- **Wizard.** Primary choices: Father, Mother, Spouse, Son, Daughter, Elder/Younger Brother,
-  Elder/Younger Sister; "More relations" lists kinship terms from Phase C in the user's language
-  (Dada, Nani, Chacha, Mama, Bua, Mausi, Bhabhi, Jija, Bahu, Damaad…). Each term maps to a *path*
-  of basic edges. Step 2 asks for a name (with transliteration suggestion), living status and
-  approximate year; everything else is "Add more details" (progressive disclosure).
-- **Composite creation API.** `POST /t/{tree}/people/{p}/relatives/by-path` creates the target and
-  any missing intermediate people in **one transaction** (e.g. "Mama" with no mother on file creates
-  "Mother of Aarav (name unknown)" as an *unnamed placeholder*, marked so the UI can prompt to fill
-  it). Re-uses existing intermediates when exactly one candidate exists; asks the user to choose
-  when there are several (e.g. two wives); never guesses. Suggests duplicates before creating.
-  Placeholder people and their privacy are part of ADR-0020.
-- **Progressive person form.** Step 1: name, relation, living status. Step 2 (optional):
-  birth year/date accuracy, place cascade, occupation, marital status, honorific, name format and
-  name language/script. Heritage, astrology and documents stay in their tabs.
-- **Transliteration assist.** Typing "Ramesh" offers "रमेश" (and other scripts the family uses) as an
-  extra `name_record` of type `transliteration`; the original spelling is always kept. Start with
-  the `indic-transliteration` library already used for search; evaluate BHASHINI as an opt-in
-  provider later (external processing needs Q7 consent).
-- **Tests.** Vitest for each wizard path; API tests for every term → path mapping, placeholder
-  creation, ambiguity (multiple spouses/parents), cross-tree IDs (IDOR), viewer role denied;
-  Playwright: "add my Nani from scratch in under 6 interactions" on mobile viewport.
+- **Choose.** Father, Mother, Spouse, Son, Daughter, Brother, Sister (each with an optional
+  "older / younger than <anchor>" answer that records `relative_age`), and "More relations" listing
+  Phase C terms in the user's language. Each term maps to a path of basic edges.
+- **Resolve each intermediate hop.** For "Mama": the anchor's mother is (a) the recorded mother,
+  (b) another existing person the user picks (with duplicate suggestions), or (c) a new
+  **provisional** person, explicitly chosen. With several candidates (two mothers, several unions)
+  the user picks; the system never guesses.
+- **Preview.** Before anything is written the wizard shows the full path and every record that will
+  be created or linked ("Ramesh → Mother (existing: Sunita) → her brother (new)"). Nothing is
+  persisted until the user confirms.
+- **Commit.** `POST /t/{tree}/people/{p}/relatives/by-path` with the confirmed plan: one
+  transaction, re-validated server-side (people still visible and in the same tree, no cycles, no
+  duplicate parent of the same type, union exists), returns the created IDs and an undo token.
+  "Undo" within the session soft-deletes exactly those records and edges.
+- **Provisional people.** A `provisional` flag (ADR-0020, migration with downgrade): shown with a
+  distinct badge and "unnamed" label, excluded from counts and exports by default, private
+  (living-by-default) and listed under "To complete". Filling in a name clears the flag.
+- **Identity fields.** The chosen term does not set gender identity. `sex_at_birth` is *offered*
+  pre-selected from the term on the confirmation step; the user can change it or leave it "not
+  recorded", in which case Phase C shows the neutral reading.
+- **Progressive form.** Step 1: name (with transliteration suggestion, original kept), living
+  status, approximate year. "Add more details" expands date accuracy, place cascade (when R2 is on),
+  occupation, honorific, name format and name language/script.
 
-### Phase E (P0): Unknown/custom everywhere and the Hindi pass
+### Phase E: Unknown/custom review and the Hindi pass
 
-- Audit every select in the app for Unknown / Not applicable / Other (a lint test over the form
-  components).
-- Hindi native review of the new strings (extend `docs/localization/hindi-review-checklist.md`).
-- Private-by-default and review controls already exist; Phase F adds the review workflow.
+Apply the ADR-0018 classification to every form (Unknown / Not applicable / Add my own only where
+valid), native Hindi review of new strings, and the elder-friendly UX review in §5.
 
-### Phase F (P1): Family-verified ancestry (change proposals and review) — ADR-0021
+### Phase F: Family-verified ancestry (change proposals and review) — ADR-0021
 
-**Goal.** "When someone proposes a new ancestor or changes a relationship, a designated reviewer
-confirms it." This is the deferred PRS §28 collaboration work.
+- `change_proposal` (tree-scoped): proposer, target, **base revision** of each target record,
+  diff, rationale, sources, status (`draft → awaiting_review → accepted / rejected / contested /
+  stale`), reviewer, comments. Tree setting: contributors' changes to ancestors, relationships and
+  heritage fields need review. A `REVIEWER` capability (RBAC change → threat model).
+- **Bound to an exact revision.** Approval applies only if every target is still at its base
+  revision; otherwise the proposal becomes `stale` and must be rebased and re-reviewed. The reviewer
+  sees the diff against the current state, never a cached one.
+- **Separate concepts (principle 7).** `EvidenceStatus` is unchanged (no `FAMILY_CONFIRMED`).
+  Family approval is a separate `review_state` on the fact (`unreviewed / family_reviewed /
+  contested`) with reviewer and time; provenance stays in `ProvenanceMixin`. The review's certainty
+  words are UI labels over these: document-supported = SOURCED/CORROBORATED, family-reported =
+  FAMILY_RECOLLECTION, estimated = imprecise date, disputed = DISPUTED, family-confirmed =
+  `review_state = family_reviewed`.
+- Challenge a fact → contested proposal. Per-person version history from the audit log, with revert.
+- In-app notification centre.
 
-- `change_proposal` (tree-scoped): proposer, target (person/relationship/event/assertion), diff,
-  rationale, attached sources, status (`draft → awaiting_review → accepted / rejected / contested`),
-  reviewer, comments; tree setting to require review for contributors on ancestors, relationships
-  and heritage fields. A new `REVIEWER` capability on roles (RBAC change → threat model).
-- Per-fact **certainty** in the review's vocabulary, mapped onto existing `EvidenceStatus`
-  (document-supported = SOURCED/CORROBORATED, family-confirmed = new `FAMILY_CONFIRMED`,
-  family-reported = FAMILY_RECOLLECTION, estimated = date precision `circa` + USER_ASSERTION,
-  disputed = DISPUTED). Challenge a fact → opens a contested proposal.
-- Version history per person built from the audit log (read model), with "revert this change".
-- Notification centre (in-app) for proposals, comments and reviews.
-- Tests: authz matrix (contributor cannot self-approve; branch admin limited to branch), IDOR,
-  living-person data in diffs redacted for viewers without access.
+### Phase G: Gotra/Pravara/Kuladevata and family traditions
 
-### Phase G (P1): Gotra/Pravara/Kuladevata and family traditions
+- Heritage attributes `devak`, `ancestral_occupation`, `surname_history` (or historical
+  `name_record`s with a period), multi-valued `family_language`.
+- Pravara suggestions filtered by gotra **only from reviewed, sourced links**, always editable,
+  with "associations vary by tradition".
+- Kuladevata/Kuladevi catalogue from reviewed family submissions, linked to a temple `place`.
+- In-app cultural archive: `tradition_entry` (ritual guides, customs, songs, recipes) with people,
+  events, places, branch scope, privacy and sources.
 
-- New heritage attributes: `devak`, `ancestral_occupation`, `surname_history` (or reuse historical
-  `name_record`s with a period), `family_language` (multi-valued, from the language vocabulary).
-- Pravara suggestions filtered by selected gotra **only from reviewed, sourced links**, always
-  editable, with the note "associations vary by tradition".
-- Kuladevata/Kuladevi catalogue grown from family submissions (review queue), linked to a temple
-  `place` with geography.
-- **In-app cultural archive.** `tradition_entry` (tree-scoped): ritual guides, recipes, songs,
-  customs, with linked people, events, places, branch scope, privacy and sources. Turns the
-  landing-page "Stories, guides & wisdom" into a real family feature.
+### Phase H: Indian family calendar — ADR-0022
 
-### Phase H (P1): Indian family calendar — tithi reminders — ADR-0022
+- **Gates before code:** Q16 (engine chosen and licence reviewed) and the regional conventions in
+  Q6 approved. This phase **does not resolve Q6 by itself**; it implements whatever Q6 decides.
+- Optional lunar component on `GenealogicalDate` (`masa`, `paksha`, `tithi`, `month_convention`,
+  `region`), original text always kept.
+- Tithi → next Gregorian date for a stated location, time zone and convention; reminders: solar
+  date, lunar tithi, one-time, custom; Punyatithi and Shraddha event types. The reminder states the
+  convention and place it used.
+- Family calendar page; per-user ICS feed (private, revocable token; follows the viewer's privacy).
+- **Accuracy tests:** golden tables per convention, several cities and overseas time zones, over
+  several years incl. adhik masa and kshaya tithi, checked against published panchangs; tolerance
+  and known-divergence cases documented.
 
-- Extend `GenealogicalDate` with an optional lunar component: `masa`, `paksha`, `tithi`,
-  `month_convention` (amanta/purnimanta), `region`, and keep the original text. Resolves Q6 for
-  Vikram Samvat, Shaka, Bengali, Tamil and Malayalam (Kollam) calendars (year/month/day mapping where
-  computable; otherwise stored as recorded).
-- A Panchang engine (self-hosted; evaluate Swiss Ephemeris — AGPL or commercial licence — versus a
-  permissively-licensed algorithm) that computes the next Gregorian date of a tithi for a location's
-  sunrise. Reminder types: solar date, lunar tithi, one-time, custom. Event types Punyatithi and
-  Shraddha (Pitru Paksha) added to the event-type vocabulary.
-- Family calendar page: month view of birthdays, anniversaries, punyatithis and family gatherings,
-  ICS feed per user (private token, revocable).
-- Tests: golden tables of tithi → date for several years and cities checked against published
-  panchangs; DST-free IST and overseas time zones; adhik masa.
+### Phase I: Oral history — "Ask an Elder" — ADR-0023
 
-### Phase I (P1): Oral history — "Ask an Elder" — ADR-0023
+- **Gates before code:** Q17 decided; privacy model updated with the rules below.
+- `story`: title, narrator, interviewer, date/place, language, people tagged, privacy, consent
+  record; media are vault documents.
+- In-browser recording (MediaRecorder, Opus, resumable upload).
+- **Ask an Elder link** on the ADR-0011 link infrastructure: single-purpose, expiring, one question,
+  the elder's language; the elder (or guardian) gives recorded consent before recording; no account
+  and no tree access.
+- **Consent withdrawal:** the narrator can withdraw at any time; media, transcript and unreviewed
+  proposals are erased; already-accepted facts keep their citation but lose the media link.
+- **Retention:** raw audio is kept for a defined period (default proposed: until transcript review
+  plus 90 days) unless the family explicitly chooses to archive it; transcripts follow story
+  privacy; both covered by erasure and "remove me".
+- **Other living relatives mentioned:** stories default to the most restrictive of narrator and
+  tagged-person privacy; facts about other people become proposals governed by *their* privacy;
+  a tagged relative can ask to be untagged or for the passage to be hidden.
+- Speech-to-text self-hosted by default; external provider only per-tree informed opt-in (Q7/Q17);
+  transcript → `extraction_proposal`s.
 
-- `story` (tree-scoped): title, narrator (person), interviewer, recorded date/place, language,
-  people tagged, privacy, consent record link; media are vault documents (audio/video).
-- In-browser recording (MediaRecorder, Opus; resumable upload; works on low-end Android).
-- **Ask an Elder link**: built on the ADR-0011 claim-link infrastructure — a single-purpose,
-  expiring WhatsApp link that opens a big-button, one-question page in the elder's language; the
-  elder (or a guardian) gives recorded consent before recording. No account needed; no tree access.
-- Speech-to-text, self-hosted by default (evaluate AI4Bharat IndicConformer / Whisper for hi, ta, te,
-  mr, bn…); BHASHINI as an opt-in external provider per tree (Q7). Transcript → name/date/place
-  extraction → `extraction_proposal`s reviewed like OCR proposals. Never writes facts directly.
-- Threat model: voice is biometric-adjacent personal data; retention, erasure and "remove me" apply.
+### Phase J: Duplicate detection inside Smart Add
 
-### Phase J (P1): Duplicate detection and sources — small extensions
+Duplicate check in the wizard's resolve step, match reasons including LGD village and parents, and a
+"possible duplicate" badge.
 
-Already implemented; add: duplicate check **inside** Smart Add, match reasons that include LGD
-village and parents, and a "possible duplicate" badge on new people.
+### Phase K: Family book, PDF and image export
 
-### Phase K (P1): Family book, PDF and image export
+- Server-side background job, self-hosted Indic fonts, signed download.
+- **Access control, not watermarks.** Content goes through the existing privacy serializer as the
+  exporter. Living people's private fields are excluded unless the exporter is entitled to them
+  **and** the export scope permits them; including other living people's private details needs
+  their recorded consent (or the tree policy that ADR defines). A watermark is added for
+  traceability only. Exports are audited.
 
-Narrative family book (cover, lineage chapters per branch, person pages with privacy filters, heritage
-summary, photos, sources), rendered server-side as a background job (WeasyPrint or headless Chromium,
-both with self-hosted Devanagari/Indic fonts), signed download. Printable chart posters reuse the
-renderer. Living-person content follows the exporter's view, with an explicit "include living
-people" opt-in and a watermark.
+### Phase L: Elder-friendly, low-bandwidth mobile
 
-### Phase L (P1): Elder-friendly, low-bandwidth mobile
+- PWA, image compression, "large text / simple mode", data-saver.
+- **Shared-device safety:** offline storage holds only the user's own drafts (no cached profiles of
+  others); drafts are cleared on logout and after session expiry; a "this is a shared device"
+  option shortens session lifetime and disables offline drafts; no sensitive data in service-worker
+  caches (tests inspect the caches).
+- Budget: < 200 KB gzipped JS on the tree home route; throttled-3G Playwright run.
 
-PWA install, offline draft for Smart Add and story recording, image compression before upload, a
-"large text / simple mode" toggle, and a data-saver mode that skips thumbnails and animations.
-Budget: first load < 200 KB gzipped JS on the tree home route; test on a throttled 3G profile in
-Playwright.
+### Phase M: Matrimonial biodata — ADR-0024 (later)
 
-### Phase M (P2): Matrimonial biodata — ADR-0024
+Consent-first: only the subject (or guardian of a minor) generates their own biodata; field-by-field
+selection through the privacy serializer; other relatives' living data only with their consent;
+expiring private link. **Non-goals:** compatibility scoring, guna milan verdicts, caste/gotra
+matching.
 
-Consent-first: only the subject (claimed profile) or a guardian of a minor-turned-adult can generate
-their own biodata. Field-by-field selection from their profile, heritage and astrology data; family
-members' living data included only with their own consent; PDF with watermark and expiry link;
-never public, never indexed. **Non-goals:** compatibility scoring, guna milan verdicts or any
-caste/gotra matching decision.
+### Phase N: Migration map, research links, cross-family connections, activity feed (later)
 
-### Phase N (P2): Migration map, research assistance, cross-family connections, activity feed
+LGD-coded map points and optional self-hosted tiles; outbound links to FamilySearch India and
+Abhilekh Patal (no scraping); cross-family connections by mutual admin consent (own ADR); activity
+feed and announcements respecting privacy and branch scope.
 
-- Ancestral-village migration map: already implemented tile-free; add LGD-coded points and an
-  optional self-hosted tile layer.
-- Research assistance: links out to FamilySearch India collections and Abhilekh Patal by place and
-  period (no scraping, PRS §4).
-- **Cross-family connections — ADR required** (privacy/RBAC): link a person to the same person in
-  another tree (e.g. the bride's natal family) by mutual admin consent; each tree keeps its own
-  data; shared fields are opt-in; revocable.
-- Activity feed, reunions and announcements per tree (respecting privacy and branch scope).
+### Phase O: Family Knowledge Assistant (later)
 
-### Phase O (P2/P3): Family Knowledge Assistant
-
-Answers questions like "Who was my grandfather's elder brother, where was he born, and which branch
-are his children in?" in Hindi, Tamil or English.
-
-1. First a **deterministic** query layer: parse a kinship phrase into a path using the Phase C term
-   tables, run it through the existing engine and privacy filter, highlight the path in the
-   relationship web. No AI needed for most questions.
-2. Optional LLM layer (self-hosted by default; external only per Q7 consent) that turns free
-   questions into those structured queries and phrases the answer **only** from returned, visible
-   records, with citations. When data are missing it offers "Ask a relative" (Phase I link) instead
-   of guessing.
+Deterministic kinship-query layer first (Phase C terms → engine → privacy filter → highlighted
+path); optional LLM layer later (self-hosted by default, Q7) that answers only from visible records
+with citations and offers "Ask a relative" instead of guessing.
 
 ---
 
-## 4. Roadmap summary
+## 4. Releases
 
-| Priority | Phase | Delivers | ADR | Depends on |
-|---|---|---|---|---|
-| P0 | A Master data service | Central versioned vocabularies, SmartSelect with Unknown/NA/custom | 0018 | — |
-| P0 | B Geography reference | LGD cascade, PIN lookup, historical names, ancestral-village suggestion | 0019 | A |
-| P0 | C Kinship engine v2 | Elder/younger, full North-Indian set, regional packs, "your Mama" | 0020 | A |
-| P0 | D Smart Add + progressive forms | One-step "Add my Nani", placeholders, transliteration assist | 0020 | A, C (B optional) |
-| P0 | E Unknown/custom audit, Hindi review | No blocked users; reviewed strings | — | A |
-| P1 | F Family-verified ancestry | Change proposals, reviewer role, challenges, history | 0021 | — |
-| P1 | G Heritage + traditions | Devak, pravara-by-gotra, kuladevata catalogue, in-app cultural archive | — (extends 0003) | A, B |
-| P1 | H Family calendar | Tithi dates and reminders, Punyatithi/Shraddha, ICS | 0022 | A |
-| P1 | I Oral history | Stories, recording, Ask-an-Elder link, STT → proposals | 0023 | F helpful |
-| P1 | J Duplicates in Smart Add | Fewer duplicates at entry | — | D |
-| P1 | K Family book | PDF/print family book | — | — |
-| P1 | L Low-bandwidth mobile | PWA, offline drafts, simple mode | — | D, I |
-| P2 | M Biodata | Consent-first biodata PDF | 0024 | A, G |
-| P2 | N Map, research links, cross-family, feed | Growth and engagement | new ADR for cross-family | B, F |
-| P2/P3 | O Knowledge assistant | Ask questions in your language | new ADR (AI) | C, F |
+| Release | Phases | Scope | Done when |
+|---|---|---|---|
+| **R1 — Core usability** | A (minimal: classification, service, kinship-term and occupation/honorific/language vocabularies), C (Hindi, North-Indian set, age-order rules), D, E (for the touched forms) | Smart Add Relative with preview, reliable Hindi relationship terms, progressive person entry | A user adds common relatives (incl. Mama, Nani, Bhabhi) through one guided flow, sees the correct Hindi term or an honest "चाचा / ताऊ" with a question, and no unconfirmed person is ever created |
+| **R2 — India geography** | B (stages 1–3), "remember my ancestral village" | Searchable cascades, aliases, PIN suggestions | Users pick Indian locations without retyping; benchmarks in Phase B met |
+| **R3 — Data integrity** | F, J | Change proposals bound to revisions, reviewer controls, challenges, review state, duplicates at entry | Family members can propose, review and challenge changes; stale approvals impossible |
+| **R4 — Cultural depth** | G, rest of A, regional kinship packs (C) | Gotra/Pravara suggestions, Devak, Kuladevata, regional dictionaries, traditions archive | Heritage data structured and searchable; packs native-reviewed |
+| **R5 — Engagement** | H, I, K, L | Family calendar and Punyatithi, oral history, family book, elder-friendly mobile | Each gated by its open question and privacy-model update |
+| Later | M, N, O | Biodata, cross-family links, research and knowledge assistant | Own ADRs |
 
-**Recommended first slice** (agrees with the review): Phase A + the kinship term data from Phase C +
-Phase D, delivered as one milestone ("Master Data Pack + Smart Add Relative"), with Phase B started
-in parallel because the LGD import is independent.
+The full LGD import (R2) runs in parallel with R1 and does not block it.
 
-## 5. Security and privacy work per phase (CLAUDE.md rule 5)
+**Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)
+must be signed off by counsel before any public launch, regardless of which releases have shipped.
 
-| Phase | Threat-model / privacy-model update | Negative tests |
+## 5. Acceptance criteria (in addition to the repository's existing requirements)
+
+Before R1 starts:
+
+1. ADR-0018 contains the master-data classification (controlled enum vs extensible vocabulary, and
+   where Unknown / Not applicable / Add my own apply), with versioning and localisation tests
+   planned.
+2. ADR-0020 covers age-order precedence, provisional people and the Smart Add preview.
+3. A migration and feature-flag strategy that rolls back without losing tree-custom terms or people
+   created through Smart Add.
+
+Before any release is declared complete:
+
+4. **Smart Add:** never persists without confirmation; tests for an existing parent, duplicate
+   parents, multiple unions, cycles, a hidden intermediate, cross-tree IDs (IDOR/BOLA), viewer
+   denied, and undo.
+5. **Kinship matrix (deterministic, Hindi):** paternal and maternal branches, elder / younger /
+   unknown / conflicting age (comparing the correct pair), family-confirmed order overriding dates,
+   unknown sex, half / step / adoptive, both speaker sexes, viewer perspective, and privacy
+   filtering (no leakage through a hidden person).
+6. **Master data:** versioning (retired terms still render), en/hi label parity, tree isolation.
+7. Current backend and frontend CI green, a live-stack Playwright run, privacy-negative tests for
+   the release, and a manual Hindi and elder-friendly UX review (large text, low-end Android,
+   slow network) recorded in `docs/accessibility/`.
+
+## 6. Security and privacy work per phase (CLAUDE.md rule 5)
+
+Written into `threat-model.md` / `privacy-model.md` before the phase's code.
+
+| Phase | Model update | Negative tests |
 |---|---|---|
-| A | Tree custom terms are tree data (RLS); global curation is admin-only | Cross-tree term read/write, contributor promoting to global, XSS in labels |
-| B | Public reference endpoints only; no tree data | Rate limit, query abuse (wildcard scans) |
-| C/D | Kinship terms must not reveal hidden intermediate people; placeholder people are living-by-default and private | Hidden-path leakage, IDOR on anchor/intermediate IDs, viewer escalation |
-| F | Reviewer capability; diffs carry living data | Self-approval, branch-scope escape, diff redaction |
-| H | ICS feed tokens | Token guessing/reuse after revocation, living birthdays in feed for viewers |
-| I | Voice recordings, elder consent, external STT | Link reuse/expiry, recording without consent, upload of non-audio, erasure removes media and transcripts |
-| K/M | Exports of living people | Export by viewer, biodata of another living person, signed-URL reuse |
-| N | Cross-tree linking | Data flowing across trees without both admins' consent |
+| A | Tree custom terms are tree data (RLS); global curation admin-only | Cross-tree term read/write, contributor promoting to global, XSS in labels |
+| B | Public reference endpoints only | Rate limit, query abuse |
+| C/D | Terms must not reveal hidden people; provisional people private; undo scope | Hidden-path leakage, IDOR on anchor/intermediates, viewer escalation, undo of someone else's records |
+| F | Reviewer capability; diffs carry living data; revision binding | Self-approval, branch-scope escape, diff redaction, approving a stale proposal |
+| H | ICS tokens | Token reuse after revocation, living birthdays leaking to viewers |
+| I | Consent, withdrawal, retention, third-party mentions, external STT | Link reuse/expiry, recording without consent, non-audio upload, withdrawal erases media/transcript/proposals |
+| K/M | Export scope and consent | Viewer export, another living person's private data, signed-URL reuse |
+| L | Shared devices, local caches | Data left after logout/expiry, other people's data in caches |
+| N | Cross-tree linking | Data crossing trees without both admins' consent |
 
-## 6. Open questions to add (owner decisions)
+## 7. Open questions (owner decisions)
 
-- **Q14** Which regional kinship vocabularies after Hindi, and who reviews them?
-- **Q15** LGD/India Post refresh cadence, and whether pre-1947 district boundaries are needed.
-- **Q16** Panchang engine licence (Swiss Ephemeris AGPL vs commercial vs own implementation).
-- **Q17** Speech-to-text: self-hosted only, or BHASHINI opt-in? Retention period for raw audio.
-- **Q18** Is matrimonial biodata in scope at all for the pilot audience?
-- **Q19** Product name: the review calls the product "Parampara"; the repo, UI and domain use
-  "Vanshavali". Confirm the brand before new marketing copy is written.
+Recorded in [open-questions.md](open-questions.md) with the defaults proposed in the review:
 
-## 7. Notes on the review's competitor list
+- **Q13** (existing) is a **public-launch gate**.
+- **Q14** Regional kinship vocabularies: Hindi first, then native-reviewed packs prioritised by
+  actual user demand.
+- **Q15** LGD updates: quarterly, versioned snapshots; historical and unlisted places stay editable.
+- **Q16** Panchang engine: select and legally review a supported engine before enabling automated
+  lunar reminders.
+- **Q17** Voice processing: self-hosted by default; external only with informed opt-in; documented
+  retention and deletion.
+- **Q18** Biodata: deferred, consent-first, no compatibility scoring.
+- **Q19** Product name: keep "Vanshavali" in the repo and app; decide whether "Parampara" is a
+  separate heritage brand before changing public branding. *vanshavali.net.in* is another product;
+  check trademark/domain overlap before a public launch.
 
-- The review lists *vanshavali.net.in* as a competitor. That is a different product from this
-  repository; check trademark/domain overlap before a public launch.
-- Competitor feature claims were not tested by the reviewer or in this audit. Features worth
-  adopting are already reflected in the phases above (relationship explanation → C, cross-family
-  links and structured cultural fields → G/N, WhatsApp voice notes → I, activity feed → N, simple
-  cultural forms → A/D, transliteration and printable designs → D/K, duplicate suggestions → J,
-  evidence-backed research → F, review and approval → F).
+## 8. Revision history
+
+- **Rev 1 (4 Nov 2026):** audit and phases A–O.
+- **Rev 2 (4 Nov 2026), after design review of PR #27:** Smart Add requires a preview and explicit
+  confirmation, with provisional people visibly distinct (D); master data split into controlled
+  enums and extensible vocabularies with a transition plan (A); age order compares the correct pair,
+  supports uncertainty and family-confirmed order (C); kinship terms no longer set identity fields
+  (D); `FAMILY_CONFIRMED` dropped in favour of a separate review state, and proposals bound to a
+  base revision (F); staged LGD import with provenance checks and benchmarks (B); calendar no longer
+  claims to resolve Q6 (H); consent, retention and third-party rules for voice (I); exports governed
+  by the privacy serializer and consent, not watermarks (K); shared-device controls (L); releases
+  R1–R5 and acceptance criteria (§4–5); Q13 made a public-launch gate.
+
+Competitor feature claims in the original review were not tested, either by the reviewer or in this
+audit. The features worth adopting are in the phases above.
