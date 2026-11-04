@@ -24,6 +24,8 @@ erDiagram
   PERSON ||--o{ RELATIONSHIP : "person_b (child / partner)"
   RELATIONSHIP |o--o{ RELATIONSHIP : "union_id (child's parents' union)"
   PERSON ||--o{ RELATIVE_AGE_ORDER : "elder / younger (family-confirmed)"
+  TREE ||--o{ TREE_VOCABULARY_TERM : "family's own entries"
+  ASSERTION }o--o| VOCABULARY_TERM : "value_json names an entry (label kept)"
   PERSON ||--o{ EVENT_PARTICIPANT : participates
   EVENT ||--o{ EVENT_PARTICIPANT : has
   EVENT }o--o| PLACE : "occurs at / migrated from"
@@ -102,6 +104,7 @@ graph LR
 | At most two non-disputed biological parents. More claims must be recorded as `DISPUTED`. | Service (409 `too_many_biological_parents`) |
 | Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents; the relationship calculator treats such a pair as sharing a virtual parent that is never returned. | `genealogy.engine.family`, `engine._LazyGraph` (ADR-0020) |
 | Kinship terms (Mama, Tau, Bhabhi…) are never stored. Smart Add turns a term into basic edges, after a preview the user confirms. | `smartadd.terms`, `smartadd.service` (ADR-0020) |
+| Suggestion lists (gotra, kula, kuladevata, occupation, honorific, language) are master data; system values (roles, relationship types, statuses…) stay controlled enums. A chosen value keeps its label and names its entry. | `vocabulary`, `vocabulary_term`, `tree_vocabulary_term` (ADR-0018) |
 | "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. | `relative_age_order` (ADR-0020) |
 | A person added "as unknown for now" is `is_provisional` until they get a name; created only on the user's explicit choice. | `person.is_provisional` (ADR-0020) |
 | Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |

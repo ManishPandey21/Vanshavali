@@ -1,0 +1,91 @@
+{
+  "key": "kula",
+  "version": 1,
+  "description": "Kula / vamsha suggestions (seed list). Families add their own lineage names.",
+  "source": "Community-reported seed list compiled for Vanshavali (2026-11); not authoritative. Associations vary by tradition; never used to infer anything.",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": [
+    {
+      "code": "suryavanshi",
+      "labels": {
+        "en": "Suryavanshi",
+        "hi": "सूर्यवंशी"
+      },
+      "aliases": [
+        "Suryavamsa",
+        "Suryavamsi",
+        "Solar dynasty",
+        "Suryakula"
+      ]
+    },
+    {
+      "code": "chandravanshi",
+      "labels": {
+        "en": "Chandravanshi",
+        "hi": "चंद्रवंशी"
+      },
+      "aliases": [
+        "Chandravamsa",
+        "Chandravamsi",
+        "Lunar dynasty"
+      ]
+    },
+    {
+      "code": "somavanshi",
+      "labels": {
+        "en": "Somavanshi",
+        "hi": "सोमवंशी"
+      },
+      "aliases": [
+        "Somavamsa",
+        "Somavamsi"
+      ]
+    },
+    {
+      "code": "agnivanshi",
+      "labels": {
+        "en": "Agnivanshi",
+        "hi": "अग्निवंशी"
+      },
+      "aliases": [
+        "Agnivamsa",
+        "Agnivamsi",
+        "Agnikula"
+      ]
+    },
+    {
+      "code": "nagavanshi",
+      "labels": {
+        "en": "Nagavanshi",
+        "hi": "नागवंशी"
+      },
+      "aliases": [
+        "Nagavamsa",
+        "Nagavamsi"
+      ]
+    },
+    {
+      "code": "ikshvaku",
+      "labels": {
+        "en": "Ikshvaku",
+        "hi": "इक्ष्वाकु"
+      },
+      "aliases": [
+        "Ikshvaku vansh"
+      ]
+    },
+    {
+      "code": "yaduvanshi",
+      "labels": {
+        "en": "Yaduvanshi",
+        "hi": "यदुवंशी"
+      },
+      "aliases": [
+        "Yaduvamsa",
+        "Yaduvamsi",
+        "Yadava"
+      ]
+    }
+  ]
+}

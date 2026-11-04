@@ -11,7 +11,7 @@ backend-test:
 	cd backend && uv run pytest -q
 
 migrate:
-	cd backend && uv run alembic upgrade head
+	cd backend && uv run alembic upgrade head && uv run python -m app.cli.masterdata load
 
 seed:
 	cd backend && uv run python -m app.cli.seed_demo

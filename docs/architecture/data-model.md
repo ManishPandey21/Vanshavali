@@ -458,6 +458,58 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_household_tree_id (tree_i
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_household_membership_tree_id (tree_id)`; `INDEX ix_household_membership_person (tree_id, person_id)`
 
+## Master data
+
+### `vocabulary`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `key` | VARCHAR(40) | no | PK |
+| `description` | TEXT | no |  |
+| `version` | INTEGER | no |  |
+| `source` | TEXT | yes |  |
+| `licence` | VARCHAR(120) | yes |  |
+| `allows_custom` | BOOLEAN | no |  |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+### `vocabulary_term`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `vocabulary_key` | VARCHAR(40) | no | → vocabulary |
+| `code` | VARCHAR(80) | no |  |
+| `labels` | JSONB | no |  |
+| `aliases` | ARRAY | no |  |
+| `scope` | ARRAY | no |  |
+| `parent_code` | VARCHAR(80) | yes |  |
+| `attributes` | JSONB | no |  |
+| `source_url` | TEXT | yes |  |
+| `status` | enum(draft, reviewed, retired) | no |  |
+| `sort_order` | INTEGER | no |  |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (vocabulary_key, code)`; `INDEX ix_vocabulary_term_vocabulary_key (vocabulary_key)`
+
+### `tree_vocabulary_term`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `vocabulary_key` | VARCHAR(40) | no | → vocabulary |
+| `code` | VARCHAR(90) | no |  |
+| `label` | VARCHAR(200) | no |  |
+| `aliases` | ARRAY | no |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, vocabulary_key, code)`; `UNIQUE (tree_id, id)`; `INDEX ix_tree_vocabulary_term_tree_id (tree_id)`
+
 ## Evidence
 
 ### `source`

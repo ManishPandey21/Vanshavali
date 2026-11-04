@@ -8,7 +8,7 @@ docker compose up --build
 docker compose run --rm backend python -m app.cli.seed_demo   # optional demo family
 ```
 Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), migrate (a one-off
-`alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
+`alembic upgrade head` as the schema owner, then `app.cli.masterdata load` (master-data vocabulary packs, ADR-0018; idempotent) and `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
 
 ## Production shape

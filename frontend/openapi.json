@@ -3696,6 +3696,286 @@
     }
    }
   },
+  "/api/v1/vocabularies": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "List Vocabularies",
+    "description": "Extensible vocabularies (ADR-0018). Controlled values are not listed here.",
+    "operationId": "list_vocabularies_api_v1_vocabularies_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/VocabularyOut"
+         },
+         "type": "array",
+         "title": "Response List Vocabularies Api V1 Vocabularies Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/vocabularies/{key}": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Vocabulary Terms",
+    "description": "Global suggestions, searchable by label in any script, alias or spelling.",
+    "operationId": "vocabulary_terms_api_v1_vocabularies__key__get",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 16,
+       "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$",
+       "default": "en",
+       "title": "Lang"
+      }
+     },
+     {
+      "name": "parent",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 80
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent"
+      }
+     },
+     {
+      "name": "include_retired",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": false,
+       "title": "Include Retired"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VocabularyTermsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabularies/{key}": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Tree Vocabulary Terms",
+    "description": "Global suggestions plus this family's own entries.",
+    "operationId": "tree_vocabulary_terms_api_v1_trees__tree_id__vocabularies__key__get",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 16,
+       "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$",
+       "default": "en",
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VocabularyTermsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabularies/{key}/terms": {
+   "post": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Add Tree Term",
+    "description": "Add the family's own entry (\"Add my own\"); an existing matching entry is returned instead.",
+    "operationId": "add_tree_term_api_v1_trees__tree_id__vocabularies__key__terms_post",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 16,
+       "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$",
+       "default": "en",
+       "title": "Lang"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TreeTermIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TreeTermOut"
+        }
+       }
+      }
+     },
+     "200": {
+      "description": "The label already names an entry",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TreeTermOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/life-events": {
    "get": {
     "tags": [
@@ -30827,6 +31107,47 @@
     ],
     "title": "TreeOut"
    },
+   "TreeTermIn": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Label"
+     },
+     "aliases": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "maxItems": 10,
+      "title": "Aliases",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "label"
+    ],
+    "title": "TreeTermIn"
+   },
+   "TreeTermOut": {
+    "properties": {
+     "term": {
+      "$ref": "#/components/schemas/VocabularyTermOut"
+     },
+     "created": {
+      "type": "boolean",
+      "title": "Created"
+     }
+    },
+    "type": "object",
+    "required": [
+     "term",
+     "created"
+    ],
+    "title": "TreeTermOut"
+   },
    "TreeUpdate": {
     "properties": {
      "name": {
@@ -31455,6 +31776,167 @@
      "profile_status"
     ],
     "title": "VizPerson"
+   },
+   "VocabularyOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "description": {
+      "type": "string",
+      "title": "Description"
+     },
+     "version": {
+      "type": "integer",
+      "title": "Version"
+     },
+     "source": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source"
+     },
+     "licence": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Licence"
+     },
+     "allows_custom": {
+      "type": "boolean",
+      "title": "Allows Custom"
+     },
+     "term_count": {
+      "type": "integer",
+      "title": "Term Count",
+      "default": 0
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "description",
+     "version",
+     "allows_custom"
+    ],
+    "title": "VocabularyOut"
+   },
+   "VocabularyTermOut": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "labels": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object",
+      "title": "Labels"
+     },
+     "aliases": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Aliases",
+      "default": []
+     },
+     "parent_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Parent Code"
+     },
+     "attributes": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Attributes",
+      "default": {}
+     },
+     "status": {
+      "$ref": "#/components/schemas/VocabularyTermStatus"
+     },
+     "origin": {
+      "type": "string",
+      "enum": [
+       "global",
+       "family"
+      ],
+      "title": "Origin",
+      "default": "global"
+     },
+     "id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "label",
+     "labels",
+     "status"
+    ],
+    "title": "VocabularyTermOut"
+   },
+   "VocabularyTermStatus": {
+    "type": "string",
+    "enum": [
+     "draft",
+     "reviewed",
+     "retired"
+    ],
+    "title": "VocabularyTermStatus",
+    "description": "Master-data term lifecycle (ADR-0018). Retired terms stay resolvable for stored references."
+   },
+   "VocabularyTermsOut": {
+    "properties": {
+     "vocabulary": {
+      "$ref": "#/components/schemas/VocabularyOut"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/VocabularyTermOut"
+      },
+      "type": "array",
+      "title": "Items"
+     }
+    },
+    "type": "object",
+    "required": [
+     "vocabulary",
+     "items"
+    ],
+    "title": "VocabularyTermsOut"
    }
   }
  }

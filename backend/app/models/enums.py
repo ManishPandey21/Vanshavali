@@ -656,3 +656,11 @@ class RenderOutput(StrEnum):
 class RenderArtifactKind(StrEnum):
     POSTER_PNG = "poster_png"
     VIDEO_MP4 = "video_mp4"
+
+
+class VocabularyTermStatus(StrEnum):
+    """Master-data term lifecycle (ADR-0018). Retired terms stay resolvable for stored references."""
+
+    DRAFT = "draft"
+    REVIEWED = "reviewed"
+    RETIRED = "retired"

@@ -132,7 +132,7 @@ services:
   migrate:
     <<: *backend
     env_file: ["${VSH_CONFIG_DIR:-/etc/vanshavali}/app.env", "${VSH_CONFIG_DIR:-/etc/vanshavali}/migrate.env"]
-    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.ensure_app_role"]
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli.masterdata load && python -m app.cli.ensure_app_role"]
     restart: "no"
     healthcheck:
       disable: true

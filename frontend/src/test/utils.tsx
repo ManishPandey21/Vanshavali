@@ -59,11 +59,22 @@ export function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 
+/** An empty master-data vocabulary answer (ADR-0018), for forms whose fields fetch suggestions. */
+export function emptyVocabulary(key: string) {
+  return { vocabulary: { key, description: "", version: 1, allows_custom: true, term_count: 0 }, items: [] };
+}
+
 /**
- * Wraps a fetch mock so the family-data attestation check (ADR-0011) answers "already confirmed";
- * every other request goes to `inner`.
+ * Wraps a fetch mock so the family-data attestation check (ADR-0011) answers "already confirmed"
+ * and vocabulary suggestion lookups (ADR-0018) answer with an empty list; every other request
+ * goes to `inner`.
  */
 export function attested(inner: (...args: [RequestInfo | URL, RequestInit?]) => unknown) {
-  return (url: RequestInfo | URL, init?: RequestInit) =>
-    String(url).includes("/attestation") ? Promise.resolve(jsonResponse({ attested: true, current_version: "v1", attestation: null })) : inner(url, init);
+  return (url: RequestInfo | URL, init?: RequestInit) => {
+    const u = String(url);
+    if (u.includes("/attestation")) return Promise.resolve(jsonResponse({ attested: true, current_version: "v1", attestation: null }));
+    const vocab = u.match(/\/vocabularies\/([a-z_]+)(?:\?|$)/);
+    if (vocab && (!init?.method || init.method === "GET")) return Promise.resolve(jsonResponse(emptyVocabulary(vocab[1])));
+    return inner(url, init);
+  };
 }

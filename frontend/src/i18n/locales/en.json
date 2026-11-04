@@ -3200,5 +3200,12 @@
       }
     },
     "continue": "Continue"
+  },
+  "smartSelect": {
+    "family": "Your family",
+    "addOwn": "Add “{{text}}” as your family's own entry",
+    "addFailed": "Could not save this entry. Your text is kept; try again.",
+    "linked": "Chosen from the list. The text is saved as you typed it.",
+    "hint": "Start typing to see suggestions, or write your own."
   }
 }
