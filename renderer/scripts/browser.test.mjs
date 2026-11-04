@@ -57,3 +57,27 @@ test("countLaunchRetries counts only the retry marker lines", () => {
   assert.equal(countLaunchRetries("browser_launch_retry_1\nbrowser_launch_retry_2\n"), 2);
   assert.equal(countLaunchRetries("some warning\nbrowser_launch_retry_1\nnot browser_launch_retry_9 here"), 1);
 });
+
+test("each timed-out attempt is cleaned up before the next one starts", async () => {
+  const events = [];
+  let calls = 0;
+  await openWithRetry(
+    async () => {
+      calls += 1;
+      events.push(`open${calls}`);
+      if (calls < 3) throw timeout();
+      return "browser";
+    },
+    { beforeAttempt: (i) => events.push(`before${i}`), afterTimeout: (i) => events.push(`cleanup${i}`) },
+  );
+  assert.deepEqual(events, ["before1", "open1", "cleanup1", "before2", "open2", "cleanup2", "before3", "open3"]);
+});
+
+test("the last timed-out attempt is cleaned up too; other errors need no cleanup", async () => {
+  const cleaned = [];
+  await assert.rejects(openWithRetry(async () => { throw timeout(); }, { attempts: 2, afterTimeout: (i) => cleaned.push(i) }));
+  assert.deepEqual(cleaned, [1, 2]);
+  cleaned.length = 0;
+  await assert.rejects(openWithRetry(async () => { throw new Error("boom"); }, { afterTimeout: (i) => cleaned.push(i) }));
+  assert.deepEqual(cleaned, []);
+});
