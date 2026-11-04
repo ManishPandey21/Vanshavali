@@ -1,0 +1,774 @@
+{
+ "code": "gotra",
+ "name": "Gotra",
+ "description": "Gotra suggestions: rishi gotras and community clan gotras (tagged). Pravara is the commonly cited form and may differ from a family's own; it is shown as a hint, never filled in automatically.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "agastya",
+   "label": "Agastya",
+   "labels": {
+    "hi": "अगस्त्य",
+    "ta": "அகஸ்திய",
+    "te": "అగస్త్య"
+   },
+   "aliases": [
+    "Agasthya",
+    "Agasti"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "angirasa",
+   "label": "Angirasa",
+   "labels": {
+    "hi": "आंगिरस",
+    "ta": "ஆங்கிரச",
+    "te": "ఆంగిరస"
+   },
+   "aliases": [
+    "Angiras",
+    "Angirasas"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "atreya",
+   "label": "Atreya",
+   "labels": {
+    "hi": "आत्रेय",
+    "ta": "ஆத்ரேய",
+    "te": "ఆత్రేయ"
+   },
+   "aliases": [
+    "Atri",
+    "Athri",
+    "Aathreya",
+    "Atreyasa",
+    "अत्रि"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Atreya, Archananasa, Shyavashva"
+   }
+  },
+  {
+   "code": "bharadwaja",
+   "label": "Bharadwaja",
+   "labels": {
+    "hi": "भारद्वाज",
+    "ta": "பரத்வாஜ",
+    "te": "భరద్వాజ"
+   },
+   "aliases": [
+    "Bharadwaj",
+    "Bhardwaj",
+    "Bharathwaj",
+    "Bharadvaja"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Angirasa, Barhaspatya, Bharadwaja"
+   }
+  },
+  {
+   "code": "bhargava",
+   "label": "Bhargava",
+   "labels": {
+    "hi": "भार्गव",
+    "ta": "பார்கவ",
+    "te": "భార్గవ"
+   },
+   "aliases": [
+    "Bhargav",
+    "Bhrigu",
+    "भृगु"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "dhananjaya",
+   "label": "Dhananjaya",
+   "labels": {
+    "hi": "धनञ्जय"
+   },
+   "aliases": [
+    "Dhananjay",
+    "Dhanunjaya"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "garga",
+   "label": "Garga",
+   "labels": {
+    "hi": "गर्ग"
+   },
+   "aliases": [
+    "Garg",
+    "Gargya",
+    "Gargeya"
+   ],
+   "tags": [
+    "rishi",
+    "community:agrawal"
+   ],
+   "attributes": {
+    "pravara": "Angirasa, Barhaspatya, Bharadwaja, Shainya, Gargya"
+   }
+  },
+  {
+   "code": "gautama",
+   "label": "Gautama",
+   "labels": {
+    "hi": "गौतम",
+    "ta": "கௌதம",
+    "te": "గౌతమ"
+   },
+   "aliases": [
+    "Gautam",
+    "Gotam",
+    "Gowtham"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Angirasa, Ayasya, Gautama"
+   }
+  },
+  {
+   "code": "harita",
+   "label": "Harita",
+   "labels": {
+    "hi": "हारीत"
+   },
+   "aliases": [
+    "Haritasa",
+    "Harit",
+    "Haritsa"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Angirasa, Ambarisha, Yauvanashva"
+   }
+  },
+  {
+   "code": "jamadagni",
+   "label": "Jamadagni",
+   "labels": {
+    "hi": "जमदग्नि",
+    "te": "జమదగ్ని"
+   },
+   "aliases": [
+    "Jamadagnya"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "kanva",
+   "label": "Kanva",
+   "labels": {
+    "hi": "कण्व"
+   },
+   "aliases": [
+    "Kanwa",
+    "Kanva"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "kapila",
+   "label": "Kapila",
+   "labels": {
+    "hi": "कपिल"
+   },
+   "aliases": [
+    "Kapil"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "kashyapa",
+   "label": "Kashyapa",
+   "labels": {
+    "hi": "कश्यप",
+    "ta": "கசியப",
+    "te": "కశ్యప"
+   },
+   "aliases": [
+    "Kashyap",
+    "Kasyapa",
+    "Kashyapam",
+    "Kashyapasa"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Kashyapa, Avatsara, Naidhruva"
+   }
+  },
+  {
+   "code": "kaundinya",
+   "label": "Kaundinya",
+   "labels": {
+    "hi": "कौण्डिन्य",
+    "ta": "கௌண்டின்ய",
+    "te": "కౌండిన్య"
+   },
+   "aliases": [
+    "Koundinya",
+    "Kaundinyasa",
+    "Kondinya"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Vasishtha, Maitravaruna, Kaundinya"
+   }
+  },
+  {
+   "code": "kaushika",
+   "label": "Kaushika",
+   "labels": {
+    "hi": "कौशिक"
+   },
+   "aliases": [
+    "Kaushik",
+    "Kausika",
+    "Koushik"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Vishwamitra, Aghamarshana, Kaushika"
+   }
+  },
+  {
+   "code": "katyayana",
+   "label": "Katyayana",
+   "labels": {
+    "hi": "कात्यायन"
+   },
+   "aliases": [
+    "Katyayan",
+    "Kathyayana"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "kutsa",
+   "label": "Kutsa",
+   "labels": {
+    "hi": "कुत्स"
+   },
+   "aliases": [
+    "Kautsa",
+    "Kautsasa"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Angirasa, Mandhatra, Kautsa"
+   }
+  },
+  {
+   "code": "lohita",
+   "label": "Lohita",
+   "labels": {
+    "hi": "लोहित"
+   },
+   "aliases": [
+    "Lohit"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "markandeya",
+   "label": "Markandeya",
+   "labels": {
+    "hi": "मार्कण्डेय"
+   },
+   "aliases": [
+    "Markandey"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "maudgalya",
+   "label": "Maudgalya",
+   "labels": {
+    "hi": "मौद्गल्य"
+   },
+   "aliases": [
+    "Mudgal",
+    "Moudgalya",
+    "Mudgala"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Angirasa, Bharmyashva, Maudgalya"
+   }
+  },
+  {
+   "code": "parashara",
+   "label": "Parashara",
+   "labels": {
+    "hi": "पराशर",
+    "ta": "பராசர",
+    "te": "పరాశర"
+   },
+   "aliases": [
+    "Parashar",
+    "Parasar",
+    "Parasara"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Vasishtha, Shaktya, Parasharya"
+   }
+  },
+  {
+   "code": "pulastya",
+   "label": "Pulastya",
+   "labels": {
+    "hi": "पुलस्त्य"
+   },
+   "aliases": [
+    "Pulasti"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "sankriti",
+   "label": "Sankriti",
+   "labels": {
+    "hi": "सांकृति"
+   },
+   "aliases": [
+    "Sankrityayana",
+    "Sankrithi"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "shandilya",
+   "label": "Shandilya",
+   "labels": {
+    "hi": "शाण्डिल्य",
+    "ta": "சாண்டிலிய",
+    "te": "శాండిల్య"
+   },
+   "aliases": [
+    "Sandilya",
+    "Shandilyasa",
+    "Sandyal"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Shandilya, Asita, Devala"
+   }
+  },
+  {
+   "code": "shaunaka",
+   "label": "Shaunaka",
+   "labels": {
+    "hi": "शौनक"
+   },
+   "aliases": [
+    "Saunaka",
+    "Shaunak"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "srivatsa",
+   "label": "Srivatsa",
+   "labels": {
+    "hi": "श्रीवत्स"
+   },
+   "aliases": [
+    "Shrivatsa",
+    "Sreevatsa",
+    "Srivatsasa"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Bhargava, Chyavana, Apnavana, Aurva, Jamadagnya"
+   }
+  },
+  {
+   "code": "upamanyu",
+   "label": "Upamanyu",
+   "labels": {
+    "hi": "उपमन्यु"
+   },
+   "aliases": [
+    "Upamanyava",
+    "Aupamanyava"
+   ],
+   "tags": [
+    "rishi"
+   ],
+   "attributes": {
+    "pravara": "Vasishtha, Indrapramada, Abharadvasu"
+   }
+  },
+  {
+   "code": "vadhula",
+   "label": "Vadhula",
+   "labels": {
+    "hi": "वाधूल"
+   },
+   "aliases": [
+    "Vadhoola",
+    "Vadula"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "vashishtha",
+   "label": "Vashishtha",
+   "labels": {
+    "hi": "वसिष्ठ",
+    "ta": "வசிட்ட",
+    "te": "వశిష్ఠ"
+   },
+   "aliases": [
+    "Vasishtha",
+    "Vasishta",
+    "Vashisht",
+    "Vasist",
+    "वशिष्ठ"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "vatsa",
+   "label": "Vatsa",
+   "labels": {
+    "hi": "वत्स"
+   },
+   "aliases": [
+    "Vats",
+    "Vatsasa"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "vishnuvardhana",
+   "label": "Vishnuvardhana",
+   "labels": {
+    "hi": "विष्णुवर्धन"
+   },
+   "aliases": [
+    "Vishnuvardhan"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "vishwamitra",
+   "label": "Vishwamitra",
+   "labels": {
+    "hi": "विश्वामित्र",
+    "ta": "விச்வாமித்ர",
+    "te": "విశ్వామిత్ర"
+   },
+   "aliases": [
+    "Vishvamitra",
+    "Viswamitra"
+   ],
+   "tags": [
+    "rishi"
+   ]
+  },
+  {
+   "code": "airan",
+   "label": "Airan",
+   "labels": {
+    "hi": "ऐरन"
+   },
+   "aliases": [
+    "Eran",
+    "Airen"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "bansal",
+   "label": "Bansal",
+   "labels": {
+    "hi": "बंसल"
+   },
+   "aliases": [
+    "Vasal",
+    "Bansil"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "bindal",
+   "label": "Bindal",
+   "labels": {
+    "hi": "बिंदल"
+   },
+   "aliases": [
+    "Vindal",
+    "Vindhyal"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "bhandal",
+   "label": "Bhandal",
+   "labels": {
+    "hi": "भंदल"
+   },
+   "aliases": [
+    "Bhandil"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "dharan",
+   "label": "Dharan",
+   "labels": {
+    "hi": "धारण"
+   },
+   "aliases": [
+    "Deran",
+    "Dhaaran"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "goyal",
+   "label": "Goyal",
+   "labels": {
+    "hi": "गोयल"
+   },
+   "aliases": [
+    "Goel",
+    "Goyel",
+    "Gangal"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "goyan",
+   "label": "Goyan",
+   "labels": {
+    "hi": "गोयन"
+   },
+   "aliases": [
+    "Gangan",
+    "Goin"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "jindal",
+   "label": "Jindal",
+   "labels": {
+    "hi": "जिंदल"
+   },
+   "aliases": [
+    "Jaital"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "kansal",
+   "label": "Kansal",
+   "labels": {
+    "hi": "कंसल"
+   },
+   "aliases": [
+    "Kansil"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "kuchhal",
+   "label": "Kuchhal",
+   "labels": {
+    "hi": "कुच्छल"
+   },
+   "aliases": [
+    "Kuchal",
+    "Kuchchal"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "madhukul",
+   "label": "Madhukul",
+   "labels": {
+    "hi": "मधुकुल"
+   },
+   "aliases": [
+    "Mudgal (Agrawal)"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "mangal",
+   "label": "Mangal",
+   "labels": {
+    "hi": "मंगल"
+   },
+   "aliases": [
+    "Mangla"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "mittal",
+   "label": "Mittal",
+   "labels": {
+    "hi": "मित्तल"
+   },
+   "aliases": [
+    "Mital",
+    "Maitreya"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "nangal",
+   "label": "Nangal",
+   "labels": {
+    "hi": "नांगल"
+   },
+   "aliases": [
+    "Nagal",
+    "Nagil"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "singhal",
+   "label": "Singhal",
+   "labels": {
+    "hi": "सिंघल"
+   },
+   "aliases": [
+    "Singla",
+    "Singal"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "tayal",
+   "label": "Tayal",
+   "labels": {
+    "hi": "तायल"
+   },
+   "aliases": [
+    "Tayel"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  },
+  {
+   "code": "tingal",
+   "label": "Tingal",
+   "labels": {
+    "hi": "तिंगल"
+   },
+   "aliases": [
+    "Tungal",
+    "Tingil"
+   ],
+   "tags": [
+    "community:agrawal"
+   ]
+  }
+ ]
+}

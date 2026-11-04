@@ -1,0 +1,1089 @@
+{
+ "code": "state",
+ "name": "State / Union Territory",
+ "description": "36 current states and union territories of India (ISO 3166-2:IN codes, LGD state codes) plus historical states and provinces with years of validity.",
+ "version": "2026.10.1",
+ "source": "ISO 3166-2:IN (2023 update); LGD state codes (lgdirectory.gov.in); historical entries curated",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": "country",
+ "terms": [
+  {
+   "code": "IN-AP",
+   "label": "Andhra Pradesh",
+   "labels": {
+    "hi": "आंध्र प्रदेश"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-AP",
+    "lgd_code": "28"
+   }
+  },
+  {
+   "code": "IN-AR",
+   "label": "Arunachal Pradesh",
+   "labels": {
+    "hi": "अरुणाचल प्रदेश"
+   },
+   "aliases": [
+    "NEFA"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-AR",
+    "lgd_code": "12"
+   }
+  },
+  {
+   "code": "IN-AS",
+   "label": "Assam",
+   "labels": {
+    "hi": "असम"
+   },
+   "aliases": [
+    "Asom"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-AS",
+    "lgd_code": "18"
+   }
+  },
+  {
+   "code": "IN-BR",
+   "label": "Bihar",
+   "labels": {
+    "hi": "बिहार"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-BR",
+    "lgd_code": "10"
+   }
+  },
+  {
+   "code": "IN-CG",
+   "label": "Chhattisgarh",
+   "labels": {
+    "hi": "छत्तीसगढ़"
+   },
+   "aliases": [
+    "Chattisgarh"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-CG",
+    "lgd_code": "22"
+   }
+  },
+  {
+   "code": "IN-GA",
+   "label": "Goa",
+   "labels": {
+    "hi": "गोवा"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-GA",
+    "lgd_code": "30"
+   }
+  },
+  {
+   "code": "IN-GJ",
+   "label": "Gujarat",
+   "labels": {
+    "hi": "गुजरात"
+   },
+   "aliases": [
+    "Gujrat"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-GJ",
+    "lgd_code": "24"
+   }
+  },
+  {
+   "code": "IN-HR",
+   "label": "Haryana",
+   "labels": {
+    "hi": "हरियाणा"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-HR",
+    "lgd_code": "6"
+   }
+  },
+  {
+   "code": "IN-HP",
+   "label": "Himachal Pradesh",
+   "labels": {
+    "hi": "हिमाचल प्रदेश"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-HP",
+    "lgd_code": "2"
+   }
+  },
+  {
+   "code": "IN-JH",
+   "label": "Jharkhand",
+   "labels": {
+    "hi": "झारखंड"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-JH",
+    "lgd_code": "20"
+   }
+  },
+  {
+   "code": "IN-KA",
+   "label": "Karnataka",
+   "labels": {
+    "hi": "कर्नाटक"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-KA",
+    "lgd_code": "29"
+   }
+  },
+  {
+   "code": "IN-KL",
+   "label": "Kerala",
+   "labels": {
+    "hi": "केरल"
+   },
+   "aliases": [
+    "Keralam"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-KL",
+    "lgd_code": "32"
+   }
+  },
+  {
+   "code": "IN-MP",
+   "label": "Madhya Pradesh",
+   "labels": {
+    "hi": "मध्य प्रदेश"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-MP",
+    "lgd_code": "23"
+   }
+  },
+  {
+   "code": "IN-MH",
+   "label": "Maharashtra",
+   "labels": {
+    "hi": "महाराष्ट्र"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-MH",
+    "lgd_code": "27"
+   }
+  },
+  {
+   "code": "IN-MN",
+   "label": "Manipur",
+   "labels": {
+    "hi": "मणिपुर"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-MN",
+    "lgd_code": "14"
+   }
+  },
+  {
+   "code": "IN-ML",
+   "label": "Meghalaya",
+   "labels": {
+    "hi": "मेघालय"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-ML",
+    "lgd_code": "17"
+   }
+  },
+  {
+   "code": "IN-MZ",
+   "label": "Mizoram",
+   "labels": {
+    "hi": "मिज़ोरम"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-MZ",
+    "lgd_code": "15"
+   }
+  },
+  {
+   "code": "IN-NL",
+   "label": "Nagaland",
+   "labels": {
+    "hi": "नागालैंड"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-NL",
+    "lgd_code": "13"
+   }
+  },
+  {
+   "code": "IN-OD",
+   "label": "Odisha",
+   "labels": {
+    "hi": "ओडिशा"
+   },
+   "aliases": [
+    "Orissa",
+    "उड़ीसा"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-OD",
+    "lgd_code": "21"
+   }
+  },
+  {
+   "code": "IN-PB",
+   "label": "Punjab",
+   "labels": {
+    "hi": "पंजाब"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-PB",
+    "lgd_code": "3"
+   }
+  },
+  {
+   "code": "IN-RJ",
+   "label": "Rajasthan",
+   "labels": {
+    "hi": "राजस्थान"
+   },
+   "aliases": [
+    "Rajputana"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-RJ",
+    "lgd_code": "8"
+   }
+  },
+  {
+   "code": "IN-SK",
+   "label": "Sikkim",
+   "labels": {
+    "hi": "सिक्किम"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-SK",
+    "lgd_code": "11"
+   }
+  },
+  {
+   "code": "IN-TN",
+   "label": "Tamil Nadu",
+   "labels": {
+    "hi": "तमिलनाडु"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-TN",
+    "lgd_code": "33"
+   }
+  },
+  {
+   "code": "IN-TS",
+   "label": "Telangana",
+   "labels": {
+    "hi": "तेलंगाना"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-TS",
+    "lgd_code": "36"
+   }
+  },
+  {
+   "code": "IN-TR",
+   "label": "Tripura",
+   "labels": {
+    "hi": "त्रिपुरा"
+   },
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-TR",
+    "lgd_code": "16"
+   }
+  },
+  {
+   "code": "IN-UP",
+   "label": "Uttar Pradesh",
+   "labels": {
+    "hi": "उत्तर प्रदेश"
+   },
+   "aliases": [
+    "UP"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-UP",
+    "lgd_code": "9"
+   }
+  },
+  {
+   "code": "IN-UK",
+   "label": "Uttarakhand",
+   "labels": {
+    "hi": "उत्तराखंड"
+   },
+   "aliases": [
+    "Uttaranchal"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-UK",
+    "lgd_code": "5"
+   }
+  },
+  {
+   "code": "IN-WB",
+   "label": "West Bengal",
+   "labels": {
+    "hi": "पश्चिम बंगाल"
+   },
+   "aliases": [
+    "Paschim Banga",
+    "Bengal"
+   ],
+   "tags": [
+    "state"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-WB",
+    "lgd_code": "19"
+   }
+  },
+  {
+   "code": "IN-AN",
+   "label": "Andaman and Nicobar Islands",
+   "labels": {
+    "hi": "अंडमान और निकोबार द्वीपसमूह"
+   },
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-AN",
+    "lgd_code": "35"
+   }
+  },
+  {
+   "code": "IN-CH",
+   "label": "Chandigarh",
+   "labels": {
+    "hi": "चंडीगढ़"
+   },
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-CH",
+    "lgd_code": "4"
+   }
+  },
+  {
+   "code": "IN-DH",
+   "label": "Dadra and Nagar Haveli and Daman and Diu",
+   "labels": {
+    "hi": "दादरा और नगर हवेली और दमन और दीव"
+   },
+   "aliases": [
+    "Daman and Diu",
+    "Dadra and Nagar Haveli",
+    "DNH",
+    "Silvassa"
+   ],
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-DH",
+    "lgd_code": "38"
+   }
+  },
+  {
+   "code": "IN-DL",
+   "label": "Delhi",
+   "labels": {
+    "hi": "दिल्ली"
+   },
+   "aliases": [
+    "NCT of Delhi",
+    "New Delhi",
+    "Dilli"
+   ],
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-DL",
+    "lgd_code": "7"
+   }
+  },
+  {
+   "code": "IN-JK",
+   "label": "Jammu and Kashmir",
+   "labels": {
+    "hi": "जम्मू और कश्मीर"
+   },
+   "aliases": [
+    "J&K",
+    "Jammu & Kashmir"
+   ],
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-JK",
+    "lgd_code": "1"
+   }
+  },
+  {
+   "code": "IN-LA",
+   "label": "Ladakh",
+   "labels": {
+    "hi": "लद्दाख"
+   },
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-LA",
+    "lgd_code": "37"
+   }
+  },
+  {
+   "code": "IN-LD",
+   "label": "Lakshadweep",
+   "labels": {
+    "hi": "लक्षद्वीप"
+   },
+   "aliases": [
+    "Laccadive Islands"
+   ],
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-LD",
+    "lgd_code": "31"
+   }
+  },
+  {
+   "code": "IN-PY",
+   "label": "Puducherry",
+   "labels": {
+    "hi": "पुडुचेरी"
+   },
+   "aliases": [
+    "Pondicherry",
+    "Pondy"
+   ],
+   "tags": [
+    "union_territory"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "iso_3166_2": "IN-PY",
+    "lgd_code": "34"
+   }
+  },
+  {
+   "code": "hist:bombay_state",
+   "label": "Bombay State",
+   "labels": {
+    "hi": "बम्बई राज्य"
+   },
+   "aliases": [
+    "Bombay"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-MH",
+     "IN-GJ"
+    ],
+    "valid_to": 1960,
+    "valid_from": 1950
+   }
+  },
+  {
+   "code": "hist:bombay_presidency",
+   "label": "Bombay Presidency",
+   "labels": {
+    "hi": "बम्बई प्रेसीडेंसी"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "hist:british_india",
+   "attributes": {
+    "successors": [
+     "IN-MH",
+     "IN-GJ"
+    ],
+    "valid_to": 1947
+   }
+  },
+  {
+   "code": "hist:madras_state",
+   "label": "Madras State",
+   "labels": {
+    "hi": "मद्रास राज्य"
+   },
+   "aliases": [
+    "Madras"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-TN"
+    ],
+    "valid_to": 1969,
+    "valid_from": 1950
+   }
+  },
+  {
+   "code": "hist:madras_presidency",
+   "label": "Madras Presidency",
+   "labels": {
+    "hi": "मद्रास प्रेसीडेंसी"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "hist:british_india",
+   "attributes": {
+    "successors": [
+     "IN-TN",
+     "IN-AP",
+     "IN-KL",
+     "IN-KA"
+    ],
+    "valid_to": 1947
+   }
+  },
+  {
+   "code": "hist:bengal_presidency",
+   "label": "Bengal Presidency",
+   "labels": {
+    "hi": "बंगाल प्रेसीडेंसी"
+   },
+   "aliases": [
+    "Bengal Province"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "hist:british_india",
+   "attributes": {
+    "successors": [
+     "IN-WB",
+     "BD"
+    ],
+    "valid_to": 1947
+   }
+  },
+  {
+   "code": "hist:punjab_province",
+   "label": "Punjab Province (British)",
+   "labels": {
+    "hi": "पंजाब प्रांत"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "hist:british_india",
+   "attributes": {
+    "successors": [
+     "IN-PB",
+     "IN-HR",
+     "PK"
+    ],
+    "valid_to": 1947
+   }
+  },
+  {
+   "code": "hist:united_provinces",
+   "label": "United Provinces",
+   "labels": {
+    "hi": "संयुक्त प्रांत"
+   },
+   "aliases": [
+    "United Provinces of Agra and Oudh",
+    "UP"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-UP",
+     "IN-UK"
+    ],
+    "valid_to": 1950,
+    "valid_from": 1902
+   }
+  },
+  {
+   "code": "hist:central_provinces_berar",
+   "label": "Central Provinces and Berar",
+   "labels": {
+    "hi": "मध्य प्रांत और बरार"
+   },
+   "aliases": [
+    "C.P. and Berar"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-MP",
+     "IN-MH",
+     "IN-CG"
+    ],
+    "valid_to": 1950,
+    "valid_from": 1903
+   }
+  },
+  {
+   "code": "hist:mysore_state",
+   "label": "Mysore State",
+   "labels": {
+    "hi": "मैसूर राज्य"
+   },
+   "aliases": [
+    "Mysore"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-KA"
+    ],
+    "valid_to": 1973,
+    "valid_from": 1947
+   }
+  },
+  {
+   "code": "hist:hyderabad_state",
+   "label": "Hyderabad State",
+   "labels": {
+    "hi": "हैदराबाद राज्य"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-TS",
+     "IN-MH",
+     "IN-KA"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1948
+   }
+  },
+  {
+   "code": "hist:east_punjab",
+   "label": "East Punjab",
+   "labels": {
+    "hi": "पूर्वी पंजाब"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-PB",
+     "IN-HR",
+     "IN-HP"
+    ],
+    "valid_to": 1950,
+    "valid_from": 1947
+   }
+  },
+  {
+   "code": "hist:pepsu",
+   "label": "PEPSU (Patiala and East Punjab States Union)",
+   "labels": {
+    "hi": "पेप्सू"
+   },
+   "aliases": [
+    "PEPSU"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-PB",
+     "IN-HR"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1948
+   }
+  },
+  {
+   "code": "hist:saurashtra",
+   "label": "Saurashtra",
+   "labels": {
+    "hi": "सौराष्ट्र"
+   },
+   "aliases": [
+    "Kathiawar"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-GJ"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1948
+   }
+  },
+  {
+   "code": "hist:travancore_cochin",
+   "label": "Travancore-Cochin",
+   "labels": {
+    "hi": "त्रावणकोर-कोचीन"
+   },
+   "aliases": [
+    "Thiru-Kochi"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-KL",
+     "IN-TN"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1949
+   }
+  },
+  {
+   "code": "hist:madhya_bharat",
+   "label": "Madhya Bharat",
+   "labels": {
+    "hi": "मध्य भारत"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-MP"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1948
+   }
+  },
+  {
+   "code": "hist:vindhya_pradesh",
+   "label": "Vindhya Pradesh",
+   "labels": {
+    "hi": "विंध्य प्रदेश"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-MP"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1948
+   }
+  },
+  {
+   "code": "hist:ajmer_state",
+   "label": "Ajmer State",
+   "labels": {
+    "hi": "अजमेर राज्य"
+   },
+   "aliases": [
+    "Ajmer-Merwara"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-RJ"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1950
+   }
+  },
+  {
+   "code": "hist:coorg_state",
+   "label": "Coorg State",
+   "labels": {
+    "hi": "कुर्ग राज्य"
+   },
+   "aliases": [
+    "Kodagu"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-KA"
+    ],
+    "valid_to": 1956,
+    "valid_from": 1950
+   }
+  },
+  {
+   "code": "hist:bilaspur_state",
+   "label": "Bilaspur State",
+   "labels": {
+    "hi": "बिलासपुर राज्य"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-HP"
+    ],
+    "valid_to": 1954,
+    "valid_from": 1950
+   }
+  },
+  {
+   "code": "hist:jammu_kashmir_state",
+   "label": "Jammu and Kashmir (state)",
+   "labels": {
+    "hi": "जम्मू और कश्मीर राज्य"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-JK",
+     "IN-LA"
+    ],
+    "valid_to": 2019,
+    "valid_from": 1952
+   }
+  },
+  {
+   "code": "hist:andhra_pradesh_united",
+   "label": "Andhra Pradesh (undivided)",
+   "labels": {
+    "hi": "आंध्र प्रदेश (अविभाजित)"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-AP",
+     "IN-TS"
+    ],
+    "valid_to": 2014,
+    "valid_from": 1956
+   }
+  },
+  {
+   "code": "hist:bihar_undivided",
+   "label": "Bihar (undivided)",
+   "labels": {
+    "hi": "बिहार (अविभाजित)"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-BR",
+     "IN-JH"
+    ],
+    "valid_to": 2000,
+    "valid_from": 1950
+   }
+  },
+  {
+   "code": "hist:mp_undivided",
+   "label": "Madhya Pradesh (undivided)",
+   "labels": {
+    "hi": "मध्य प्रदेश (अविभाजित)"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-MP",
+     "IN-CG"
+    ],
+    "valid_to": 2000,
+    "valid_from": 1956
+   }
+  },
+  {
+   "code": "hist:up_undivided",
+   "label": "Uttar Pradesh (undivided)",
+   "labels": {
+    "hi": "उत्तर प्रदेश (अविभाजित)"
+   },
+   "tags": [
+    "historical"
+   ],
+   "parent": "IN",
+   "attributes": {
+    "successors": [
+     "IN-UP",
+     "IN-UK"
+    ],
+    "valid_to": 2000,
+    "valid_from": 1950
+   }
+  }
+ ]
+}

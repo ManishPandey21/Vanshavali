@@ -24,3 +24,5 @@ into 0003, 0009 and 0010.
 | 0015 | [Important life events, geo-tagged places and event photo albums](0015-life-events-geotags-event-media.md) | Accepted |
 | 0016 | [Event reminders and notification delivery (email, SMS, WhatsApp)](0016-reminders-and-notifications.md) | Accepted |
 | 0017 | [Visualization data APIs and Remotion animated exports](0017-visualizations-and-animated-exports.md) | Accepted |
+| 0018 | [Adding relatives by Indian kin term ("quick-add")](0018-kin-term-quick-add.md) | Proposed |
+| 0019 | [Reference vocabularies in the database (typing aids for searchable fields)](0019-reference-vocabularies.md) | Accepted |

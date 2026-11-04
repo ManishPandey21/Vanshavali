@@ -9,7 +9,7 @@ Modular monolith (ADR-0001):
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic on PostgreSQL 16, Redis/RQ jobs (`JOB_MODE=sync`
   runs them inline). Domain modules in `backend/app/modules/*` (identity, trees, genealogy, heritage,
   family, evidence, documents, extraction, astrology, property, gedcom, merge, archive, search,
-  consent, public). All authorisation and field redaction live in `backend/app/authz`; the server is
+  consent, public, vocabulary). All authorisation and field redaction live in `backend/app/authz`; the server is
   the authority. API under `/api/v1`, structured errors `{error: {code, message, details}}`.
 - `frontend/` — Vite 6 + React 18 + TypeScript (strict) SPA: React Router, TanStack Query,
   i18next (`src/i18n/locales/en.json`, `hi.json`, kept key-identical by a test), Tailwind 4.
@@ -27,7 +27,7 @@ Modular monolith (ADR-0001):
 
 ```
 # backend (from backend/)
-uv sync && uv run alembic upgrade head
+uv sync && uv run alembic upgrade head && uv run python -m app.cli.load_vocabularies
 uv run uvicorn app.main:app --port 8000
 uv run pytest -q
 

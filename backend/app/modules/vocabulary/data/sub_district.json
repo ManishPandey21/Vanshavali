@@ -1,0 +1,11 @@
+{
+ "code": "sub_district",
+ "name": "Tehsil / Taluka / Mandal",
+ "description": "Sub-districts of India, imported from an LGD download with `--lgd-subdistricts <csv>`.",
+ "version": "2026.10.1",
+ "source": "LGD — Local Government Directory, Government of India (lgdirectory.gov.in)",
+ "license": "Government Open Data License – India",
+ "parent_vocabulary": "district",
+ "terms": [],
+ "external_import": "lgd_subdistricts"
+}

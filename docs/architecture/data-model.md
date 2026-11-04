@@ -1171,6 +1171,43 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_export_job_tree_id (tree_
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_gedcom_extension_tree_id (tree_id)`; `INDEX ix_gedcom_extension_person (tree_id, person_id)`
 
+## Reference vocabularies (global, not tree-scoped)
+
+### `vocabulary`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `code` | VARCHAR(40) | no | PK |
+| `name` | VARCHAR(200) | no |  |
+| `description` | TEXT | yes |  |
+| `parent_vocabulary_code` | VARCHAR(40) | yes | → vocabulary |
+| `version` | VARCHAR(40) | no |  |
+| `source` | TEXT | yes |  |
+| `license` | VARCHAR(200) | yes |  |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+### `vocabulary_term`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `vocabulary_code` | VARCHAR(40) | no | → vocabulary |
+| `code` | VARCHAR(120) | no |  |
+| `parent_id` | UUID | yes | → vocabulary_term |
+| `label` | VARCHAR(300) | no |  |
+| `labels` | JSONB | no |  |
+| `aliases` | ARRAY | no |  |
+| `tags` | ARRAY | no |  |
+| `attributes` | JSONB | no |  |
+| `sort_order` | INTEGER | no |  |
+| `is_active` | BOOLEAN | no |  |
+| `search_text` | TEXT | no |  |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (vocabulary_code, code)`; `INDEX ix_vocabulary_term_parent (vocabulary_code, parent_id)`; `INDEX ix_vocabulary_term_search_trgm (search_text)`
+
 ## Audit
 
 ### `audit_event`

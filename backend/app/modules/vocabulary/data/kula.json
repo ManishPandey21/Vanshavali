@@ -1,0 +1,107 @@
+{
+ "code": "kula",
+ "name": "Kula / Vamsha",
+ "description": "Lineage (vamsha/kula) suggestions.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "suryavanshi",
+   "label": "Suryavanshi",
+   "labels": {
+    "hi": "सूर्यवंशी",
+    "ta": "சூரியவம்சம்",
+    "te": "సూర్యవంశం"
+   },
+   "aliases": [
+    "Suryavamsa",
+    "Suryavamsi",
+    "Solar dynasty",
+    "Suryakula"
+   ]
+  },
+  {
+   "code": "chandravanshi",
+   "label": "Chandravanshi",
+   "labels": {
+    "hi": "चंद्रवंशी",
+    "ta": "சந்திரவம்சம்",
+    "te": "చంద్రవంశం"
+   },
+   "aliases": [
+    "Chandravamsa",
+    "Chandravamsi",
+    "Lunar dynasty"
+   ]
+  },
+  {
+   "code": "somavanshi",
+   "label": "Somavanshi",
+   "labels": {
+    "hi": "सोमवंशी"
+   },
+   "aliases": [
+    "Somavamsa",
+    "Somavamsi"
+   ]
+  },
+  {
+   "code": "agnivanshi",
+   "label": "Agnivanshi",
+   "labels": {
+    "hi": "अग्निवंशी"
+   },
+   "aliases": [
+    "Agnivamsa",
+    "Agnikula",
+    "Fire dynasty"
+   ]
+  },
+  {
+   "code": "nagavanshi",
+   "label": "Nagavanshi",
+   "labels": {
+    "hi": "नागवंशी"
+   },
+   "aliases": [
+    "Nagavamsa",
+    "Nagvanshi",
+    "Serpent dynasty"
+   ]
+  },
+  {
+   "code": "ikshvaku",
+   "label": "Ikshvaku",
+   "labels": {
+    "hi": "इक्ष्वाकु"
+   },
+   "aliases": [
+    "Ikshvaku vansh"
+   ]
+  },
+  {
+   "code": "yaduvanshi",
+   "label": "Yaduvanshi",
+   "labels": {
+    "hi": "यदुवंशी"
+   },
+   "aliases": [
+    "Yaduvamsa",
+    "Yadava"
+   ]
+  },
+  {
+   "code": "rishivanshi",
+   "label": "Rishivanshi",
+   "labels": {
+    "hi": "ऋषिवंशी"
+   },
+   "aliases": [
+    "Rishivamsa",
+    "Brahmavanshi"
+   ]
+  }
+ ]
+}

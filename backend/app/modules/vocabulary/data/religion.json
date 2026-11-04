@@ -1,0 +1,166 @@
+{
+ "code": "religion",
+ "name": "Religion",
+ "description": "Religion suggestions (Census of India categories plus tribal faiths). Optional and private by default.",
+ "version": "2026.10.1",
+ "source": "Census of India religion categories; curated additions",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "hindu",
+   "label": "Hindu",
+   "labels": {
+    "hi": "हिन्दू"
+   },
+   "aliases": [
+    "Hinduism",
+    "Sanatan",
+    "Sanatana Dharma"
+   ]
+  },
+  {
+   "code": "muslim",
+   "label": "Muslim",
+   "labels": {
+    "hi": "मुस्लिम"
+   },
+   "aliases": [
+    "Islam",
+    "Musalman",
+    "मुसलमान"
+   ]
+  },
+  {
+   "code": "christian",
+   "label": "Christian",
+   "labels": {
+    "hi": "ईसाई"
+   },
+   "aliases": [
+    "Christianity",
+    "Isai"
+   ]
+  },
+  {
+   "code": "sikh",
+   "label": "Sikh",
+   "labels": {
+    "hi": "सिख"
+   },
+   "aliases": [
+    "Sikhism",
+    "ਸਿੱਖ"
+   ]
+  },
+  {
+   "code": "buddhist",
+   "label": "Buddhist",
+   "labels": {
+    "hi": "बौद्ध"
+   },
+   "aliases": [
+    "Buddhism",
+    "Bauddha"
+   ]
+  },
+  {
+   "code": "jain",
+   "label": "Jain",
+   "labels": {
+    "hi": "जैन"
+   },
+   "aliases": [
+    "Jainism"
+   ]
+  },
+  {
+   "code": "zoroastrian",
+   "label": "Zoroastrian (Parsi / Irani)",
+   "labels": {
+    "hi": "पारसी"
+   },
+   "aliases": [
+    "Parsi",
+    "Irani",
+    "Zoroastrianism"
+   ]
+  },
+  {
+   "code": "jewish",
+   "label": "Jewish",
+   "labels": {
+    "hi": "यहूदी"
+   },
+   "aliases": [
+    "Judaism",
+    "Bene Israel",
+    "Cochin Jews",
+    "Baghdadi Jews"
+   ]
+  },
+  {
+   "code": "bahai",
+   "label": "Bahá'í",
+   "labels": {
+    "hi": "बहाई"
+   },
+   "aliases": [
+    "Bahai"
+   ]
+  },
+  {
+   "code": "sarna",
+   "label": "Sarna",
+   "labels": {
+    "hi": "सरना"
+   },
+   "aliases": [
+    "Sarnaism",
+    "Sari Dharam"
+   ],
+   "tags": [
+    "tribal_faith"
+   ]
+  },
+  {
+   "code": "donyi_polo",
+   "label": "Donyi-Polo",
+   "labels": {
+    "hi": "दोन्यी-पोलो"
+   },
+   "aliases": [
+    "Donyi Polo"
+   ],
+   "tags": [
+    "tribal_faith"
+   ]
+  },
+  {
+   "code": "sanamahi",
+   "label": "Sanamahi",
+   "labels": {
+    "hi": "सनामही"
+   },
+   "aliases": [
+    "Sanamahism"
+   ],
+   "tags": [
+    "tribal_faith"
+   ]
+  },
+  {
+   "code": "no_religion",
+   "label": "No religion",
+   "labels": {
+    "hi": "कोई धर्म नहीं"
+   },
+   "aliases": [
+    "Atheist",
+    "Agnostic",
+    "Irreligious",
+    "नास्तिक"
+   ]
+  }
+ ]
+}

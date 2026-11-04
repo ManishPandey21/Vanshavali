@@ -1,0 +1,328 @@
+{
+ "code": "script",
+ "name": "Script",
+ "description": "Writing systems (ISO 15924), including historical scripts found in land records, bahis and letters (Kaithi, Modi, Mahajani, Landa, Sharada, Takri, Grantha).",
+ "version": "2026.10.1",
+ "source": "ISO 15924 (Unicode); names curated",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "Deva",
+   "label": "Devanagari",
+   "labels": {
+    "hi": "देवनागरी"
+   },
+   "attributes": {
+    "iso_15924": "Deva"
+   }
+  },
+  {
+   "code": "Beng",
+   "label": "Bengali–Assamese",
+   "labels": {
+    "hi": "बांग्ला लिपि",
+    "native": "বাংলা"
+   },
+   "aliases": [
+    "Bangla",
+    "Assamese script"
+   ],
+   "attributes": {
+    "iso_15924": "Beng"
+   }
+  },
+  {
+   "code": "Guru",
+   "label": "Gurmukhi",
+   "labels": {
+    "hi": "गुरमुखी",
+    "native": "ਗੁਰਮੁਖੀ"
+   },
+   "attributes": {
+    "iso_15924": "Guru"
+   }
+  },
+  {
+   "code": "Gujr",
+   "label": "Gujarati",
+   "labels": {
+    "hi": "गुजराती लिपि",
+    "native": "ગુજરાતી"
+   },
+   "attributes": {
+    "iso_15924": "Gujr"
+   }
+  },
+  {
+   "code": "Orya",
+   "label": "Odia",
+   "labels": {
+    "hi": "ओड़िया लिपि",
+    "native": "ଓଡ଼ିଆ"
+   },
+   "aliases": [
+    "Oriya"
+   ],
+   "attributes": {
+    "iso_15924": "Orya"
+   }
+  },
+  {
+   "code": "Taml",
+   "label": "Tamil",
+   "labels": {
+    "hi": "तमिल लिपि",
+    "native": "தமிழ்"
+   },
+   "attributes": {
+    "iso_15924": "Taml"
+   }
+  },
+  {
+   "code": "Telu",
+   "label": "Telugu",
+   "labels": {
+    "hi": "तेलुगु लिपि",
+    "native": "తెలుగు"
+   },
+   "attributes": {
+    "iso_15924": "Telu"
+   }
+  },
+  {
+   "code": "Knda",
+   "label": "Kannada",
+   "labels": {
+    "hi": "कन्नड़ लिपि",
+    "native": "ಕನ್ನಡ"
+   },
+   "attributes": {
+    "iso_15924": "Knda"
+   }
+  },
+  {
+   "code": "Mlym",
+   "label": "Malayalam",
+   "labels": {
+    "hi": "मलयालम लिपि",
+    "native": "മലയാളം"
+   },
+   "attributes": {
+    "iso_15924": "Mlym"
+   }
+  },
+  {
+   "code": "Arab",
+   "label": "Perso-Arabic (Nastaliq)",
+   "labels": {
+    "hi": "फ़ारसी-अरबी (नस्तालीक़)",
+    "native": "نستعلیق"
+   },
+   "aliases": [
+    "Urdu script",
+    "Arabic",
+    "Nastaliq",
+    "Shahmukhi"
+   ],
+   "attributes": {
+    "iso_15924": "Arab"
+   }
+  },
+  {
+   "code": "Olck",
+   "label": "Ol Chiki",
+   "labels": {
+    "hi": "ओल चिकी",
+    "native": "ᱚᱞ ᱪᱤᱠᱤ"
+   },
+   "aliases": [
+    "Santali script"
+   ],
+   "attributes": {
+    "iso_15924": "Olck"
+   }
+  },
+  {
+   "code": "Mtei",
+   "label": "Meetei Mayek",
+   "labels": {
+    "hi": "मीतै मयेक",
+    "native": "ꯃꯩꯇꯩ ꯃꯌꯦꯛ"
+   },
+   "aliases": [
+    "Manipuri script"
+   ],
+   "attributes": {
+    "iso_15924": "Mtei"
+   }
+  },
+  {
+   "code": "Latn",
+   "label": "Latin (Roman)",
+   "labels": {
+    "hi": "रोमन लिपि",
+    "native": "Latin"
+   },
+   "aliases": [
+    "Roman",
+    "English script"
+   ],
+   "attributes": {
+    "iso_15924": "Latn"
+   }
+  },
+  {
+   "code": "Tibt",
+   "label": "Tibetan",
+   "labels": {
+    "hi": "तिब्बती लिपि",
+    "native": "བོད་ཡིག"
+   },
+   "aliases": [
+    "Bhoti"
+   ],
+   "attributes": {
+    "iso_15924": "Tibt"
+   }
+  },
+  {
+   "code": "Lepc",
+   "label": "Lepcha",
+   "labels": {
+    "hi": "लेप्चा"
+   },
+   "aliases": [
+    "Rong"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Lepc"
+   }
+  },
+  {
+   "code": "Kthi",
+   "label": "Kaithi",
+   "labels": {
+    "hi": "कैथी"
+   },
+   "aliases": [
+    "Kayasthi"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Kthi"
+   }
+  },
+  {
+   "code": "Modi",
+   "label": "Modi",
+   "labels": {
+    "hi": "मोडी"
+   },
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Modi"
+   }
+  },
+  {
+   "code": "Mahj",
+   "label": "Mahajani",
+   "labels": {
+    "hi": "महाजनी"
+   },
+   "aliases": [
+    "Muriya",
+    "Sarafi",
+    "Kothival"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Mahj"
+   }
+  },
+  {
+   "code": "Sind",
+   "label": "Khudawadi (Landa)",
+   "labels": {
+    "hi": "खुदावादी (लंडा)"
+   },
+   "aliases": [
+    "Landa",
+    "Sindhi Landa"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Sind"
+   }
+  },
+  {
+   "code": "Shrd",
+   "label": "Sharada",
+   "labels": {
+    "hi": "शारदा"
+   },
+   "aliases": [
+    "Sarada"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Shrd"
+   }
+  },
+  {
+   "code": "Takr",
+   "label": "Takri",
+   "labels": {
+    "hi": "टाकरी"
+   },
+   "aliases": [
+    "Tankri"
+   ],
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Takr"
+   }
+  },
+  {
+   "code": "Gran",
+   "label": "Grantha",
+   "labels": {
+    "hi": "ग्रंथ"
+   },
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Gran"
+   }
+  },
+  {
+   "code": "Brah",
+   "label": "Brahmi",
+   "labels": {
+    "hi": "ब्राह्मी"
+   },
+   "tags": [
+    "historical"
+   ],
+   "attributes": {
+    "iso_15924": "Brah"
+   }
+  }
+ ]
+}

@@ -61,6 +61,7 @@ operational validation; [docs/release/production-readiness.md](docs/release/prod
 | Households (membership over time, karta) and branches (descent-rule derivation) | VERIFIED | `test_heritage_family.py` | |
 | Migration events | VERIFIED | `test_genealogy.py` | Migration **map** DEFERRED |
 | Multilingual UI (en, hi) | IMPLEMENTED | Vitest locale parity test | More languages DEFERRED (PRS §51) |
+| Reference vocabularies for searchable fields (gotra, kuladevata, rashi, nakshatra, tithi, months in 7 calendars, countries, states/UTs, kin terms, languages, scripts, …; LGD district import; read-only API) | VERIFIED | `test_vocabularies.py` (33) | ADR-0019. LGD district/sub-district data needs an operator download; frontend comboboxes still use `masterData` (follow-up). Kin-term quick-add is ADR-0018 (Proposed) |
 
 ## Phase 3: Documents and evidence
 

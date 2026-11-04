@@ -29,6 +29,7 @@ from app.modules.render.router import router as render_router
 from app.modules.search.router import router as search_router
 from app.modules.trees.router import router as trees_router
 from app.modules.visualization.router import router as visualization_router
+from app.modules.vocabulary.router import router as vocabulary_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
@@ -56,3 +57,4 @@ api_router.include_router(extraction_router)
 api_router.include_router(astrology_router)
 api_router.include_router(gedcom_router)
 api_router.include_router(archive_router)
+api_router.include_router(vocabulary_router)

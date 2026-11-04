@@ -1,0 +1,423 @@
+{
+ "code": "education",
+ "name": "Education",
+ "description": "Education levels and common Indian degrees.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "none",
+   "label": "No formal schooling",
+   "labels": {
+    "hi": "औपचारिक शिक्षा नहीं"
+   },
+   "aliases": [
+    "Illiterate",
+    "Unschooled"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "traditional",
+   "label": "Traditional schooling (pathshala / gurukul / madrasa)",
+   "labels": {
+    "hi": "पारंपरिक शिक्षा"
+   },
+   "aliases": [
+    "Pathshala",
+    "Gurukul",
+    "Madrasa",
+    "Maktab"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "primary",
+   "label": "Primary",
+   "labels": {
+    "hi": "प्राथमिक"
+   },
+   "aliases": [
+    "Class 5",
+    "5th pass"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "middle",
+   "label": "Middle school",
+   "labels": {
+    "hi": "माध्यमिक"
+   },
+   "aliases": [
+    "Class 8",
+    "8th pass",
+    "Vernacular final"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "matric",
+   "label": "Matriculation / 10th",
+   "labels": {
+    "hi": "मैट्रिक / हाई स्कूल"
+   },
+   "aliases": [
+    "10th",
+    "SSC",
+    "SSLC",
+    "High school",
+    "Matric"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "intermediate",
+   "label": "Intermediate / 12th",
+   "labels": {
+    "hi": "इंटरमीडिएट"
+   },
+   "aliases": [
+    "12th",
+    "HSC",
+    "PUC",
+    "Higher secondary",
+    "Inter"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "iti",
+   "label": "ITI / trade certificate",
+   "labels": {
+    "hi": "आईटीआई"
+   },
+   "aliases": [
+    "ITI"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "diploma",
+   "label": "Diploma / polytechnic",
+   "labels": {
+    "hi": "डिप्लोमा"
+   },
+   "aliases": [
+    "Polytechnic"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "graduate",
+   "label": "Graduate",
+   "labels": {
+    "hi": "स्नातक"
+   },
+   "aliases": [
+    "Bachelor's",
+    "Graduation"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "postgraduate",
+   "label": "Postgraduate",
+   "labels": {
+    "hi": "स्नातकोत्तर"
+   },
+   "aliases": [
+    "Master's",
+    "PG"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "doctorate",
+   "label": "Doctorate",
+   "labels": {
+    "hi": "डॉक्टरेट"
+   },
+   "aliases": [
+    "PhD",
+    "Doctorate"
+   ],
+   "tags": [
+    "level"
+   ]
+  },
+  {
+   "code": "ba",
+   "label": "B.A.",
+   "labels": {
+    "hi": "बी.ए."
+   },
+   "aliases": [
+    "BA",
+    "Bachelor of Arts"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "bsc",
+   "label": "B.Sc.",
+   "labels": {
+    "hi": "बी.एससी."
+   },
+   "aliases": [
+    "BSc",
+    "Bachelor of Science"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "bcom",
+   "label": "B.Com.",
+   "labels": {
+    "hi": "बी.कॉम."
+   },
+   "aliases": [
+    "BCom",
+    "Bachelor of Commerce"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "btech",
+   "label": "B.Tech. / B.E.",
+   "labels": {
+    "hi": "बी.टेक."
+   },
+   "aliases": [
+    "BTech",
+    "BE",
+    "Bachelor of Engineering"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "mbbs",
+   "label": "M.B.B.S.",
+   "labels": {
+    "hi": "एम.बी.बी.एस."
+   },
+   "aliases": [
+    "MBBS"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "bams",
+   "label": "B.A.M.S.",
+   "labels": {
+    "hi": "बी.ए.एम.एस."
+   },
+   "aliases": [
+    "BAMS",
+    "Ayurveda"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "llb",
+   "label": "LL.B.",
+   "labels": {
+    "hi": "एलएल.बी."
+   },
+   "aliases": [
+    "LLB",
+    "Law"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "bed",
+   "label": "B.Ed.",
+   "labels": {
+    "hi": "बी.एड."
+   },
+   "aliases": [
+    "BEd"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "ma",
+   "label": "M.A.",
+   "labels": {
+    "hi": "एम.ए."
+   },
+   "aliases": [
+    "MA",
+    "Master of Arts"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "msc",
+   "label": "M.Sc.",
+   "labels": {
+    "hi": "एम.एससी."
+   },
+   "aliases": [
+    "MSc"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "mcom",
+   "label": "M.Com.",
+   "labels": {
+    "hi": "एम.कॉम."
+   },
+   "aliases": [
+    "MCom"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "mtech",
+   "label": "M.Tech. / M.E.",
+   "labels": {
+    "hi": "एम.टेक."
+   },
+   "aliases": [
+    "MTech",
+    "ME"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "mba",
+   "label": "M.B.A.",
+   "labels": {
+    "hi": "एम.बी.ए."
+   },
+   "aliases": [
+    "MBA",
+    "PGDM"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "md",
+   "label": "M.D. / M.S. (medicine)",
+   "labels": {
+    "hi": "एम.डी."
+   },
+   "aliases": [
+    "MD",
+    "MS"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "ca",
+   "label": "Chartered Accountancy",
+   "labels": {
+    "hi": "सी.ए."
+   },
+   "aliases": [
+    "CA"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "phd",
+   "label": "Ph.D.",
+   "labels": {
+    "hi": "पीएच.डी."
+   },
+   "aliases": [
+    "PhD",
+    "Doctorate"
+   ],
+   "tags": [
+    "degree"
+   ]
+  },
+  {
+   "code": "shastri",
+   "label": "Shastri / Acharya (Sanskrit)",
+   "labels": {
+    "hi": "शास्त्री"
+   },
+   "aliases": [
+    "Acharya",
+    "Visharad",
+    "Sanskrit degree"
+   ],
+   "tags": [
+    "degree",
+    "traditional"
+   ]
+  },
+  {
+   "code": "alim",
+   "label": "Alim / Fazil",
+   "labels": {
+    "hi": "आलिम"
+   },
+   "aliases": [
+    "Fazil",
+    "Maulvi degree"
+   ],
+   "tags": [
+    "degree",
+    "traditional"
+   ]
+  }
+ ]
+}

@@ -28,6 +28,7 @@ from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClai
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
 from app.models.tree import AccessGrant, Tree, TreeInvitation, TreeMembership
 from app.models.visualization import ChartPreset, RenderArtifact, RenderJob
+from app.models.vocabulary import Vocabulary, VocabularyTerm
 
 _rls.attach_to_metadata(Base.metadata.tables)  # type: ignore[arg-type]
 
@@ -83,4 +84,6 @@ __all__ = [
     "TreeMembership",
     "User",
     "UserSession",
+    "Vocabulary",
+    "VocabularyTerm",
 ]

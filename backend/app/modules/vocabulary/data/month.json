@@ -1,0 +1,1270 @@
+{
+ "code": "month",
+ "name": "Month",
+ "description": "Month names per calendar (parent = calendar_system term). Hindu lunar months need Amanta/Purnimanta context for Krishna-paksha dates; the system never converts between calendars silently.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": "calendar_system",
+ "terms": [
+  {
+   "code": "gregorian:jan",
+   "label": "January",
+   "labels": {
+    "hi": "जनवरी"
+   },
+   "aliases": [
+    "Jan"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "gregorian:feb",
+   "label": "February",
+   "labels": {
+    "hi": "फ़रवरी"
+   },
+   "aliases": [
+    "Feb",
+    "फरवरी"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "gregorian:mar",
+   "label": "March",
+   "labels": {
+    "hi": "मार्च"
+   },
+   "aliases": [
+    "Mar"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "gregorian:apr",
+   "label": "April",
+   "labels": {
+    "hi": "अप्रैल"
+   },
+   "aliases": [
+    "Apr"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "gregorian:may",
+   "label": "May",
+   "labels": {
+    "hi": "मई"
+   },
+   "parent": "gregorian",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "gregorian:jun",
+   "label": "June",
+   "labels": {
+    "hi": "जून"
+   },
+   "aliases": [
+    "Jun"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "gregorian:jul",
+   "label": "July",
+   "labels": {
+    "hi": "जुलाई"
+   },
+   "aliases": [
+    "Jul"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "gregorian:aug",
+   "label": "August",
+   "labels": {
+    "hi": "अगस्त"
+   },
+   "aliases": [
+    "Aug"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "gregorian:sep",
+   "label": "September",
+   "labels": {
+    "hi": "सितंबर"
+   },
+   "aliases": [
+    "Sep",
+    "Sept",
+    "सितम्बर"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "gregorian:oct",
+   "label": "October",
+   "labels": {
+    "hi": "अक्टूबर"
+   },
+   "aliases": [
+    "Oct"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "gregorian:nov",
+   "label": "November",
+   "labels": {
+    "hi": "नवंबर"
+   },
+   "aliases": [
+    "Nov",
+    "नवम्बर"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "gregorian:dec",
+   "label": "December",
+   "labels": {
+    "hi": "दिसंबर"
+   },
+   "aliases": [
+    "Dec",
+    "दिसम्बर"
+   ],
+   "parent": "gregorian",
+   "attributes": {
+    "number": 12
+   }
+  },
+  {
+   "code": "hindu_lunar:chaitra",
+   "label": "Chaitra",
+   "labels": {
+    "hi": "चैत्र"
+   },
+   "aliases": [
+    "Chait",
+    "Chaitr",
+    "चैत"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "hindu_lunar:vaishakha",
+   "label": "Vaishakha",
+   "labels": {
+    "hi": "वैशाख"
+   },
+   "aliases": [
+    "Baisakh",
+    "Vaisakh",
+    "Vaishakh",
+    "बैसाख"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "hindu_lunar:jyeshtha",
+   "label": "Jyeshtha",
+   "labels": {
+    "hi": "ज्येष्ठ"
+   },
+   "aliases": [
+    "Jeth",
+    "Jyeshth",
+    "Jyaistha",
+    "जेठ"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "hindu_lunar:ashadha",
+   "label": "Ashadha",
+   "labels": {
+    "hi": "आषाढ़"
+   },
+   "aliases": [
+    "Asadh",
+    "Ashadh",
+    "Aashaadh",
+    "असाढ़"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "hindu_lunar:shravana",
+   "label": "Shravana",
+   "labels": {
+    "hi": "श्रावण"
+   },
+   "aliases": [
+    "Sawan",
+    "Savan",
+    "Shravan",
+    "Sravana",
+    "सावन"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "hindu_lunar:bhadrapada",
+   "label": "Bhadrapada",
+   "labels": {
+    "hi": "भाद्रपद"
+   },
+   "aliases": [
+    "Bhadon",
+    "Bhado",
+    "Bhadrapad",
+    "Bhadra",
+    "भादों"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "hindu_lunar:ashvin",
+   "label": "Ashvin",
+   "labels": {
+    "hi": "आश्विन"
+   },
+   "aliases": [
+    "Ashwin",
+    "Kwar",
+    "Kuar",
+    "Asoj",
+    "Aswayuja",
+    "क्वार",
+    "आसोज"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "hindu_lunar:kartika",
+   "label": "Kartika",
+   "labels": {
+    "hi": "कार्तिक"
+   },
+   "aliases": [
+    "Kartik",
+    "Katik",
+    "कातिक"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "hindu_lunar:margashirsha",
+   "label": "Margashirsha",
+   "labels": {
+    "hi": "मार्गशीर्ष"
+   },
+   "aliases": [
+    "Agahan",
+    "Aghan",
+    "Margasira",
+    "Mangsir",
+    "अगहन"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "hindu_lunar:pausha",
+   "label": "Pausha",
+   "labels": {
+    "hi": "पौष"
+   },
+   "aliases": [
+    "Paush",
+    "Poos",
+    "Pus",
+    "Pushya",
+    "पूस"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "hindu_lunar:magha",
+   "label": "Magha",
+   "labels": {
+    "hi": "माघ"
+   },
+   "aliases": [
+    "Magh"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "hindu_lunar:phalguna",
+   "label": "Phalguna",
+   "labels": {
+    "hi": "फाल्गुन"
+   },
+   "aliases": [
+    "Phagun",
+    "Falgun",
+    "Phalgun",
+    "फागुन"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "number": 12
+   }
+  },
+  {
+   "code": "hindu_lunar:adhik",
+   "label": "Adhik maas (intercalary month)",
+   "labels": {
+    "hi": "अधिक मास"
+   },
+   "aliases": [
+    "Adhik",
+    "Purushottam maas",
+    "Mal maas",
+    "Malmas",
+    "पुरुषोत्तम मास",
+    "मलमास"
+   ],
+   "parent": "hindu_lunar",
+   "attributes": {
+    "intercalary": true
+   }
+  },
+  {
+   "code": "hijri:muharram",
+   "label": "Muharram",
+   "labels": {
+    "hi": "मुहर्रम"
+   },
+   "aliases": [
+    "Moharram"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "hijri:safar",
+   "label": "Safar",
+   "labels": {
+    "hi": "सफ़र"
+   },
+   "parent": "hijri",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "hijri:rabi_al_awwal",
+   "label": "Rabi al-Awwal",
+   "labels": {
+    "hi": "रबी-उल-अव्वल"
+   },
+   "aliases": [
+    "Rabi ul Awwal",
+    "Rabi I"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "hijri:rabi_al_thani",
+   "label": "Rabi al-Thani",
+   "labels": {
+    "hi": "रबी-उस-सानी"
+   },
+   "aliases": [
+    "Rabi us Sani",
+    "Rabi al-Akhir",
+    "Rabi II"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "hijri:jumada_al_ula",
+   "label": "Jumada al-Ula",
+   "labels": {
+    "hi": "जुमादा-अल-अव्वल"
+   },
+   "aliases": [
+    "Jumada al-Awwal",
+    "Jumada I"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "hijri:jumada_al_akhirah",
+   "label": "Jumada al-Akhirah",
+   "labels": {
+    "hi": "जुमादा-अस-सानी"
+   },
+   "aliases": [
+    "Jumada al-Thani",
+    "Jumada II"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "hijri:rajab",
+   "label": "Rajab",
+   "labels": {
+    "hi": "रजब"
+   },
+   "parent": "hijri",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "hijri:shaban",
+   "label": "Sha'ban",
+   "labels": {
+    "hi": "शाबान"
+   },
+   "aliases": [
+    "Shaban",
+    "Shabaan"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "hijri:ramadan",
+   "label": "Ramadan",
+   "labels": {
+    "hi": "रमज़ान"
+   },
+   "aliases": [
+    "Ramzan",
+    "Ramazan"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "hijri:shawwal",
+   "label": "Shawwal",
+   "labels": {
+    "hi": "शव्वाल"
+   },
+   "parent": "hijri",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "hijri:dhu_al_qadah",
+   "label": "Dhu al-Qa'dah",
+   "labels": {
+    "hi": "ज़िलक़ाद"
+   },
+   "aliases": [
+    "Zilqad",
+    "Zul Qada",
+    "Dhul Qadah"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "hijri:dhu_al_hijjah",
+   "label": "Dhu al-Hijjah",
+   "labels": {
+    "hi": "ज़िलहिज्जा"
+   },
+   "aliases": [
+    "Zilhaj",
+    "Zul Hijja",
+    "Dhul Hijjah",
+    "Bakrid month"
+   ],
+   "parent": "hijri",
+   "attributes": {
+    "number": 12
+   }
+  },
+  {
+   "code": "tamil_solar:chithirai",
+   "label": "Chithirai",
+   "labels": {
+    "hi": "चित्तिरै",
+    "ta": "சித்திரை"
+   },
+   "aliases": [
+    "Chittirai"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "tamil_solar:vaikasi",
+   "label": "Vaikasi",
+   "labels": {
+    "hi": "वैकासि",
+    "ta": "வைகாசி"
+   },
+   "aliases": [
+    "Vaigasi"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "tamil_solar:aani",
+   "label": "Aani",
+   "labels": {
+    "hi": "आनि",
+    "ta": "ஆனி"
+   },
+   "aliases": [
+    "Ani"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "tamil_solar:aadi",
+   "label": "Aadi",
+   "labels": {
+    "hi": "आडि",
+    "ta": "ஆடி"
+   },
+   "aliases": [
+    "Adi"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "tamil_solar:avani",
+   "label": "Avani",
+   "labels": {
+    "hi": "आवणि",
+    "ta": "ஆவணி"
+   },
+   "aliases": [
+    "Aavani"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "tamil_solar:purattasi",
+   "label": "Purattasi",
+   "labels": {
+    "hi": "पुरट्टासि",
+    "ta": "புரட்டாசி"
+   },
+   "aliases": [
+    "Puratasi"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "tamil_solar:aippasi",
+   "label": "Aippasi",
+   "labels": {
+    "hi": "ऐप्पसि",
+    "ta": "ஐப்பசி"
+   },
+   "aliases": [
+    "Ippasi"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "tamil_solar:karthigai",
+   "label": "Karthigai",
+   "labels": {
+    "hi": "कार्तिगै",
+    "ta": "கார்த்திகை"
+   },
+   "aliases": [
+    "Karthikai"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "tamil_solar:margazhi",
+   "label": "Margazhi",
+   "labels": {
+    "hi": "मार्गऴि",
+    "ta": "மார்கழி"
+   },
+   "aliases": [
+    "Margali"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "tamil_solar:thai",
+   "label": "Thai",
+   "labels": {
+    "hi": "तै",
+    "ta": "தை"
+   },
+   "aliases": [
+    "Tai"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "tamil_solar:maasi",
+   "label": "Maasi",
+   "labels": {
+    "hi": "मासि",
+    "ta": "மாசி"
+   },
+   "aliases": [
+    "Masi"
+   ],
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "tamil_solar:panguni",
+   "label": "Panguni",
+   "labels": {
+    "hi": "पंगुनि",
+    "ta": "பங்குனி"
+   },
+   "parent": "tamil_solar",
+   "attributes": {
+    "number": 12
+   }
+  },
+  {
+   "code": "bengali:boishakh",
+   "label": "Boishakh",
+   "labels": {
+    "hi": "बैशाख",
+    "bn": "বৈশাখ"
+   },
+   "aliases": [
+    "Baisakh",
+    "Baishakh"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "bengali:joishtho",
+   "label": "Joishtho",
+   "labels": {
+    "hi": "जैष्ठ",
+    "bn": "জ্যৈষ্ঠ"
+   },
+   "aliases": [
+    "Jaishtha",
+    "Jyoishtho"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "bengali:asharh",
+   "label": "Asharh",
+   "labels": {
+    "hi": "आषाढ़",
+    "bn": "আষাঢ়"
+   },
+   "aliases": [
+    "Ashar",
+    "Asadh"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "bengali:shrabon",
+   "label": "Shrabon",
+   "labels": {
+    "hi": "श्राबन",
+    "bn": "শ্রাবণ"
+   },
+   "aliases": [
+    "Shraban",
+    "Srabon"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "bengali:bhadro",
+   "label": "Bhadro",
+   "labels": {
+    "hi": "भाद्र",
+    "bn": "ভাদ্র"
+   },
+   "aliases": [
+    "Bhadra"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "bengali:ashshin",
+   "label": "Ashshin",
+   "labels": {
+    "hi": "आश्विन",
+    "bn": "আশ্বিন"
+   },
+   "aliases": [
+    "Ashwin",
+    "Aswin"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "bengali:kartik",
+   "label": "Kartik",
+   "labels": {
+    "hi": "कार्तिक",
+    "bn": "কার্তিক"
+   },
+   "aliases": [
+    "Kartick"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "bengali:ogrohayon",
+   "label": "Ogrohayon",
+   "labels": {
+    "hi": "अग्रहायण",
+    "bn": "অগ্রহায়ণ"
+   },
+   "aliases": [
+    "Agrahayan",
+    "Aghran"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "bengali:poush",
+   "label": "Poush",
+   "labels": {
+    "hi": "पौष",
+    "bn": "পৌষ"
+   },
+   "aliases": [
+    "Paush",
+    "Pous"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "bengali:magh",
+   "label": "Magh",
+   "labels": {
+    "hi": "माघ",
+    "bn": "মাঘ"
+   },
+   "aliases": [
+    "Magha"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "bengali:falgun",
+   "label": "Falgun",
+   "labels": {
+    "hi": "फाल्गुन",
+    "bn": "ফাল্গুন"
+   },
+   "aliases": [
+    "Phalgun"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "bengali:choitro",
+   "label": "Choitro",
+   "labels": {
+    "hi": "चैत्र",
+    "bn": "চৈত্র"
+   },
+   "aliases": [
+    "Chaitra",
+    "Chaitro"
+   ],
+   "parent": "bengali",
+   "attributes": {
+    "number": 12
+   }
+  },
+  {
+   "code": "kollam:chingam",
+   "label": "Chingam",
+   "labels": {
+    "hi": "चिंगम",
+    "ml": "ചിങ്ങം"
+   },
+   "aliases": [
+    "Chingom"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "kollam:kanni",
+   "label": "Kanni",
+   "labels": {
+    "hi": "कन्नि",
+    "ml": "കന്നി"
+   },
+   "aliases": [
+    "Kanya"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "kollam:thulam",
+   "label": "Thulam",
+   "labels": {
+    "hi": "तुलाम",
+    "ml": "തുലാം"
+   },
+   "aliases": [
+    "Tulam"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "kollam:vrischikam",
+   "label": "Vrischikam",
+   "labels": {
+    "hi": "वृश्चिकम",
+    "ml": "വൃശ്ചികം"
+   },
+   "aliases": [
+    "Vrishchikam"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "kollam:dhanu",
+   "label": "Dhanu",
+   "labels": {
+    "hi": "धनु",
+    "ml": "ധനു"
+   },
+   "parent": "kollam",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "kollam:makaram",
+   "label": "Makaram",
+   "labels": {
+    "hi": "मकरम",
+    "ml": "മകരം"
+   },
+   "parent": "kollam",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "kollam:kumbham",
+   "label": "Kumbham",
+   "labels": {
+    "hi": "कुंभम",
+    "ml": "കുംഭം"
+   },
+   "parent": "kollam",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "kollam:meenam",
+   "label": "Meenam",
+   "labels": {
+    "hi": "मीनम",
+    "ml": "മീനം"
+   },
+   "parent": "kollam",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "kollam:medam",
+   "label": "Medam",
+   "labels": {
+    "hi": "मेडम",
+    "ml": "മേടം"
+   },
+   "aliases": [
+    "Metam"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "kollam:edavam",
+   "label": "Edavam",
+   "labels": {
+    "hi": "इडवम",
+    "ml": "ഇടവം"
+   },
+   "aliases": [
+    "Itavam"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "kollam:mithunam",
+   "label": "Mithunam",
+   "labels": {
+    "hi": "मिथुनम",
+    "ml": "മിഥുനം"
+   },
+   "parent": "kollam",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "kollam:karkidakam",
+   "label": "Karkidakam",
+   "labels": {
+    "hi": "कर्किडकम",
+    "ml": "കർക്കടകം"
+   },
+   "aliases": [
+    "Karkatakam",
+    "Karkkidakam"
+   ],
+   "parent": "kollam",
+   "attributes": {
+    "number": 12
+   }
+  },
+  {
+   "code": "nanakshahi:chet",
+   "label": "Chet",
+   "labels": {
+    "hi": "चेत",
+    "pa": "ਚੇਤ"
+   },
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 1
+   }
+  },
+  {
+   "code": "nanakshahi:vaisakh",
+   "label": "Vaisakh",
+   "labels": {
+    "hi": "वैसाख",
+    "pa": "ਵੈਸਾਖ"
+   },
+   "aliases": [
+    "Baisakh"
+   ],
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 2
+   }
+  },
+  {
+   "code": "nanakshahi:jeth",
+   "label": "Jeth",
+   "labels": {
+    "hi": "जेठ",
+    "pa": "ਜੇਠ"
+   },
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 3
+   }
+  },
+  {
+   "code": "nanakshahi:harh",
+   "label": "Harh",
+   "labels": {
+    "hi": "हाड़",
+    "pa": "ਹਾੜ"
+   },
+   "aliases": [
+    "Haar"
+   ],
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 4
+   }
+  },
+  {
+   "code": "nanakshahi:sawan",
+   "label": "Sawan",
+   "labels": {
+    "hi": "सावन",
+    "pa": "ਸਾਵਣ"
+   },
+   "aliases": [
+    "Saun"
+   ],
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 5
+   }
+  },
+  {
+   "code": "nanakshahi:bhadon",
+   "label": "Bhadon",
+   "labels": {
+    "hi": "भादों",
+    "pa": "ਭਾਦੋਂ"
+   },
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 6
+   }
+  },
+  {
+   "code": "nanakshahi:assu",
+   "label": "Assu",
+   "labels": {
+    "hi": "अस्सू",
+    "pa": "ਅੱਸੂ"
+   },
+   "aliases": [
+    "Asu"
+   ],
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 7
+   }
+  },
+  {
+   "code": "nanakshahi:katak",
+   "label": "Katak",
+   "labels": {
+    "hi": "कत्तक",
+    "pa": "ਕੱਤਕ"
+   },
+   "aliases": [
+    "Kattak"
+   ],
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 8
+   }
+  },
+  {
+   "code": "nanakshahi:maghar",
+   "label": "Maghar",
+   "labels": {
+    "hi": "मग्घर",
+    "pa": "ਮੱਘਰ"
+   },
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 9
+   }
+  },
+  {
+   "code": "nanakshahi:poh",
+   "label": "Poh",
+   "labels": {
+    "hi": "पोह",
+    "pa": "ਪੋਹ"
+   },
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 10
+   }
+  },
+  {
+   "code": "nanakshahi:magh",
+   "label": "Magh",
+   "labels": {
+    "hi": "माघ",
+    "pa": "ਮਾਘ"
+   },
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 11
+   }
+  },
+  {
+   "code": "nanakshahi:phagun",
+   "label": "Phagun",
+   "labels": {
+    "hi": "फग्गण",
+    "pa": "ਫੱਗਣ"
+   },
+   "aliases": [
+    "Phaggan"
+   ],
+   "parent": "nanakshahi",
+   "attributes": {
+    "number": 12
+   }
+  }
+ ]
+}

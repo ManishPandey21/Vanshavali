@@ -1,0 +1,609 @@
+{
+ "code": "occupation",
+ "name": "Occupation",
+ "description": "Occupation suggestions in English and Hindi, including historical and revenue-system roles that appear in old records. Free text always accepted.",
+ "version": "2026.10.1",
+ "source": "Curated by the Vanshavali project; community review pending. Suggestions only. Grouping follows NCO-2015 divisions loosely.",
+ "license": "Project data (same terms as this repository)",
+ "parent_vocabulary": null,
+ "terms": [
+  {
+   "code": "farmer",
+   "label": "Farmer / cultivator",
+   "labels": {
+    "hi": "किसान"
+   },
+   "aliases": [
+    "Kisan",
+    "Krishak",
+    "Agriculturist",
+    "Kheti"
+   ]
+  },
+  {
+   "code": "zamindar",
+   "label": "Zamindar / landlord",
+   "labels": {
+    "hi": "ज़मींदार"
+   },
+   "aliases": [
+    "Zamindar",
+    "Landlord",
+    "Malguzar"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "jagirdar",
+   "label": "Jagirdar",
+   "labels": {
+    "hi": "जागीरदार"
+   },
+   "aliases": [
+    "Jagir holder"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "lambardar",
+   "label": "Lambardar / village headman",
+   "labels": {
+    "hi": "लंबरदार"
+   },
+   "aliases": [
+    "Numberdar",
+    "Mukhiya",
+    "Patel",
+    "Headman"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "sarpanch",
+   "label": "Sarpanch / Pradhan",
+   "labels": {
+    "hi": "सरपंच"
+   },
+   "aliases": [
+    "Pradhan",
+    "Gram pradhan",
+    "Mukhiya"
+   ]
+  },
+  {
+   "code": "patwari",
+   "label": "Patwari / village accountant",
+   "labels": {
+    "hi": "पटवारी"
+   },
+   "aliases": [
+    "Lekhpal",
+    "Talathi",
+    "Karnam",
+    "VAO"
+   ]
+  },
+  {
+   "code": "kanungo",
+   "label": "Kanungo / revenue inspector",
+   "labels": {
+    "hi": "कानूनगो"
+   },
+   "aliases": [
+    "Qanungo",
+    "Revenue inspector"
+   ]
+  },
+  {
+   "code": "tehsildar",
+   "label": "Tehsildar",
+   "labels": {
+    "hi": "तहसीलदार"
+   },
+   "aliases": [
+    "Mamlatdar"
+   ]
+  },
+  {
+   "code": "chowkidar",
+   "label": "Chowkidar / watchman",
+   "labels": {
+    "hi": "चौकीदार"
+   },
+   "aliases": [
+    "Watchman"
+   ]
+  },
+  {
+   "code": "munshi",
+   "label": "Munshi / scribe",
+   "labels": {
+    "hi": "मुंशी"
+   },
+   "aliases": [
+    "Clerk",
+    "Scribe",
+    "Writer"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "munim",
+   "label": "Munim / accountant (trade)",
+   "labels": {
+    "hi": "मुनीम"
+   },
+   "aliases": [
+    "Accountant"
+   ]
+  },
+  {
+   "code": "sahukar",
+   "label": "Moneylender / banker (traditional)",
+   "labels": {
+    "hi": "साहूकार"
+   },
+   "aliases": [
+    "Sahukar",
+    "Mahajan",
+    "Seth"
+   ],
+   "tags": [
+    "historical"
+   ]
+  },
+  {
+   "code": "trader",
+   "label": "Trader / merchant",
+   "labels": {
+    "hi": "व्यापारी"
+   },
+   "aliases": [
+    "Vyapari",
+    "Merchant",
+    "Businessman",
+    "Vyavsayi"
+   ]
+  },
+  {
+   "code": "shopkeeper",
+   "label": "Shopkeeper",
+   "labels": {
+    "hi": "दुकानदार"
+   },
+   "aliases": [
+    "Dukandar",
+    "Retailer"
+   ]
+  },
+  {
+   "code": "artisan",
+   "label": "Artisan / craftsperson",
+   "labels": {
+    "hi": "कारीगर"
+   },
+   "aliases": [
+    "Craftsman",
+    "Karigar"
+   ]
+  },
+  {
+   "code": "purohit",
+   "label": "Priest (purohit / pujari)",
+   "labels": {
+    "hi": "पुरोहित"
+   },
+   "aliases": [
+    "Pujari",
+    "Pandit",
+    "Priest",
+    "Archaka",
+    "पुजारी"
+   ]
+  },
+  {
+   "code": "teerth_purohit",
+   "label": "Teerth purohit / panda (genealogy record keeper)",
+   "labels": {
+    "hi": "तीर्थ पुरोहित"
+   },
+   "aliases": [
+    "Panda",
+    "Pandaji",
+    "Bahi keeper"
+   ]
+  },
+  {
+   "code": "granthi",
+   "label": "Granthi",
+   "labels": {
+    "hi": "ग्रंथी"
+   }
+  },
+  {
+   "code": "imam",
+   "label": "Imam / Maulvi",
+   "labels": {
+    "hi": "इमाम"
+   },
+   "aliases": [
+    "Maulvi",
+    "Moulvi"
+   ]
+  },
+  {
+   "code": "pastor",
+   "label": "Pastor / priest (Christian)",
+   "labels": {
+    "hi": "पादरी"
+   },
+   "aliases": [
+    "Padri",
+    "Father"
+   ]
+  },
+  {
+   "code": "vaidya",
+   "label": "Vaidya (Ayurvedic physician)",
+   "labels": {
+    "hi": "वैद्य"
+   },
+   "aliases": [
+    "Ayurvedic doctor"
+   ]
+  },
+  {
+   "code": "hakim",
+   "label": "Hakim (Unani physician)",
+   "labels": {
+    "hi": "हकीम"
+   },
+   "aliases": [
+    "Unani doctor"
+   ]
+  },
+  {
+   "code": "doctor",
+   "label": "Doctor",
+   "labels": {
+    "hi": "डॉक्टर"
+   },
+   "aliases": [
+    "Physician",
+    "MBBS",
+    "Chikitsak"
+   ]
+  },
+  {
+   "code": "nurse",
+   "label": "Nurse",
+   "labels": {
+    "hi": "नर्स"
+   }
+  },
+  {
+   "code": "teacher",
+   "label": "Teacher",
+   "labels": {
+    "hi": "अध्यापक"
+   },
+   "aliases": [
+    "Shikshak",
+    "Master",
+    "Masterji",
+    "Adhyapak",
+    "शिक्षक"
+   ]
+  },
+  {
+   "code": "professor",
+   "label": "Professor / lecturer",
+   "labels": {
+    "hi": "प्राध्यापक"
+   },
+   "aliases": [
+    "Lecturer",
+    "Professor"
+   ]
+  },
+  {
+   "code": "engineer",
+   "label": "Engineer",
+   "labels": {
+    "hi": "इंजीनियर"
+   },
+   "aliases": [
+    "Abhiyanta"
+   ]
+  },
+  {
+   "code": "software_engineer",
+   "label": "Software engineer",
+   "labels": {
+    "hi": "सॉफ़्टवेयर इंजीनियर"
+   },
+   "aliases": [
+    "IT professional",
+    "Programmer",
+    "Developer"
+   ]
+  },
+  {
+   "code": "scientist",
+   "label": "Scientist",
+   "labels": {
+    "hi": "वैज्ञानिक"
+   }
+  },
+  {
+   "code": "lawyer",
+   "label": "Lawyer / advocate",
+   "labels": {
+    "hi": "वकील"
+   },
+   "aliases": [
+    "Advocate",
+    "Pleader",
+    "Vakil",
+    "Mukhtar"
+   ]
+  },
+  {
+   "code": "judge",
+   "label": "Judge / magistrate",
+   "labels": {
+    "hi": "न्यायाधीश"
+   },
+   "aliases": [
+    "Magistrate",
+    "Munsif"
+   ]
+  },
+  {
+   "code": "government_servant",
+   "label": "Government servant",
+   "labels": {
+    "hi": "सरकारी कर्मचारी"
+   },
+   "aliases": [
+    "Civil servant",
+    "Govt employee",
+    "Babu"
+   ]
+  },
+  {
+   "code": "clerk",
+   "label": "Clerk",
+   "labels": {
+    "hi": "लिपिक"
+   },
+   "aliases": [
+    "Babu",
+    "Clerk",
+    "Assistant"
+   ]
+  },
+  {
+   "code": "police",
+   "label": "Police",
+   "labels": {
+    "hi": "पुलिस"
+   },
+   "aliases": [
+    "Policeman",
+    "Constable",
+    "Daroga",
+    "Sub-inspector"
+   ]
+  },
+  {
+   "code": "soldier",
+   "label": "Armed forces",
+   "labels": {
+    "hi": "सैनिक"
+   },
+   "aliases": [
+    "Army",
+    "Fauji",
+    "Soldier",
+    "Navy",
+    "Air Force",
+    "फ़ौजी"
+   ]
+  },
+  {
+   "code": "railway",
+   "label": "Railway employee",
+   "labels": {
+    "hi": "रेलवे कर्मचारी"
+   },
+   "aliases": [
+    "Railways"
+   ]
+  },
+  {
+   "code": "postal",
+   "label": "Postal employee",
+   "labels": {
+    "hi": "डाक कर्मचारी"
+   },
+   "aliases": [
+    "Postmaster",
+    "Postman",
+    "Dakiya"
+   ]
+  },
+  {
+   "code": "banker",
+   "label": "Bank employee",
+   "labels": {
+    "hi": "बैंक कर्मचारी"
+   },
+   "aliases": [
+    "Banker"
+   ]
+  },
+  {
+   "code": "chartered_accountant",
+   "label": "Chartered accountant",
+   "labels": {
+    "hi": "चार्टर्ड अकाउंटेंट"
+   },
+   "aliases": [
+    "CA"
+   ]
+  },
+  {
+   "code": "business_owner",
+   "label": "Business owner / industrialist",
+   "labels": {
+    "hi": "उद्योगपति"
+   },
+   "aliases": [
+    "Industrialist",
+    "Businessman",
+    "Udyogpati"
+   ]
+  },
+  {
+   "code": "factory_worker",
+   "label": "Factory worker",
+   "labels": {
+    "hi": "कारख़ाना मज़दूर"
+   },
+   "aliases": [
+    "Mill worker",
+    "Mazdoor"
+   ]
+  },
+  {
+   "code": "labourer",
+   "label": "Labourer",
+   "labels": {
+    "hi": "मज़दूर"
+   },
+   "aliases": [
+    "Mazdoor",
+    "Daily wage",
+    "Shramik"
+   ]
+  },
+  {
+   "code": "driver",
+   "label": "Driver",
+   "labels": {
+    "hi": "चालक"
+   },
+   "aliases": [
+    "Drivers",
+    "Chalak"
+   ]
+  },
+  {
+   "code": "homemaker",
+   "label": "Homemaker",
+   "labels": {
+    "hi": "गृहिणी"
+   },
+   "aliases": [
+    "Housewife",
+    "Grihini",
+    "Housewife/homemaker"
+   ]
+  },
+  {
+   "code": "student",
+   "label": "Student",
+   "labels": {
+    "hi": "विद्यार्थी"
+   },
+   "aliases": [
+    "Chhatra"
+   ]
+  },
+  {
+   "code": "retired",
+   "label": "Retired",
+   "labels": {
+    "hi": "सेवानिवृत्त"
+   },
+   "aliases": [
+    "Pensioner"
+   ]
+  },
+  {
+   "code": "writer",
+   "label": "Writer / poet",
+   "labels": {
+    "hi": "लेखक"
+   },
+   "aliases": [
+    "Author",
+    "Poet",
+    "Kavi"
+   ]
+  },
+  {
+   "code": "journalist",
+   "label": "Journalist",
+   "labels": {
+    "hi": "पत्रकार"
+   }
+  },
+  {
+   "code": "artist",
+   "label": "Artist",
+   "labels": {
+    "hi": "कलाकार"
+   },
+   "aliases": [
+    "Painter",
+    "Actor"
+   ]
+  },
+  {
+   "code": "musician",
+   "label": "Musician",
+   "labels": {
+    "hi": "संगीतकार"
+   },
+   "aliases": [
+    "Singer",
+    "Gayak"
+   ]
+  },
+  {
+   "code": "politician",
+   "label": "Politician / public representative",
+   "labels": {
+    "hi": "राजनेता"
+   },
+   "aliases": [
+    "MLA",
+    "MP",
+    "Neta"
+   ]
+  },
+  {
+   "code": "freedom_fighter",
+   "label": "Freedom fighter",
+   "labels": {
+    "hi": "स्वतंत्रता सेनानी"
+   },
+   "aliases": [
+    "Swatantrata senani"
+   ],
+   "tags": [
+    "historical"
+   ]
+  }
+ ]
+}
