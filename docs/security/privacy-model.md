@@ -103,6 +103,17 @@ transactional only: plain text + simple HTML, no images, tracking pixels or link
 user's preferred language. Registration and reset never reveal whether an email has an account
 (threat model T19). Emailed tokens are stored only as SHA-256 hashes and never audited.
 
+**Landing-page privacy promises ("Kept in trust").** The public landing page states four promises;
+each is enforced server-side today, and changing the enforcing code means changing the copy
+(`landing.trust.*` in both locales) in the same PR:
+
+| Promise | Enforced by |
+|---|---|
+| Private and invite-only | `default_person_privacy = TREE_MEMBERS`; `level_allows` denies non-members |
+| Living relatives protected (birth date/time, contact, address → admins; the person once their claim is approved) | `PROTECTED_DEFAULTS` → `PRIVATE_TREE_ADMINS`; `_is_self` (admin-approved claim) |
+| You decide who sees what (roles, per-person level; public pages off by default, deceased-only, marked one by one) | `ROLE_PERMISSIONS`, `Person.privacy_level` / `field_privacy`; `PublicMode.OFF` default; public branch of `level_allows` |
+| Your records stay yours (GEDCOM / family archive export) | `gedcom.export` (Owner, Family admin, Contributor) in gedcom and archive services |
+
 **Landing-page sketch ("plant your tree").** Signed-out visitors can type up to four names (self,
 father, mother, paternal grandfather) on the public landing page to preview a tree. The names are
 kept only in that browser tab's `sessionStorage` (`vsh.treeDraft`, ≤120 chars each), are never sent

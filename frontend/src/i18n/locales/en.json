@@ -2108,7 +2108,9 @@
       "traditions": "Traditions",
       "keepers": "Keepers",
       "stories": "Stories",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "how": "How it works",
+      "trust": "Privacy"
     },
     "cta": {
       "start": "Begin your family tree",
@@ -2418,6 +2420,53 @@
       "ctaSignedIn": "Save as a new tree",
       "note": "These names stay in this browser tab until you create your account. Nothing is uploaded yet, and your tree is private by default.",
       "clear": "Clear names"
+    },
+    "how": {
+      "kicker": "How it works",
+      "titleA": "Your family's story, in",
+      "titleEm": "three simple steps",
+      "lead": "Begin with one name tonight. The tree grows as the family remembers.",
+      "stepN": "Step {{n}}",
+      "steps": {
+        "seed": {
+          "title": "Plant the seed",
+          "body": "Start a private tree with yourself — or with the eldest ancestor anyone still remembers. You can try it on this page before you sign up.",
+          "action": "Plant your tree now"
+        },
+        "memories": {
+          "title": "Gather the elders' memories",
+          "body": "Sit with your grandparents and add parents, spouses and children from any profile. Dates can be exact or approximate — “about 1925” — and photos and documents can sit alongside."
+        },
+        "invite": {
+          "title": "Invite the family",
+          "body": "Invite relatives by email with the role you choose, or send a private WhatsApp link so someone can claim their own profile.",
+          "action": "How we keep it private"
+        }
+      }
+    },
+    "trust": {
+      "kicker": "Kept in trust",
+      "titleA": "Your family's trust,",
+      "titleEm": "kept with care",
+      "lead": "A family tree holds living people as well as ancestors. These protections are built into how Vanshavali works, not just written in a policy.",
+      "items": {
+        "private": {
+          "title": "Private and invite-only",
+          "body": "A new tree can be opened only by the relatives you invite. Nobody else can see who is in it."
+        },
+        "living": {
+          "title": "Living relatives protected",
+          "body": "For anyone living, birth dates and times, phone numbers and addresses are shown only to tree admins — and to that relative once their claim to the profile is approved."
+        },
+        "control": {
+          "title": "You decide who sees what",
+          "body": "Every member has a role, from viewer to family admin, and every person has their own privacy level. Public pages stay off unless the owner turns them on, and even then show only relatives who have passed away and are marked public one by one."
+        },
+        "yours": {
+          "title": "Your records stay yours",
+          "body": "Owners, family admins and contributors can download the tree as a standard GEDCOM file, or the whole family archive, at any time."
+        }
+      }
     }
   },
   "geo": {
