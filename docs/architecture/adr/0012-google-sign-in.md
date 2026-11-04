@@ -69,6 +69,9 @@ out a development/demo account with a temporary password.
   `VSH_ENV` is `development` or `test`. It reads the password only from `VSH_DEMO_ACCOUNT_PASSWORD`
   (never a CLI argument), stores only the Argon2 hash, never prints it, and sets
   `must_change_password`. No credential lives in source, seed files, fixtures or docs.
+- The dev/test seed (`python -m app.cli.seed_demo`, `docs/operations/dev-accounts.md`) follows the
+  same rules: the same environment guard, passwords only from `VSH_DEMO_PASSWORD` and
+  `VSH_SUPERADMIN_PASSWORD`, and `must_change_password` on the seeded system admin.
 
 ## Stress test (questions we asked ourselves)
 - *Can an attacker log in as someone by owning a Google account with their email?* Only for addresses

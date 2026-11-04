@@ -5,8 +5,10 @@
 cp .env.example .env   # fill in the keys
 docker compose up --build
 # app: http://localhost:8080   API docs: http://localhost:8000/api/v1/docs   MinIO console: :9001
-docker compose run --rm backend python -m app.cli.seed_demo   # optional demo family
+# optional demo family + dev accounts (export VSH_DEMO_PASSWORD and VSH_SUPERADMIN_PASSWORD first)
+docker compose run --rm -e VSH_DEMO_PASSWORD -e VSH_SUPERADMIN_PASSWORD backend python -m app.cli.seed_demo
 ```
+Seeded accounts and their rules: `docs/operations/dev-accounts.md` (refused outside development/test).
 Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), migrate (a one-off
 `alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
