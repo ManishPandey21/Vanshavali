@@ -10,6 +10,7 @@ target, and the decisions still open. ADRs are listed in `adr/README.md`.
 | [data-model.md](data-model.md) | Generated table-by-table schema (from the ORM, which the migrations match) |
 | [adr/](adr/) | Architecture Decision Records 0001–0017 |
 | [heritage-visualization-milestone.md](heritage-visualization-milestone.md) | Geo-tagging, life events, reminders, visualizations and Remotion exports: plan and scope |
+| [india-master-data-and-smart-forms-plan.md](india-master-data-and-smart-forms-plan.md) | Audit of the landing-page features and an external product review; plan for master data, LGD geography, kinship v2, Smart Add Relative, family review, tithi calendar, oral history and later phases |
 | [event-reminder-model.md](event-reminder-model.md) | Reminder entities, scheduling rules, delivery states |
 | [remotion-rendering.md](remotion-rendering.md) | Animated export architecture (render jobs, renderer package, access) |
 | [open-questions.md](open-questions.md) | Requirements review. Answered by the PRS and ADRs; remaining ones marked |
