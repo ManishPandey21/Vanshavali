@@ -87,3 +87,30 @@ the client sends.
 - **Store the chosen term on the relationship.** Rejected by ADR-0003: terms depend on the viewer.
 - **Server-side plan sessions.** Rejected: a stateless plan endpoint re-validated at commit is
   simpler and cannot go stale on the server.
+
+## Amendment (4 Nov 2026): age-aware terms in the relationship calculator
+
+Phase C now uses the recorded order.
+
+- **Right pair.** `/relationship-path` returns `age_orders`, one per sibling word in `chain`, with
+  the two people that word joins. For "father, brother" (Tau/Chacha) word 1 compares the uncle with
+  the **father**; for "husband, brother" (Jeth/Devar) the brother-in-law with the **husband**; for
+  "brother" (Bhaiya/Bhai) the brother with the start person. The engine keeps each word's endpoints
+  while collapsing parent→child into a sibling word (`engine._chain_hops`).
+- **Precedence.** (1) `relative_age_order` (family-confirmed). (2) Birth dates, only when each
+  person has exactly one usable birth claim and the ranges do not overlap: circa, open-ended
+  (before/after) and competing claims give no answer. (3) Otherwise `unknown`. A family answer that
+  the visible dates contradict is kept and flagged (`dates_disagree`).
+- **Privacy.** Dates are compared **as the viewer may see them** (living people's dates are
+  year-only for most viewers), so a term never reveals a finer date than the viewer could read. A
+  pair involving a person hidden from the viewer gets no entry at all.
+- **Recording.** `POST /trees/{t}/relative-age-orders`:
+  - only between people the tree records as siblings;
+  - `RELATIONSHIP_WRITE` on both;
+  - the same order again is a no-op; the opposite order is a 409.
+
+  `DELETE /trees/{t}/relative-age-orders/{id}` corrects a mistake. Smart Add uses the same rules.
+- **UI.** The calculator shows ताऊ / चाचा (and Jeth/Devar, Tai/Chachi, Jethani/Devrani, Bhai
+  Sahab/Saala, Bhaiya/Bhai, Didi/Behen, Jija/Behnoi) from the order, and says how it was decided.
+  When the order is unknown it asks an editor "Is Suresh older or younger than Ramesh?". English
+  shows "father's elder brother".

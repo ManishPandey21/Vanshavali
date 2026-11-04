@@ -14,8 +14,9 @@ from app.authz.context import TreeContext
 from app.core.config import get_settings
 from app.models import Person, Relationship
 from app.models.enums import PARENT_TYPES, UNION_TYPES, EvidenceStatus, Lineage, RelationshipType, SexAtBirth
-from app.modules.genealogy import lookup
+from app.modules.genealogy import ageorder, lookup
 from app.modules.genealogy.schemas import (
+    AgeOrderOut,
     FamilyOut,
     GraphEdge,
     GraphNode,
@@ -556,11 +557,18 @@ def relationship_path(
         .tuples()
         .all()
     }
-    out = real(_relationship_path_raw(ctx, a_id, b_id, graph, sex))
+    raw = _relationship_path_raw(ctx, a_id, b_id, graph, sex)
+    out = real(raw)
+    age_orders: list[AgeOrderOut] = []
+    if raw.found and len(raw.path) > 1:
+        hops = _chain_hops([p for p in raw.path if p is not None], *graph, sex)
+        if [w for w, _, _ in hops] == raw.chain:  # direct non-biological edges carry their own words
+            age_orders = ageorder.for_sibling_hops(ctx, hops, visible)
     return out.model_copy(
         update={
             "path": [p if p in visible else None for p in out.path],
             "common_ancestor_ids": [c for c in out.common_ancestor_ids if c in visible],
+            "age_orders": age_orders,
         }
     )
 
@@ -783,6 +791,36 @@ def _bfs_path(
     return [*reversed(left), *right[1:]]
 
 
+def _chain_hops(
+    path: list[uuid.UUID],
+    parents: _LazyAdjacency,
+    children: _LazyAdjacency,
+    spouses: _LazyAdjacency,
+    sex: dict[uuid.UUID, SexAtBirth | None],
+) -> list[tuple[str, uuid.UUID, uuid.UUID]]:
+    """Kinship chain words with the two people each word joins: ``("brother", father, uncle)``.
+
+    A parent→child step collapses into a sibling word joining the two children, so age order is
+    compared between the right pair (the uncle and the *father* for Tau/Chacha), never the viewer.
+    """
+    hops: list[tuple[str, uuid.UUID, uuid.UUID]] = []
+    parents.graph.prefetch(path)
+    for x, y in pairwise(path):
+        s = sex.get(y)
+        if any(p == y for p, _ in parents.get(x, [])):
+            word = _gendered(s, "father", "mother", "parent")
+        elif any(c == y for c, _ in children.get(x, [])):
+            word = _gendered(s, "son", "daughter", "child")
+        else:
+            word = _gendered(s, "husband", "wife", "spouse")
+        if hops and hops[-1][0] in ("father", "mother", "parent") and word in ("son", "daughter", "child"):
+            sibling = {"son": "brother", "daughter": "sister", "child": "sibling"}[word]
+            hops[-1] = (sibling, hops[-1][1], y)
+        else:
+            hops.append((word, x, y))
+    return hops
+
+
 def _chain(
     path: list[uuid.UUID],
     parents: _LazyAdjacency,
@@ -791,21 +829,4 @@ def _chain(
     sex: dict[uuid.UUID, SexAtBirth | None],
 ) -> list[str]:
     """Kinship chain words (father, brother, wife…) so the UI can render regional terms (e.g. mama, bua)."""
-    words: list[str] = []
-    parents.graph.prefetch(path)
-    for x, y in pairwise(path):
-        s = sex.get(y)
-        if any(p == y for p, _ in parents.get(x, [])):
-            words.append(_gendered(s, "father", "mother", "parent"))
-        elif any(c == y for c, _ in children.get(x, [])):
-            words.append(_gendered(s, "son", "daughter", "child"))
-        else:
-            words.append(_gendered(s, "husband", "wife", "spouse"))
-    # collapse parent→child into sibling
-    out: list[str] = []
-    for w in words:
-        if out and out[-1] in ("father", "mother", "parent") and w in ("son", "daughter", "child"):
-            out[-1] = {"son": "brother", "daughter": "sister", "child": "sibling"}[w]
-        else:
-            out.append(w)
-    return out
+    return [w for w, _, _ in _chain_hops(path, parents, children, spouses, sex)]

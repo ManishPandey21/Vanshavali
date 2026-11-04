@@ -102,7 +102,7 @@ graph LR
 | At most two non-disputed biological parents. More claims must be recorded as `DISPUTED`. | Service (409 `too_many_biological_parents`) |
 | Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents; the relationship calculator treats such a pair as sharing a virtual parent that is never returned. | `genealogy.engine.family`, `engine._LazyGraph` (ADR-0020) |
 | Kinship terms (Mama, Tau, Bhabhi…) are never stored. Smart Add turns a term into basic edges, after a preview the user confirms. | `smartadd.terms`, `smartadd.service` (ADR-0020) |
-| "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. | `relative_age_order` (ADR-0020) |
+| "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. It decides age-dependent terms (Tau/Chacha) over birth dates; dates decide only when unambiguous and visible to the viewer. | `relative_age_order`, `genealogy.ageorder` (ADR-0020) |
 | A person added "as unknown for now" is `is_provisional` until they get a name; created only on the user's explicit choice. | `person.is_provisional` (ADR-0020) |
 | Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |
 | Incomplete dates keep their precision: nothing is padded, calendars are preserved, sort ranges are derived | `core/dates.GenealogicalDate` |

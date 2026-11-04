@@ -358,9 +358,9 @@ with citations and offers "Ask a relative" instead of guessing.
 
 The full LGD import (R2) runs in parallel with R1 and does not block it.
 
-**R1 progress (4 Nov 2026):** Smart Add Relative is implemented (ADR-0020; see
-`IMPLEMENTATION_STATUS.md`). Still open in R1: the minimal master-data service and ADR-0018
-classification, age-aware term resolution in the calculator, transliteration suggestions,
+**R1 progress (4 Nov 2026):** Smart Add Relative (ADR-0020) and age-aware kinship terms in the
+calculator (ADR-0020 amendment) are implemented. The minimal master-data service (ADR-0018) is in
+a separate PR. See `IMPLEMENTATION_STATUS.md`. Still open in R1: transliteration suggestions,
 excluding provisional people from exports and counts, and native Hindi review.
 
 **Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)

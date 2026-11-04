@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
 
@@ -566,6 +566,32 @@ class GraphOut(ApiModel):
     unions: list[dict[str, str]] = []
 
 
+class AgeOrderOut(ApiModel):
+    """Whether the person reached by a sibling word in ``chain`` is older or younger than the person
+    that word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 §5)."""
+
+    chain_index: int
+    person_id: uuid.UUID
+    relative_to_id: uuid.UUID
+    order: Literal["elder", "younger", "unknown"]
+    # family_confirmed wins over birth_dates; unknown when dates overlap, are missing or conflict
+    basis: Literal["family_confirmed", "birth_dates", "unknown"]
+    record_id: uuid.UUID | None = None  # the family-confirmed record, for correcting it
+    dates_disagree: bool = False  # a family-confirmed order the viewer's visible birth dates contradict
+
+
+class RelativeAgeOrderIn(ApiModel):
+    person_id: uuid.UUID
+    relative_to_id: uuid.UUID
+    order: Literal["elder", "younger"]
+
+
+class RelativeAgeOrderOut(ApiModel):
+    id: uuid.UUID
+    elder_person_id: uuid.UUID
+    younger_person_id: uuid.UUID
+
+
 class RelationshipPathOut(ApiModel):
     from_id: uuid.UUID
     to_id: uuid.UUID
@@ -576,3 +602,4 @@ class RelationshipPathOut(ApiModel):
     common_ancestor_ids: list[uuid.UUID] = []
     lineages: list[Lineage] = []
     explanation: str | None = None
+    age_orders: list[AgeOrderOut] = []

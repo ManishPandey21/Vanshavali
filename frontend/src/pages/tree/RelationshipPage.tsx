@@ -3,9 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeftRight, ChevronRight } from "lucide-react";
 import type { Lineage, PersonSummary } from "../../api/types";
-import { usePerson, useRelationshipPath } from "../../api/hooks/people";
+import { usePerson, useRecordAgeOrder, useRelationshipPath } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
-import { describeChain, regionalKinshipTerm } from "../../lib/kinship";
+import { ageQuestionFor, describeChain, resolveKinship, type AgeOrder } from "../../lib/kinship";
+import { Perm } from "../../lib/permissions";
 import { PersonPicker } from "../../components/pickers";
 import { ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Button } from "../../components/ui/Button";
@@ -13,7 +14,7 @@ import { LineageToggle } from "./person/FamilyTab";
 
 export function RelationshipPage() {
   const { t, i18n } = useTranslation();
-  const { treeId, tree } = useTreeCtx();
+  const { treeId, tree, can } = useTreeCtx();
   const [params, setParams] = useSearchParams();
   const fromId = params.get("from") ?? tree.my_linked_person_id ?? "";
   const toId = params.get("to") ?? "";
@@ -36,8 +37,12 @@ export function RelationshipPage() {
   };
 
   const r = path.data;
-  const regional = r?.found ? regionalKinshipTerm(r.chain ?? [], i18n.language) : null;
-  const chainText = r?.found ? describeChain(r.chain ?? [], i18n.language) : "";
+  const ageOrders = (r?.age_orders ?? []) as AgeOrder[];
+  const kin = r?.found ? resolveKinship(r.chain ?? [], ageOrders, i18n.language) : null;
+  const regional = kin?.term ?? null;
+  const chainText = r?.found ? describeChain(r.chain ?? [], i18n.language, ageOrders) : "";
+  // the question that would decide Tau vs Chacha (asked in every language, answered once)
+  const question = r?.found ? ageQuestionFor(r.chain ?? [], ageOrders) : null;
   // The API label is English-only; in Hindi, lead with the regional term or the literal chain.
   const isHindi = i18n.language.startsWith("hi");
   const pathPeople = r?.path ?? [];
@@ -87,7 +92,12 @@ export function RelationshipPage() {
                 </p>
               )}
               {r.explanation && <p className="mt-1 text-xs text-ink-muted">{r.explanation}</p>}
-              {regional?.includes("/") && <p className="mt-1 text-xs text-ink-muted">{t("relationship.ageDependent")}</p>}
+              {kin?.basis === "family_confirmed" && <p className="mt-1 text-xs text-ink-muted">{t("relationship.basis.family_confirmed")}</p>}
+              {kin?.basis === "birth_dates" && <p className="mt-1 text-xs text-ink-muted">{t("relationship.basis.birth_dates")}</p>}
+              {kin?.dates_disagree && <p className="mt-1 text-xs text-ink-muted">{t("relationship.datesDisagree")}</p>}
+              {question && (
+                <AgeQuestion personId={question.personId} relativeToId={question.relativeToId} canAnswer={can(Perm.RELATIONSHIP_WRITE)} />
+              )}
               {pathPeople.length > 1 && (
                 <ol className="mt-4 flex flex-wrap items-center gap-1 text-sm" aria-label={t("relationship.path")}>
                   {pathPeople.map((id, i) => (
@@ -109,6 +119,43 @@ export function RelationshipPage() {
           )}
         </section>
       )}
+    </div>
+  );
+}
+
+/**
+ * "Is Suresh older or younger than Ramesh?" — the answer is recorded as family knowledge and decides
+ * age-dependent terms (Tau vs Chacha) from then on, over any birth dates (ADR-0020 §5).
+ */
+function AgeQuestion({ personId, relativeToId, canAnswer }: { personId: string; relativeToId: string; canAnswer: boolean }) {
+  const { t } = useTranslation();
+  const { treeId } = useTreeCtx();
+  const person = usePerson(treeId, personId);
+  const other = usePerson(treeId, relativeToId);
+  const record = useRecordAgeOrder(treeId);
+  if (!person.data || !other.data) return null;
+  const names = { person: person.data.display_name, other: other.data.display_name };
+  if (!canAnswer) return <p className="mt-1 text-xs text-ink-muted">{t("relationship.ageDependent")}</p>;
+  return (
+    <div className="mt-3 rounded-lg border border-haldi-300 bg-haldi-100 p-3" role="group" aria-labelledby="age-q">
+      <p id="age-q" className="text-sm font-medium">
+        {t("relationship.ageQuestion", names)}
+      </p>
+      <p className="text-xs text-ink-muted">{t("relationship.ageQuestionHint")}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {(["elder", "younger"] as const).map((order) => (
+          <Button
+            key={order}
+            size="sm"
+            variant="secondary"
+            loading={record.isPending && record.variables?.order === order}
+            onClick={() => record.mutate({ person_id: personId, relative_to_id: relativeToId, order })}
+          >
+            {t(`relationship.age.${order}`, names)}
+          </Button>
+        ))}
+      </div>
+      <ErrorAlert error={record.error} />
     </div>
   );
 }

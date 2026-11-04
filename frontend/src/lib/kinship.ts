@@ -84,7 +84,73 @@ const HI_TERMS: Record<string, string> = {
   "wife,sister,husband": "साढ़ू",
   "wife,brother,wife": "सलहज",
   "husband,brother,wife": "देवरानी / जेठानी",
+  "husband,sister,husband": "ननदोई",
+  "son,wife,father": "समधी",
+  "son,wife,mother": "समधन",
+  "daughter,husband,father": "समधी",
+  "daughter,husband,mother": "समधन",
 };
+
+/**
+ * Terms that depend on relative age (ADR-0020 §5). `index` is the sibling word in the chain whose
+ * age decides the term: for Tau/Chacha it is the uncle compared with the *father* (word 1), never
+ * the viewer. `unknown` is shown when the age order is not known.
+ */
+const HI_AGE_TERMS: Record<string, { index: number; elder: string; younger: string; unknown: string }> = {
+  brother: { index: 0, elder: "भैया", younger: "भाई", unknown: "भाई" },
+  sister: { index: 0, elder: "दीदी", younger: "बहन", unknown: "बहन" },
+  "father,brother": { index: 1, elder: "ताऊ", younger: "चाचा", unknown: "चाचा / ताऊ" },
+  "father,brother,wife": { index: 1, elder: "ताई", younger: "चाची", unknown: "चाची / ताई" },
+  "husband,brother": { index: 1, elder: "जेठ", younger: "देवर", unknown: "देवर / जेठ" },
+  "husband,brother,wife": { index: 1, elder: "जेठानी", younger: "देवरानी", unknown: "देवरानी / जेठानी" },
+  "wife,brother": { index: 1, elder: "भाई साहब", younger: "साला", unknown: "साला / भाई साहब" },
+  "sister,husband": { index: 0, elder: "जीजा", younger: "बहनोई", unknown: "जीजा" },
+};
+
+export interface AgeOrder {
+  chain_index: number;
+  person_id: string;
+  relative_to_id: string;
+  order: "elder" | "younger" | "unknown";
+  basis: "family_confirmed" | "birth_dates" | "unknown";
+  record_id?: string | null;
+  dates_disagree?: boolean;
+}
+
+export interface KinshipResult {
+  /** The regional term, or null when there is no well-known one (caller falls back). */
+  term: string | null;
+  /** How the age-dependent part was decided; null when the term does not depend on age. */
+  basis: AgeOrder["basis"] | null;
+  /** The family could answer "older or younger?" to decide the term (both people visible). */
+  ageQuestion: { personId: string; relativeToId: string } | null;
+  dates_disagree: boolean;
+}
+
+/**
+ * Regional term for a chain with the API's age orders: elder/younger decides Tau vs Chacha only
+ * when the family confirmed it or the visible birth dates do; otherwise both words are shown.
+ */
+export function resolveKinship(chain: readonly string[], ageOrders: readonly AgeOrder[], lang: string): KinshipResult {
+  const key = chain.join(",");
+  const hindi = lang.startsWith("hi");
+  const rule = HI_AGE_TERMS[key];
+  if (!rule) return { term: hindi && chain.length ? (HI_TERMS[key] ?? null) : null, basis: null, ageQuestion: null, dates_disagree: false };
+  // basis, question and disagreement do not depend on the UI language; only the word does
+  const age = ageOrders.find((a) => a.chain_index === rule.index);
+  if (!age || age.order === "unknown") {
+    return { term: hindi ? rule.unknown : null, basis: age ? "unknown" : null, ageQuestion: ageQuestionFor(chain, ageOrders), dates_disagree: false };
+  }
+  return { term: hindi ? rule[age.order] : null, basis: age.basis, ageQuestion: null, dates_disagree: !!age.dates_disagree };
+}
+
+/** The age question that would decide an age-dependent term (any language), if it is still open. */
+export function ageQuestionFor(chain: readonly string[], ageOrders: readonly AgeOrder[]): KinshipResult["ageQuestion"] {
+  const rule = HI_AGE_TERMS[chain.join(",")];
+  if (!rule) return null;
+  const age = ageOrders.find((a) => a.chain_index === rule.index);
+  return age && age.order === "unknown" ? { personId: age.person_id, relativeToId: age.relative_to_id } : null;
+}
 
 const HI_WORDS: Record<string, string> = {
   father: "पिता",
@@ -113,13 +179,33 @@ export function regionalKinshipTerm(chain: readonly string[], lang: string): str
   return null;
 }
 
-/** "father's brother" / "पिता के भाई" — a literal reading of the chain, always available. */
-export function describeChain(chain: readonly string[], lang: string): string {
+const HI_AGED: Record<string, Record<"elder" | "younger", string>> = {
+  brother: { elder: "बड़े भाई", younger: "छोटे भाई" },
+  sister: { elder: "बड़ी बहन", younger: "छोटी बहन" },
+  sibling: { elder: "बड़े भाई-बहन", younger: "छोटे भाई-बहन" },
+};
+
+/**
+ * "father's brother" / "पिता के भाई" — a literal reading of the chain, always available. With age
+ * orders it says "father's elder brother" / "पिता के बड़े भाई" where the order is known.
+ */
+export function describeChain(chain: readonly string[], lang: string, ageOrders: readonly AgeOrder[] = []): string {
   if (!chain.length) return "";
+  const known = (i: number) => {
+    const a = ageOrders.find((x) => x.chain_index === i);
+    return a && a.order !== "unknown" ? a.order : null;
+  };
   if (lang.startsWith("hi")) {
-    const words = chain.map((w) => HI_WORDS[w] ?? w.replace(/_/g, " "));
+    const words = chain.map((w, i) => {
+      const age = known(i);
+      return (age && HI_AGED[w]?.[age]) || HI_WORDS[w] || w.replace(/_/g, " ");
+    });
     return words.reduce((acc, w, i) => (i === 0 ? w : `${acc} के ${w}`), "");
   }
-  const words = chain.map((w) => w.replace(/_/g, " "));
+  const words = chain.map((w, i) => {
+    const age = known(i);
+    const word = w.replace(/_/g, " ");
+    return age && w in HI_AGED ? `${age} ${word}` : word;
+  });
   return words.reduce((acc, w, i) => (i === 0 ? w : `${acc}'s ${w}`), "");
 }

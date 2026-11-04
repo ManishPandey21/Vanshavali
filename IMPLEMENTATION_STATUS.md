@@ -162,3 +162,13 @@ Plan: [docs/architecture/india-master-data-and-smart-forms-plan.md](docs/archite
 | Recorded age order (`relative_age_order`; Tau/Chacha, Jeth/Devar, Bhai Sahab/Saala, optional for Brother/Sister; contradictions refused) | VERIFIED | `test_smart_add.py::test_tau_records_age_order_and_contradiction_is_refused` | Not yet used to pick terms in the calculator (Phase C) |
 | Relationship calculator resolves explicit sibling edges (virtual shared parent, never returned) | VERIFIED | `test_smart_add.py::test_explicit_sibling_from_the_classic_dialog_resolves_uncle_and_cousin` | Also fixes siblings added through the existing dialog |
 | Smart Add wizard (choose → resolve steps → details → preview → confirm → undo; en/hi; phone layout) | VERIFIED | Vitest `SmartAddDialog.test.tsx` (3), Playwright `smart-add.spec.ts` (2, 390 px viewport) | Transliteration suggestion and master-data vocabularies: next R1 increments. Native Hindi review of the new strings outstanding |
+
+## R1 — Age-aware kinship terms (Nov 2026)
+
+Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| `age_orders` on `/relationship-path`: per sibling word, the right pair (uncle vs father, brother-in-law vs husband), family-confirmed > birth dates > unknown; conflicting, overlapping or open-ended dates give unknown; viewer-visible dates only; hidden pairs omitted | VERIFIED | `test_age_order.py` (9) | |
+| Record / delete age order between siblings (`/relative-age-orders`) | VERIFIED | `test_age_order.py::test_record_endpoint_rules`, `…family_confirmed_order_wins…` | Smart Add shares the same rules |
+| Hindi age-dependent terms (Tau/Chacha, Tai/Chachi, Jeth/Devar, Jethani/Devrani, Bhai Sahab/Saala, Bhaiya/Bhai, Didi/Behen, Jija/Behnoi) plus Samdhi/Samdhan and Nandoi; "father's elder brother" in English; basis shown in every language; "older or younger?" question for editors | VERIFIED | Vitest `kinship.test.ts` (matrix), `RelationshipPage.test.tsx` (3), Playwright `age-kinship.spec.ts` (with axe) | Regional packs (Marathi, Tamil…) and family-preferred words come later (Q14) |

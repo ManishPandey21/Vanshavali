@@ -4,6 +4,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query, status
+from fastapi.responses import JSONResponse
 from pydantic import Field
 from sqlalchemy import select
 
@@ -13,7 +14,7 @@ from app.authz.privacy import can_view_person, load_subjects
 from app.core.textnorm import search_key
 from app.models import Person, Place
 from app.models.enums import EventType, Lineage, ProfileStatus
-from app.modules.genealogy import engine, geo, lookup, service
+from app.modules.genealogy import ageorder, engine, geo, lookup, service
 from app.modules.genealogy.schemas import (
     EventIn,
     EventOut,
@@ -35,6 +36,8 @@ from app.modules.genealogy.schemas import (
     RelationshipOut,
     RelationshipPathOut,
     RelationshipUpdate,
+    RelativeAgeOrderIn,
+    RelativeAgeOrderOut,
     RelativeIn,
     RelativeOut,
 )
@@ -361,6 +364,31 @@ def descendants(
     lineage: LineageQuery = None,
 ) -> GraphOut:
     return engine.graph(ctx, person_id, "descendants", depth, set(lineage) if lineage else None)
+
+
+@router.post(
+    "/relative-age-orders",
+    response_model=RelativeAgeOrderOut,
+    status_code=status.HTTP_201_CREATED,
+    responses={200: {"model": RelativeAgeOrderOut, "description": "Already recorded"}},
+)
+def record_relative_age(body: RelativeAgeOrderIn, ctx: TreeCtx) -> RelativeAgeOrderOut | JSONResponse:
+    """Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). It takes
+    precedence over birth dates when kinship terms depend on age (Tau vs Chacha)."""
+    row, created = ageorder.record_for_siblings(ctx, body.person_id, body.relative_to_id, body.order)
+    out = RelativeAgeOrderOut(
+        id=row.id, elder_person_id=row.elder_person_id, younger_person_id=row.younger_person_id
+    )
+    if created:
+        return out
+    return JSONResponse(out.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@router.delete("/relative-age-orders/{record_id}", response_model=Message)
+def delete_relative_age(record_id: uuid.UUID, ctx: TreeCtx) -> Message:
+    """Remove a recorded age order (to correct a mistake)."""
+    ageorder.delete(ctx, record_id)
+    return Message(message="Age order removed")
 
 
 @router.get("/relationship-path", response_model=RelationshipPathOut)

@@ -163,6 +163,8 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Kinship terms are not stored and do not set identity.** "Mama" becomes edges; gender identity is
   never set, and sex at birth is only what the client sends.
 - **Age order** ("older than") is family knowledge about two people, private to the tree (RLS), and
-  deleted with either person.
+  deleted with either person. When the calculator orders two people by birth dates it uses only the
+  dates the viewer may see (year-only for living people, for most viewers), and never compares a
+  person hidden from the viewer.
 - **Undo** soft-deletes (restorable) the people an operation created and removes its relationships
   and age-order records; it is limited to the same user for 30 minutes.

@@ -20,7 +20,7 @@ from app.core import audit
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
 from app.models import AuditEvent, Person, Relationship, RelativeAgeOrder
 from app.models.enums import PARENT_TYPES, UNION_TYPES, ProfileStatus, RelationshipType, SexAtBirth
-from app.modules.genealogy import engine, lookup
+from app.modules.genealogy import ageorder, engine, lookup
 from app.modules.genealogy import service as genealogy
 from app.modules.genealogy.schemas import PersonCreate, PersonSummary, RelatedPerson, RelativeIn
 from app.modules.genealogy.serialize import Serializer
@@ -313,31 +313,10 @@ def _record_age(
     age: Literal["elder", "younger"],
     written: _Written,
 ) -> None:
-    """``person_id`` is ``age`` than ``other_id``: record it once; refuse a contradiction."""
-    elder, younger = (person_id, other_id) if age == "elder" else (other_id, person_id)
-
-    def existing(e: uuid.UUID, y: uuid.UUID) -> RelativeAgeOrder | None:
-        return ctx.db.scalar(
-            select(RelativeAgeOrder).where(
-                RelativeAgeOrder.tree_id == ctx.tree_id,
-                RelativeAgeOrder.elder_person_id == e,
-                RelativeAgeOrder.younger_person_id == y,
-            )
-        )
-
-    if existing(younger, elder) is not None:
-        raise Conflict(
-            "The family has already recorded the opposite age order for these two people",
-            code="age_order_conflict",
-        )
-    if existing(elder, younger) is not None:
-        return
-    row = RelativeAgeOrder(
-        tree_id=ctx.tree_id, elder_person_id=elder, younger_person_id=younger, created_by=ctx.user_id
-    )
-    ctx.db.add(row)
-    ctx.db.flush()
-    written.age_orders.append(row.id)
+    """``person_id`` is ``age`` than ``other_id``: record it once; refuse a contradiction (409)."""
+    row, created = ageorder.record(ctx, person_id, other_id, age)
+    if created:
+        written.age_orders.append(row.id)
 
 
 def commit(

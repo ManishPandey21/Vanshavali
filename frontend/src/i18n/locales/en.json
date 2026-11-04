@@ -754,7 +754,18 @@
     "subtitle": "Pick two people to see how they are related",
     "swap": "Swap people",
     "title": "How are we related?",
-    "to": "Relative"
+    "to": "Relative",
+    "basis": {
+      "family_confirmed": "Older/younger as confirmed by the family.",
+      "birth_dates": "Older/younger worked out from the birth dates you can see."
+    },
+    "datesDisagree": "The family's answer differs from the recorded birth dates; the family's answer is used.",
+    "ageQuestion": "Is {{person}} older or younger than {{other}}?",
+    "ageQuestionHint": "The word for this relative depends on it (e.g. Tau or Chacha). Your answer is saved for the whole family.",
+    "age": {
+      "elder": "Older than {{other}}",
+      "younger": "Younger than {{other}}"
+    }
   },
   "kin": {
     "brother": "brother",
