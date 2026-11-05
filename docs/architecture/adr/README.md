@@ -24,4 +24,5 @@ into 0003, 0009 and 0010.
 | 0015 | [Important life events, geo-tagged places and event photo albums](0015-life-events-geotags-event-media.md) | Accepted |
 | 0016 | [Event reminders and notification delivery (email, SMS, WhatsApp)](0016-reminders-and-notifications.md) | Accepted |
 | 0017 | [Visualization data APIs and Remotion animated exports](0017-visualizations-and-animated-exports.md) | Accepted |
+| 0018 | [Master data: controlled values vs extensible vocabularies](0018-master-data-vocabularies.md) | Accepted |
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |

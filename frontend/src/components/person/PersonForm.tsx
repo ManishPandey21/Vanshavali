@@ -14,7 +14,8 @@ import { emptyDate, normalizeDate, validateDate, validateTime } from "../../lib/
 import { GenealogicalDateEditor } from "../dates/GenealogicalDateEditor";
 import { TimeEditor, TimezoneSelect } from "../dates/TimeEditor";
 import { PlacePicker, emptyPlace, type PlaceValue } from "../pickers";
-import { Field, Select, TextInput } from "../ui/form";
+import { SmartSelect } from "../ui/SmartSelect";
+import { Field, Select } from "../ui/form";
 import { Button } from "../ui/Button";
 import { NameFields, cleanName, emptyName, nameHasContent, type NameDraft } from "./NameFields";
 
@@ -230,9 +231,8 @@ export function PersonForm({
             </Select>
           )}
         </Field>
-        <Field label={t("person.occupation")}>
-          {(p) => <TextInput {...p} value={draft.occupation} onChange={(e) => set({ occupation: e.target.value })} />}
-        </Field>
+        {/* suggestions only: occupation stays free text (ADR-0018 §6) */}
+        <SmartSelect vocabulary="occupation" linkable={false} label={t("person.occupation")} text={draft.occupation} onChange={(v) => set({ occupation: v })} />
         {draft.profile_status !== "deceased" && <p className="text-xs text-ink-muted sm:col-span-2">{t("person.form.livingNotice")}</p>}
       </section>
 

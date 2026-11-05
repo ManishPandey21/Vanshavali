@@ -1008,6 +1008,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/vocabularies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Vocabularies
+         * @description Extensible vocabularies (ADR-0018). Controlled values are not listed here.
+         */
+        get: operations["list_vocabularies_api_v1_vocabularies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vocabularies/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vocabulary Terms
+         * @description Global suggestions, searchable by label in any script, alias or spelling.
+         */
+        get: operations["vocabulary_terms_api_v1_vocabularies__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/vocabularies/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tree Vocabulary Terms
+         * @description Global suggestions plus this family's own entries.
+         */
+        get: operations["tree_vocabulary_terms_api_v1_trees__tree_id__vocabularies__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/vocabularies/{key}/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Tree Term
+         * @description Add the family's own entry ("Add my own"); an existing matching entry is returned instead.
+         */
+        post: operations["add_tree_term_api_v1_trees__tree_id__vocabularies__key__terms_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/life-events": {
         parameters: {
             query?: never;
@@ -8586,6 +8666,22 @@ export interface components {
             /** My Linked Person Id */
             my_linked_person_id?: string | null;
         };
+        /** TreeTermIn */
+        TreeTermIn: {
+            /** Label */
+            label: string;
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+        };
+        /** TreeTermOut */
+        TreeTermOut: {
+            term: components["schemas"]["VocabularyTermOut"];
+            /** Created */
+            created: boolean;
+        };
         /** TreeUpdate */
         TreeUpdate: {
             /** Name */
@@ -8782,6 +8878,72 @@ export interface components {
              */
             event_count?: number;
             completeness?: components["schemas"]["Completeness"] | null;
+        };
+        /** VocabularyOut */
+        VocabularyOut: {
+            /** Key */
+            key: string;
+            /** Description */
+            description: string;
+            /** Version */
+            version: number;
+            /** Source */
+            source?: string | null;
+            /** Licence */
+            licence?: string | null;
+            /** Allows Custom */
+            allows_custom: boolean;
+            /**
+             * Term Count
+             * @default 0
+             */
+            term_count?: number;
+        };
+        /** VocabularyTermOut */
+        VocabularyTermOut: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+            /** Parent Code */
+            parent_code?: string | null;
+            /**
+             * Attributes
+             * @default {}
+             */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            status: components["schemas"]["VocabularyTermStatus"];
+            /**
+             * Origin
+             * @default global
+             * @enum {string}
+             */
+            origin?: "global" | "family";
+            /** Id */
+            id?: string | null;
+        };
+        /**
+         * VocabularyTermStatus
+         * @description Master-data term lifecycle (ADR-0018). Retired terms stay resolvable for stored references.
+         * @enum {string}
+         */
+        VocabularyTermStatus: "draft" | "reviewed" | "retired";
+        /** VocabularyTermsOut */
+        VocabularyTermsOut: {
+            vocabulary: components["schemas"]["VocabularyOut"];
+            /** Items */
+            items: components["schemas"]["VocabularyTermOut"][];
         };
     };
     responses: never;
@@ -11110,6 +11272,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_vocabularies_api_v1_vocabularies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyOut"][];
+                };
+            };
+        };
+    };
+    vocabulary_terms_api_v1_vocabularies__key__get: {
+        parameters: {
+            query?: {
+                q?: string;
+                lang?: string;
+                parent?: string | null;
+                include_retired?: boolean;
+            };
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyTermsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tree_vocabulary_terms_api_v1_trees__tree_id__vocabularies__key__get: {
+        parameters: {
+            query?: {
+                q?: string;
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                key: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyTermsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_tree_term_api_v1_trees__tree_id__vocabularies__key__terms_post: {
+        parameters: {
+            query?: {
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                key: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TreeTermIn"];
+            };
+        };
+        responses: {
+            /** @description The label already names an entry */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeTermOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeTermOut"];
                 };
             };
             /** @description Validation Error */

@@ -180,3 +180,16 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   person hidden from the viewer.
 - **Undo** soft-deletes (restorable) the people an operation created and removes its relationships
   and age-order records; it is limited to the same user for 30 minutes.
+
+## 9. Master data vocabularies (ADR-0018)
+
+- **Suggestions, never facts.** A vocabulary only helps typing. The value stored is what the person
+  chose or typed; nothing is filled in, inferred or checked against someone's surname, place or
+  relatives.
+- **No lists for sensitive identity.** Community, jati and religion have no vocabulary, so the app
+  never presents caste or religious categories to choose from (Q4).
+- **A family's own entries are family data.** They are private to the tree (RLS), visible to its
+  members only, deleted with the tree, and never copied into the global catalogue by the app. The
+  audit log records that an entry was added, not what it says.
+- **Global reference data holds no personal data.** Packs are versioned files in the repository,
+  loaded by an operator command.

@@ -166,6 +166,19 @@ Plan: [docs/architecture/india-master-data-and-smart-forms-plan.md](docs/archite
 | Relationship calculator resolves explicit sibling edges (virtual shared parent, never returned) | VERIFIED | `test_smart_add.py::test_explicit_sibling_from_the_classic_dialog_resolves_uncle_and_cousin` | Also fixes siblings added through the existing dialog |
 | Smart Add wizard (choose → resolve steps → details → preview → confirm → undo; en/hi; phone layout) | VERIFIED | Vitest `SmartAddDialog.test.tsx` (3), `badges.test.tsx` (3), Playwright `smart-add.spec.ts` (2, 390 px viewport) | Transliteration suggestion and master-data vocabularies: next R1 increments. Native Hindi review of the new strings outstanding |
 
+## R1 — Master data service, minimal (Nov 2026)
+
+Decision: ADR-0018 (classification of every dropdown: controlled values vs extensible vocabularies). One migration (`5c2d8e1f7a90`, with downgrade; RLS on `tree_vocabulary_term`).
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Classification of every dropdown (controlled vs vocabulary; where Unknown / Not applicable / Add my own apply) | VERIFIED (document) | ADR-0018 §2 | Community, jati and religion deliberately get no vocabulary |
+| Vocabulary tables, JSON packs (gotra, kula, kuladevata, kuladevi, occupation, honorific, language: 7 vocabularies, 71 terms, en+hi), idempotent loader that retires instead of deleting | VERIFIED | `test_masterdata.py` (pack validation, malformed packs, idempotency, retire) | `python -m app.cli.masterdata load` runs in the pilot migrate service, e2e reset, CI and `make migrate`. Native-speaker review of labels pending |
+| API: global vocabularies (signed in), tree vocabularies (global + family entries), "Add my own" with de-duplication across scripts and spellings | VERIFIED | `test_masterdata.py` (search in any script, authz, closed lists, RLS isolation, flag off) | In-memory search per vocabulary (< 100 terms); geography (phase B) needs DB search |
+| Stored references: heritage `value_json = {vocabulary, code}` with the label as typed; checked against global or this tree's entries | VERIFIED | `test_masterdata.py::test_heritage_value_references_a_real_entry` | Occupation and honorific stay free text (suggestions only) |
+| `SmartSelect` (ARIA combobox, suggestions in any script, "Add as your family's own", falls back to a plain field when the service is off or unreachable) in heritage (gotra, kula, kuladevata, kuladevi), occupation and honorific | VERIFIED | Vitest `SmartSelect.test.tsx` (4), Playwright `master-data.spec.ts` (with axe) | Static `src/data/masterData` lists remain only as fallbacks; nakshatra/rashi stay controlled (`astrology/vocab.py`) |
+| Rollback flag `VSH_MASTERDATA_ENABLED` | VERIFIED | `test_masterdata.py::test_disabled_flag_answers_404`, Vitest fallback test | |
+
 ## R1 — Age-aware kinship terms (Nov 2026)
 
 Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.

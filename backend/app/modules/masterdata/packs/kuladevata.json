@@ -1,0 +1,9 @@
+{
+  "key": "kuladevata",
+  "version": 1,
+  "description": "Kuladevata (family deity). Starts empty and grows from each family's own entries.",
+  "source": "Family entries only; a global catalogue needs verified regional sources (plan, phase G).",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": []
+}

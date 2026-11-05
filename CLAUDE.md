@@ -9,14 +9,15 @@ Modular monolith (ADR-0001):
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic on PostgreSQL 16, Redis/RQ jobs (`JOB_MODE=sync`
   runs them inline). Domain modules in `backend/app/modules/*` (identity, trees, genealogy, heritage,
   family, evidence, documents, extraction, astrology, property, gedcom, merge, archive, search,
-  consent, public, smartadd). All authorisation and field redaction live in `backend/app/authz`; the server is
+  consent, public, smartadd, masterdata). All authorisation and field redaction live in `backend/app/authz`; the server is
   the authority. API under `/api/v1`, structured errors `{error: {code, message, details}}`.
 - `frontend/` — Vite 6 + React 18 + TypeScript (strict) SPA: React Router, TanStack Query,
   i18next (`src/i18n/locales/en.json`, `hi.json`, kept key-identical by a test), Tailwind 4.
   API types are generated from OpenAPI (`npm run gen:api` → `src/api/schema.d.ts`); the fetch
   wrapper (`src/api/client.ts`) sends cookies and the `X-CSRF-Token` double-submit header.
   UI permission checks (`my_permissions`, `can_edit`) only hide controls; 403s are handled.
-  `src/data/masterData/*` are typing-aid vocabularies only — never used to infer values.
+  Suggestion lists come from the master-data service (ADR-0018, `useVocabulary`, `SmartSelect`);
+  `src/data/masterData/*` remain only as fallbacks until removed. Never used to infer values.
 - `e2e/` — Playwright specs against the real stack (own `vsh_e2e` database, API :8100, SPA :3100).
 - `deploy/pilot/` — staging/pilot stack (ADR-0014: one VM with Compose + managed PostgreSQL and S3):
   Caddy edge, scripts (deploy, rollback, backup, restore), monitoring, and a staging drill. Runbooks
@@ -27,7 +28,7 @@ Modular monolith (ADR-0001):
 
 ```
 # backend (from backend/)
-uv sync && uv run alembic upgrade head
+uv sync && uv run alembic upgrade head && uv run python -m app.cli.masterdata load
 uv run uvicorn app.main:app --port 8000
 uv run pytest -q
 

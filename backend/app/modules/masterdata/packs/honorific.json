@@ -1,0 +1,94 @@
+{
+  "key": "honorific",
+  "version": 1,
+  "description": "Honorific suggestions for a name. Free text is always allowed.",
+  "source": "Plan catalogue (docs/architecture/india-master-data-and-smart-forms-plan.md).",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": [
+    {
+      "code": "shri",
+      "labels": {
+        "en": "Shri",
+        "hi": "श्री"
+      },
+      "aliases": [
+        "Sri",
+        "Shree",
+        "Sh."
+      ]
+    },
+    {
+      "code": "smt",
+      "labels": {
+        "en": "Smt.",
+        "hi": "श्रीमती"
+      },
+      "aliases": [
+        "Shrimati",
+        "Srimati"
+      ]
+    },
+    {
+      "code": "kumari",
+      "labels": {
+        "en": "Kumari",
+        "hi": "कुमारी"
+      },
+      "aliases": [
+        "Ku.",
+        "Km."
+      ]
+    },
+    {
+      "code": "sushri",
+      "labels": {
+        "en": "Sushri",
+        "hi": "सुश्री"
+      },
+      "aliases": []
+    },
+    {
+      "code": "dr",
+      "labels": {
+        "en": "Dr.",
+        "hi": "डॉ."
+      },
+      "aliases": [
+        "Doctor"
+      ]
+    },
+    {
+      "code": "prof",
+      "labels": {
+        "en": "Prof.",
+        "hi": "प्रो."
+      },
+      "aliases": [
+        "Professor"
+      ]
+    },
+    {
+      "code": "pandit",
+      "labels": {
+        "en": "Pandit",
+        "hi": "पंडित"
+      },
+      "aliases": [
+        "Pt."
+      ]
+    },
+    {
+      "code": "late",
+      "labels": {
+        "en": "Late (Swargiya)",
+        "hi": "स्वर्गीय"
+      },
+      "aliases": [
+        "Swargiya",
+        "Sw.",
+        "Late"
+      ]
+    }
+  ]
+}

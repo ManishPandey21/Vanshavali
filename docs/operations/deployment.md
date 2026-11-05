@@ -43,7 +43,7 @@ After changing these, recreate the containers (`docker compose up -d backend wor
 `docker compose run --rm backend python -m app.cli.mail_check --send-to you@example.org`.
 `host.docker.internal` also resolves inside the backend and worker, for a catcher on the host.
 Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), mailpit (opt-in, profile `mail`), migrate (a one-off
-`alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
+`alembic upgrade head` as the schema owner, then `app.cli.masterdata load` (master-data vocabulary packs, ADR-0018; idempotent) and `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
 
 ## Production shape
