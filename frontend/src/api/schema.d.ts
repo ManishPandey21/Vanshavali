@@ -1088,6 +1088,200 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/master-data/vocabularies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Vocabularies
+         * @description Every global vocabulary with term counts per status and pending changes.
+         */
+        get: operations["list_vocabularies_api_v1_admin_master_data_vocabularies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/vocabularies/{key}/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Terms
+         * @description Global terms, retired included, searchable by code, label (any script) or alias.
+         */
+        get: operations["list_terms_api_v1_admin_master_data_vocabularies__key__terms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/vocabularies/{key}/terms/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Term Detail
+         * @description One term with its full change history.
+         */
+        get: operations["term_detail_api_v1_admin_master_data_vocabularies__key__terms__code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/vocabularies/{key}/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Duplicates
+         * @description Existing terms (retired included) a new label or alias would duplicate. Writes nothing.
+         */
+        post: operations["check_duplicates_api_v1_admin_master_data_vocabularies__key__duplicates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/vocabularies/{key}/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose
+         * @description Propose a change to one term (create, update, retire, reactivate); ``publish`` applies it at once.
+         */
+        post: operations["propose_api_v1_admin_master_data_vocabularies__key__changes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Changes
+         * @description Pending reviews (``status=pending``) and the change history, newest first.
+         */
+        get: operations["list_changes_api_v1_admin_master_data_changes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/changes/{change_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Change */
+        get: operations["get_change_api_v1_admin_master_data_changes__change_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/changes/{change_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish
+         * @description Apply a pending change. Refused (409) if the term moved on since the change was prepared.
+         */
+        post: operations["publish_api_v1_admin_master_data_changes__change_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/changes/{change_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject */
+        post: operations["reject_api_v1_admin_master_data_changes__change_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/changes/{change_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Withdraw
+         * @description The proposer takes back a pending change.
+         */
+        post: operations["withdraw_api_v1_admin_master_data_changes__change_id__withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/life-events": {
         parameters: {
             query?: never;
@@ -3057,6 +3251,91 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminTermDetailOut */
+        AdminTermDetailOut: {
+            term: components["schemas"]["AdminTermOut"];
+            /** History */
+            history: components["schemas"]["MasterDataChangeOut"][];
+        };
+        /** AdminTermOut */
+        AdminTermOut: {
+            /** Code */
+            code: string;
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /** Aliases */
+            aliases: string[];
+            /** Scope */
+            scope: string[];
+            /** Parent Code */
+            parent_code: string | null;
+            /** Attributes */
+            attributes: {
+                [key: string]: unknown;
+            };
+            /** Source Url */
+            source_url: string | null;
+            status: components["schemas"]["VocabularyTermStatus"];
+            /** Sort Order */
+            sort_order: number;
+            /** Successor Code */
+            successor_code: string | null;
+            managed_by: components["schemas"]["VocabularyTermManagedBy"];
+            /** Revision */
+            revision: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Pending Change Id */
+            pending_change_id?: string | null;
+        };
+        /** AdminTermPage */
+        AdminTermPage: {
+            vocabulary: components["schemas"]["AdminVocabularyOut"];
+            /** Items */
+            items: components["schemas"]["AdminTermOut"][];
+            /** Total */
+            total: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** AdminVocabularyOut */
+        AdminVocabularyOut: {
+            /** Key */
+            key: string;
+            /** Description */
+            description: string;
+            /** Category */
+            category: string;
+            /** Version */
+            version: number;
+            /** Revision */
+            revision: number;
+            /** Source */
+            source?: string | null;
+            /** Licence */
+            licence?: string | null;
+            /** Allows Custom */
+            allows_custom: boolean;
+            /** Fixed Membership */
+            fixed_membership: boolean;
+            /**
+             * Counts
+             * @description Terms per status
+             */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * Pending Changes
+             * @default 0
+             */
+            pending_changes?: number;
+        };
         /**
          * AgeOrderOut
          * @description Whether the person reached by a sibling word in ``chain`` is older or younger than the person
@@ -5707,6 +5986,117 @@ export interface components {
             year?: number | null;
             /** Category */
             category?: string | null;
+        };
+        /** MasterDataChangeIn */
+        MasterDataChangeIn: {
+            action: components["schemas"]["VocabularyChangeAction"];
+            /**
+             * Code
+             * @description Code of the term to create or change
+             */
+            code: string;
+            /** Base Revision */
+            base_revision?: number | null;
+            /** @description create/update: the complete new term */
+            term?: components["schemas"]["VocabularyTermFieldsIn"] | null;
+            /**
+             * Successor Code
+             * @description retire: the term that replaces it
+             */
+            successor_code?: string | null;
+            /**
+             * Reactivate As
+             * @default draft
+             * @enum {string}
+             */
+            reactivate_as?: "draft" | "reviewed";
+            /**
+             * Reason
+             * @description Why the change is needed
+             */
+            reason: string;
+            /** Source Reference */
+            source_reference?: string | null;
+            /**
+             * Allow Similar
+             * @description create/update: the label resembles another term
+             * @default false
+             */
+            allow_similar?: boolean;
+            /**
+             * Publish
+             * @description Publish at once instead of saving a draft
+             * @default false
+             */
+            publish?: boolean;
+        };
+        /** MasterDataChangeOut */
+        MasterDataChangeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Vocabulary Key */
+            vocabulary_key: string;
+            /** Term Code */
+            term_code: string;
+            action: components["schemas"]["VocabularyChangeAction"];
+            status: components["schemas"]["VocabularyChangeStatus"];
+            /** Base Revision */
+            base_revision: number | null;
+            /** Previous */
+            previous: {
+                [key: string]: unknown;
+            };
+            /** Proposed */
+            proposed: {
+                [key: string]: unknown;
+            };
+            /** Reason */
+            reason: string;
+            /** Source Reference */
+            source_reference: string | null;
+            /** Proposed By Name */
+            proposed_by_name?: string | null;
+            /**
+             * Proposed By Me
+             * @default false
+             */
+            proposed_by_me?: boolean;
+            /**
+             * Proposed At
+             * Format: date-time
+             */
+            proposed_at: string;
+            /** Decided By Name */
+            decided_by_name?: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decision Note */
+            decision_note: string | null;
+            /**
+             * Stale
+             * @default false
+             */
+            stale?: boolean;
+        };
+        /** MasterDataChangePage */
+        MasterDataChangePage: {
+            /** Items */
+            items: components["schemas"]["MasterDataChangeOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** MasterDataDecisionIn */
+        MasterDataDecisionIn: {
+            /** Note */
+            note?: string | null;
+        };
+        /** MasterDataRejectIn */
+        MasterDataRejectIn: {
+            /** Note */
+            note: string;
         };
         /** MemberOut */
         MemberOut: {
@@ -8760,6 +9150,11 @@ export interface components {
              * @default false
              */
             must_change_password?: boolean;
+            /**
+             * Is System Admin
+             * @default false
+             */
+            is_system_admin?: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -8879,6 +9274,45 @@ export interface components {
             event_count?: number;
             completeness?: components["schemas"]["Completeness"] | null;
         };
+        /**
+         * VocabularyChangeAction
+         * @description What a master-data change request does to one global term (ADR-0025 §3).
+         * @enum {string}
+         */
+        VocabularyChangeAction: "create" | "update" | "retire" | "reactivate";
+        /**
+         * VocabularyChangeStatus
+         * @description Master-data change request lifecycle (ADR-0025 §3). Only ``pending`` changes can move on.
+         * @enum {string}
+         */
+        VocabularyChangeStatus: "pending" | "published" | "rejected" | "withdrawn";
+        /** VocabularyDuplicateCheckIn */
+        VocabularyDuplicateCheckIn: {
+            /**
+             * Labels
+             * @default {}
+             */
+            labels?: {
+                [key: string]: string;
+            };
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+            /** Exclude Code */
+            exclude_code?: string | null;
+        };
+        /** VocabularyDuplicateOut */
+        VocabularyDuplicateOut: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            status: components["schemas"]["VocabularyTermStatus"];
+            /** Matched */
+            matched: string;
+        };
         /** VocabularyOut */
         VocabularyOut: {
             /** Key */
@@ -8894,11 +9328,73 @@ export interface components {
             /** Allows Custom */
             allows_custom: boolean;
             /**
+             * Category
+             * @default other
+             */
+            category?: string;
+            /**
+             * Revision
+             * @default 1
+             */
+            revision?: number;
+            /**
              * Term Count
              * @default 0
              */
             term_count?: number;
         };
+        /**
+         * VocabularyTermFieldsIn
+         * @description Every editable field of a global term. An update sends the complete new set.
+         */
+        VocabularyTermFieldsIn: {
+            /**
+             * Labels
+             * @description Label per language tag; English and Hindi are required
+             */
+            labels: {
+                [key: string]: string;
+            };
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+            /**
+             * Scope
+             * @description Regions or traditions (slugs)
+             * @default []
+             */
+            scope?: string[];
+            /** Parent Code */
+            parent_code?: string | null;
+            /**
+             * Attributes
+             * @default {}
+             */
+            attributes?: {
+                [key: string]: string | number | boolean;
+            };
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status?: "draft" | "reviewed";
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order?: number;
+        };
+        /**
+         * VocabularyTermManagedBy
+         * @description Who maintains a global term (ADR-0025 §4). The pack loader never changes ``admin`` terms.
+         * @enum {string}
+         */
+        VocabularyTermManagedBy: "pack" | "admin";
         /** VocabularyTermOut */
         VocabularyTermOut: {
             /** Code */
@@ -8924,6 +9420,8 @@ export interface components {
                 [key: string]: unknown;
             };
             status: components["schemas"]["VocabularyTermStatus"];
+            /** Successor Code */
+            successor_code?: string | null;
             /**
              * Origin
              * @default global
@@ -11410,6 +11908,332 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TreeTermOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_vocabularies_api_v1_admin_master_data_vocabularies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVocabularyOut"][];
+                };
+            };
+        };
+    };
+    list_terms_api_v1_admin_master_data_vocabularies__key__terms_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: components["schemas"]["VocabularyTermStatus"] | null;
+                managed_by?: components["schemas"]["VocabularyTermManagedBy"] | null;
+                sort?: string;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTermPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    term_detail_api_v1_admin_master_data_vocabularies__key__terms__code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTermDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_duplicates_api_v1_admin_master_data_vocabularies__key__duplicates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabularyDuplicateCheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyDuplicateOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    propose_api_v1_admin_master_data_vocabularies__key__changes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MasterDataChangeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterDataChangeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_changes_api_v1_admin_master_data_changes_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["VocabularyChangeStatus"] | null;
+                vocabulary?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterDataChangePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_change_api_v1_admin_master_data_changes__change_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                change_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterDataChangeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_api_v1_admin_master_data_changes__change_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                change_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MasterDataDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterDataChangeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_api_v1_admin_master_data_changes__change_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                change_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MasterDataRejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterDataChangeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_api_v1_admin_master_data_changes__change_id__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                change_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterDataChangeOut"];
                 };
             };
             /** @description Validation Error */

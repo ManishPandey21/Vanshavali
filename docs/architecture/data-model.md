@@ -470,6 +470,9 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_household_membership_tree
 | `source` | TEXT | yes |  |
 | `licence` | VARCHAR(120) | yes |  |
 | `allows_custom` | BOOLEAN | no |  |
+| `category` | VARCHAR(40) | no |  |
+| `fixed_membership` | BOOLEAN | no |  |
+| `revision` | INTEGER | no |  |
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
 
@@ -488,10 +491,37 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_household_membership_tree
 | `source_url` | TEXT | yes |  |
 | `status` | enum(draft, reviewed, retired) | no |  |
 | `sort_order` | INTEGER | no |  |
+| `revision` | INTEGER | no |  |
+| `managed_by` | enum(pack, admin) | no |  |
+| `successor_code` | VARCHAR(80) | yes |  |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
 
 Constraints/indexes: `UNIQUE (vocabulary_key, code)`; `INDEX ix_vocabulary_term_vocabulary_key (vocabulary_key)`
+
+### `vocabulary_change`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `vocabulary_key` | VARCHAR(40) | no | → vocabulary |
+| `term_code` | VARCHAR(80) | no |  |
+| `action` | enum(create, update, retire, reactivate) | no |  |
+| `status` | enum(pending, published, rejected, withdrawn) | no |  |
+| `base_revision` | INTEGER | yes |  |
+| `previous` | JSONB | no |  |
+| `proposed` | JSONB | no |  |
+| `reason` | TEXT | no |  |
+| `source_reference` | TEXT | yes |  |
+| `proposed_by` | UUID | yes | → app_user |
+| `proposed_at` | DATETIME | no |  |
+| `decided_by` | UUID | yes | → app_user |
+| `decided_at` | DATETIME | yes |  |
+| `decision_note` | TEXT | yes |  |
+
+Constraints/indexes: `INDEX ix_vocabulary_change_term (vocabulary_key, term_code)`; `INDEX ix_vocabulary_change_vocabulary_status (vocabulary_key, status)`
 
 ### `tree_vocabulary_term`
 

@@ -253,3 +253,14 @@ export type VocabularyTerm = S["VocabularyTermOut"];
 export type VocabularyTerms = S["VocabularyTermsOut"];
 export type TreeTermIn = S["TreeTermIn"];
 export type TreeTermOut = S["TreeTermOut"];
+
+// Super Admin master-data console (ADR-0025)
+export type AdminVocabulary = S["AdminVocabularyOut"];
+export type AdminTerm = S["AdminTermOut"];
+export type AdminTermPage = S["AdminTermPage"];
+export type AdminTermDetail = S["AdminTermDetailOut"];
+export type TermFieldsIn = S["VocabularyTermFieldsIn"];
+export type ChangeIn = S["MasterDataChangeIn"];
+export type MasterDataChange = S["MasterDataChangeOut"];
+export type MasterDataChangePage = S["MasterDataChangePage"];
+export type VocabularyDuplicate = S["VocabularyDuplicateOut"];

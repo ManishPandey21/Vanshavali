@@ -27,7 +27,7 @@ from app.models.genealogy import (
 from app.models.heritage import Assertion
 from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
-from app.models.masterdata import TreeVocabularyTerm, Vocabulary, VocabularyTerm
+from app.models.masterdata import TreeVocabularyTerm, Vocabulary, VocabularyChange, VocabularyTerm
 from app.models.notifications import (
     EventReminder,
     NotificationContact,
@@ -96,5 +96,6 @@ __all__ = [
     "User",
     "UserSession",
     "Vocabulary",
+    "VocabularyChange",
     "VocabularyTerm",
 ]

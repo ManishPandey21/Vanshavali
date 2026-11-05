@@ -49,6 +49,8 @@ def _vocab_out(db: Session, v: Vocabulary) -> VocabularyOut:
         source=v.source,
         licence=v.licence,
         allows_custom=v.allows_custom,
+        category=v.category,
+        revision=v.revision,
         term_count=count or 0,
     )
 
@@ -71,6 +73,7 @@ def _global_out(t: VocabularyTerm, lang: str) -> VocabularyTermOut:
         parent_code=t.parent_code,
         attributes=t.attributes,
         status=t.status,
+        successor_code=t.successor_code,
     )
 
 

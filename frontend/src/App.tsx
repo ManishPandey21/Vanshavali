@@ -39,6 +39,12 @@ const VisualizationsPage = lazy(() => import("./pages/tree/VisualizationsPage").
 const EventsPage = lazy(() => import("./pages/tree/EventsPage").then((m) => ({ default: m.EventsPage })));
 const RemindersPage = lazy(() => import("./pages/tree/RemindersPage").then((m) => ({ default: m.RemindersPage })));
 const TimelinePage = lazy(() => import("./pages/tree/TimelinePage").then((m) => ({ default: m.TimelinePage })));
+// Super Admin master-data console (ADR-0025): only system admins ever load it.
+const MasterDataLayout = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.MasterDataLayout })));
+const MasterDataDashboard = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.MasterDataDashboard })));
+const VocabularyAdminPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.VocabularyAdminPage })));
+const PendingReviewsPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.PendingReviewsPage })));
+const ChangeHistoryPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.ChangeHistoryPage })));
 const ImportExportPage = lazy(() => import("./pages/tree/ImportExportPage").then((m) => ({ default: m.ImportExportPage })));
 
 function Lazy({ children }: { children: ReactNode }) {
@@ -110,6 +116,12 @@ export default function App() {
             <Route path="/trees/new" element={<CreateTreePage />} />
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/admin/master-data" element={<Lazy><MasterDataLayout /></Lazy>}>
+              <Route index element={<Lazy><MasterDataDashboard /></Lazy>} />
+              <Route path="v/:key" element={<Lazy><VocabularyAdminPage /></Lazy>} />
+              <Route path="reviews" element={<Lazy><PendingReviewsPage /></Lazy>} />
+              <Route path="history" element={<Lazy><ChangeHistoryPage /></Lazy>} />
+            </Route>
           </Route>
           <Route path="/t/:treeId" element={<TreeLayout />}>
             <Route index element={<DashboardPage />} />

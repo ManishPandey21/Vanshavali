@@ -26,6 +26,7 @@ erDiagram
   PERSON ||--o{ RELATIVE_AGE_ORDER : "elder / younger (family-confirmed)"
   TREE ||--o{ TREE_VOCABULARY_TERM : "family's own entries"
   ASSERTION }o--o| VOCABULARY_TERM : "value_json names an entry (label kept)"
+  VOCABULARY_TERM ||--o{ VOCABULARY_CHANGE : "reviewed changes and history (ADR-0025)"
   PERSON ||--o{ EVENT_PARTICIPANT : participates
   EVENT ||--o{ EVENT_PARTICIPANT : has
   EVENT }o--o| PLACE : "occurs at / migrated from"
@@ -105,6 +106,7 @@ graph LR
 | Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents; the relationship calculator treats such a pair as sharing a virtual parent that is never returned. | `genealogy.engine.family`, `engine._LazyGraph` (ADR-0020) |
 | Kinship terms (Mama, Tau, Bhabhi…) are never stored. Smart Add turns a term into basic edges, after a preview the user confirms. | `smartadd.terms`, `smartadd.service` (ADR-0020) |
 | Suggestion lists (gotra, kula, kuladevata, occupation, honorific, language) are master data; system values (roles, relationship types, statuses…) stay controlled enums. A chosen value keeps its label and names its entry. | `vocabulary`, `vocabulary_term`, `tree_vocabulary_term` (ADR-0018) |
+| Global terms are never deleted: a change is a reviewed request (draft → published) carrying the revision it was based on; retired terms keep resolving and may name a successor. Packs never overwrite a term curated in the console. Closed sets (`fixed_membership`) cannot gain or lose terms. | `vocabulary_change`, `vocabulary_term.revision` / `managed_by` / `successor_code` (ADR-0025) |
 | "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. It decides age-dependent terms (Tau/Chacha) over birth dates; dates decide only when unambiguous and visible to the viewer. | `relative_age_order`, `genealogy.ageorder` (ADR-0020) |
 | A person added "as unknown for now" is `is_provisional` (their origin, kept for good); created only on the user's explicit choice. Whether they still *need details* (no name) or are *verified* (every relationship has supporting evidence) is derived, never stored. Until verified, only the creator and tree admins can see them and exports leave them out. | `person.is_provisional`, `genealogy.provisional` (ADR-0020 §4, §7) |
 | Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |

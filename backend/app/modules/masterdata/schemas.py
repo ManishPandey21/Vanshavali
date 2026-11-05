@@ -16,6 +16,9 @@ class VocabularyOut(ApiModel):
     source: str | None = None
     licence: str | None = None
     allows_custom: bool
+    category: str = "other"
+    # bumped on every published change (ADR-0025 §7): a client holding another revision refreshes
+    revision: int = 1
     term_count: int = 0
 
 
@@ -28,6 +31,8 @@ class VocabularyTermOut(ApiModel):
     parent_code: str | None = None
     attributes: dict[str, Any] = {}
     status: VocabularyTermStatus
+    # a retired term may name the term that replaces it; its own label still renders
+    successor_code: str | None = None
     origin: Literal["global", "family"] = "global"
     # family entries only: the tree-scoped row (for future edit/remove)
     id: uuid.UUID | None = None

@@ -5,6 +5,8 @@
   "source": "Department of Official Language, Govt of India: languages in the Eighth Schedule; ISO 639 / ISO 15924 codes. Native-speaker review of the labels pending.",
   "licence": "Public facts",
   "allows_custom": false,
+  "category": "languages_terminology",
+  "fixed_membership": true,
   "terms": [
     {
       "code": "en",

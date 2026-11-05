@@ -664,3 +664,28 @@ class VocabularyTermStatus(StrEnum):
     DRAFT = "draft"
     REVIEWED = "reviewed"
     RETIRED = "retired"
+
+
+class VocabularyTermManagedBy(StrEnum):
+    """Who maintains a global term (ADR-0025 §4). The pack loader never changes ``admin`` terms."""
+
+    PACK = "pack"
+    ADMIN = "admin"
+
+
+class VocabularyChangeAction(StrEnum):
+    """What a master-data change request does to one global term (ADR-0025 §3)."""
+
+    CREATE = "create"
+    UPDATE = "update"
+    RETIRE = "retire"
+    REACTIVATE = "reactivate"
+
+
+class VocabularyChangeStatus(StrEnum):
+    """Master-data change request lifecycle (ADR-0025 §3). Only ``pending`` changes can move on."""
+
+    PENDING = "pending"
+    PUBLISHED = "published"
+    REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"

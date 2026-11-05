@@ -367,6 +367,11 @@ implemented (see `IMPLEMENTATION_STATUS.md`). Still open in R1: transliteration 
 provisional people out of headline person counts and a "To complete" list (privacy and export
 exclusion are done, 5 Nov), and native Hindi review.
 
+**Super Admin console (5 Nov 2026):** global vocabularies can be curated in the browser by system
+admins with MFA, through reviewed change requests with history (ADR-0025). Geography is designed in
+ADR-0019 (proposed); optional religion/community suggestions are only proposed (ADR-0018
+amendment 2).
+
 **Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)
 must be signed off by counsel before any public launch, regardless of which releases have shipped.
 

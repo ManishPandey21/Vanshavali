@@ -55,6 +55,8 @@ class UserOut(ApiModel):
     email_verified: bool = False
     # A temporary password must be replaced before anything else works (POST /auth/password).
     must_change_password: bool = False
+    # platform system admin (ADR-0025): may open the master-data console; grants no tree access
+    is_system_admin: bool = False
 
 
 class ProvidersOut(ApiModel):

@@ -140,6 +140,9 @@ class Settings(BaseSettings):
     ocr_enabled: bool = True
     # Master-data vocabularies (ADR-0018); false = endpoints answer 404 and the UI falls back to text
     masterdata_enabled: bool = True
+    # ADR-0025: a change proposed by one system admin must be published by another (four-eyes).
+    # Off for the single-admin pilot; turn on once there are two named admins.
+    masterdata_require_second_admin: bool = False
     tesseract_cmd: str = "tesseract"
     tesseract_languages: str = "eng+hin"
 

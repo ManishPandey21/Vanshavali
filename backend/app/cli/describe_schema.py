@@ -37,7 +37,7 @@ GROUPS = {
         "household",
         "household_membership",
     ],
-    "Master data": ["vocabulary", "vocabulary_term", "tree_vocabulary_term"],
+    "Master data": ["vocabulary", "vocabulary_term", "vocabulary_change", "tree_vocabulary_term"],
     "Evidence": ["source", "citation"],
     "Documents & extraction": [
         "document",

@@ -179,6 +179,26 @@ Decision: ADR-0018 (classification of every dropdown: controlled values vs exten
 | `SmartSelect` (ARIA combobox, suggestions in any script, "Add as your family's own", falls back to a plain field when the service is off or unreachable) in heritage (gotra, kula, kuladevata, kuladevi), occupation and honorific | VERIFIED | Vitest `SmartSelect.test.tsx` (4), Playwright `master-data.spec.ts` (with axe) | Static `src/data/masterData` lists remain only as fallbacks; nakshatra/rashi stay controlled (`astrology/vocab.py`) |
 | Rollback flag `VSH_MASTERDATA_ENABLED` | VERIFIED | `test_masterdata.py::test_disabled_flag_answers_404`, Vitest fallback test | |
 
+## Super Admin master-data console, increment 1 (Nov 2026)
+
+Decision: ADR-0025 (accepted). Proposed for the next increments: ADR-0019 (geography) and ADR-0018
+amendment 2 (optional religion/community suggestions, not implemented). One migration
+(`7d4a2c9e1b60`, with downgrade): `vocabulary_change`, term `revision` / `managed_by` /
+`successor_code` / authorship, vocabulary `category` / `fixed_membership` / `revision`.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Platform capability `MASTER_DATA_ADMIN` (`authz/platform.py`), separate from tree permissions; 404 for everyone else; MFA required (403 `admin_mfa_required`); CSRF on writes | VERIFIED | `test_masterdata_admin.py` (10 endpoints × signed-out/tree owner, MFA, CSRF, no tree access) | System admins remain members of no tree (T12, T43) |
+| Change requests: draft or publish at once, pending reviews, publish / reject (note) / withdraw (proposer), one open change per term, optional four-eyes (`VSH_MASTERDATA_REQUIRE_SECOND_ADMIN`) | VERIFIED | `test_masterdata_admin.py` (draft, decisions, four-eyes) | Self-publication allowed while the pilot has one admin |
+| Optimistic concurrency (`revision`, 409 `stale_revision` / `stale_change`), history with previous/proposed values, audit without family data | VERIFIED | `test_edits_are_refused_when_someone_else_changed_the_term`, `test_a_draft_goes_stale_when_the_term_moves_on`, `test_published_term_reaches_users_without_a_deployment` | |
+| Pack loader keeps console curation (`managed_by = admin` never changed or retired; reported as `kept`) | VERIFIED | `test_pack_loader_never_overwrites_console_curation` | |
+| Duplicate detection across scripts/spellings (live check + 409 `possible_duplicate`, confirm to override), code never reused | VERIFIED | `test_duplicates_are_caught_before_they_are_created` | |
+| Retire (optional successor) / reactivate, never delete; stored family values stay readable | VERIFIED | `test_retired_terms_keep_stored_values_readable` | |
+| Closed sets (`fixed_membership`, now `language`): relabel only | VERIFIED | `test_fixed_sets_can_be_relabelled_but_not_grown_or_shrunk` | Astronomical sets stay in code (`astrology/vocab.py`) |
+| Validation: unknown fields refused, label/alias caps, en+hi required, `http(s)` links only, parent/successor active in the same list | VERIFIED | `test_malicious_or_malformed_changes_are_refused` (13 cases), `test_parent_must_be_an_active_term_and_labels_are_stored_as_text` | |
+| Console UI (`/admin/master-data`): dashboard by category with planned areas, term table (search in any script, status filter, sort, cursor paging), reusable term editor (labels in more languages, aliases, scope, source, preview, live duplicate warning, draft/publish), retire/reactivate, per-term history, pending reviews, change history; en/hi | VERIFIED | Vitest `MasterData.test.tsx` (5), Playwright `master-data-admin.spec.ts` (seeded admin → new password → MFA → publish → ordinary user finds it, console 404; axe on dashboard, table and editor) | Native Hindi review of the new strings outstanding |
+| Bulk import/export, geography (ADR-0019), cultural phase G vocabularies (pravara, devak), astrology label maintenance, family-term promotion, usage counts per term | NOT_STARTED | | Remaining phases, see ADR-0025 Consequences and ADR-0019 |
+
 ## R1 — Age-aware kinship terms (Nov 2026)
 
 Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.
