@@ -98,6 +98,15 @@ alive forever. So each timed-out attempt's new child processes are killed before
 a render kills any remaining descendants and exits explicitly (`scripts/procs.mjs`, Linux `/proc`).
 The smoke test gives each render 5 minutes, and the CI job has `timeout-minutes: 30`.
 
+`render.mjs` stderr, in order:
+1. `browser=<path>` (or `browser=remotion-headless-shell`): which browser this run uses (see the
+   selection order above). It is written first, so a failed render never ends with it.
+2. `browser_launch_retry_N` for each retried launch timeout.
+3. On failure, the last line. Setup errors (`usage`, `bundle_missing`, `unknown_composition`) exit 2
+   with that code as the only line. Any other failure exits 1 with the error's stack, so the API's
+   rule (use the last line as the error code only if it is short and has no spaces, otherwise
+   `render_failed`) never reports a stack frame or a name as a code.
+
 Deployment: `deploy/render-worker/Dockerfile` (Node + bundle + Chromium libraries + Python worker)
 and the opt-in `render-worker` service (compose profile `render`). Give it 2 CPUs and 3 GB; one job
 at a time per worker; `REMOTION_CONCURRENCY` sets frame-render parallelism.
