@@ -80,10 +80,9 @@ export function SmartAddDialog({ anchor, onClose }: { anchor: PersonSummary; onC
   const pick = (tm: SmartAddTerm) => {
     setTerm(tm);
     setChoices([]);
-    const target = tm.hops[tm.hops.length - 1];
-    // offered, not imposed: the user sees it and may change or clear it (ADR-0020 §6)
-    setDetails((d) => ({ ...d, sex: target.sex ?? "", relativeAge: "", otherParentId: "" }));
-    setProvisionalSex(tm.hops.slice(0, -1).map((h) => h.sex ?? ""));
+    // a kinship term never fills in sex at birth: it starts as "Not recorded" (ADR-0020 §6)
+    setDetails((d) => ({ ...d, sex: "", relativeAge: "", otherParentId: "" }));
+    setProvisionalSex(tm.hops.slice(0, -1).map(() => ""));
     setStage(tm.hops.length > 1 ? "steps" : "details");
   };
 

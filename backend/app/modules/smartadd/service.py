@@ -69,7 +69,7 @@ def _sex(s: str | None) -> SexAtBirth | None:
 
 # ------------------------------------------------------------------ candidates
 def _matches_sex(p: PersonSummary, hop: Hop) -> bool:
-    # unknown sex is never excluded: we do not guess, the user decides
+    """Could this recorded relative be the term's mother/brother/…, judging by sex at birth only?"""
     return hop.sex is None or p.sex_at_birth is None or p.sex_at_birth.value == hop.sex
 
 
@@ -101,13 +101,17 @@ def _options(ctx: TreeContext, from_id: uuid.UUID, hop: Hop) -> _Options:
         if r.person.id in seen:
             continue
         seen.add(r.person.id)
-        if _matches_sex(r.person, hop):
-            out.candidates.append(r.person)
+        out.candidates.append(r.person)
+    # Sex at birth is not the family role a term names (a mother's recorded sex at birth may not be
+    # female), so no recorded relative is left out because of it: those whose recorded sex matches
+    # the term, or is not recorded, are listed first and the user decides.
+    out.candidates.sort(key=lambda p: not _matches_sex(p, hop))
     if hop.relation == "parent":
-        # never invite a duplicate parent: not when one is hidden from this user, not when a
-        # matching one is already recorded, and not past two biological parents
+        # never invite a duplicate parent: not when one is hidden from this user, not when one who
+        # could be this parent is already recorded, and not past two biological parents
         bio = sum(1 for r in fam.parents if r.relationship_type == RelationshipType.BIOLOGICAL_PARENT)
-        out.allow_new = out.hidden == 0 and not out.candidates and bio < 2
+        could_be = any(_matches_sex(p, hop) for p in out.candidates)
+        out.allow_new = out.hidden == 0 and not could_be and bio < 2
     return out
 
 
@@ -464,5 +468,5 @@ def undo(ctx: TreeContext, operation_id: uuid.UUID) -> None:
             ctx.db.delete(row)
     for pid in people:
         genealogy.delete_person(ctx, pid)
-    audit.log(ctx, UNDONE, target_type="audit_event", target_id=event.id)
     provisional.revoke_creator_grants(ctx, people)  # after the deletes, which need to see them
+    audit.log(ctx, UNDONE, target_type="audit_event", target_id=event.id)

@@ -82,9 +82,10 @@ describe("SmartAddDialog", () => {
     expect(within(dialog).queryByText(/as unknown for now/)).not.toBeInTheDocument();
     await userEvent.click(continueBtn);
 
-    // details: sex at birth is offered from the term, not imposed
+    // details: the term "Mama" does not fill in sex at birth; the user may record it explicitly
     const sex = await within(dialog).findByLabelText("Sex at birth");
-    expect(sex).toHaveValue("male");
+    expect(sex).toHaveValue("");
+    await userEvent.selectOptions(sex, "male");
     await userEvent.type(within(dialog).getByLabelText("Given name"), "Mohan");
     await userEvent.type(within(dialog).getByLabelText("Surname"), "Verma");
     await userEvent.type(within(dialog).getByLabelText("Born about (year)"), "1962");
@@ -105,7 +106,7 @@ describe("SmartAddDialog", () => {
     expect(body).toMatchObject({
       term: "mama",
       choices: ["m1"],
-      provisional_sex_at_birth: ["female"],
+      provisional_sex_at_birth: [null],
       new_person: {
         sex_at_birth: "male",
         names: [{ given_name: "Mohan", surname: "Verma", language: "en", script: "Latn", is_preferred: true }],
@@ -119,13 +120,13 @@ describe("SmartAddDialog", () => {
     expect(fetchMock.mock.calls.some(([u]) => String(u).endsWith("/smart-add/op-1/undo"))).toBe(true);
   });
 
-  it("lets the user clear the suggested sex and record an elder brother; Devanagari names are tagged", async () => {
+  it("keeps sex at birth unrecorded for a gendered term and still records an elder brother; Devanagari names are tagged", async () => {
     const fetchMock = server();
     vi.stubGlobal("fetch", vi.fn(attested(fetchMock)));
     renderWithProviders(<SmartAddDialog anchor={anchor} onClose={() => undefined} />);
     const dialog = screen.getByRole("dialog");
     await userEvent.click(await within(dialog).findByRole("button", { name: /^Brother/ }));
-    await userEvent.selectOptions(await within(dialog).findByLabelText("Sex at birth"), "");
+    expect(await within(dialog).findByLabelText("Sex at birth")).toHaveValue("");
     await userEvent.type(within(dialog).getByLabelText("Given name"), "विक्रम");
     await userEvent.click(within(dialog).getByRole("radio", { name: "Older" }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Review" }));

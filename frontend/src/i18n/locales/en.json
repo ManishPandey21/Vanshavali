@@ -2958,7 +2958,7 @@
     "surname": "Surname",
     "birthYear": "Born about (year)",
     "birthYearHint": "Optional — an approximate year is fine",
-    "sexHint": "Filled in from the relationship you chose. Change it or leave it as not recorded.",
+    "sexHint": "Optional. Choosing a relationship does not record sex at birth; enter it only if you know it.",
     "otherParent": "Other parent",
     "otherParentNone": "Not recorded / someone else",
     "relativeAge": "Older or younger than {{name}}?",
