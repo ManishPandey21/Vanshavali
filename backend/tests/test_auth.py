@@ -66,11 +66,14 @@ def test_login_failure_is_generic_and_audited(client, make_client):
 def test_login_rate_limited(client, make_client):
     client.register(email="rl@example.com")
     anon = make_client()
-    codes = [
-        anon.post("/auth/login", json={"email": "rl@example.com", "password": "wrong password!!"}).status_code
+    responses = [
+        anon.post("/auth/login", json={"email": "rl@example.com", "password": "wrong password!!"})
         for _ in range(12)
     ]
-    assert 429 in codes
+    # the rate-limit clock is pinned (conftest), so all 12 fall in one window: exactly the configured
+    # 10 attempts per email are answered, then every further attempt is refused
+    assert [r.status_code for r in responses] == [401] * 10 + [429] * 2
+    assert responses[-1].json()["error"]["code"] == "rate_limited"
 
 
 def test_csrf_required_for_unsafe_methods(client):
