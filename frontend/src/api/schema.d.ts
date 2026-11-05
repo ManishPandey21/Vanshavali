@@ -870,6 +870,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/relative-age-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Relative Age
+         * @description Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). It takes
+         *     precedence over birth dates when kinship terms depend on age (Tau vs Chacha).
+         */
+        post: operations["record_relative_age_api_v1_trees__tree_id__relative_age_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/relative-age-orders/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Relative Age
+         * @description Remove a recorded age order (to correct a mistake).
+         */
+        delete: operations["delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/relationship-path": {
         parameters: {
             query?: never;
@@ -2936,6 +2977,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AgeOrderOut
+         * @description Whether the person reached by a sibling word in ``chain`` is older or younger than the person
+         *     that word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 §5).
+         */
+        AgeOrderOut: {
+            /** Chain Index */
+            chain_index: number;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Relative To Id
+             * Format: uuid
+             */
+            relative_to_id: string;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "elder" | "younger" | "unknown";
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "family_confirmed" | "birth_dates" | "unknown";
+            /** Record Id */
+            record_id?: string | null;
+            /**
+             * Dates Disagree
+             * @default false
+             */
+            dates_disagree?: boolean;
+        };
         /** AllocationIn */
         AllocationIn: {
             /**
@@ -7398,6 +7475,11 @@ export interface components {
             lineages?: components["schemas"]["Lineage"][];
             /** Explanation */
             explanation?: string | null;
+            /**
+             * Age Orders
+             * @default []
+             */
+            age_orders?: components["schemas"]["AgeOrderOut"][];
         };
         /**
          * RelationshipType
@@ -7427,6 +7509,42 @@ export interface components {
             notes?: string | null;
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             confidence?: components["schemas"]["Confidence"] | null;
+        };
+        /** RelativeAgeOrderIn */
+        RelativeAgeOrderIn: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Relative To Id
+             * Format: uuid
+             */
+            relative_to_id: string;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "elder" | "younger";
+        };
+        /** RelativeAgeOrderOut */
+        RelativeAgeOrderOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Elder Person Id
+             * Format: uuid
+             */
+            elder_person_id: string;
+            /**
+             * Younger Person Id
+             * Format: uuid
+             */
+            younger_person_id: string;
         };
         /**
          * RelativeIn
@@ -10745,6 +10863,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GraphOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_relative_age_api_v1_trees__tree_id__relative_age_orders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelativeAgeOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Already recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelativeAgeOrderOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelativeAgeOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Validation Error */

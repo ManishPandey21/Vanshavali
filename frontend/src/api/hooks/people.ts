@@ -279,3 +279,13 @@ export function useRelationshipPath(treeId: string, from: string, to: string, li
     enabled: !!from && !!to,
   });
 }
+
+/** Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). */
+export function useRecordAgeOrder(treeId: string) {
+  const invalidate = useInvalidateTree(treeId);
+  return useMutation({
+    mutationFn: (body: { person_id: string; relative_to_id: string; order: "elder" | "younger" }) =>
+      api.post<{ id: string; elder_person_id: string; younger_person_id: string }>(`/trees/${treeId}/relative-age-orders`, body),
+    onSuccess: invalidate,
+  });
+}
