@@ -53,8 +53,8 @@ from app.models.enums import (
     SexAtBirth,
 )
 from app.modules.documents.access import can_view_document
-from app.modules.genealogy import geo, lookup
-from app.modules.genealogy.engine import _EXCLUDED_EVIDENCE, _walk
+from app.modules.genealogy import geo, lookup, provisional
+from app.modules.genealogy.engine import _EXCLUDED_EVIDENCE, _reachable_without, _walk
 from app.modules.genealogy.schemas import EventOut
 from app.modules.genealogy.serialize import Serializer, _pick_vitals, _sort_key
 from app.modules.visualization.schemas import (
@@ -175,17 +175,16 @@ def build_people(
     parents: dict[uuid.UUID, int] = {}
     sourced: set[uuid.UUID] = set()
     if completeness:
-        parents = dict(
-            ctx.db.execute(
-                select(Relationship.person_b_id, func.count())
-                .where(
-                    Relationship.tree_id == ctx.tree_id,
-                    Relationship.person_b_id.in_(ids),
-                    Relationship.type.in_(list(PARENT_TYPES)),
-                )
-                .group_by(Relationship.person_b_id)
-            ).all()
-        )
+        concealed = provisional.concealed_ids(ctx)
+        for child, parent in ctx.db.execute(
+            select(Relationship.person_b_id, Relationship.person_a_id).where(
+                Relationship.tree_id == ctx.tree_id,
+                Relationship.person_b_id.in_(ids),
+                Relationship.type.in_(list(PARENT_TYPES)),
+            )
+        ).all():
+            if parent not in concealed:  # a concealed parent is not counted as recorded
+                parents[child] = parents.get(child, 0) + 1
         sourced = set(
             ctx.db.scalars(
                 select(Citation.target_id).where(
@@ -263,6 +262,7 @@ def _parent_rows(
     out: dict[uuid.UUID, list[Relationship]] = defaultdict(list)
     if not child_ids:
         return out
+    concealed = provisional.concealed_ids(ctx)  # never placeheld, never walked through
     for r in ctx.db.scalars(
         select(Relationship).where(
             Relationship.tree_id == ctx.tree_id,
@@ -272,6 +272,8 @@ def _parent_rows(
         )
     ):
         if lineages and (r.lineage or Lineage.BIOLOGICAL) not in lineages:
+            continue
+        if r.person_a_id in concealed:
             continue
         out[r.person_b_id].append(r)
     return out
@@ -378,6 +380,7 @@ def neighbourhood(
     frontier = {root_id}
     visible_ids: set[uuid.UUID] = {root_id}
     truncated = False
+    concealed = provisional.concealed_ids(ctx)
     for d in range(1, radius + 1):
         if not frontier:
             break
@@ -394,6 +397,8 @@ def neighbourhood(
         for r in rows:
             if lineages and r.type in PARENT_TYPES and (r.lineage or Lineage.BIOLOGICAL) not in lineages:
                 continue
+            if r.person_a_id in concealed or r.person_b_id in concealed:
+                continue  # concealed provisional people: no node, no edge, no placeholder
             rels[r.id] = r
             for other in (r.person_a_id, r.person_b_id):
                 if other not in dist:
@@ -426,7 +431,7 @@ def neighbourhood(
             )
         ):
             for a, b in ((r.person_a_id, r.person_b_id), (r.person_b_id, r.person_a_id)):
-                if a in subjects and b not in dist:
+                if a in subjects and b not in dist and b not in concealed:
                     expandable.add(a)
     alias: dict[uuid.UUID, str] = {}
     nodes: list[GraphNodeOut] = []
@@ -470,7 +475,11 @@ def lifespans(
         depth = max(1, min(generations, get_settings().max_traversal_depth))
         gen_of[root_id] = 0
         for direction, sign in (("ancestors", -1), ("descendants", 1)):
-            for r in _walk(ctx, root_id, direction, depth, None):
+            walked = _walk(ctx, root_id, direction, depth, None)
+            concealed = provisional.concealed_ids(ctx)
+            if concealed:
+                walked = _reachable_without(walked, root_id, direction, concealed)
+            for r in walked:
                 node = r.parent if direction == "ancestors" else r.child
                 gen_of.setdefault(node, sign * r.generation)
         candidates = set(gen_of)

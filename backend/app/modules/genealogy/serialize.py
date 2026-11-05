@@ -22,6 +22,7 @@ from app.models import (
     Relationship,
 )
 from app.models.enums import CitationTarget, EventType, ParticipantRole
+from app.modules.genealogy import provisional
 from app.modules.genealogy.geo import coarsen, may_see_exact
 from app.modules.genealogy.schemas import (
     EventOut,
@@ -277,6 +278,11 @@ class Serializer:
             is_protected=s.is_protected,
             privacy_level=None if self.ctx.public else s.person.privacy_level,
             is_provisional=s.person.is_provisional,
+            provisional_state=(
+                provisional.states(self.ctx).get(s.id, provisional.ProvisionalState.NEEDS_DETAILS).value
+                if s.person.is_provisional and not self.ctx.public
+                else None
+            ),
         )
 
     def summaries(self, subjects: dict[uuid.UUID, Subject]) -> dict[uuid.UUID, PersonSummary]:

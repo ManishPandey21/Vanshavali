@@ -226,10 +226,13 @@ seen and confirmed.
   "Undo" within the session soft-deletes exactly those records and edges.
 - **Provisional people.** A `provisional` flag (ADR-0020, migration with downgrade): shown with a
   distinct badge and "unnamed" label, excluded from counts and exports by default, private
-  (living-by-default) and listed under "To complete". Filling in a name clears the flag.
-- **Identity fields.** The chosen term does not set gender identity. `sex_at_birth` is *offered*
-  pre-selected from the term on the confirmation step; the user can change it or leave it "not
-  recorded", in which case Phase C shows the neutral reading.
+  (living-by-default; visible only to the creator and tree admins) and listed under "To complete".
+  The flag records the person's origin and is kept: a name completes the details but verifies
+  nothing; verification comes from the relationships' evidence (ADR-0020 §4, §7, amended 5 Nov).
+- **Identity fields.** The chosen term sets neither gender identity nor sex at birth: `sex_at_birth`
+  starts as "not recorded" and is stored only if the user enters it, in which case Phase C shows the
+  definite word; otherwise it shows the neutral reading (amended 5 Nov; earlier drafts pre-selected
+  it from the term).
 - **Progressive form.** Step 1: name (with transliteration suggestion, original kept), living
   status, approximate year. "Add more details" expands date accuracy, place cascade (when R2 is on),
   occupation, honorific, name format and name language/script.
@@ -358,10 +361,11 @@ with citations and offers "Ask a relative" instead of guessing.
 
 The full LGD import (R2) runs in parallel with R1 and does not block it.
 
-**R1 progress (4 Nov 2026):** Smart Add Relative (ADR-0020) and age-aware kinship terms in the
+**R1 progress (5 Nov 2026):** Smart Add Relative (ADR-0020) and age-aware kinship terms in the
 calculator (ADR-0020 amendment) are implemented. The minimal master-data service (ADR-0018) is in
 a separate PR. See `IMPLEMENTATION_STATUS.md`. Still open in R1: transliteration suggestions,
-excluding provisional people from exports and counts, and native Hindi review.
+leaving provisional people out of headline person counts and a "To complete" list (privacy and
+export exclusion are done, 5 Nov), and native Hindi review.
 
 **Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)
 must be signed off by counsel before any public launch, regardless of which releases have shipped.

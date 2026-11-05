@@ -245,7 +245,9 @@
       "protected": "Protected",
       "protectedHint": "Living, minor or unknown-status: sensitive details are restricted",
       "provisional": "To complete",
-      "provisionalHint": "Added as unknown for now; add a name to complete this person"
+      "provisionalHint": "Added as unknown for now; add a name to complete this person",
+      "unverified": "Not yet verified",
+      "unverifiedHint": "Added as unknown for now. Their name is recorded, but their relationships have no supporting evidence yet."
     },
     "birthDate": "Birth date",
     "birthPlace": "Birth place",
@@ -2967,7 +2969,7 @@
     "surname": "Surname",
     "birthYear": "Born about (year)",
     "birthYearHint": "Optional — an approximate year is fine",
-    "sexHint": "Filled in from the relationship you chose. Change it or leave it as not recorded.",
+    "sexHint": "Optional. Choosing a relationship does not record sex at birth; enter it only if you know it.",
     "otherParent": "Other parent",
     "otherParentNone": "Not recorded / someone else",
     "relativeAge": "Older or younger than {{name}}?",
@@ -3003,7 +3005,7 @@
     "undone": "Undone. Nothing from this addition remains in the tree.",
     "undo": "Undo",
     "openProfile": "Open {{name}}'s profile",
-    "provisionalNote": "Unnamed people are marked “To complete”. Add their name from their profile when you know it.",
+    "provisionalNote": "Unnamed people are marked “To complete”. Add their name from their profile when you know it. Until they are named and their relationships are supported by evidence, only you and the tree admins can see them, and they are left out of exports.",
     "terms": {
       "father": {
         "label": "Father",

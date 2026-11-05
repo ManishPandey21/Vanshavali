@@ -14,7 +14,7 @@ from app.authz.context import TreeContext
 from app.core.config import get_settings
 from app.models import Person, Relationship
 from app.models.enums import PARENT_TYPES, UNION_TYPES, EvidenceStatus, Lineage, RelationshipType, SexAtBirth
-from app.modules.genealogy import ageorder, lookup
+from app.modules.genealogy import ageorder, lookup, provisional
 from app.modules.genealogy.schemas import (
     AgeOrderOut,
     FamilyOut,
@@ -49,6 +49,9 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
             )
         )
     )
+    # concealed provisional people are left out entirely: no "private relative" placeholder
+    concealed = provisional.concealed_ids(ctx)
+    rels = [r for r in rels if r.person_a_id not in concealed and r.person_b_id not in concealed]
     parent_edges = [
         r for r in rels if r.type in PARENT_TYPES and r.person_b_id == pid and _lineage_filter(lineages, r)
     ]
@@ -74,6 +77,7 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
                 )
             )
         )
+        shared = [r for r in shared if r.person_b_id not in concealed]
     union_partner_ids = {r.person_b_id if r.person_a_id == pid else r.person_a_id for r in union_edges}
     all_ids = (
         {pid}
@@ -230,6 +234,36 @@ def _walk(
     ]
 
 
+def _reachable_without(
+    rows: list[_Row], root_id: uuid.UUID, direction: str, concealed: frozenset[uuid.UUID]
+) -> list[_Row]:
+    """The walk's edges still reachable from the root once concealed people are taken out.
+
+    Nobody is reached *through* a concealed provisional person, so an ancestor beyond one does not
+    appear as an unexplained node that would reveal the gap.
+    """
+    up = direction == "ancestors"
+    by_from: dict[uuid.UUID, list[_Row]] = {}
+    for r in rows:
+        if r.parent in concealed or r.child in concealed:
+            continue
+        by_from.setdefault(r.child if up else r.parent, []).append(r)
+    keep: list[_Row] = []
+    reached = {root_id}
+    frontier = [root_id]
+    while frontier:
+        nxt: list[uuid.UUID] = []
+        for node in frontier:
+            for r in by_from.get(node, []):
+                keep.append(r)
+                to = r.parent if up else r.child
+                if to not in reached:
+                    reached.add(to)
+                    nxt.append(to)
+        frontier = nxt
+    return keep
+
+
 def graph(
     ctx: TreeContext,
     root_id: uuid.UUID,
@@ -241,6 +275,9 @@ def graph(
     lookup.get_person_subject(ctx, root_id)
     depth = max(1, min(depth, get_settings().max_traversal_depth))
     rows = _walk(ctx, root_id, direction, depth, lineages)
+    concealed = provisional.concealed_ids(ctx)
+    if concealed:
+        rows = _reachable_without(rows, root_id, direction, concealed)
     gen: dict[uuid.UUID, int] = {root_id: 0}
     for r in rows:
         node = r.parent if direction == "ancestors" else r.child
@@ -421,11 +458,12 @@ class _LazyGraph:
         self.loaded: set[uuid.UUID] = set()
         self.seen_edges: set[uuid.UUID] = set()
         self.virtual: set[uuid.UUID] = set()
+        # deleted people and concealed provisional people are not walked through at all
         self.deleted = set(
             ctx.db.scalars(
                 select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None))
             )
-        )
+        ) | provisional.concealed_ids(ctx)
         self._parents: Adjacency = {}
         self._children: Adjacency = {}
         self._spouses: Adjacency = {}
