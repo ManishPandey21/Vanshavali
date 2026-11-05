@@ -2,9 +2,11 @@
 
 Called by ops/backup/drill.sh (step "seed"). Reads the target database and storage directory from
 the usual VSH_DATABASE_URL / VSH_STORAGE_LOCAL_PATH variables, and writes a manifest (JSON) that
-verify.py uses: the login credentials and the ids and checksums of the uploaded documents.
+verify.py uses: the login email and the ids and checksums of the uploaded documents. The demo
+account's password is read only from VSH_DEMO_PASSWORD (drill.sh generates one per run) and is
+never written to the manifest or printed.
 
-    cd backend && VSH_DATABASE_URL=... VSH_STORAGE_LOCAL_PATH=... \
+    cd backend && VSH_DATABASE_URL=... VSH_STORAGE_LOCAL_PATH=... VSH_DEMO_PASSWORD=... \
         uv run python ../ops/backup/seed_source.py --people 2000 --manifest /tmp/manifest.json
 
 All people are fictional; the images are random noise.
@@ -35,9 +37,12 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--people", type=int, default=2000, help="size of the extra synthetic tree (0 to skip)")
     ap.add_argument("--email", default="demo@example.com")
-    ap.add_argument("--password", default="demo-password-123")
     ap.add_argument("--manifest", type=Path, required=True)
     args = ap.parse_args(argv)
+    password = os.environ.get("VSH_DEMO_PASSWORD", "")
+    if not password:
+        print("set VSH_DEMO_PASSWORD (read only from the environment)", file=sys.stderr)
+        return 2
 
     from fastapi.testclient import TestClient
 
@@ -45,12 +50,12 @@ def main(argv: list[str] | None = None) -> int:
     from app.cli.seed_demo import seed
     from app.main import create_app
 
-    tree_id = seed(args.email, args.password)
+    tree_id = seed(args.email, password)
     if args.people:
         build(args.people)
 
     client = TestClient(create_app())
-    r = client.post("/api/v1/auth/login", json={"email": args.email, "password": args.password})
+    r = client.post("/api/v1/auth/login", json={"email": args.email, "password": password})
     r.raise_for_status()
     client.headers["X-CSRF-Token"] = client.cookies.get("vsh_csrf") or ""
     docs = []
@@ -68,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(f"upload {category} failed: {r.status_code} {r.text[:300]}")
         body = r.json()
         docs.append({"id": body["id"], "category": category, "storage_class": body.get("storage_class")})
-    manifest = {"email": args.email, "password": args.password, "tree_id": tree_id, "documents": docs}
+    manifest = {"email": args.email, "tree_id": tree_id, "documents": docs}
     args.manifest.write_text(json.dumps(manifest, indent=2))
     print(f"seeded source: tree {tree_id}, documents {[d['storage_class'] for d in docs]}")
     return 0

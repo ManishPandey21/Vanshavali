@@ -13,6 +13,7 @@ Checks, in this order (row counts first, because the API checks below write audi
         --source-url postgresql+psycopg://…/vsh_drill_src --restored-url postgresql+psycopg://…/vsh_drill_dst \
         --storage /path/to/restored/storage --manifest manifest.json [--report verify.json]
 
+The login password is read from VSH_DEMO_PASSWORD (never from the manifest or argv).
 Exit status 0 only when every check passes. Data keys come from VSH_STANDARD_DATA_KEY /
 VSH_VAULT_DATA_KEY exactly as for the app; they must be the keys the source used.
 """
@@ -85,7 +86,8 @@ def check_api(api_url: str, owner_url: str, storage: str, manifest: dict[str, An
     out: dict[str, Any] = {"login": False, "documents": []}
     # a decryption failure (wrong data key, corrupt object) must be reported as FAIL, not crash the drill
     client = TestClient(create_app(), raise_server_exceptions=False)
-    r = client.post("/api/v1/auth/login", json={"email": manifest["email"], "password": manifest["password"]})
+    password = os.environ.get("VSH_DEMO_PASSWORD", "")
+    r = client.post("/api/v1/auth/login", json={"email": manifest["email"], "password": password})
     out["login"] = r.status_code == 200
     out["login_status"] = r.status_code
     if not out["login"]:
@@ -162,6 +164,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--report", type=Path)
     args = ap.parse_args(argv)
     manifest = json.loads(args.manifest.read_text())
+    if not os.environ.get("VSH_DEMO_PASSWORD"):
+        print("set VSH_DEMO_PASSWORD to the seeded account's password", file=sys.stderr)
+        return 2
 
     t0 = time.perf_counter()
     report: dict[str, Any] = {"row_counts": check_counts(args.source_url, args.restored_url)}

@@ -53,6 +53,13 @@ jobs:
       - name: Install backend
         working-directory: backend
         run: uv sync --frozen
+      - name: Generate throwaway seed passwords (never committed; masked in logs)
+        run: |
+          for v in VSH_DEMO_PASSWORD VSH_SUPERADMIN_PASSWORD; do
+            pw=$(openssl rand -base64 24)
+            echo "::add-mask::$pw"
+            echo "$v=$pw" >> "$GITHUB_ENV"
+          done
       - name: Migrate and seed the demo tree
         working-directory: backend
         run: |
@@ -92,7 +99,7 @@ jobs:
         run: |
           jar="$RUNNER_TEMP/spoof.txt"
           curl -fsS -c "$jar" -H 'Content-Type: application/json' -H 'X-Forwarded-For: 203.0.113.66' \
-            -d '{"email":"demo@example.com","password":"demo-password-123"}' \
+            -d "$(jq -n --arg pw "$VSH_DEMO_PASSWORD" '{email: "demo@example.com", password: $pw}')" \
             http://localhost:8080/api/v1/auth/login > /dev/null
           ips=$(curl -fsS -b "$jar" http://localhost:8080/api/v1/auth/sessions | python3 -c \
             'import json,sys; d=json.load(sys.stdin); print(" ".join(str(s.get("ip")) for s in d))')
@@ -102,7 +109,7 @@ jobs:
         run: |
           jar="$RUNNER_TEMP/cookies.txt"
           curl -fsS -c "$jar" -H 'Content-Type: application/json' \
-            -d '{"email":"demo@example.com","password":"demo-password-123"}' \
+            -d "$(jq -n --arg pw "$VSH_DEMO_PASSWORD" '{email: "demo@example.com", password: $pw}')" \
             http://localhost:8080/api/v1/auth/login > /dev/null
           session=$(awk '$6 == "vsh_session" {print $7}' "$jar")
           test -n "$session"
