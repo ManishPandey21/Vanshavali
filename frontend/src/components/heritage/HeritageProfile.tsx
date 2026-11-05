@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronDown, ChevronRight, Edit3, Plus, Star, Trash2 } from "lucide-react";
 import type { AssertionOut, EvidenceStatus, HeritageAttribute, HeritageAttributeView, PrivacyLevel, ValueStatus } from "../../api/types";
@@ -14,7 +14,25 @@ import { Button } from "../ui/Button";
 import { ConfirmDialog, Dialog } from "../ui/Dialog";
 import { ErrorAlert, Spinner } from "../ui/feedback";
 import { Checkbox, Field, Select, TextArea, TextInput } from "../ui/form";
+import { LinkedNote, SmartSelect, type VocabRef } from "../ui/SmartSelect";
 import { Badge } from "../ui/Badge";
+
+/** Heritage attributes that take suggestions from a master-data vocabulary (ADR-0018 §2). */
+const VOCABULARY_FOR: Partial<Record<HeritageAttribute, string>> = {
+  gotra: "gotra",
+  kula_or_vamsha: "kula",
+  kuladevata: "kuladevata",
+  kuladevi: "kuladevi",
+};
+const GOTRA_FALLBACK = gotras.flatMap((g) => [g.name, g.nameHindi]);
+
+function refOf(value: unknown): VocabRef | null {
+  if (value && typeof value === "object" && "vocabulary" in value && "code" in value) {
+    const v = value as { vocabulary: unknown; code: unknown };
+    if (typeof v.vocabulary === "string" && typeof v.code === "string") return { vocabulary: v.vocabulary, code: v.code };
+  }
+  return null;
+}
 
 export const HERITAGE_ATTRIBUTES: HeritageAttribute[] = [
   "gotra",
@@ -219,12 +237,12 @@ function AssertionLine({ a, preferred, canWrite, onEdit }: { a: AssertionOut; pr
 function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: HeritageSubject; attribute: HeritageAttribute | null; assertion: AssertionOut | null; onClose: () => void }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
-  const listId = useId();
   const add = useAddAssertion(treeId, subject);
   const update = useUpdateAssertion(treeId);
   const [attr, setAttr] = useState<HeritageAttribute>(attribute ?? "gotra");
   const [status, setStatus] = useState<ValueStatus>(assertion?.value_status ?? "known");
   const [text, setText] = useState(assertion?.value_text ?? "");
+  const [ref, setRef] = useState<VocabRef | null>(refOf(assertion?.value_json));
   const [place, setPlace] = useState<PlaceValue>(
     assertion?.place_id ? { place_id: assertion.place_id, place_label: assertion.place_name ?? null, place_as_recorded: assertion.place_name ?? "" } : emptyPlace(),
   );
@@ -247,9 +265,14 @@ function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: 
       return;
     }
     setErr(null);
+    const vocabulary = VOCABULARY_FOR[attr];
+    // a value picked from a list keeps its label as typed and names the entry (ADR-0018 §6);
+    // other attributes never have their value_json touched here
+    const vocabValue = vocabulary ? { value_json: known && ref && ref.vocabulary === vocabulary ? ref : null } : {};
     const body = {
       value_status: status,
       value_text: valueTextOut,
+      ...vocabValue,
       place_id: placeId,
       evidence_status: evidence,
       privacy_level: privacy || null,
@@ -309,20 +332,25 @@ function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: 
           (isPlace ? (
             <PlacePicker treeId={treeId} label={t("heritage.value")} value={place} onChange={setPlace} />
           ) : (
-            <Field label={t("heritage.value")} hint={attr === "gotra" ? t("heritage.gotraHint") : undefined}>
-              {(p) => (
-                <>
-                  <TextInput {...p} value={text} onChange={(e) => setText(e.target.value)} list={attr === "gotra" ? listId : undefined} />
-                  {attr === "gotra" && (
-                    <datalist id={listId}>
-                      {gotras.flatMap((g) => [g.name, g.nameHindi]).map((n) => (
-                        <option key={n} value={n} />
-                      ))}
-                    </datalist>
-                  )}
-                </>
-              )}
-            </Field>
+            VOCABULARY_FOR[attr] ? (
+              <div>
+                <SmartSelect
+                  key={attr}
+                  vocabulary={VOCABULARY_FOR[attr]!}
+                  label={t("heritage.value")}
+                  hint={attr === "gotra" ? t("heritage.gotraHint") : t("smartSelect.hint")}
+                  text={text}
+                  onChange={(v, r) => {
+                    setText(v);
+                    setRef(r);
+                  }}
+                  fallback={attr === "gotra" ? GOTRA_FALLBACK : []}
+                />
+                {ref && <LinkedNote />}
+              </div>
+            ) : (
+              <Field label={t("heritage.value")}>{(p) => <TextInput {...p} value={text} onChange={(e) => setText(e.target.value)} />}</Field>
+            )
           ))}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("names.evidence")}>

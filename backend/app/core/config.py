@@ -138,6 +138,8 @@ class Settings(BaseSettings):
 
     # OCR
     ocr_enabled: bool = True
+    # Master-data vocabularies (ADR-0018); false = endpoints answer 404 and the UI falls back to text
+    masterdata_enabled: bool = True
     tesseract_cmd: str = "tesseract"
     tesseract_languages: str = "eng+hin"
 

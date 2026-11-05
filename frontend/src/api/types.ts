@@ -246,3 +246,10 @@ export type SmartAddTarget = S["SmartAddTargetOut"];
 export type SmartAddPreviewItem = S["SmartAddPreviewItem"];
 export type SmartAddCommitIn = S["SmartAddCommitIn"];
 export type SmartAddCommitOut = S["SmartAddCommitOut"];
+
+// Master data vocabularies (ADR-0018)
+export type VocabularyOut = S["VocabularyOut"];
+export type VocabularyTerm = S["VocabularyTermOut"];
+export type VocabularyTerms = S["VocabularyTermsOut"];
+export type TreeTermIn = S["TreeTermIn"];
+export type TreeTermOut = S["TreeTermOut"];

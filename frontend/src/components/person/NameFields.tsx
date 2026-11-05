@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Star, Trash2 } from "lucide-react";
 import type { EvidenceStatus, NameIn, NameType } from "../../api/types";
 import { SCRIPTS, detectScript, isRtl } from "../../lib/names";
 import { Field, Select, TextInput } from "../ui/form";
+import { SmartSelect } from "../ui/SmartSelect";
 
 export const NAME_TYPES: NameType[] = ["birth", "married", "alias", "religious", "professional", "nickname", "transliteration", "historical"];
 export const EVIDENCE_STATUSES: EvidenceStatus[] = [
@@ -172,11 +173,24 @@ export function NameFields({
               ["honorific_prefix", "names.honorificPrefix"],
               ["honorific_suffix", "names.honorificSuffix"],
             ] as const
-          ).map(([k, label]) => (
+          ).map(([k, label]) =>
+            k === "honorific_prefix" ? (
+              <SmartSelect
+                key={k}
+                vocabulary="honorific"
+                linkable={false}
+                label={t(label)}
+                lang={lang}
+                dir={dir}
+                text={value.honorific_prefix ?? ""}
+                onChange={(v) => onTextInput({ honorific_prefix: v }, v)}
+              />
+            ) : (
             <Field key={k} label={t(label)}>
               {(p) => <TextInput {...p} lang={lang} dir={dir} value={(value[k] as string | null | undefined) ?? ""} onChange={(e) => onTextInput({ [k]: e.target.value }, e.target.value)} />}
             </Field>
-          ))}
+            ),
+          )}
         </div>
       )}
       {error && (

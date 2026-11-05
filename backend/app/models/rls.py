@@ -61,6 +61,7 @@ RLS_TABLES: tuple[str, ...] = (
     "render_artifact",
     "render_job",
     "source",
+    "tree_vocabulary_term",
 )
 
 POLICY_NAME = "tree_isolation"

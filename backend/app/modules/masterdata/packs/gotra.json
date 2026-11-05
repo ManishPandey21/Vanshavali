@@ -1,0 +1,192 @@
+{
+  "key": "gotra",
+  "version": 1,
+  "description": "Gotra suggestions (seed list). Families add their own; never inferred from a surname.",
+  "source": "Community-reported seed list compiled for Vanshavali (2026-11); not authoritative. Associations vary by tradition; never used to infer anything.",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": [
+    {
+      "code": "kashyapa",
+      "labels": {
+        "en": "Kashyapa",
+        "hi": "कश्यप"
+      },
+      "aliases": [
+        "Kashyap",
+        "Kashyapam",
+        "Kasyapa"
+      ]
+    },
+    {
+      "code": "bharadwaja",
+      "labels": {
+        "en": "Bharadwaja",
+        "hi": "भरद्वाज"
+      },
+      "aliases": [
+        "Bharadwaj",
+        "Bhardwaj",
+        "Bharathwaj",
+        "Bharadvaja"
+      ]
+    },
+    {
+      "code": "vashishtha",
+      "labels": {
+        "en": "Vashishtha",
+        "hi": "वशिष्ठ"
+      },
+      "aliases": [
+        "Vasishtha",
+        "Vasishta",
+        "Vasisht",
+        "Vasist"
+      ]
+    },
+    {
+      "code": "atri",
+      "labels": {
+        "en": "Atri",
+        "hi": "अत्रि"
+      },
+      "aliases": [
+        "Athri",
+        "Aathri"
+      ]
+    },
+    {
+      "code": "angirasa",
+      "labels": {
+        "en": "Angirasa",
+        "hi": "आंगिरस"
+      },
+      "aliases": [
+        "Angiras",
+        "Angirasas"
+      ]
+    },
+    {
+      "code": "bhargava",
+      "labels": {
+        "en": "Bhargava",
+        "hi": "भार्गव"
+      },
+      "aliases": [
+        "Bhargav"
+      ]
+    },
+    {
+      "code": "agastya",
+      "labels": {
+        "en": "Agastya",
+        "hi": "अगस्त्य"
+      },
+      "aliases": [
+        "Agasthya",
+        "Agasti"
+      ]
+    },
+    {
+      "code": "gautama",
+      "labels": {
+        "en": "Gautama",
+        "hi": "गौतम"
+      },
+      "aliases": [
+        "Gautam",
+        "Gotam",
+        "Gowtham"
+      ]
+    },
+    {
+      "code": "jamadagni",
+      "labels": {
+        "en": "Jamadagni",
+        "hi": "जमदग्नि"
+      },
+      "aliases": [
+        "Jamadagniya"
+      ]
+    },
+    {
+      "code": "vishvamitra",
+      "labels": {
+        "en": "Vishvamitra",
+        "hi": "विश्वामित्र"
+      },
+      "aliases": [
+        "Vishwamitra",
+        "Viswamitra"
+      ]
+    },
+    {
+      "code": "shandilya",
+      "labels": {
+        "en": "Shandilya",
+        "hi": "शाण्डिल्य"
+      },
+      "aliases": [
+        "Sandilya",
+        "Sandyal",
+        "Shandily"
+      ]
+    },
+    {
+      "code": "parashara",
+      "labels": {
+        "en": "Parashara",
+        "hi": "पराशर"
+      },
+      "aliases": [
+        "Parashar",
+        "Parasar",
+        "Parasara"
+      ]
+    },
+    {
+      "code": "kaundinya",
+      "labels": {
+        "en": "Kaundinya",
+        "hi": "कौण्डिन्य"
+      },
+      "aliases": [
+        "Koundinya",
+        "Kaundinyayana"
+      ]
+    },
+    {
+      "code": "upamanyu",
+      "labels": {
+        "en": "Upamanyu",
+        "hi": "उपमन्यु"
+      },
+      "aliases": [
+        "Upamanyava"
+      ]
+    },
+    {
+      "code": "garga",
+      "labels": {
+        "en": "Garga",
+        "hi": "गर्ग"
+      },
+      "aliases": [
+        "Garg",
+        "Gargya"
+      ]
+    },
+    {
+      "code": "kaushika",
+      "labels": {
+        "en": "Kaushika",
+        "hi": "कौशिक"
+      },
+      "aliases": [
+        "Kaushik",
+        "Koushik",
+        "Kausika"
+      ]
+    }
+  ]
+}
