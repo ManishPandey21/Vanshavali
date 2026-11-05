@@ -178,3 +178,13 @@ Decision: ADR-0018 (classification of every dropdown: controlled values vs exten
 | Stored references: heritage `value_json = {vocabulary, code}` with the label as typed; checked against global or this tree's entries | VERIFIED | `test_masterdata.py::test_heritage_value_references_a_real_entry` | Occupation and honorific stay free text (suggestions only) |
 | `SmartSelect` (ARIA combobox, suggestions in any script, "Add as your family's own", falls back to a plain field when the service is off or unreachable) in heritage (gotra, kula, kuladevata, kuladevi), occupation and honorific | VERIFIED | Vitest `SmartSelect.test.tsx` (4), Playwright `master-data.spec.ts` (with axe) | Static `src/data/masterData` lists remain only as fallbacks; nakshatra/rashi stay controlled (`astrology/vocab.py`) |
 | Rollback flag `VSH_MASTERDATA_ENABLED` | VERIFIED | `test_masterdata.py::test_disabled_flag_answers_404`, Vitest fallback test | |
+
+## R1 — Age-aware kinship terms (Nov 2026)
+
+Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| `age_orders` on `/relationship-path`: per sibling word, the right pair (uncle vs father, brother-in-law vs husband), family-confirmed > birth dates > unknown; conflicting, overlapping or open-ended dates give unknown; viewer-visible dates only; hidden pairs omitted | VERIFIED | `test_age_order.py` (9) | |
+| Record / delete age order between siblings (`/relative-age-orders`) | VERIFIED | `test_age_order.py::test_record_endpoint_rules`, `…family_confirmed_order_wins…` | Smart Add shares the same rules |
+| Hindi age-dependent terms (Tau/Chacha, Tai/Chachi, Jeth/Devar, Jethani/Devrani, Bhai Sahab/Saala, Bhaiya/Bhai, Didi/Behen, Jija/Behnoi) plus Samdhi/Samdhan and Nandoi; "father's elder brother" in English; basis shown in every language; "older or younger?" question for editors | VERIFIED | Vitest `kinship.test.ts` (matrix), `RelationshipPage.test.tsx` (3), Playwright `age-kinship.spec.ts` (with axe) | Regional packs (Marathi, Tamil…) and family-preferred words come later (Q14) |

@@ -3382,6 +3382,124 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/relative-age-orders": {
+   "post": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Record Relative Age",
+    "description": "Family-confirmed \"older / younger than\" between two siblings (ADR-0020 \u00a75). It takes\nprecedence over birth dates when kinship terms depend on age (Tau vs Chacha).",
+    "operationId": "record_relative_age_api_v1_trees__tree_id__relative_age_orders_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RelativeAgeOrderIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RelativeAgeOrderOut"
+        }
+       }
+      }
+     },
+     "200": {
+      "description": "Already recorded",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RelativeAgeOrderOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/relative-age-orders/{record_id}": {
+   "delete": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Delete Relative Age",
+    "description": "Remove a recorded age order (to correct a mistake).",
+    "operationId": "delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete",
+    "parameters": [
+     {
+      "name": "record_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Record Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/relationship-path": {
    "get": {
     "tags": [
@@ -12878,6 +12996,69 @@
  },
  "components": {
   "schemas": {
+   "AgeOrderOut": {
+    "properties": {
+     "chain_index": {
+      "type": "integer",
+      "title": "Chain Index"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "relative_to_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Relative To Id"
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "elder",
+       "younger",
+       "unknown"
+      ],
+      "title": "Order"
+     },
+     "basis": {
+      "type": "string",
+      "enum": [
+       "family_confirmed",
+       "birth_dates",
+       "unknown"
+      ],
+      "title": "Basis"
+     },
+     "record_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Record Id"
+     },
+     "dates_disagree": {
+      "type": "boolean",
+      "title": "Dates Disagree",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "chain_index",
+     "person_id",
+     "relative_to_id",
+     "order",
+     "basis"
+    ],
+    "title": "AgeOrderOut",
+    "description": "Whether the person reached by a sibling word in ``chain`` is older or younger than the person\nthat word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 \u00a75)."
+   },
    "AllocationIn": {
     "properties": {
      "share_numerator": {
@@ -27623,6 +27804,14 @@
        }
       ],
       "title": "Explanation"
+     },
+     "age_orders": {
+      "items": {
+       "$ref": "#/components/schemas/AgeOrderOut"
+      },
+      "type": "array",
+      "title": "Age Orders",
+      "default": []
      }
     },
     "type": "object",
@@ -27776,6 +27965,61 @@
     },
     "type": "object",
     "title": "RelationshipUpdate"
+   },
+   "RelativeAgeOrderIn": {
+    "properties": {
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "relative_to_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Relative To Id"
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "elder",
+       "younger"
+      ],
+      "title": "Order"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person_id",
+     "relative_to_id",
+     "order"
+    ],
+    "title": "RelativeAgeOrderIn"
+   },
+   "RelativeAgeOrderOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "elder_person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Elder Person Id"
+     },
+     "younger_person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Younger Person Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "elder_person_id",
+     "younger_person_id"
+    ],
+    "title": "RelativeAgeOrderOut"
    },
    "RelativeIn": {
     "properties": {
