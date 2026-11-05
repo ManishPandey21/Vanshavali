@@ -67,7 +67,9 @@ jobs:
         run: |
           psql -h localhost -U vanshavali -d postgres -c "CREATE DATABASE vsh_seed"
           uv run alembic upgrade head
+          export VSH_DEMO_PASSWORD="$(openssl rand -base64 24)" VSH_SUPERADMIN_PASSWORD="$(openssl rand -base64 24)"
           uv run python -m app.cli.seed_demo
+          uv run python -m app.cli.seed_demo  # idempotent: a second run changes nothing
 
   frontend:
     runs-on: ubuntu-24.04

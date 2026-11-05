@@ -1,6 +1,20 @@
-"""Seed a demo account and family tree through the real service layer (authz + audit apply).
+"""Seed the development/test accounts and demo family tree through the real service layer.
 
-Usage: uv run python -m app.cli.seed_demo [--email demo@example.com] [--password ...]
+Usage (development or test only; refused when ``VSH_ENV`` is anything else):
+
+    VSH_DEMO_PASSWORD=... VSH_SUPERADMIN_PASSWORD=... uv run python -m app.cli.seed_demo \\
+        [--email demo@example.com] [--admin-email superadmin@example.com]
+
+Creates, if missing:
+
+* ``demo@example.com``: an ordinary verified user who owns the fictional "Iyer Family (demo)" tree.
+* ``superadmin@example.com``: a verified platform system administrator (``is_system_admin``). Per
+  ADR-0006 that grants platform endpoints only and **no tree access** (threat T12); the account is
+  not added to any tree and must choose a new password at first sign-in.
+
+Passwords are read only from the environment (never arguments or defaults), stored only as Argon2
+hashes and never printed. The command is idempotent: existing accounts and the demo tree are left
+as they are (passwords are not reset), and an existing non-admin account is never promoted.
 All people are fictional.
 """
 
@@ -8,14 +22,17 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 import sys
 from typing import Any
 
 from sqlalchemy import select
 
 from app.authz.context import RequestInfo, load_tree_context
+from app.core import audit
+from app.core.config import get_settings
 from app.core.db import get_sessionmaker
-from app.core.security import hash_password
+from app.core.security import hash_password, password_problems
 from app.models import Tree, TreeMembership, User
 from app.models.enums import (
     AssertionSubject,
@@ -44,7 +61,31 @@ from app.modules.genealogy.schemas import (
 )
 from app.modules.heritage import service as heritage
 from app.modules.heritage.schemas import AssertionIn
+from app.modules.identity.service import normalise_email
 from app.modules.trees import service as trees
+
+ALLOWED_ENVS = ("development", "test")
+DEMO_EMAIL = "demo@example.com"
+SUPERADMIN_EMAIL = "superadmin@example.com"
+# Names of environment variables, not secrets.
+DEMO_PASSWORD_ENV = "VSH_DEMO_PASSWORD"  # noqa: S105
+SUPERADMIN_PASSWORD_ENV = "VSH_SUPERADMIN_PASSWORD"  # noqa: S105
+
+
+class SeedRefused(RuntimeError):
+    """Seeding is not allowed in this environment."""
+
+
+def require_dev_env() -> None:
+    env = get_settings().env
+    if env not in ALLOWED_ENVS:
+        raise SeedRefused(f"seeding is only allowed when VSH_ENV is development or test (it is {env})")
+
+
+def _check_password(password: str, var: str) -> None:
+    problems = password_problems(password)
+    if problems:
+        raise ValueError(f"{var}: " + "; ".join(problems))
 
 
 def _d(y: int, m: int | None = None, d: int | None = None, precision: str | None = None) -> dict[str, Any]:
@@ -58,11 +99,54 @@ def _d(y: int, m: int | None = None, d: int | None = None, precision: str | None
     return out
 
 
+def seed_superadmin(email: str, password: str) -> str:
+    """Create the platform system-admin account if missing; return its id. Never touches trees."""
+    require_dev_env()
+    email = normalise_email(email)
+    with get_sessionmaker()() as db:
+        user = db.scalar(select(User).where(User.email == email))
+        if user is not None:
+            if not user.is_system_admin:
+                # An account someone registered must not silently gain admin rights.
+                raise ValueError(f"{email} already exists and is not a system admin; refusing to promote it")
+            print(f"System admin already exists: {email}")
+            return str(user.id)
+        _check_password(password, SUPERADMIN_PASSWORD_ENV)
+        user = User(
+            email=email,
+            password_hash=hash_password(password),
+            display_name="Super Admin (dev)",
+            email_verified_at=dt.datetime.now(dt.UTC),
+            is_system_admin=True,
+            # the seed password is shared through the environment: replace it at first sign-in
+            must_change_password=True,
+        )
+        db.add(user)
+        db.flush()
+        audit.record(
+            db,
+            action="user.system_admin_seeded",
+            actor_user_id=None,
+            target_type="user",
+            target_id=user.id,
+            details={"env": get_settings().env},
+        )
+        db.commit()
+        print(f"Created system admin {email}; a new password is required at first sign-in")
+        return str(user.id)
+
+
 def seed(email: str, password: str) -> str:
+    """Create the demo owner (if missing) and the demo tree (if missing); return the tree id."""
+    require_dev_env()
+    email = normalise_email(email)
     Session = get_sessionmaker()
     with Session() as db:
         user = db.scalar(select(User).where(User.email == email))
+        if user is not None and user.is_system_admin:
+            raise ValueError(f"{email} is a system admin; the demo tree owner must be an ordinary user")
         if user is None:
+            _check_password(password, DEMO_PASSWORD_ENV)
             user = User(
                 email=email,
                 password_hash=hash_password(password),
@@ -272,11 +356,32 @@ def seed(email: str, password: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--email", default="demo@example.com")
-    ap.add_argument("--password", default="demo-password-123")
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--email", default=DEMO_EMAIL, help="demo tree owner")
+    ap.add_argument("--admin-email", default=SUPERADMIN_EMAIL, help="platform system admin")
     args = ap.parse_args(argv)
-    seed(args.email, args.password)
+    try:
+        require_dev_env()
+        if normalise_email(args.email) == normalise_email(args.admin_email):
+            print("--email and --admin-email must differ", file=sys.stderr)
+            return 1
+        missing = [v for v in (DEMO_PASSWORD_ENV, SUPERADMIN_PASSWORD_ENV) if not os.environ.get(v)]
+        if missing:
+            print(
+                f"set {' and '.join(missing)} (passwords are read only from the environment)", file=sys.stderr
+            )
+            return 2
+        # validate both before writing anything, so a bad run leaves the database untouched
+        for var in (DEMO_PASSWORD_ENV, SUPERADMIN_PASSWORD_ENV):
+            _check_password(os.environ[var], var)
+        seed(args.email, os.environ[DEMO_PASSWORD_ENV])
+        seed_superadmin(args.admin_email, os.environ[SUPERADMIN_PASSWORD_ENV])
+    except SeedRefused as e:
+        print(str(e), file=sys.stderr)
+        return 2
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 1
     return 0
 
 
