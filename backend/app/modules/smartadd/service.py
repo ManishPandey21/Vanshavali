@@ -20,7 +20,7 @@ from app.core import audit
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
 from app.models import AuditEvent, Person, Relationship, RelativeAgeOrder
 from app.models.enums import PARENT_TYPES, UNION_TYPES, ProfileStatus, RelationshipType, SexAtBirth
-from app.modules.genealogy import engine, lookup
+from app.modules.genealogy import engine, lookup, provisional
 from app.modules.genealogy import service as genealogy
 from app.modules.genealogy.schemas import PersonCreate, PersonSummary, RelatedPerson, RelativeIn
 from app.modules.genealogy.serialize import Serializer
@@ -465,3 +465,4 @@ def undo(ctx: TreeContext, operation_id: uuid.UUID) -> None:
     for pid in people:
         genealogy.delete_person(ctx, pid)
     audit.log(ctx, UNDONE, target_type="audit_event", target_id=event.id)
+    provisional.revoke_creator_grants(ctx, people)  # after the deletes, which need to see them

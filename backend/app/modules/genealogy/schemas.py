@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
 
@@ -414,8 +414,11 @@ class PersonSummary(ApiModel):
     is_minor: bool = False
     is_protected: bool = False
     privacy_level: PrivacyLevel | None = None
-    # added "as unknown for now" by Smart Add and not yet named (ADR-0020)
+    # created by Smart Add as "unknown for now" (ADR-0020 §4): records origin, never cleared by a name
     is_provisional: bool = False
+    # for provisional people only: needs_details (no name), unverified (a relationship has no
+    # supporting evidence) or verified. A name alone never makes a person verified.
+    provisional_state: Literal["needs_details", "unverified", "verified"] | None = None
 
 
 class PersonOut(PersonSummary):

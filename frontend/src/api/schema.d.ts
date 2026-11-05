@@ -6347,6 +6347,8 @@ export interface components {
              * @default false
              */
             is_provisional?: boolean;
+            /** Provisional State */
+            provisional_state?: ("needs_details" | "unverified" | "verified") | null;
             /** Gender Identity */
             gender_identity?: string | null;
             /** Primary Language */
@@ -6463,6 +6465,8 @@ export interface components {
              * @default false
              */
             is_provisional?: boolean;
+            /** Provisional State */
+            provisional_state?: ("needs_details" | "unverified" | "verified") | null;
         };
         /** PersonUpdate */
         PersonUpdate: {

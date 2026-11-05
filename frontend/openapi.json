@@ -23900,6 +23900,22 @@
       "title": "Is Provisional",
       "default": false
      },
+     "provisional_state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "needs_details",
+         "unverified",
+         "verified"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provisional State"
+     },
      "gender_identity": {
       "anyOf": [
        {
@@ -24243,6 +24259,22 @@
       "type": "boolean",
       "title": "Is Provisional",
       "default": false
+     },
+     "provisional_state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "needs_details",
+         "unverified",
+         "verified"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provisional State"
      }
     },
     "type": "object",
