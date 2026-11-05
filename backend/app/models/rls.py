@@ -57,6 +57,7 @@ RLS_TABLES: tuple[str, ...] = (
     "property_event_parcel",
     "property_interest",
     "relationship",
+    "relative_age_order",
     "render_artifact",
     "render_job",
     "source",

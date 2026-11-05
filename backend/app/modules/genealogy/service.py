@@ -43,6 +43,7 @@ from app.models.enums import (
     RelationshipType,
 )
 from app.modules.genealogy import lookup
+from app.modules.genealogy import provisional as provisional_people
 from app.modules.genealogy.schemas import (
     EventIn,
     EventUpdate,
@@ -219,8 +220,19 @@ def add_name(ctx: TreeContext, person_id: uuid.UUID, body: NameIn) -> NameRecord
     n = _new_name(ctx, person.id, body)
     ctx.db.add(n)
     ctx.db.flush()
-    if body.is_preferred:
+    has_preferred = ctx.db.scalar(
+        select(NameRecord.id).where(
+            NameRecord.tree_id == ctx.tree_id,
+            NameRecord.person_id == person.id,
+            NameRecord.id != n.id,
+            NameRecord.is_preferred.is_(True),
+        )
+    )
+    if body.is_preferred or has_preferred is None:
         _set_preferred_name(ctx, person, n)
+    # A name completes the profile's details but verifies nothing: ``is_provisional`` records how the
+    # person was created and stays set (ADR-0020 §4).
+    provisional_people.forget(ctx)
     audit.log(ctx, "person.name_added", target_type="person", target_id=person.id)
     return n
 
@@ -487,7 +499,9 @@ def delete_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
 
 
 # ---------------------------------------------------------------- persons
-def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
+def create_person(ctx: TreeContext, body: PersonCreate, *, provisional: bool = False) -> Person:
+    """Create a person. ``provisional`` (Smart Add "unknown for now", ADR-0020 §4): no name, CUSTOM
+    privacy (tree admins + a view grant for the creator) and the permanent ``is_provisional`` origin."""
     ctx.require(Permission.PERSON_WRITE)
     from app.modules.consent.attestation import require_attestation
 
@@ -500,23 +514,27 @@ def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
         gender_identity=body.gender_identity,
         primary_language=body.primary_language,
         scripts_used=body.scripts_used,
-        privacy_level=body.privacy_level or ctx.tree.default_person_privacy,
+        privacy_level=PrivacyLevel.CUSTOM
+        if provisional
+        else (body.privacy_level or ctx.tree.default_person_privacy),
         occupation=body.occupation,
         notes=body.notes,
         contact_info=body.contact_info,
         residential_address=body.residential_address,
+        is_provisional=provisional,
         created_by=ctx.user_id,
     )
     ctx.db.add(person)
     ctx.db.flush()
-    names = [_new_name(ctx, person.id, n) for n in body.names]
+    names = [] if provisional else [_new_name(ctx, person.id, n) for n in body.names]
     for n in names:
         ctx.db.add(n)
     ctx.db.flush()
-    preferred = next((n for n in names if n.is_preferred), names[0])
-    preferred.is_preferred = True
-    if not body.preferred_display_name:
-        person.preferred_display_name = name_display(preferred)[:300] or "Unnamed"
+    if names:
+        preferred = next((n for n in names if n.is_preferred), names[0])
+        preferred.is_preferred = True
+        if not body.preferred_display_name:
+            person.preferred_display_name = name_display(preferred)[:300] or "Unnamed"
     if not person.scripts_used:
         person.scripts_used = sorted({n.script for n in names if n.script})
     if body.birth:
@@ -536,6 +554,8 @@ def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
     ctx.db.flush()
     if ctx.branch_scope is not None and ctx._branch_people is not None:
         ctx._branch_people.add(person.id)
+    if provisional:
+        provisional_people.share_with_creator(ctx, person)
     audit.log(ctx, "person.created", target_type="person", target_id=person.id)
     return person
 
@@ -733,6 +753,7 @@ def create_relationship(ctx: TreeContext, body: RelationshipIn, **provenance: An
             ctx.db.flush()
     except IntegrityError:
         raise Conflict("This relationship already exists", code="duplicate_relationship")
+    provisional_people.forget(ctx)
     audit.log(
         ctx, "relationship.added", target_type="relationship", target_id=rel.id, details={"type": t.value}
     )
@@ -768,6 +789,7 @@ def update_relationship(ctx: TreeContext, rel_id: uuid.UUID, body: RelationshipU
             v = date_to_json(v)
         setattr(rel, f, v)
     rel.updated_by = ctx.user_id
+    provisional_people.forget(ctx)
     audit.log(
         ctx,
         "relationship.changed",
@@ -789,6 +811,7 @@ def delete_relationship(ctx: TreeContext, rel_id: uuid.UUID) -> None:
     ):
         child_edge.union_id = None
     ctx.db.delete(rel)
+    provisional_people.forget(ctx)
     audit.log(
         ctx,
         "relationship.removed",

@@ -28,6 +28,7 @@ GROUPS = {
         "event_participant",
         "place",
         "merge_record",
+        "relative_age_order",
     ],
     "Heritage & family structure": [
         "assertion",

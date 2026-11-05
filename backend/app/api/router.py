@@ -27,6 +27,7 @@ from app.modules.public.router import router as public_router
 from app.modules.render.router import files_router as render_files_router
 from app.modules.render.router import router as render_router
 from app.modules.search.router import router as search_router
+from app.modules.smartadd.router import router as smartadd_router
 from app.modules.trees.router import router as trees_router
 from app.modules.visualization.router import router as visualization_router
 
@@ -34,6 +35,7 @@ api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(trees_router)
 api_router.include_router(genealogy_router)
+api_router.include_router(smartadd_router)
 api_router.include_router(lifeevents_router)
 api_router.include_router(reminders_router)
 api_router.include_router(notifications_user_router)
