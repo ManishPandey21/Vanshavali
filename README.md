@@ -27,9 +27,12 @@ docker-compose.yml   postgres, redis, minio, clamav, migrate, backend, worker, f
 ```bash
 cp .env.example .env            # set keys: see comments in the file
 docker compose up --build       # app on http://localhost:8080, API docs on :8000/api/v1/docs
-docker compose run --rm backend python -m app.cli.seed_demo   # optional demo family
+# optional: demo family + dev accounts; set VSH_DEMO_PASSWORD and VSH_SUPERADMIN_PASSWORD first
+docker compose run --rm -e VSH_DEMO_PASSWORD -e VSH_SUPERADMIN_PASSWORD backend python -m app.cli.seed_demo
 ```
-Demo login after seeding: `demo@example.com` / `demo-password-123` (fictional data).
+Seeding creates `demo@example.com` (owner of a fictional demo tree) and `superadmin@example.com`
+(platform system admin, no tree access), with the passwords you set. Development/test only; see
+[`docs/operations/dev-accounts.md`](docs/operations/dev-accounts.md).
 
 ## Local development (without Docker)
 Prerequisites: Python 3.11 + [uv](https://docs.astral.sh/uv/), Node 22, PostgreSQL 16 (with the
@@ -44,7 +47,7 @@ createuser -s vanshavali && createdb -O vanshavali vanshavali   # password: vans
 cd backend
 uv sync
 uv run alembic upgrade head
-uv run python -m app.cli.seed_demo        # optional
+uv run python -m app.cli.seed_demo        # optional; needs VSH_DEMO_PASSWORD + VSH_SUPERADMIN_PASSWORD
 uv run uvicorn app.main:app --reload --port 8000
 
 # frontend (another terminal)

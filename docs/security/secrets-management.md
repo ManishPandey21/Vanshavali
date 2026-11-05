@@ -44,7 +44,7 @@ Variable details are in `docs/deployment/environment-variables.md`.
    - gitleaks scans the history (production-readiness report).
 2. Never put a secret on a command line, where `ps` and shell history keep it.
    - The scripts read files or pass environment variables **by name** (`docker run -e PGPASSWORD`).
-   - `create_demo_account` reads its password from the environment only.
+   - `create_demo_account` and `seed_demo` read passwords from the environment only (`seed_demo`: `VSH_DEMO_PASSWORD`, `VSH_SUPERADMIN_PASSWORD`). CI generates throwaway values per run and masks them.
 3. Never log a secret.
    - The app never logs settings.
    - Mail logs mask addresses and redact tokens.
