@@ -132,11 +132,15 @@ def test_mama_with_unknown_mother_creates_a_provisional_parent(owner, tree):
     assert path["chain"] == ["mother", "brother"]
     assert path["path"] == [me["id"], provisional["id"], out["person"]["id"]]
 
-    # naming the provisional person completes them
+    assert provisional["privacy_level"] == "CUSTOM"  # tree admins + the creator only
+    assert provisional["provisional_state"] == "needs_details"
+
+    # a name completes the details, but the origin stays recorded and nothing becomes verified
     r = owner.post(f"/trees/{t}/people/{provisional['id']}/names", json={"given_name": "Sunita"})
     assert r.status_code == 201, r.text
     p = owner.get(f"/trees/{t}/people/{provisional['id']}").json()
-    assert p["is_provisional"] is False
+    assert p["is_provisional"] is True
+    assert p["provisional_state"] == "unverified"
     assert p["display_name"].startswith("Sunita")
 
 

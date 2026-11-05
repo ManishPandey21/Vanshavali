@@ -135,7 +135,7 @@ Constraints/indexes: `UNIQUE (tree_id, user_id, resource_type, resource_id, perm
 | `residential_address` | TEXT | yes |  |
 | `deleted_at` | DATETIME | yes |  |
 | `merged_into_id` | UUID | yes | → person (composite, same tree) |
-| `is_provisional` | BOOLEAN | no |  |
+| `is_provisional` | BOOLEAN | no | origin: created by Smart Add as "unknown for now" (ADR-0020); never cleared by a name |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |

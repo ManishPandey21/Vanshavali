@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,6 +35,9 @@ class TreeContext:
     _branch_people: set[uuid.UUID] | None = None
     _viewer_branch_ids: set[uuid.UUID] | None = None
     _grants: dict[tuple[str, uuid.UUID], set[str]] | None = None
+    # provisional people this viewer may not discover at all (genealogy.provisional, ADR-0020 §4)
+    _concealed: frozenset[uuid.UUID] | None = None
+    _provisional_states: dict[uuid.UUID, Any] | None = None
 
     # ---- identity ----
     @property
@@ -138,6 +142,14 @@ class TreeContext:
         if permission == GrantPermission.VIEW:
             return bool(perms)  # download implies view
         return str(permission) in perms
+
+    def remember_grant(
+        self, resource_type: GrantResource, resource_id: uuid.UUID, permission: GrantPermission
+    ) -> None:
+        """Keep the cached grants in step with a grant written during this request."""
+        if self._grants is not None:
+            self._grants.setdefault((str(resource_type), resource_id), set()).add(str(permission))
+        self._concealed = None
 
 
 def load_tree_context(

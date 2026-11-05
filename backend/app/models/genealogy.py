@@ -74,7 +74,8 @@ class Person(TreeScopedMixin, Base):
     residential_address: Mapped[str | None] = mapped_column(Text)
     deleted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     merged_into_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    # Added as "unknown for now" by Smart Add (ADR-0020); cleared when the person gets a name.
+    # Origin: added as "unknown for now" by Smart Add (ADR-0020 §4). Never cleared by adding a name;
+    # needs-details and verified states are derived in genealogy.provisional.
     is_provisional: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
 
