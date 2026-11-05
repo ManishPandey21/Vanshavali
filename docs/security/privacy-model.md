@@ -148,3 +148,35 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   Delivery history is kept with the tree (deleted with it). An automatic retention period for
   render artifacts and delivery history is DEFERRED (proposed: 90 days / 1 year).
 
+
+## 8. Smart Add Relative (ADR-0020)
+
+- **No one is created without being seen.** The plan endpoint writes nothing; the user picks a
+  recorded relative or explicitly chooses "add as unknown for now" at each step, sees every record
+  in a preview, and confirms. An unconfirmed plan leaves no trace.
+- **Provisional people** carry no name and no data except what the user enters. Sex at birth is
+  "Not recorded" unless the user records it; a kinship term never fills it in. They count as people
+  for attestation (ADR-0011): the family-data statement is required before Smart Add can create
+  anyone. Their status is protected (unknown, so possibly living).
+- **Only the creator and tree admins see a provisional person.** They are created at `CUSTOM`
+  privacy with a view grant for the creator (ADR-0020 §7), so the creator can complete the record and
+  only tree admins can widen access. While pending (unnamed, or with any relationship lacking
+  supporting evidence) they are concealed from everyone else: no anonymous placeholder, count, graph
+  node, relationship-path hop, candidate entry or public page reveals that they exist.
+- **Completing is not verifying.** A name completes the profile's details; `is_provisional` stays as
+  the record of how the person was created, and verification comes only from the relationships'
+  existing evidence status.
+- **Exports leave out pending provisional people** (GEDCOM and archive, whoever exports), together
+  with the relationships that touch them; no placeholder or family link is left pointing at them. The
+  archive manifest counts them only for an exporter who could see them.
+- **Hidden relatives stay hidden.** Candidate lists contain only people the user may see; a hidden
+  parent is reported as a count, never identified, and prevents creating a duplicate parent.
+- **Kinship terms are not stored and do not set identity.** "Mama" becomes edges; gender identity is
+  never set, and sex at birth is only what the client sends. Candidate lists never drop a relative
+  because of their recorded sex at birth.
+- **Age order** ("older than") is family knowledge about two people, private to the tree (RLS), and
+  deleted with either person. When the calculator orders two people by birth dates it uses only the
+  dates the viewer may see (year-only for living people, for most viewers), and never compares a
+  person hidden from the viewer.
+- **Undo** soft-deletes (restorable) the people an operation created and removes its relationships
+  and age-order records; it is limited to the same user for 30 minutes.

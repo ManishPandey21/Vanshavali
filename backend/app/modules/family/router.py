@@ -26,21 +26,22 @@ from app.modules.family.schemas import (
     HouseholdUpdate,
     PersonHouseholdOut,
 )
-from app.modules.genealogy import lookup
+from app.modules.genealogy import lookup, provisional
 from app.modules.genealogy.serialize import Serializer
 
 router = APIRouter(prefix="/trees/{tree_id}", tags=["family"])
 
 
 def _branch_out(ctx, b: FamilyBranch) -> BranchOut:  # type: ignore[no-untyped-def]
-    n = (
-        ctx.db.scalar(
-            select(func.count())
-            .select_from(BranchMembership)
-            .where(BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id)
-        )
-        or 0
+    q = (
+        select(func.count())
+        .select_from(BranchMembership)
+        .where(BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id)
     )
+    concealed = provisional.concealed_ids(ctx)  # never counted for someone who cannot see them
+    if concealed:
+        q = q.where(BranchMembership.person_id.notin_(list(concealed)))
+    n = ctx.db.scalar(q) or 0
     return BranchOut.model_validate(b).model_copy(update={"member_count": int(n)})
 
 
@@ -65,6 +66,8 @@ def get_branch(branch_id: uuid.UUID, ctx: TreeCtx) -> BranchDetailOut:
             BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id
         )
     ).all()
+    concealed = provisional.concealed_ids(ctx)
+    rows = [r for r in rows if r[0] not in concealed]
     subjects = lookup.visible_subjects(ctx, [r[0] for r in rows])
     summaries = Serializer(ctx).summaries(subjects)
     members = [BranchMemberOut(person=summaries[pid], basis=basis) for pid, basis in rows if pid in summaries]
@@ -104,14 +107,15 @@ def derive_members(branch_id: uuid.UUID, ctx: TreeCtx) -> DeriveOut:
 
 # ------------------------------------------------------------------ households
 def _household_out(ctx, h: Household) -> HouseholdOut:  # type: ignore[no-untyped-def]
-    n = (
-        ctx.db.scalar(
-            select(func.count())
-            .select_from(HouseholdMembership)
-            .where(HouseholdMembership.tree_id == ctx.tree_id, HouseholdMembership.household_id == h.id)
-        )
-        or 0
+    q = (
+        select(func.count())
+        .select_from(HouseholdMembership)
+        .where(HouseholdMembership.tree_id == ctx.tree_id, HouseholdMembership.household_id == h.id)
     )
+    concealed = provisional.concealed_ids(ctx)  # never counted for someone who cannot see them
+    if concealed:
+        q = q.where(HouseholdMembership.person_id.notin_(list(concealed)))
+    n = ctx.db.scalar(q) or 0
     place = (
         ctx.db.scalar(
             select(Place.canonical_name).where(Place.tree_id == ctx.tree_id, Place.id == h.place_id)
@@ -145,6 +149,8 @@ def get_household(household_id: uuid.UUID, ctx: TreeCtx) -> HouseholdDetailOut:
             )
         )
     )
+    concealed = provisional.concealed_ids(ctx)
+    ms = [m for m in ms if m.person_id not in concealed]
     subjects = lookup.visible_subjects(ctx, [m.person_id for m in ms])
     summaries = Serializer(ctx).summaries(subjects)
     members = [

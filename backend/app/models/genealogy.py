@@ -74,6 +74,32 @@ class Person(TreeScopedMixin, Base):
     residential_address: Mapped[str | None] = mapped_column(Text)
     deleted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     merged_into_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    # Origin: added as "unknown for now" by Smart Add (ADR-0020 §4). Never cleared by adding a name;
+    # needs-details and verified states are derived in genealogy.provisional.
+    is_provisional: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
+
+class RelativeAgeOrder(TreeScopedMixin, Base):
+    """Family-confirmed "A is older than B" for two relatives (ADR-0020), e.g. Tau vs Chacha.
+
+    Family knowledge that takes precedence over (often approximate) birth dates when kinship terms
+    depend on relative age. One row per ordered pair; the reverse pair is rejected by the service.
+    """
+
+    __tablename__ = "relative_age_order"
+    __table_args__ = (
+        tree_unique("relative_age_order"),
+        tree_fk(["elder_person_id"], "person", ondelete="CASCADE"),
+        tree_fk(["younger_person_id"], "person", ondelete="CASCADE"),
+        UniqueConstraint(
+            "tree_id", "elder_person_id", "younger_person_id", name="uq_relative_age_order_pair"
+        ),
+        CheckConstraint("elder_person_id <> younger_person_id", name="distinct"),
+    )
+
+    elder_person_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    younger_person_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    # created_by records who confirmed the order
 
 
 class MergeRecord(TreeScopedMixin, Base):

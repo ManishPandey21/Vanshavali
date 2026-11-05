@@ -3382,6 +3382,124 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/relative-age-orders": {
+   "post": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Record Relative Age",
+    "description": "Family-confirmed \"older / younger than\" between two siblings (ADR-0020 \u00a75). It takes\nprecedence over birth dates when kinship terms depend on age (Tau vs Chacha).",
+    "operationId": "record_relative_age_api_v1_trees__tree_id__relative_age_orders_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RelativeAgeOrderIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RelativeAgeOrderOut"
+        }
+       }
+      }
+     },
+     "200": {
+      "description": "Already recorded",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RelativeAgeOrderOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/relative-age-orders/{record_id}": {
+   "delete": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Delete Relative Age",
+    "description": "Remove a recorded age order (to correct a mistake).",
+    "operationId": "delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete",
+    "parameters": [
+     {
+      "name": "record_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Record Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/relationship-path": {
    "get": {
     "tags": [
@@ -3449,6 +3567,236 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/RelationshipPathOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/smart-add/terms": {
+   "get": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "List Terms",
+    "description": "Kinship terms Smart Add understands, each as a path of basic edges (ADR-0020).",
+    "operationId": "list_terms_api_v1_trees__tree_id__smart_add_terms_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/SmartAddTermOut"
+         },
+         "title": "Response List Terms Api V1 Trees  Tree Id  Smart Add Terms Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/smart-add/plan": {
+   "post": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "Plan",
+    "description": "Preview: candidates for each step and every record that would be created. Writes nothing.",
+    "operationId": "plan_api_v1_trees__tree_id__people__person_id__smart_add_plan_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SmartAddPlanIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SmartAddPlanOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/smart-add": {
+   "post": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "Commit",
+    "description": "Create the confirmed plan in one transaction; returns an operation id for undo.",
+    "operationId": "commit_api_v1_trees__tree_id__people__person_id__smart_add_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SmartAddCommitIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SmartAddCommitOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/smart-add/{operation_id}/undo": {
+   "post": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "Undo",
+    "description": "Undo a Smart Add within 30 minutes, by the same user, if nothing else has changed since.",
+    "operationId": "undo_api_v1_trees__tree_id__smart_add__operation_id__undo_post",
+    "parameters": [
+     {
+      "name": "operation_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Operation Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
         }
        }
       }
@@ -12368,6 +12716,69 @@
  },
  "components": {
   "schemas": {
+   "AgeOrderOut": {
+    "properties": {
+     "chain_index": {
+      "type": "integer",
+      "title": "Chain Index"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "relative_to_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Relative To Id"
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "elder",
+       "younger",
+       "unknown"
+      ],
+      "title": "Order"
+     },
+     "basis": {
+      "type": "string",
+      "enum": [
+       "family_confirmed",
+       "birth_dates",
+       "unknown"
+      ],
+      "title": "Basis"
+     },
+     "record_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Record Id"
+     },
+     "dates_disagree": {
+      "type": "boolean",
+      "title": "Dates Disagree",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "chain_index",
+     "person_id",
+     "relative_to_id",
+     "order",
+     "basis"
+    ],
+    "title": "AgeOrderOut",
+    "description": "Whether the person reached by a sibling word in ``chain`` is older or younger than the person\nthat word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 \u00a75)."
+   },
    "AllocationIn": {
     "properties": {
      "share_numerator": {
@@ -23665,6 +24076,27 @@
        }
       ]
      },
+     "is_provisional": {
+      "type": "boolean",
+      "title": "Is Provisional",
+      "default": false
+     },
+     "provisional_state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "needs_details",
+         "unverified",
+         "verified"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provisional State"
+     },
      "gender_identity": {
       "anyOf": [
        {
@@ -24003,6 +24435,27 @@
         "type": "null"
        }
       ]
+     },
+     "is_provisional": {
+      "type": "boolean",
+      "title": "Is Provisional",
+      "default": false
+     },
+     "provisional_state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "needs_details",
+         "unverified",
+         "verified"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provisional State"
      }
     },
     "type": "object",
@@ -27071,6 +27524,14 @@
        }
       ],
       "title": "Explanation"
+     },
+     "age_orders": {
+      "items": {
+       "$ref": "#/components/schemas/AgeOrderOut"
+      },
+      "type": "array",
+      "title": "Age Orders",
+      "default": []
      }
     },
     "type": "object",
@@ -27224,6 +27685,61 @@
     },
     "type": "object",
     "title": "RelationshipUpdate"
+   },
+   "RelativeAgeOrderIn": {
+    "properties": {
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "relative_to_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Relative To Id"
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "elder",
+       "younger"
+      ],
+      "title": "Order"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person_id",
+     "relative_to_id",
+     "order"
+    ],
+    "title": "RelativeAgeOrderIn"
+   },
+   "RelativeAgeOrderOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "elder_person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Elder Person Id"
+     },
+     "younger_person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Younger Person Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "elder_person_id",
+     "younger_person_id"
+    ],
+    "title": "RelativeAgeOrderOut"
    },
    "RelativeIn": {
     "properties": {
@@ -28391,6 +28907,551 @@
      "kind"
     ],
     "title": "SiblingOut"
+   },
+   "SmartAddCommitIn": {
+    "properties": {
+     "term": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Term"
+     },
+     "choices": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string",
+         "const": "new"
+        },
+        {
+         "type": "string",
+         "format": "uuid"
+        }
+       ]
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Choices",
+      "default": []
+     },
+     "new_person": {
+      "$ref": "#/components/schemas/PersonCreate"
+     },
+     "other_parent_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Other Parent Id"
+     },
+     "provisional_sex_at_birth": {
+      "items": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/SexAtBirth"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Provisional Sex At Birth",
+      "default": []
+     },
+     "relative_age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relative Age"
+     }
+    },
+    "type": "object",
+    "required": [
+     "term",
+     "new_person"
+    ],
+    "title": "SmartAddCommitIn"
+   },
+   "SmartAddCommitOut": {
+    "properties": {
+     "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Operation Id"
+     },
+     "person": {
+      "$ref": "#/components/schemas/PersonSummary"
+     },
+     "created_people": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Created People"
+     },
+     "relationships": {
+      "items": {
+       "$ref": "#/components/schemas/RelationshipOut"
+      },
+      "type": "array",
+      "title": "Relationships"
+     },
+     "relative_age_order_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Relative Age Order Ids",
+      "default": []
+     },
+     "undo_expires_in_seconds": {
+      "type": "integer",
+      "title": "Undo Expires In Seconds"
+     }
+    },
+    "type": "object",
+    "required": [
+     "operation_id",
+     "person",
+     "created_people",
+     "relationships",
+     "undo_expires_in_seconds"
+    ],
+    "title": "SmartAddCommitOut"
+   },
+   "SmartAddHopOut": {
+    "properties": {
+     "relation": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "sibling",
+       "spouse"
+      ],
+      "title": "Relation"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     }
+    },
+    "type": "object",
+    "required": [
+     "relation"
+    ],
+    "title": "SmartAddHopOut"
+   },
+   "SmartAddPlanIn": {
+    "properties": {
+     "term": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Term"
+     },
+     "choices": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string",
+         "const": "new"
+        },
+        {
+         "type": "string",
+         "format": "uuid"
+        }
+       ]
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Choices",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "term"
+    ],
+    "title": "SmartAddPlanIn"
+   },
+   "SmartAddPlanOut": {
+    "properties": {
+     "term": {
+      "type": "string",
+      "title": "Term"
+     },
+     "anchor": {
+      "$ref": "#/components/schemas/PersonSummary"
+     },
+     "steps": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddStepOut"
+      },
+      "type": "array",
+      "title": "Steps"
+     },
+     "complete": {
+      "type": "boolean",
+      "title": "Complete"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SmartAddTargetOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "preview": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddPreviewItem"
+      },
+      "type": "array",
+      "title": "Preview",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "term",
+     "anchor",
+     "steps",
+     "complete"
+    ],
+    "title": "SmartAddPlanOut"
+   },
+   "SmartAddPreviewItem": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "enum": [
+       "existing",
+       "provisional",
+       "new"
+      ],
+      "title": "Kind"
+     },
+     "person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "relation": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "parent",
+         "child",
+         "sibling",
+         "spouse"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation"
+     },
+     "link": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "parent",
+         "child",
+         "spouse",
+         "shared_parents",
+         "explicit_sibling"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Link"
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind"
+    ],
+    "title": "SmartAddPreviewItem"
+   },
+   "SmartAddStepOut": {
+    "properties": {
+     "index": {
+      "type": "integer",
+      "title": "Index"
+     },
+     "relation": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "sibling",
+       "spouse"
+      ],
+      "title": "Relation"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "from_person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Candidates",
+      "default": []
+     },
+     "hidden_candidates": {
+      "type": "integer",
+      "title": "Hidden Candidates",
+      "default": 0
+     },
+     "allow_new": {
+      "type": "boolean",
+      "title": "Allow New",
+      "default": true
+     },
+     "chosen": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "string",
+        "const": "new"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chosen"
+     }
+    },
+    "type": "object",
+    "required": [
+     "index",
+     "relation"
+    ],
+    "title": "SmartAddStepOut"
+   },
+   "SmartAddTargetOut": {
+    "properties": {
+     "relation": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "sibling",
+       "spouse"
+      ],
+      "title": "Relation"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "from_person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "link": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "spouse",
+       "shared_parents",
+       "explicit_sibling"
+      ],
+      "title": "Link"
+     },
+     "shared_parents": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Shared Parents",
+      "default": []
+     },
+     "other_parent_options": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Other Parent Options",
+      "default": []
+     },
+     "blocked": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Blocked"
+     }
+    },
+    "type": "object",
+    "required": [
+     "relation",
+     "link"
+    ],
+    "title": "SmartAddTargetOut"
+   },
+   "SmartAddTermOut": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "group": {
+      "type": "string",
+      "title": "Group"
+     },
+     "hops": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddHopOut"
+      },
+      "type": "array",
+      "title": "Hops"
+     },
+     "asks_relative_age": {
+      "type": "boolean",
+      "title": "Asks Relative Age",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "group",
+     "hops"
+    ],
+    "title": "SmartAddTermOut"
    },
    "SourceIn": {
     "properties": {

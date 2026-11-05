@@ -23,6 +23,7 @@ erDiagram
   PERSON ||--o{ RELATIONSHIP : "person_a (parent / partner)"
   PERSON ||--o{ RELATIONSHIP : "person_b (child / partner)"
   RELATIONSHIP |o--o{ RELATIONSHIP : "union_id (child's parents' union)"
+  PERSON ||--o{ RELATIVE_AGE_ORDER : "elder / younger (family-confirmed)"
   PERSON ||--o{ EVENT_PARTICIPANT : participates
   EVENT ||--o{ EVENT_PARTICIPANT : has
   EVENT }o--o| PLACE : "occurs at / migrated from"
@@ -99,7 +100,10 @@ graph LR
 | No self edges, no duplicate edges. Symmetric pairs are stored ordered. | DB `CHECK` / `UNIQUE`, service normalisation |
 | No one can become their own ancestor | Recursive-CTE check before insert (`genealogy.service.is_ancestor`) |
 | At most two non-disputed biological parents. More claims must be recorded as `DISPUTED`. | Service (409 `too_many_biological_parents`) |
-| Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents. | `genealogy.engine.family` |
+| Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents; the relationship calculator treats such a pair as sharing a virtual parent that is never returned. | `genealogy.engine.family`, `engine._LazyGraph` (ADR-0020) |
+| Kinship terms (Mama, Tau, Bhabhi…) are never stored. Smart Add turns a term into basic edges, after a preview the user confirms. | `smartadd.terms`, `smartadd.service` (ADR-0020) |
+| "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. It decides age-dependent terms (Tau/Chacha) over birth dates; dates decide only when unambiguous and visible to the viewer. | `relative_age_order`, `genealogy.ageorder` (ADR-0020) |
+| A person added "as unknown for now" is `is_provisional` (their origin, kept for good); created only on the user's explicit choice. Whether they still *need details* (no name) or are *verified* (every relationship has supporting evidence) is derived, never stored. Until verified, only the creator and tree admins can see them and exports leave them out. | `person.is_provisional`, `genealogy.provisional` (ADR-0020 §4, §7) |
 | Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |
 | Incomplete dates keep their precision: nothing is padded, calendars are preserved, sort ranges are derived | `core/dates.GenealogicalDate` |
 | Approximate birth times are never exact. Exact requires a document-grade source. | `core/dates.GenealogicalTime` validator |

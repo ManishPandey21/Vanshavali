@@ -22,6 +22,9 @@
 #   DRILL_WORK                        working dir for artefacts (default: a new mktemp -d)
 #   DRILL_SRC_STORAGE                 source object-store dir (default $DRILL_WORK/storage-src)
 #   DRILL_PEOPLE                      synthetic tree size for the seed (default 2000)
+#   VSH_DEMO_PASSWORD                 seeded login's password; generated per run when seeding, and
+#                                     REQUIRED with DRILL_SKIP_SEED=1 (the password of the manifest's
+#                                     account). Never written to the manifest or printed.
 #   DRILL_ENCRYPTION                  age | openssl (default: age if installed, else openssl)
 #   DRILL_AGE_RECIPIENT               age public key; if unset an ephemeral identity is generated
 #   DRILL_AGE_IDENTITY                age private key file for decryption (with DRILL_AGE_RECIPIENT)
@@ -86,6 +89,12 @@ esac
 
 cd "$ROOT/backend"
 export VSH_JOB_MODE=sync VSH_STORAGE_BACKEND=local VSH_OCR_ENABLED=false
+if [[ "${DRILL_SKIP_SEED:-0}" == "1" ]]; then
+  : "${VSH_DEMO_PASSWORD:?set VSH_DEMO_PASSWORD to the password of the manifest account}"
+elif [[ -z "${VSH_DEMO_PASSWORD:-}" ]]; then
+  VSH_DEMO_PASSWORD="$(openssl rand -base64 24)"
+fi
+export VSH_DEMO_PASSWORD
 
 # ---- 1. seed
 T_SEED=0

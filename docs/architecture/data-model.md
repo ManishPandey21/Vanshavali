@@ -135,6 +135,7 @@ Constraints/indexes: `UNIQUE (tree_id, user_id, resource_type, resource_id, perm
 | `residential_address` | TEXT | yes |  |
 | `deleted_at` | DATETIME | yes |  |
 | `merged_into_id` | UUID | yes | → person (composite, same tree) |
+| `is_provisional` | BOOLEAN | no | origin: created by Smart Add as "unknown for now" (ADR-0020); never cleared by a name |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -333,6 +334,21 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_place_tree_id (tree_id)`;
 | `updated_at` | DATETIME | no |  |
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_merge_record_tree_id (tree_id)`
+
+### `relative_age_order`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `elder_person_id` | UUID | no | → person (composite, same tree) |
+| `younger_person_id` | UUID | no | → person (composite, same tree) |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `CHECK elder_person_id <> younger_person_id`; `UNIQUE (tree_id, elder_person_id, younger_person_id)`; `INDEX ix_relative_age_order_tree_id (tree_id)`
 
 ## Heritage & family structure
 

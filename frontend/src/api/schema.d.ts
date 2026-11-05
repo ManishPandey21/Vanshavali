@@ -870,6 +870,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/relative-age-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Relative Age
+         * @description Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). It takes
+         *     precedence over birth dates when kinship terms depend on age (Tau vs Chacha).
+         */
+        post: operations["record_relative_age_api_v1_trees__tree_id__relative_age_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/relative-age-orders/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Relative Age
+         * @description Remove a recorded age order (to correct a mistake).
+         */
+        delete: operations["delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/relationship-path": {
         parameters: {
             query?: never;
@@ -881,6 +922,86 @@ export interface paths {
         get: operations["relationship_path_api_v1_trees__tree_id__relationship_path_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/smart-add/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Terms
+         * @description Kinship terms Smart Add understands, each as a path of basic edges (ADR-0020).
+         */
+        get: operations["list_terms_api_v1_trees__tree_id__smart_add_terms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/smart-add/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan
+         * @description Preview: candidates for each step and every record that would be created. Writes nothing.
+         */
+        post: operations["plan_api_v1_trees__tree_id__people__person_id__smart_add_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/smart-add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Commit
+         * @description Create the confirmed plan in one transaction; returns an operation id for undo.
+         */
+        post: operations["commit_api_v1_trees__tree_id__people__person_id__smart_add_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/smart-add/{operation_id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo
+         * @description Undo a Smart Add within 30 minutes, by the same user, if nothing else has changed since.
+         */
+        post: operations["undo_api_v1_trees__tree_id__smart_add__operation_id__undo_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2856,6 +2977,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AgeOrderOut
+         * @description Whether the person reached by a sibling word in ``chain`` is older or younger than the person
+         *     that word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 §5).
+         */
+        AgeOrderOut: {
+            /** Chain Index */
+            chain_index: number;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Relative To Id
+             * Format: uuid
+             */
+            relative_to_id: string;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "elder" | "younger" | "unknown";
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "family_confirmed" | "birth_dates" | "unknown";
+            /** Record Id */
+            record_id?: string | null;
+            /**
+             * Dates Disagree
+             * @default false
+             */
+            dates_disagree?: boolean;
+        };
         /** AllocationIn */
         AllocationIn: {
             /**
@@ -6262,6 +6419,13 @@ export interface components {
              */
             is_protected?: boolean;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Is Provisional
+             * @default false
+             */
+            is_provisional?: boolean;
+            /** Provisional State */
+            provisional_state?: ("needs_details" | "unverified" | "verified") | null;
             /** Gender Identity */
             gender_identity?: string | null;
             /** Primary Language */
@@ -6373,6 +6537,13 @@ export interface components {
              */
             is_protected?: boolean;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Is Provisional
+             * @default false
+             */
+            is_provisional?: boolean;
+            /** Provisional State */
+            provisional_state?: ("needs_details" | "unverified" | "verified") | null;
         };
         /** PersonUpdate */
         PersonUpdate: {
@@ -7304,6 +7475,11 @@ export interface components {
             lineages?: components["schemas"]["Lineage"][];
             /** Explanation */
             explanation?: string | null;
+            /**
+             * Age Orders
+             * @default []
+             */
+            age_orders?: components["schemas"]["AgeOrderOut"][];
         };
         /**
          * RelationshipType
@@ -7333,6 +7509,42 @@ export interface components {
             notes?: string | null;
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             confidence?: components["schemas"]["Confidence"] | null;
+        };
+        /** RelativeAgeOrderIn */
+        RelativeAgeOrderIn: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Relative To Id
+             * Format: uuid
+             */
+            relative_to_id: string;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "elder" | "younger";
+        };
+        /** RelativeAgeOrderOut */
+        RelativeAgeOrderOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Elder Person Id
+             * Format: uuid
+             */
+            elder_person_id: string;
+            /**
+             * Younger Person Id
+             * Format: uuid
+             */
+            younger_person_id: string;
         };
         /**
          * RelativeIn
@@ -7713,6 +7925,172 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             /** Kind */
             kind: string;
+        };
+        /** SmartAddCommitIn */
+        SmartAddCommitIn: {
+            /** Term */
+            term: string;
+            /**
+             * Choices
+             * @default []
+             */
+            choices?: ("new" | string)[];
+            new_person: components["schemas"]["PersonCreate"];
+            /** Other Parent Id */
+            other_parent_id?: string | null;
+            /**
+             * Provisional Sex At Birth
+             * @default []
+             */
+            provisional_sex_at_birth?: (components["schemas"]["SexAtBirth"] | null)[];
+            /** Relative Age */
+            relative_age?: ("elder" | "younger") | null;
+        };
+        /** SmartAddCommitOut */
+        SmartAddCommitOut: {
+            /**
+             * Operation Id
+             * Format: uuid
+             */
+            operation_id: string;
+            person: components["schemas"]["PersonSummary"];
+            /** Created People */
+            created_people: components["schemas"]["PersonSummary"][];
+            /** Relationships */
+            relationships: components["schemas"]["RelationshipOut"][];
+            /**
+             * Relative Age Order Ids
+             * @default []
+             */
+            relative_age_order_ids?: string[];
+            /** Undo Expires In Seconds */
+            undo_expires_in_seconds: number;
+        };
+        /** SmartAddHopOut */
+        SmartAddHopOut: {
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "parent" | "child" | "sibling" | "spouse";
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+        };
+        /** SmartAddPlanIn */
+        SmartAddPlanIn: {
+            /** Term */
+            term: string;
+            /**
+             * Choices
+             * @default []
+             */
+            choices?: ("new" | string)[];
+        };
+        /** SmartAddPlanOut */
+        SmartAddPlanOut: {
+            /** Term */
+            term: string;
+            anchor: components["schemas"]["PersonSummary"];
+            /** Steps */
+            steps: components["schemas"]["SmartAddStepOut"][];
+            /** Complete */
+            complete: boolean;
+            target?: components["schemas"]["SmartAddTargetOut"] | null;
+            /**
+             * Preview
+             * @default []
+             */
+            preview?: components["schemas"]["SmartAddPreviewItem"][];
+        };
+        /** SmartAddPreviewItem */
+        SmartAddPreviewItem: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "existing" | "provisional" | "new";
+            person?: components["schemas"]["PersonSummary"] | null;
+            /** Relation */
+            relation?: ("parent" | "child" | "sibling" | "spouse") | null;
+            /** Link */
+            link?: ("parent" | "child" | "spouse" | "shared_parents" | "explicit_sibling") | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+        };
+        /** SmartAddStepOut */
+        SmartAddStepOut: {
+            /** Index */
+            index: number;
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "parent" | "child" | "sibling" | "spouse";
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+            from_person?: components["schemas"]["PersonSummary"] | null;
+            /**
+             * Candidates
+             * @default []
+             */
+            candidates?: components["schemas"]["PersonSummary"][];
+            /**
+             * Hidden Candidates
+             * @default 0
+             */
+            hidden_candidates?: number;
+            /**
+             * Allow New
+             * @default true
+             */
+            allow_new?: boolean;
+            /** Chosen */
+            chosen?: components["schemas"]["PersonSummary"] | "new" | null;
+        };
+        /** SmartAddTargetOut */
+        SmartAddTargetOut: {
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "parent" | "child" | "sibling" | "spouse";
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+            from_person?: components["schemas"]["PersonSummary"] | null;
+            /**
+             * Link
+             * @enum {string}
+             */
+            link: "parent" | "child" | "spouse" | "shared_parents" | "explicit_sibling";
+            /**
+             * Shared Parents
+             * @default []
+             */
+            shared_parents?: components["schemas"]["PersonSummary"][];
+            /**
+             * Other Parent Options
+             * @default []
+             */
+            other_parent_options?: components["schemas"]["PersonSummary"][];
+            /** Blocked */
+            blocked?: string | null;
+        };
+        /** SmartAddTermOut */
+        SmartAddTermOut: {
+            /** Code */
+            code: string;
+            /** Group */
+            group: string;
+            /** Hops */
+            hops: components["schemas"]["SmartAddHopOut"][];
+            /**
+             * Asks Relative Age
+             * @default false
+             */
+            asks_relative_age?: boolean;
         };
         /** SourceIn */
         SourceIn: {
@@ -10498,6 +10876,82 @@ export interface operations {
             };
         };
     };
+    record_relative_age_api_v1_trees__tree_id__relative_age_orders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelativeAgeOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Already recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelativeAgeOrderOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelativeAgeOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     relationship_path_api_v1_trees__tree_id__relationship_path_get: {
         parameters: {
             query: {
@@ -10521,6 +10975,141 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RelationshipPathOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_terms_api_v1_trees__tree_id__smart_add_terms_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartAddTermOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plan_api_v1_trees__tree_id__people__person_id__smart_add_plan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmartAddPlanIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartAddPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    commit_api_v1_trees__tree_id__people__person_id__smart_add_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmartAddCommitIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartAddCommitOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_api_v1_trees__tree_id__smart_add__operation_id__undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operation_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Validation Error */

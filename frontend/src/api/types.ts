@@ -236,3 +236,13 @@ export type RenderJobOut = S["RenderJobOut"];
 export type RenderSettings = S["RenderSettings"];
 export type RenderDownloadOut = S["RenderDownloadOut"];
 export type RenderStatus = S["RenderStatus"];
+
+// Smart Add Relative (ADR-0020)
+export type SmartAddTerm = S["SmartAddTermOut"];
+export type SmartAddPlanIn = S["SmartAddPlanIn"];
+export type SmartAddPlan = S["SmartAddPlanOut"];
+export type SmartAddStep = S["SmartAddStepOut"];
+export type SmartAddTarget = S["SmartAddTargetOut"];
+export type SmartAddPreviewItem = S["SmartAddPreviewItem"];
+export type SmartAddCommitIn = S["SmartAddCommitIn"];
+export type SmartAddCommitOut = S["SmartAddCommitOut"];

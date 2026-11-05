@@ -67,7 +67,9 @@ jobs:
         run: |
           psql -h localhost -U vanshavali -d postgres -c "CREATE DATABASE vsh_seed"
           uv run alembic upgrade head
+          export VSH_DEMO_PASSWORD="$(openssl rand -base64 24)" VSH_SUPERADMIN_PASSWORD="$(openssl rand -base64 24)"
           uv run python -m app.cli.seed_demo
+          uv run python -m app.cli.seed_demo  # idempotent: a second run changes nothing
 
   frontend:
     runs-on: ubuntu-24.04
@@ -91,6 +93,7 @@ jobs:
   # (posters) plus two MP4s, then the backend's end-to-end render test against that bundle.
   renderer:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30  # a hung render must fail, not hold a runner for six hours
     services:
       postgres:
         image: postgres:16

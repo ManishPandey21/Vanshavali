@@ -47,7 +47,7 @@ from app.models.enums import AssertionSubject, JobStatus, StorageClass
 from app.modules.documents import access as doc_access
 from app.modules.evidence import service as evidence
 from app.modules.gedcom import service as gedcom
-from app.modules.genealogy import lookup
+from app.modules.genealogy import lookup, provisional
 from app.modules.genealogy.serialize import Serializer, relationship_out
 from app.modules.heritage import service as heritage
 
@@ -82,6 +82,10 @@ def build_archive(
         select(Person).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_(None))
     ).all()
     subjects = lookup.visible_subjects(ctx, [p.id for p in persons])
+    # same rule as the GEDCOM: unnamed or unverified provisional people are not exported (ADR-0020 §4)
+    pending = provisional.pending_ids(ctx)
+    counts["excluded_provisional"] = sum(1 for k in subjects if k in pending)  # only ones this user sees
+    subjects = {k: v for k, v in subjects.items() if k not in pending}
     if exclude_living:
         subjects = {k: v for k, v in subjects.items() if not v.is_protected}
     ser = Serializer(ctx)
