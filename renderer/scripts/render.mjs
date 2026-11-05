@@ -32,6 +32,9 @@ if (!existsSync(path.join(BUNDLE_DIR, "index.html"))) fail("bundle_missing");
 const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
 if (!ALLOWED.has(payload.composition)) fail("unknown_composition");
 
+const browserPath = browserExecutable();
+// first stderr line only (the API reads the last line as an error code): which browser this run uses
+process.stderr.write(`browser=${browserPath ?? "remotion-headless-shell"}\n`);
 let exitCode = 0;
 try {
   // one browser for every step (selectComposition, renderStill, renderMedia), opened with a retry
@@ -39,7 +42,7 @@ try {
   const common = {
     serveUrl: BUNDLE_DIR,
     inputProps: payload.props,
-    browserExecutable: browserExecutable(),
+    browserExecutable: browserPath,
     chromiumOptions: CHROMIUM_OPTIONS,
     puppeteerInstance: browser,
     logLevel: "error",
