@@ -236,7 +236,20 @@
     "searchPlaceholder": "Search by any name, alias or spelling…",
     "searching": "Searching…",
     "subtitle": "Everyone in this tree you are allowed to see",
-    "title": "People"
+    "title": "People",
+    "toComplete": {
+      "filter": "To complete",
+      "intro": "People added as “unknown for now”. They are not counted as family members, and only you and the tree admins can see them, until they have a name and their relationships are backed by evidence.",
+      "emptyTitle": "Nothing to complete",
+      "emptyBody": "Everyone you can see has a name and evidence for their relationships.",
+      "needsDetails": "No name yet.",
+      "unverified": "Named, but their relationships have no supporting evidence yet.",
+      "addName": "Add their name",
+      "reviewEvidence": "Review relationship evidence",
+      "count_one": "{{count}} to complete",
+      "count_other": "{{count}} to complete",
+      "countHint": "Added as unknown for now; not counted as members until named and verified. Only you and tree admins see this."
+    }
   },
   "person": {
     "address": "Address",

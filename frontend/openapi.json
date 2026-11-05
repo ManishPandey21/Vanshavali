@@ -1597,6 +1597,27 @@
       }
      },
      {
+      "name": "provisional_state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ProvisionalState"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Only provisional people in these states: the \"To complete\" view (ADR-0020 \u00a78). Visibility rules are unchanged, so it lists only people the caller may see.",
+       "title": "Provisional State"
+      },
+      "description": "Only provisional people in these states: the \"To complete\" view (ADR-0020 \u00a78). Visibility rules are unchanged, so it lists only people the caller may see."
+     },
+     {
       "name": "cursor",
       "in": "query",
       "required": false,
@@ -15272,6 +15293,11 @@
       "title": "Member Count",
       "default": 0
      },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
+      "default": 0
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -15458,6 +15484,11 @@
      "member_count": {
       "type": "integer",
       "title": "Member Count",
+      "default": 0
+     },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
       "default": 0
      },
      "created_at": {
@@ -19554,6 +19585,11 @@
       "title": "Member Count",
       "default": 0
      },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
+      "default": 0
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -19868,6 +19904,11 @@
      "member_count": {
       "type": "integer",
       "title": "Member Count",
+      "default": 0
+     },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
       "default": 0
      },
      "created_at": {
@@ -27245,6 +27286,15 @@
     },
     "type": "object",
     "title": "ProvidersOut"
+   },
+   "ProvisionalState": {
+    "type": "string",
+    "enum": [
+     "needs_details",
+     "unverified",
+     "verified"
+    ],
+    "title": "ProvisionalState"
    },
    "PublicMode": {
     "type": "string",

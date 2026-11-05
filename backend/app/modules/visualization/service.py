@@ -347,11 +347,16 @@ def ancestry(
         )
         if visible and gen < generations:
             missing += [s for s in (2 * slot, 2 * slot + 1) if s not in slots]
-    known = sum(1 for n in nodes if n.slot > 1 and not n.hidden)
+    # a pending provisional ancestor (unnamed or unverified, ADR-0020 §8) is "to complete", not
+    # "known"; only viewers who can see them get this count (others never see them at all)
+    pending = provisional.pending_ids(ctx)
+    to_complete = sum(1 for n in nodes if n.slot > 1 and not n.hidden and slots[n.slot] in pending)
+    known = sum(1 for n in nodes if n.slot > 1 and not n.hidden) - to_complete
     root_name = people[root_id].display_name if root_id in people else ""
     summary = (
         f"Ancestors of {root_name} over {generations} generations: {known} known, "
-        f"{sum(1 for n in nodes if n.hidden)} private, {len(missing)} not yet recorded."
+        + (f"{to_complete} to complete, " if to_complete else "")
+        + f"{sum(1 for n in nodes if n.hidden)} private, {len(missing)} not yet recorded."
     )
     return AncestryOut(
         root_id=root_id, generations=generations, nodes=nodes, missing_slots=missing, summary=summary

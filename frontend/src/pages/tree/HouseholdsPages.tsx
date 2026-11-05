@@ -97,6 +97,7 @@ export function HouseholdsPage() {
                 {h.house_name && <p className="text-sm text-ink-muted">{h.house_name}</p>}
                 <p className="mt-1 text-xs text-ink-muted">
                   {t("households.memberCount", { count: h.member_count ?? 0 })}
+                  {(h.provisional_member_count ?? 0) > 0 ? ` · ${t("people.toComplete.count", { count: h.provisional_member_count })}` : ""}
                   {h.place_name ? ` · ${h.place_name}` : ""}
                 </p>
               </button>

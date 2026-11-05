@@ -28,7 +28,8 @@ import type {
 
 export const peopleKeys = {
   tree: (t: string) => ["tree", t] as const,
-  list: (t: string, q: string, status?: string) => ["tree", t, "people", q, status ?? ""] as const,
+  list: (t: string, q: string, status?: string, states?: readonly string[]) =>
+    ["tree", t, "people", q, status ?? "", (states ?? []).join(",")] as const,
   person: (t: string, id: string) => ["tree", t, "person", id] as const,
   family: (t: string, id: string, lineage: string) => ["tree", t, "person", id, "family", lineage] as const,
   events: (t: string, id: string) => ["tree", t, "person", id, "events"] as const,
@@ -45,11 +46,22 @@ function useInvalidateTree(treeId: string) {
   return () => qc.invalidateQueries({ queryKey: peopleKeys.tree(treeId) });
 }
 
-export function usePeople(treeId: string, q: string, status?: ProfileStatus) {
+/** The provisional states the "To complete" view lists (ADR-0020 §8). */
+export const TO_COMPLETE_STATES = ["needs_details", "unverified"] as const;
+
+/**
+ * People in the tree. ``provisionalStates`` narrows the list to provisional people in those states
+ * (the "To complete" view); the server still lists only people the caller may see.
+ */
+export function usePeople(treeId: string, q: string, status?: ProfileStatus, provisionalStates?: readonly string[]) {
   return useInfiniteQuery({
-    queryKey: peopleKeys.list(treeId, q, status),
+    queryKey: peopleKeys.list(treeId, q, status, provisionalStates),
     queryFn: ({ pageParam, signal }) =>
-      api.get<Page<PersonSummary>>(`/trees/${treeId}/people`, { q, status, cursor: pageParam, limit: 50 }, signal),
+      api.get<Page<PersonSummary>>(
+        `/trees/${treeId}/people`,
+        { q, status, provisional_state: provisionalStates ? [...provisionalStates] : undefined, cursor: pageParam, limit: 50 },
+        signal,
+      ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.next_cursor ?? undefined,
     placeholderData: keepPreviousData,
