@@ -169,6 +169,11 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Exports leave out pending provisional people** (GEDCOM and archive, whoever exports), together
   with the relationships that touch them; no placeholder or family link is left pointing at them. The
   archive manifest counts them only for an exporter who could see them.
+- **Headline counts and the "To complete" view** (ADR-0020 §8). Branch and household member counts
+  and the fan chart's "known" figure never include pending provisional people, for anyone. The
+  administrative `provisional_member_count`, the chart's "to complete" figure and the "To complete"
+  people view count or list only those the viewer may see (creator, tree admins, grants); for anyone
+  else they are 0 or empty.
 - **Hidden relatives stay hidden.** Candidate lists contain only people the user may see; a hidden
   parent is reported as a count, never identified, and prevents creating a duplicate parent.
 - **Kinship terms are not stored and do not set identity.** "Mama" becomes edges; gender identity is
