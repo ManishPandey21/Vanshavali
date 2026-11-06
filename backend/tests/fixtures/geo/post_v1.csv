@@ -1,0 +1,5 @@
+pin,office_name,office_type,delivery,district,state,unit_codes
+221006,Babatpur B.O,B.O.,Delivery,Varanasi,Uttar Pradesh,village:9100001|village:9100002
+221006,Phulpur S.O,S.O.,Delivery,Varanasi,Uttar Pradesh,village:9100002
+221003,Shivpur S.O,S.O.,Delivery,Varanasi,Uttar Pradesh,village:9100003|town:9300001
+412205,Khed Shivapur B.O,B.O.,Non-Delivery,Pune,Maharashtra,village:9200001|village:9999999

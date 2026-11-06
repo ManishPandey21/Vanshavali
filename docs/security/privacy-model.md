@@ -200,5 +200,10 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   and the console never reads `tree_vocabulary_term` or any tree table (no family entry in its
   lists, counts, search or duplicate checks). Retiring or renaming a term never rewrites a stored
   family value; the label the family chose stays as they entered it.
+- **Geography is reference data (ADR-0019).** LGD units and post offices are global and hold nothing
+  about any family. A family's place stays its own tree-scoped record: the directory only suggests
+  its district, state and code, never replaces the name the family wrote or its historical names,
+  and never sends the place anywhere (no external geocoding). Directory lookups do not log the
+  query text.
 - **Religion, community and jati** still have no global list. An opt-in design is proposed in
   ADR-0018 amendment 2 and needs the owner's decision, a privacy review and legal review first.

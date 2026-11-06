@@ -297,6 +297,7 @@ Constraints/indexes: `UNIQUE (event_id, person_id, role)`; `UNIQUE (tree_id, id)
 | `geocoding_source` | VARCHAR(120) | yes |  |
 | `date_validity` | JSONB | yes |  |
 | `lgd_code` | VARCHAR(40) | yes |  |
+| `lgd_level` | enum(country, state, district, subdistrict, block, gram_panchayat, village, town, …) | yes |  |
 | `search_text` | TEXT | no |  |
 | `locality` | VARCHAR(200) | yes |  |
 | `district` | VARCHAR(120) | yes |  |
@@ -539,6 +540,81 @@ Constraints/indexes: `INDEX ix_vocabulary_change_term (vocabulary_key, term_code
 | `updated_at` | DATETIME | no |  |
 
 Constraints/indexes: `UNIQUE (tree_id, vocabulary_key, code)`; `UNIQUE (tree_id, id)`; `INDEX ix_tree_vocabulary_term_tree_id (tree_id)`
+
+## Geography reference
+
+### `geo_snapshot`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `source` | enum(lgd, india_post) | no |  |
+| `label` | VARCHAR(40) | no |  |
+| `status` | enum(staged, validated, failed, approved, active, superseded) | no |  |
+| `source_url` | TEXT | yes |  |
+| `downloaded_on` | DATE | yes |  |
+| `licence` | VARCHAR(200) | no |  |
+| `attribution` | TEXT | no |  |
+| `files` | JSONB | no |  |
+| `report` | JSONB | no |  |
+| `staged_by` | VARCHAR(200) | yes |  |
+| `approved_by` | UUID | yes | → app_user |
+| `approved_at` | DATETIME | yes |  |
+| `activated_by` | UUID | yes | → app_user |
+| `activated_at` | DATETIME | yes |  |
+| `created_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (source, label)`; `INDEX uq_geo_snapshot_one_active (source) UNIQUE`
+
+### `geo_unit`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `snapshot_id` | UUID | no | → geo_snapshot |
+| `level` | enum(country, state, district, subdistrict, block, gram_panchayat, village, town, …) | no |  |
+| `code` | VARCHAR(40) | no |  |
+| `parent_id` | UUID | yes | → geo_unit |
+| `name_en` | VARCHAR(200) | no |  |
+| `name_local` | VARCHAR(200) | yes |  |
+| `local_script` | VARCHAR(8) | yes |  |
+| `local_term` | VARCHAR(60) | yes |  |
+| `category` | VARCHAR(60) | yes |  |
+| `alt_names` | ARRAY | no |  |
+| `former_names` | ARRAY | no |  |
+| `valid_from` | DATE | yes |  |
+| `valid_to` | DATE | yes |  |
+| `successor_codes` | ARRAY | no |  |
+| `origin` | enum(official, curated) | no |  |
+| `search_key` | TEXT | no |  |
+
+Constraints/indexes: `UNIQUE (snapshot_id, level, code)`; `INDEX ix_geo_unit_code (level, code)`; `INDEX ix_geo_unit_search_trgm (search_key)`; `INDEX ix_geo_unit_children (snapshot_id, parent_id)`; `INDEX ix_geo_unit_level (snapshot_id, level)`
+
+### `geo_pin_office`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `snapshot_id` | UUID | no | → geo_snapshot |
+| `pin` | VARCHAR(6) | no |  |
+| `office_name` | VARCHAR(200) | no |  |
+| `office_type` | VARCHAR(10) | yes |  |
+| `delivery` | BOOLEAN | yes |  |
+| `district_name` | VARCHAR(200) | yes |  |
+| `state_name` | VARCHAR(200) | yes |  |
+
+Constraints/indexes: `UNIQUE (snapshot_id, pin, office_name)`; `INDEX ix_geo_pin_office_pin (snapshot_id, pin)`
+
+### `geo_pin_unit`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `office_id` | UUID | no | → geo_pin_office |
+| `unit_level` | enum(country, state, district, subdistrict, block, gram_panchayat, village, town, …) | no |  |
+| `unit_code` | VARCHAR(40) | no |  |
+
+Constraints/indexes: `UNIQUE (office_id, unit_level, unit_code)`; `INDEX ix_geo_pin_unit_unit (unit_level, unit_code)`
 
 ## Evidence
 

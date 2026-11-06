@@ -9,9 +9,10 @@ Modular monolith (ADR-0001):
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic on PostgreSQL 16, Redis/RQ jobs (`JOB_MODE=sync`
   runs them inline). Domain modules in `backend/app/modules/*` (identity, trees, genealogy, heritage,
   family, evidence, documents, extraction, astrology, property, gedcom, merge, archive, search,
-  consent, public, smartadd, masterdata). All authorisation and field redaction live in `backend/app/authz`; the server is
+  consent, public, smartadd, masterdata, geo). All authorisation and field redaction live in `backend/app/authz`; the server is
   the authority. Platform capabilities (`authz/platform.py`, ADR-0025) are separate from tree permissions: a system admin
-  curates global master data at `/admin/master-data` and still has no tree access. API under `/api/v1`, structured errors `{error: {code, message, details}}`.
+  curates global master data at `/admin/master-data` and still has no tree access. Indian geography (ADR-0019) is
+  global reference data loaded as reviewed snapshots (`app.cli.geo`, `docs/operations/geo-import.md`). API under `/api/v1`, structured errors `{error: {code, message, details}}`.
 - `frontend/` — Vite 6 + React 18 + TypeScript (strict) SPA: React Router, TanStack Query,
   i18next (`src/i18n/locales/en.json`, `hi.json`, kept key-identical by a test), Tailwind 4.
   API types are generated from OpenAPI (`npm run gen:api` → `src/api/schema.d.ts`); the fetch

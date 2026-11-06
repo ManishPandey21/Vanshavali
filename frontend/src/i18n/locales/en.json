@@ -3234,7 +3234,8 @@
     "nav": {
       "dashboard": "Dashboard",
       "reviews": "Pending reviews",
-      "history": "Change history"
+      "history": "Change history",
+      "geography": "Geography"
     },
     "category": {
       "heritage": "Cultural & heritage",
@@ -3267,9 +3268,6 @@
     "fixedSetHint": "This is a fixed set. You can correct labels, translations and aliases, but terms cannot be added or retired here.",
     "planned": {
       "title": "Not managed here (yet)",
-      "geoTitle": "Geography",
-      "geoBody": "State → district → tehsil → village and PIN lookup from official LGD and India Post snapshots.",
-      "geoBadge": "Next phase · ADR-0019",
       "astroTitle": "Astrology & panchang",
       "astroBody": "Rashi, nakshatra, tithi and paksha are fixed astronomical sets maintained in code. Label corrections come in a later phase.",
       "astroBadge": "Code-controlled",
@@ -3412,6 +3410,111 @@
       "reactivateAs": "Reactivate as",
       "retireNow": "Retire now",
       "reactivateNow": "Reactivate now"
+    },
+    "geoCard": {
+      "title": "LGD and India Post snapshots",
+      "body": "Review, approve, activate and roll back official geography data."
+    }
+  },
+  "geoDir": {
+    "title": "Find in the official directory (optional)",
+    "intro": "Link this place to India's Local Government Directory. It fills district and state for you; your own name and historical names stay as you wrote them. Places outside India, before 1947 or not listed stay as free text.",
+    "search": "Search a village, town, tehsil or district",
+    "searchHint": "English or Hindi, other spellings and former names work too",
+    "typeMore": "Type at least 2 letters",
+    "noMatch": "Nothing found. You can still type the place yourself.",
+    "stepByStep": "Or choose step by step",
+    "choose": "Choose…",
+    "chooseAbove": "Choose the district first",
+    "villageOrTown": "Village or town",
+    "useThis": "Use {{level}} {{name}}",
+    "pin": "PIN code",
+    "pinHint": "Shows the post offices and the places they serve",
+    "pinNone": "No post office found for this PIN.",
+    "pinCaveat": "A PIN can cover several villages, so choose the one you mean.",
+    "linked": "Linked to",
+    "unlink": "Remove link",
+    "source": "Source: {{attribution}} (snapshot {{label}})",
+    "status": {
+      "current": "current",
+      "historical": "historical (no longer in use)",
+      "retired": "retired code"
+    },
+    "level": {
+      "country": "Country",
+      "state": "State / UT",
+      "district": "District",
+      "subdistrict": "Sub-district / Tehsil",
+      "block": "Block",
+      "gram_panchayat": "Gram panchayat",
+      "village": "Village",
+      "town": "Town",
+      "ulb": "Urban local body"
+    }
+  },
+  "geoAdmin": {
+    "title": "Geography snapshots",
+    "intro": "Official LGD and India Post data arrives as whole snapshots. Users only see the active one. Review each report, approve it, and have a second administrator activate it. The previous snapshot stays for rollback.",
+    "howToStage": "An operator stages files on the server:",
+    "empty": "No snapshots yet",
+    "emptyHint": "Stage an LGD or India Post file with the command above; it appears here for review.",
+    "rows": "Rows",
+    "diffCaption": "Changes compared with the active snapshot",
+    "examples": "Examples",
+    "diff": {
+      "added": "Added",
+      "retired": "Retired",
+      "renamed": "Renamed",
+      "moved": "Moved to another parent"
+    },
+    "comparedWith": "Compared with snapshot {{label}}.",
+    "firstSnapshot": "First snapshot of this source: everything is new.",
+    "errors_one": "{{count}} error: this snapshot cannot be used",
+    "errors_other": "{{count}} errors: this snapshot cannot be used",
+    "warnings_one": "{{count}} warning",
+    "warnings_other": "{{count}} warnings",
+    "source": {
+      "lgd": "LGD units",
+      "india_post": "India Post offices"
+    },
+    "status": {
+      "staged": "Staged",
+      "validated": "Validated",
+      "failed": "Failed",
+      "approved": "Approved",
+      "active": "Active",
+      "superseded": "Superseded"
+    },
+    "downloaded": "downloaded {{date}}",
+    "staged": "Staged by {{who}}, {{when}}",
+    "approvedBy": "approved by {{who}}, {{when}}",
+    "activatedBy": "activated by {{who}}, {{when}}",
+    "operator": "an operator",
+    "needsSecond": "You approved this snapshot, so another administrator must activate it.",
+    "action": {
+      "approve": "Approve",
+      "activate": "Activate",
+      "rollback": "Restore",
+      "discard": "Discard"
+    },
+    "confirm": {
+      "approve": "Approve {{label}}",
+      "activate": "Activate {{label}}",
+      "rollback": "Restore {{label}}",
+      "discard": "Discard {{label}}"
+    },
+    "confirmHint": {
+      "approve": "You checked the counts, the changes and any warnings. Another administrator will activate it.",
+      "activate": "Everyone will see this snapshot at once. The current one is kept for rollback.",
+      "rollback": "This snapshot becomes active again; the current one is kept.",
+      "discard": "The snapshot and its rows are deleted. It was never shown to users."
+    },
+    "reason": "Reason (kept in the audit log)",
+    "done": {
+      "approve": "{{label}} approved",
+      "activate": "{{label}} is now active",
+      "rollback": "{{label}} restored",
+      "discard": "{{label}} discarded"
     }
   }
 }

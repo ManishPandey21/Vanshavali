@@ -1,6 +1,7 @@
 # ADR-0019: Indian geography reference data (LGD and India Post)
 
-- Status: **Proposed** · Date: 2026-11-05 (design for the next increment; no code yet)
+- Status: Accepted · Date: 2026-11-06 (proposed 2026-11-05; owner go-ahead to start phase 2, 6 Nov 2026).
+  The licensing question below is still open, so **no official data is committed** to the repository.
 - Relates to: ADR-0018 (master data), ADR-0025 (Super Admin console, change requests),
   ADR-0015 (places, geotags), open question Q15
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),
@@ -74,6 +75,40 @@ historical name.
 Benchmarks from the plan (children p95 < 50 ms, search p95 < 150 ms on the full village table,
 one large state imported in < 5 min); invalid parent/child rejected; many-to-many PIN; retired
 codes resolve; rollback restores the previous snapshot; no tree data in any geo endpoint.
+
+## Increment 1 (6 Nov 2026): what is built, and the choices made
+- **Tables**: `geo_snapshot`, `geo_unit`, `geo_pin_office`, `geo_pin_unit`. Official alternate and
+  former names are columns of `geo_unit` (`alt_names`, `former_names`) from the snapshot itself.
+  The separate **curated** `geo_unit_alias` table and curated units (§1, second row) come in the
+  next increment, through ADR-0025 change requests.
+- **Hierarchy in the database**: a trigger refuses a parent from another snapshot or of a level not
+  allowed for the child (village → sub-district; town → sub-district or district; block and ULB →
+  district; gram panchayat → block or sub-district; sub-district → district; district → state;
+  state → country; country → none).
+- **Canonical import format** (documented in `docs/operations/geo-import.md`): one UTF-8 CSV per
+  source with a fixed header. Real LGD and India Post downloads are converted to it by a mapping
+  step that must be checked against a real download before the first pilot import (their column
+  names are not confirmed here). CSV only; JSON import is not offered.
+- **Staging is an operator command** (`python -m app.cli.geo stage`), which parses, validates,
+  inserts the staged rows and writes the diff report in one run, with file-size, row and field caps.
+  Console upload (with an RQ job) is deferred: the files are large and the operator already holds
+  them on the server.
+- **Four-eyes**: in the console, the admin who approves a snapshot can never be the admin who
+  activates it. For the single-admin pilot, an operator with server access may activate a
+  validated, approved snapshot with `python -m app.cli.geo activate --reason …` (audited as an
+  operator action); this adds no power an operator does not already have.
+- **Rollback**: re-activating a superseded snapshot needs one admin (it restores a state that was
+  already approved and activated) and is audited. Staged, failed or approved snapshots can be
+  discarded; active and superseded ones never are.
+- **Family places**: `place.lgd_level` (nullable) is added next to `lgd_code`, because LGD codes are
+  unique per level, not across levels. `PlaceCascade` fills the administrative fields and the code;
+  it fills the place name only when it is empty, and never touches historical names.
+- **Search**: `search_key` (`core/textnorm`, Indic scripts → Latin) over the English, local,
+  alternate and former names, with a trigram index; prefix and word-prefix matching.
+
+- **Benchmarks** (6 Nov 2026, synthetic 6.5 lakh villages, development container): staging 84 s,
+  cascade children p95 14 ms, country-wide search p95 70 ms (Devanagari 52 ms), 273 MB per snapshot.
+  Details and caveats in `docs/operations/geo-import.md`; to be repeated on pilot hardware.
 
 ## Open questions (owner)
 - **Licence and attribution** wording for LGD (GODL-India) and the India Post directory, and

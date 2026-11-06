@@ -24,6 +24,7 @@ from app.models.genealogy import (
     Relationship,
     RelativeAgeOrder,
 )
+from app.models.geo import GeoPinOffice, GeoPinUnit, GeoSnapshot, GeoUnit
 from app.models.heritage import Assertion
 from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
@@ -67,6 +68,10 @@ __all__ = [
     "FamilyBranch",
     "FamilyDataAttestation",
     "GedcomExtension",
+    "GeoPinOffice",
+    "GeoPinUnit",
+    "GeoSnapshot",
+    "GeoUnit",
     "Household",
     "HouseholdMembership",
     "ImportJob",

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { History, MapPin, Plus, Trash2 } from "lucide-react";
-import type { GenealogicalDate, PlaceName, PlaceOut, PlaceType } from "../../api/types";
+import type { GenealogicalDate, GeoLevel, GeoUnit, PlaceName, PlaceOut, PlaceType } from "../../api/types";
+import { useGeoUnit } from "../../api/hooks/geo";
 import { useCreatePlace, useGeotaggedPlaces, usePlaces, useUpdatePlace } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
@@ -18,6 +19,7 @@ import { Field, Select, TextInput } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
 import { GeoFields, geoBody, geoDraftFrom, geoErrors } from "../../components/geo/GeoFields";
 import { MapPreview } from "../../components/geo/MapPreview";
+import { PlaceCascade, placeTypeFor } from "../../components/geo/PlaceCascade";
 import { formatCoords } from "../../lib/geo";
 
 export const PLACE_TYPES: PlaceType[] = ["village", "town", "city", "tehsil", "district", "state", "country", "temple", "shrine", "ancestral_house", "property", "land_parcel", "neighbourhood", "other"];
@@ -183,6 +185,10 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
   const [type, setType] = useState<PlaceType>(place?.place_type ?? "village");
   const [parent, setParent] = useState(place?.parent_place_id ?? "");
   const [lgd, setLgd] = useState(place?.lgd_code ?? "");
+  const [lgdLevel, setLgdLevel] = useState<GeoLevel | null>(place?.lgd_level ?? null);
+  const stored = useGeoUnit(place?.lgd_level, place?.lgd_code);
+  const [picked, setPicked] = useState<GeoUnit | null>(null);
+  const linked = picked ?? (lgdLevel && lgd === place?.lgd_code && lgdLevel === place?.lgd_level ? (stored.data ?? null) : null);
   const [local, setLocal] = useState<NameDraft[]>((place?.local_names ?? []).map(toNameDraft));
   const [historical, setHistorical] = useState<NameDraft[]>((place?.historical_names ?? []).map(toNameDraft));
   const [submitted, setSubmitted] = useState(false);
@@ -198,6 +204,7 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
       place_type: type,
       parent_place_id: parent || null,
       lgd_code: lgd.trim() || null,
+      lgd_level: lgd.trim() ? lgdLevel : null,
       local_names: local.filter((n) => n.name.trim()).map(fromNameDraft),
       historical_names: historical.filter((n) => n.name.trim()).map(fromNameDraft),
     };
@@ -280,6 +287,33 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
       }
     >
       <form id="place-form" onSubmit={submit} className="space-y-3" noValidate>
+        <PlaceCascade
+          linked={linked}
+          onPick={(u) => {
+            // suggestions only: the family's own name and historical names are never replaced
+            setPicked(u);
+            setLgd(u.code);
+            setLgdLevel(u.level);
+            if (!name.trim()) setName(u.name_en);
+            if (!place) setType(placeTypeFor(u.level));
+            const trail = Object.fromEntries((u.path ?? []).map((p) => [p.level, p.name_en]));
+            setGeo({
+              ...geo,
+              district: u.level === "district" ? u.name_en : (trail.district ?? geo.district),
+              state: u.level === "state" ? u.name_en : (trail.state ?? geo.state),
+              country: geo.country || "India",
+            });
+            if (u.name_local && !local.some((n) => n.name.trim() === u.name_local)) {
+              const det = detectScript(u.name_local);
+              setLocal([...local, { ...blank(), name: u.name_local, script: det?.script ?? "", language: det?.language ?? "" }]);
+            }
+          }}
+          onUnlink={() => {
+            setPicked(null);
+            setLgd("");
+            setLgdLevel(null);
+          }}
+        />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("places.canonicalName")} required error={submitted && !name.trim() ? t("common.required") : null}>
             {(p) => <TextInput {...p} value={name} onChange={(e) => setName(e.target.value)} />}
@@ -310,7 +344,18 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
             )}
           </Field>
           <Field label={t("places.lgd")} hint={t("places.lgdHint")}>
-            {(p) => <TextInput {...p} value={lgd} onChange={(e) => setLgd(e.target.value)} />}
+            {(p) => (
+              <TextInput
+                {...p}
+                value={lgd}
+                onChange={(e) => {
+                  // a code typed by hand is kept as entered, without a directory level
+                  setLgd(e.target.value);
+                  setLgdLevel(null);
+                  setPicked(null);
+                }}
+              />
+            )}
           </Field>
         </div>
         <GeoFields value={geo} onChange={setGeo} showErrors={submitted} canPrivacy={can(Perm.PRIVACY_MANAGE)} coarsened={!!place?.coordinates_coarsened} />

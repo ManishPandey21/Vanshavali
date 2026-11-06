@@ -1282,6 +1282,184 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/geo/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Units
+         * @description Children of a unit (``parent_level`` + ``parent_code``), or units of a level; ``q`` searches
+         *     English, local-script, alternate and former names. Without arguments: the states and UTs.
+         */
+        get: operations["list_units_api_v1_geo_units_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/units/{level}/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Unit
+         * @description One unit with its ancestors; a retired code still resolves (status ``retired``).
+         */
+        get: operations["get_unit_api_v1_geo_units__level___code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/pincodes/{pin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pincode
+         * @description Post offices for a PIN and the units they serve (suggestions; a PIN can cover many places).
+         */
+        get: operations["get_pincode_api_v1_geo_pincodes__pin__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/geo/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Snapshots
+         * @description Every staged, validated, failed, approved, active and superseded snapshot, with its report.
+         */
+        get: operations["list_snapshots_api_v1_admin_master_data_geo_snapshots_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Snapshot */
+        get: operations["get_snapshot_api_v1_admin_master_data_geo_snapshots__snapshot_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve
+         * @description Approve a validated snapshot after reviewing its report.
+         */
+        post: operations["approve_api_v1_admin_master_data_geo_snapshots__snapshot_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate
+         * @description Make an approved snapshot the one users see. The approver cannot activate it (four-eyes).
+         */
+        post: operations["activate_api_v1_admin_master_data_geo_snapshots__snapshot_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rollback
+         * @description Restore a superseded snapshot as the active one.
+         */
+        post: operations["rollback_api_v1_admin_master_data_geo_snapshots__snapshot_id__rollback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard
+         * @description Delete a snapshot that never became active (and its rows).
+         */
+        post: operations["discard_api_v1_admin_master_data_geo_snapshots__snapshot_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/life-events": {
         parameters: {
             query?: never;
@@ -5077,6 +5255,43 @@ export interface components {
             /** Original Text */
             original_text?: string | null;
         };
+        /** GeoDecisionIn */
+        GeoDecisionIn: {
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * GeoLevel
+         * @description LGD administrative levels (ADR-0019 §2).
+         * @enum {string}
+         */
+        GeoLevel: "country" | "state" | "district" | "subdistrict" | "block" | "gram_panchayat" | "village" | "town" | "ulb";
+        /** GeoOfficeOut */
+        GeoOfficeOut: {
+            /** Office Name */
+            office_name: string;
+            /** Office Type */
+            office_type?: string | null;
+            /** Delivery */
+            delivery?: boolean | null;
+            /** District Name */
+            district_name?: string | null;
+            /** State Name */
+            state_name?: string | null;
+            /**
+             * Units
+             * @default []
+             */
+            units?: components["schemas"]["GeoUnitOut"][];
+        };
+        /** GeoPinOut */
+        GeoPinOut: {
+            /** Pin */
+            pin: string;
+            /** Offices */
+            offices: components["schemas"]["GeoOfficeOut"][];
+            snapshot?: components["schemas"]["GeoSnapshotInfo"] | null;
+        };
         /** GeoPoint */
         GeoPoint: {
             /** Latitude */
@@ -5089,6 +5304,141 @@ export interface components {
              * @default false
              */
             coarsened?: boolean;
+        };
+        /** GeoRef */
+        GeoRef: {
+            level: components["schemas"]["GeoLevel"];
+            /** Code */
+            code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+        };
+        /**
+         * GeoSnapshotInfo
+         * @description Shown with every answer: where the data comes from and how to attribute it (ADR-0019 §2).
+         */
+        GeoSnapshotInfo: {
+            source: components["schemas"]["GeoSource"];
+            /** Label */
+            label: string;
+            /** Licence */
+            licence: string;
+            /** Attribution */
+            attribution: string;
+        };
+        /** GeoSnapshotOut */
+        GeoSnapshotOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            source: components["schemas"]["GeoSource"];
+            /** Label */
+            label: string;
+            status: components["schemas"]["GeoSnapshotStatus"];
+            /** Source Url */
+            source_url: string | null;
+            /** Downloaded On */
+            downloaded_on: string | null;
+            /** Licence */
+            licence: string;
+            /** Attribution */
+            attribution: string;
+            /** Files */
+            files: {
+                [key: string]: unknown;
+            }[];
+            /** Report */
+            report: {
+                [key: string]: unknown;
+            };
+            /** Staged By */
+            staged_by: string | null;
+            /** Approved By Name */
+            approved_by_name?: string | null;
+            /** Approved At */
+            approved_at: string | null;
+            /** Activated By Name */
+            activated_by_name?: string | null;
+            /** Activated At */
+            activated_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Approved By Me
+             * @default false
+             */
+            approved_by_me?: boolean;
+        };
+        /**
+         * GeoSnapshotStatus
+         * @description staged → validated (or failed) → approved → active → superseded (ADR-0019 §3).
+         * @enum {string}
+         */
+        GeoSnapshotStatus: "staged" | "validated" | "failed" | "approved" | "active" | "superseded";
+        /**
+         * GeoSource
+         * @description Official geography sources (ADR-0019).
+         * @enum {string}
+         */
+        GeoSource: "lgd" | "india_post";
+        /** GeoUnitOut */
+        GeoUnitOut: {
+            level: components["schemas"]["GeoLevel"];
+            /** Code */
+            code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+            /** Local Term */
+            local_term?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Alt Names
+             * @default []
+             */
+            alt_names?: string[];
+            /**
+             * Former Names
+             * @default []
+             */
+            former_names?: string[];
+            /**
+             * Status
+             * @default current
+             * @enum {string}
+             */
+            status?: "current" | "historical" | "retired";
+            /** Valid To */
+            valid_to?: string | null;
+            /**
+             * Successor Codes
+             * @default []
+             */
+            successor_codes?: string[];
+            /**
+             * Path
+             * @default []
+             */
+            path?: components["schemas"]["GeoRef"][];
+        };
+        /** GeoUnitPage */
+        GeoUnitPage: {
+            /** Items */
+            items: components["schemas"]["GeoUnitOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            snapshot?: components["schemas"]["GeoSnapshotInfo"] | null;
         };
         /** GrantCreate */
         GrantCreate: {
@@ -7062,6 +7412,7 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -7120,6 +7471,7 @@ export interface components {
             geocoding_source: string | null;
             /** Lgd Code */
             lgd_code: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -7186,6 +7538,7 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -12235,6 +12588,295 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MasterDataChangeOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_units_api_v1_geo_units_get: {
+        parameters: {
+            query?: {
+                level?: components["schemas"]["GeoLevel"] | null;
+                parent_level?: components["schemas"]["GeoLevel"] | null;
+                parent_code?: string | null;
+                q?: string;
+                include_historical?: boolean;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoUnitPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_unit_api_v1_geo_units__level___code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                level: components["schemas"]["GeoLevel"];
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoUnitOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pincode_api_v1_geo_pincodes__pin__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoPinOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_snapshots_api_v1_admin_master_data_geo_snapshots_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoSnapshotOut"][];
+                };
+            };
+        };
+    };
+    get_snapshot_api_v1_admin_master_data_geo_snapshots__snapshot_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoSnapshotOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_api_v1_admin_master_data_geo_snapshots__snapshot_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeoDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoSnapshotOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_api_v1_admin_master_data_geo_snapshots__snapshot_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeoDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoSnapshotOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rollback_api_v1_admin_master_data_geo_snapshots__snapshot_id__rollback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeoDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoSnapshotOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_api_v1_admin_master_data_geo_snapshots__snapshot_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeoDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

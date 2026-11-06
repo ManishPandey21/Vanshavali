@@ -372,6 +372,11 @@ admins with MFA, through reviewed change requests with history (ADR-0025). Geogr
 ADR-0019 (proposed); optional religion/community suggestions are only proposed (ADR-0018
 amendment 2).
 
+**R2 progress (6 Nov 2026):** geography increment 1 (ADR-0019 accepted): reviewed LGD / India Post
+snapshots, database-enforced hierarchy, cascade and any-script search, PIN lookup and
+`PlaceCascade` in the place form, benchmarked at 6.5 lakh villages. Official data waits for the
+licensing decision; curated aliases and the other place pickers come next.
+
 **Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)
 must be signed off by counsel before any public launch, regardless of which releases have shipped.
 

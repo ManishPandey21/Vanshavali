@@ -52,6 +52,10 @@ export function MasterDataLayout() {
               <BookOpen className="size-4" aria-hidden />
               {t("mdAdmin.nav.dashboard")}
             </NavLink>
+            <NavLink to={`${BASE}/geography`} className={link}>
+              <MapPinned className="size-4" aria-hidden />
+              {t("mdAdmin.nav.geography")}
+            </NavLink>
             <NavLink to={`${BASE}/reviews`} className={link}>
               <Clock3 className="size-4" aria-hidden />
               {t("mdAdmin.nav.reviews")}
@@ -132,12 +136,21 @@ export function MasterDataDashboard() {
           </ul>
         </section>
       ))}
+      <section aria-labelledby="cat-geography">
+        <h2 id="cat-geography" className="mb-2 flex items-center gap-2 font-display text-lg font-semibold">
+          <MapPinned className="size-5" aria-hidden />
+          {t("mdAdmin.category.geography")}
+        </h2>
+        <Link to={`${BASE}/geography`} className="block rounded-xl border border-stone-200 bg-white p-4 shadow-sm hover:border-kumkum-300 hover:shadow sm:max-w-sm">
+          <p className="font-display text-base font-semibold">{t("mdAdmin.geoCard.title")}</p>
+          <p className="mt-0.5 text-xs text-ink-muted">{t("mdAdmin.geoCard.body")}</p>
+        </Link>
+      </section>
       <section aria-labelledby="cat-planned">
         <h2 id="cat-planned" className="mb-2 font-display text-lg font-semibold">
           {t("mdAdmin.planned.title")}
         </h2>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <PlannedCard icon={<MapPinned className="size-5" aria-hidden />} title={t("mdAdmin.planned.geoTitle")} body={t("mdAdmin.planned.geoBody")} badge={t("mdAdmin.planned.geoBadge")} />
           <PlannedCard icon={<Moon className="size-5" aria-hidden />} title={t("mdAdmin.planned.astroTitle")} body={t("mdAdmin.planned.astroBody")} badge={t("mdAdmin.planned.astroBadge")} />
           <PlannedCard icon={<Users className="size-5" aria-hidden />} title={t("mdAdmin.planned.religionTitle")} body={t("mdAdmin.planned.religionBody")} badge={t("mdAdmin.planned.religionBadge")} />
         </ul>

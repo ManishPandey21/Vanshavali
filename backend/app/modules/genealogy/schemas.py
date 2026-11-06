@@ -14,6 +14,7 @@ from app.models.enums import (
     EventSignificance,
     EventType,
     EvidenceStatus,
+    GeoLevel,
     LifeEventCategory,
     Lineage,
     LocationPrecision,
@@ -72,6 +73,7 @@ class PlaceIn(ApiModel):
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = Field(default=None, max_length=120)
     lgd_code: str | None = Field(default=None, max_length=40)
+    lgd_level: GeoLevel | None = None
     locality: str | None = Field(default=None, max_length=200)
     district: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
@@ -85,6 +87,8 @@ class PlaceIn(ApiModel):
     @model_validator(mode="after")
     def _pair(self) -> PlaceIn:
         _check_pair(self.latitude, self.longitude)
+        if self.lgd_level is not None and not self.lgd_code:
+            raise ValueError("lgd_level needs lgd_code")
         return self
 
 
@@ -102,7 +106,8 @@ class PlaceUpdate(ApiModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = None
-    lgd_code: str | None = None
+    lgd_code: str | None = Field(default=None, max_length=40)
+    lgd_level: GeoLevel | None = None
     locality: str | None = Field(default=None, max_length=200)
     district: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
@@ -125,6 +130,7 @@ class PlaceOut(ApiModel):
     longitude: float | None
     geocoding_source: str | None
     lgd_code: str | None
+    lgd_level: GeoLevel | None = None
     locality: str | None = None
     district: str | None = None
     state: str | None = None

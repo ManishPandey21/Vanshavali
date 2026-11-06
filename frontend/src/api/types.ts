@@ -264,3 +264,10 @@ export type ChangeIn = S["MasterDataChangeIn"];
 export type MasterDataChange = S["MasterDataChangeOut"];
 export type MasterDataChangePage = S["MasterDataChangePage"];
 export type VocabularyDuplicate = S["VocabularyDuplicateOut"];
+
+// Geography reference (ADR-0019)
+export type GeoUnit = S["GeoUnitOut"];
+export type GeoUnitPage = S["GeoUnitPage"];
+export type GeoPin = S["GeoPinOut"];
+export type GeoLevel = GeoUnit["level"];
+export type GeoSnapshot = S["GeoSnapshotOut"];

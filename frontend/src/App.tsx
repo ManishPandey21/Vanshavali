@@ -44,6 +44,7 @@ const MasterDataLayout = lazy(() => import("./pages/admin/MasterDataPages").then
 const MasterDataDashboard = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.MasterDataDashboard })));
 const VocabularyAdminPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.VocabularyAdminPage })));
 const PendingReviewsPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.PendingReviewsPage })));
+const GeoSnapshotsPage = lazy(() => import("./pages/admin/GeoSnapshotsPage").then((m) => ({ default: m.GeoSnapshotsPage })));
 const ChangeHistoryPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.ChangeHistoryPage })));
 const ImportExportPage = lazy(() => import("./pages/tree/ImportExportPage").then((m) => ({ default: m.ImportExportPage })));
 
@@ -121,6 +122,7 @@ export default function App() {
               <Route path="v/:key" element={<Lazy><VocabularyAdminPage /></Lazy>} />
               <Route path="reviews" element={<Lazy><PendingReviewsPage /></Lazy>} />
               <Route path="history" element={<Lazy><ChangeHistoryPage /></Lazy>} />
+              <Route path="geography" element={<Lazy><GeoSnapshotsPage /></Lazy>} />
             </Route>
           </Route>
           <Route path="/t/:treeId" element={<TreeLayout />}>

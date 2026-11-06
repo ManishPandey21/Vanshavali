@@ -143,6 +143,9 @@ class Settings(BaseSettings):
     # ADR-0025: a change proposed by one system admin must be published by another (four-eyes).
     # Off for the single-admin pilot; turn on once there are two named admins.
     masterdata_require_second_admin: bool = False
+    # Geography reference (ADR-0019); false = /geo answers 404 and the place form keeps free text only
+    geo_enabled: bool = True
+    geo_rate_limit_per_minute: int = 240
     tesseract_cmd: str = "tesseract"
     tesseract_languages: str = "eng+hin"
 

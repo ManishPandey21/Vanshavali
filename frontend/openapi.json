@@ -4698,6 +4698,513 @@
     }
    }
   },
+  "/api/v1/geo/units": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "List Units",
+    "description": "Children of a unit (``parent_level`` + ``parent_code``), or units of a level; ``q`` searches\nEnglish, local-script, alternate and former names. Without arguments: the states and UTs.",
+    "operationId": "list_units_api_v1_geo_units_get",
+    "parameters": [
+     {
+      "name": "level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/GeoLevel"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Level"
+      }
+     },
+     {
+      "name": "parent_level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/GeoLevel"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent Level"
+      }
+     },
+     {
+      "name": "parent_code",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^[A-Za-z0-9]{1,40}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent Code"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "include_historical",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": false,
+       "title": "Include Historical"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoUnitPage"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/units/{level}/{code}": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "Get Unit",
+    "description": "One unit with its ancestors; a retired code still resolves (status ``retired``).",
+    "operationId": "get_unit_api_v1_geo_units__level___code__get",
+    "parameters": [
+     {
+      "name": "level",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/GeoLevel"
+      }
+     },
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[A-Za-z0-9]{1,40}$",
+       "title": "Code"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoUnitOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/pincodes/{pin}": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "Get Pincode",
+    "description": "Post offices for a PIN and the units they serve (suggestions; a PIN can cover many places).",
+    "operationId": "get_pincode_api_v1_geo_pincodes__pin__get",
+    "parameters": [
+     {
+      "name": "pin",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[1-9][0-9]{5}$",
+       "title": "Pin"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoPinOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/admin/master-data/geo/snapshots": {
+   "get": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "List Snapshots",
+    "description": "Every staged, validated, failed, approved, active and superseded snapshot, with its report.",
+    "operationId": "list_snapshots_api_v1_admin_master_data_geo_snapshots_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/GeoSnapshotOut"
+         },
+         "type": "array",
+         "title": "Response List Snapshots Api V1 Admin Master Data Geo Snapshots Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}": {
+   "get": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "Get Snapshot",
+    "operationId": "get_snapshot_api_v1_admin_master_data_geo_snapshots__snapshot_id__get",
+    "parameters": [
+     {
+      "name": "snapshot_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Snapshot Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoSnapshotOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/approve": {
+   "post": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "Approve",
+    "description": "Approve a validated snapshot after reviewing its report.",
+    "operationId": "approve_api_v1_admin_master_data_geo_snapshots__snapshot_id__approve_post",
+    "parameters": [
+     {
+      "name": "snapshot_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Snapshot Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GeoDecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoSnapshotOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/activate": {
+   "post": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "Activate",
+    "description": "Make an approved snapshot the one users see. The approver cannot activate it (four-eyes).",
+    "operationId": "activate_api_v1_admin_master_data_geo_snapshots__snapshot_id__activate_post",
+    "parameters": [
+     {
+      "name": "snapshot_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Snapshot Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GeoDecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoSnapshotOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/rollback": {
+   "post": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "Rollback",
+    "description": "Restore a superseded snapshot as the active one.",
+    "operationId": "rollback_api_v1_admin_master_data_geo_snapshots__snapshot_id__rollback_post",
+    "parameters": [
+     {
+      "name": "snapshot_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Snapshot Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GeoDecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoSnapshotOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/admin/master-data/geo/snapshots/{snapshot_id}/discard": {
+   "post": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "Discard",
+    "description": "Delete a snapshot that never became active (and its rows).",
+    "operationId": "discard_api_v1_admin_master_data_geo_snapshots__snapshot_id__discard_post",
+    "parameters": [
+     {
+      "name": "snapshot_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Snapshot Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GeoDecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/life-events": {
    "get": {
     "tags": [
@@ -19727,6 +20234,134 @@
     "title": "GenealogicalTime",
     "description": "A time of day with explicit precision; approximate values are never presented as exact."
    },
+   "GeoDecisionIn": {
+    "properties": {
+     "reason": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 3,
+      "title": "Reason"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "reason"
+    ],
+    "title": "GeoDecisionIn"
+   },
+   "GeoLevel": {
+    "type": "string",
+    "enum": [
+     "country",
+     "state",
+     "district",
+     "subdistrict",
+     "block",
+     "gram_panchayat",
+     "village",
+     "town",
+     "ulb"
+    ],
+    "title": "GeoLevel",
+    "description": "LGD administrative levels (ADR-0019 \u00a72)."
+   },
+   "GeoOfficeOut": {
+    "properties": {
+     "office_name": {
+      "type": "string",
+      "title": "Office Name"
+     },
+     "office_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Office Type"
+     },
+     "delivery": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delivery"
+     },
+     "district_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Name"
+     },
+     "state_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Name"
+     },
+     "units": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Units",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "office_name"
+    ],
+    "title": "GeoOfficeOut"
+   },
+   "GeoPinOut": {
+    "properties": {
+     "pin": {
+      "type": "string",
+      "title": "Pin"
+     },
+     "offices": {
+      "items": {
+       "$ref": "#/components/schemas/GeoOfficeOut"
+      },
+      "type": "array",
+      "title": "Offices"
+     },
+     "snapshot": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoSnapshotInfo"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "pin",
+     "offices"
+    ],
+    "title": "GeoPinOut"
+   },
    "GeoPoint": {
     "properties": {
      "latitude": {
@@ -19753,6 +20388,394 @@
      "precision"
     ],
     "title": "GeoPoint"
+   },
+   "GeoRef": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "code",
+     "name_en"
+    ],
+    "title": "GeoRef"
+   },
+   "GeoSnapshotInfo": {
+    "properties": {
+     "source": {
+      "$ref": "#/components/schemas/GeoSource"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "licence": {
+      "type": "string",
+      "title": "Licence"
+     },
+     "attribution": {
+      "type": "string",
+      "title": "Attribution"
+     }
+    },
+    "type": "object",
+    "required": [
+     "source",
+     "label",
+     "licence",
+     "attribution"
+    ],
+    "title": "GeoSnapshotInfo",
+    "description": "Shown with every answer: where the data comes from and how to attribute it (ADR-0019 \u00a72)."
+   },
+   "GeoSnapshotOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "source": {
+      "$ref": "#/components/schemas/GeoSource"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "status": {
+      "$ref": "#/components/schemas/GeoSnapshotStatus"
+     },
+     "source_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Url"
+     },
+     "downloaded_on": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Downloaded On"
+     },
+     "licence": {
+      "type": "string",
+      "title": "Licence"
+     },
+     "attribution": {
+      "type": "string",
+      "title": "Attribution"
+     },
+     "files": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Files"
+     },
+     "report": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Report"
+     },
+     "staged_by": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Staged By"
+     },
+     "approved_by_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Approved By Name"
+     },
+     "approved_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Approved At"
+     },
+     "activated_by_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Activated By Name"
+     },
+     "activated_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Activated At"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "approved_by_me": {
+      "type": "boolean",
+      "title": "Approved By Me",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "source",
+     "label",
+     "status",
+     "source_url",
+     "downloaded_on",
+     "licence",
+     "attribution",
+     "files",
+     "report",
+     "staged_by",
+     "approved_at",
+     "activated_at",
+     "created_at"
+    ],
+    "title": "GeoSnapshotOut"
+   },
+   "GeoSnapshotStatus": {
+    "type": "string",
+    "enum": [
+     "staged",
+     "validated",
+     "failed",
+     "approved",
+     "active",
+     "superseded"
+    ],
+    "title": "GeoSnapshotStatus",
+    "description": "staged \u2192 validated (or failed) \u2192 approved \u2192 active \u2192 superseded (ADR-0019 \u00a73)."
+   },
+   "GeoSource": {
+    "type": "string",
+    "enum": [
+     "lgd",
+     "india_post"
+    ],
+    "title": "GeoSource",
+    "description": "Official geography sources (ADR-0019)."
+   },
+   "GeoUnitOut": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     },
+     "local_term": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Term"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "alt_names": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Alt Names",
+      "default": []
+     },
+     "former_names": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Former Names",
+      "default": []
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "current",
+       "historical",
+       "retired"
+      ],
+      "title": "Status",
+      "default": "current"
+     },
+     "valid_to": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Valid To"
+     },
+     "successor_codes": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Successor Codes",
+      "default": []
+     },
+     "path": {
+      "items": {
+       "$ref": "#/components/schemas/GeoRef"
+      },
+      "type": "array",
+      "title": "Path",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "code",
+     "name_en"
+    ],
+    "title": "GeoUnitOut"
+   },
+   "GeoUnitPage": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     },
+     "snapshot": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoSnapshotInfo"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "GeoUnitPage"
    },
    "GrantCreate": {
     "properties": {
@@ -26102,6 +27125,16 @@
       ],
       "title": "Lgd Code"
      },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "locality": {
       "anyOf": [
        {
@@ -26360,6 +27393,16 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "locality": {
       "anyOf": [
@@ -26667,13 +27710,24 @@
      "lgd_code": {
       "anyOf": [
        {
-        "type": "string"
+        "type": "string",
+        "maxLength": 40
        },
        {
         "type": "null"
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "locality": {
       "anyOf": [

@@ -689,3 +689,40 @@ class VocabularyChangeStatus(StrEnum):
     PUBLISHED = "published"
     REJECTED = "rejected"
     WITHDRAWN = "withdrawn"
+
+
+class GeoSource(StrEnum):
+    """Official geography sources (ADR-0019)."""
+
+    LGD = "lgd"
+    INDIA_POST = "india_post"
+
+
+class GeoSnapshotStatus(StrEnum):
+    """staged → validated (or failed) → approved → active → superseded (ADR-0019 §3)."""
+
+    STAGED = "staged"
+    VALIDATED = "validated"
+    FAILED = "failed"
+    APPROVED = "approved"
+    ACTIVE = "active"
+    SUPERSEDED = "superseded"
+
+
+class GeoLevel(StrEnum):
+    """LGD administrative levels (ADR-0019 §2)."""
+
+    COUNTRY = "country"
+    STATE = "state"
+    DISTRICT = "district"
+    SUBDISTRICT = "subdistrict"
+    BLOCK = "block"
+    GRAM_PANCHAYAT = "gram_panchayat"
+    VILLAGE = "village"
+    TOWN = "town"
+    ULB = "ulb"
+
+
+class GeoUnitOrigin(StrEnum):
+    OFFICIAL = "official"
+    CURATED = "curated"
