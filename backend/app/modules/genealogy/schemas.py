@@ -140,6 +140,16 @@ class PlaceOut(ApiModel):
 
 
 # ---------- names ----------
+class NameSuggestionIn(ApiModel):
+    """Marks a name the user accepted from a transliteration suggestion (ADR-0025 §5).
+
+    The server, not the client, records the provenance: origin ``calculation``, its own engine
+    version and the user as the one who confirmed it.
+    """
+
+    method: Literal["lexicon", "rules"]
+
+
 class NameIn(ApiModel):
     type: NameType = NameType.BIRTH
     given_name: str | None = Field(default=None, max_length=200)
@@ -159,6 +169,19 @@ class NameIn(ApiModel):
     is_preferred: bool = False
     evidence_status: EvidenceStatus = EvidenceStatus.USER_ASSERTION
     confidence: Confidence = Confidence.UNKNOWN
+    suggestion: NameSuggestionIn | None = None
+
+    @model_validator(mode="after")
+    def _suggested_names_are_transliterations(self) -> NameIn:
+        # a suggested spelling is another form of a typed name: never the preferred one, never evidence
+        if self.suggestion is not None:
+            if self.type != NameType.TRANSLITERATION:
+                raise ValueError("a suggested spelling can only be saved as a transliteration")
+            if self.is_preferred:
+                raise ValueError("a suggested spelling cannot be the preferred name")
+            if self.evidence_status != EvidenceStatus.USER_ASSERTION:
+                raise ValueError("a suggested spelling is not evidence")
+        return self
 
     @model_validator(mode="after")
     def _has_content(self) -> NameIn:
