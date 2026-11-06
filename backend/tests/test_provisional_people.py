@@ -148,7 +148,10 @@ def test_concealed_everywhere_no_placeholder_no_count(owner, tree, member_factor
     assert plan["steps"][0]["hidden_candidates"] == 0
     # ...while the owner sees her in the same places
     assert pid in owner.get(f"/trees/{t}/people/{me['id']}/family").text
-    assert owner.get(f"/trees/{t}/branches/{branch['id']}").json()["member_count"] == 2
+    owner_branch = owner.get(f"/trees/{t}/branches/{branch['id']}").json()
+    # headline count leaves her out for everyone (#32); the admin count shows her to the owner
+    assert (owner_branch["member_count"], owner_branch["provisional_member_count"]) == (1, 1)
+    assert pid in {m["person"]["id"] for m in owner_branch["members"] if m["person"]}
 
 
 def test_cross_tree_ids_and_grants_do_not_carry_over(owner, tree, member_factory):

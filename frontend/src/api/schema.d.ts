@@ -4120,6 +4120,11 @@ export interface components {
              */
             member_count?: number;
             /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
+            /**
              * Created At
              * Format: date-time
              */
@@ -4185,6 +4190,11 @@ export interface components {
              * @default 0
              */
             member_count?: number;
+            /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
             /**
              * Created At
              * Format: date-time
@@ -5713,6 +5723,11 @@ export interface components {
              */
             member_count?: number;
             /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
+            /**
              * Created At
              * Format: date-time
              */
@@ -5815,6 +5830,11 @@ export interface components {
              * @default 0
              */
             member_count?: number;
+            /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
             /**
              * Created At
              * Format: date-time
@@ -8122,6 +8142,11 @@ export interface components {
              */
             google?: boolean;
         };
+        /**
+         * ProvisionalState
+         * @enum {string}
+         */
+        ProvisionalState: "needs_details" | "unverified" | "verified";
         /**
          * PublicMode
          * @enum {string}
@@ -10895,6 +10920,8 @@ export interface operations {
             query?: {
                 q?: string | null;
                 status?: components["schemas"]["ProfileStatus"] | null;
+                /** @description Only provisional people in these states: the "To complete" view (ADR-0020 §8). Visibility rules are unchanged, so it lists only people the caller may see. */
+                provisional_state?: components["schemas"]["ProvisionalState"][] | null;
                 cursor?: string | null;
                 limit?: number;
             };

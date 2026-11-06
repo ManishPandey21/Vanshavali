@@ -1,10 +1,10 @@
 import { useId } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Search, UserPlus, Users } from "lucide-react";
-import { usePeople } from "../../api/hooks/people";
+import { CircleDashed, Search, UserPlus, Users } from "lucide-react";
+import { TO_COMPLETE_STATES, usePeople } from "../../api/hooks/people";
 import { useSearch } from "../../api/hooks/heritage";
-import type { ProfileStatus } from "../../api/types";
+import type { PersonSummary, ProfileStatus } from "../../api/types";
 import { useTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
 import { useDebounced } from "../../lib/useDebounced";
@@ -18,10 +18,12 @@ export function PeoplePage() {
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
   const status = (params.get("status") as ProfileStatus | null) ?? undefined;
+  // "To complete" (ADR-0020 §8): provisional people who still need a name or relationship evidence
+  const toComplete = params.get("view") === "to-complete";
   const debounced = useDebounced(q.trim(), 300);
   const searchId = useId();
   const search = useSearch(treeId, debounced, ["person"]);
-  const list = usePeople(treeId, "", status);
+  const list = usePeople(treeId, "", status, toComplete ? TO_COMPLETE_STATES : undefined);
   const searching = debounced.length > 0;
 
   const setParam = (k: string, v: string | undefined) => {
@@ -31,7 +33,10 @@ export function PeoplePage() {
     setParams(next, { replace: true });
   };
 
-  const hits = (search.data?.hits ?? []).filter((h) => h.kind === "person" && h.person && (!status || h.person.profile_status === status));
+  const pending = (p: PersonSummary) => !!p.provisional_state && (TO_COMPLETE_STATES as readonly string[]).includes(p.provisional_state);
+  const hits = (search.data?.hits ?? []).filter(
+    (h) => h.kind === "person" && h.person && (!status || h.person.profile_status === status) && (!toComplete || pending(h.person)),
+  );
   const people = list.data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
@@ -62,20 +67,32 @@ export function PeoplePage() {
             onChange={(e) => setParam("q", e.target.value || undefined)}
           />
         </div>
-        <div role="group" aria-label={t("people.filterStatus")} className="flex gap-1">
-          {([undefined, "living", "deceased", "unknown"] as const).map((s) => (
-            <button
-              key={s ?? "all"}
-              type="button"
-              aria-pressed={status === s}
-              onClick={() => setParam("status", s)}
-              className={`rounded-full border px-3 py-1 text-xs ${status === s ? "border-kumkum-700 bg-kumkum-700 text-white" : "border-stone-300 bg-white"}`}
-            >
-              {s ? t(`enum.profileStatus.${s}`) : t("common.all")}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          <div role="group" aria-label={t("people.filterStatus")} className="flex gap-1">
+            {([undefined, "living", "deceased", "unknown"] as const).map((s) => (
+              <button
+                key={s ?? "all"}
+                type="button"
+                aria-pressed={status === s}
+                onClick={() => setParam("status", s)}
+                className={`rounded-full border px-3 py-1 text-xs ${status === s ? "border-kumkum-700 bg-kumkum-700 text-white" : "border-stone-300 bg-white"}`}
+              >
+                {s ? t(`enum.profileStatus.${s}`) : t("common.all")}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            aria-pressed={toComplete}
+            onClick={() => setParam("view", toComplete ? undefined : "to-complete")}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs ${toComplete ? "border-haldi-700 bg-haldi-700 text-white" : "border-stone-300 bg-white"}`}
+          >
+            <CircleDashed className="size-3" aria-hidden />
+            {t("people.toComplete.filter")}
+          </button>
         </div>
       </div>
+      {toComplete && <p className="mb-3 rounded-md bg-haldi-100 px-3 py-2 text-sm text-ink">{t("people.toComplete.intro")}</p>}
       <p className="mb-3 text-xs text-ink-muted">{t("people.searchHint")}</p>
 
       {searching ? (
@@ -108,7 +125,12 @@ export function PeoplePage() {
           </h2>
           {list.isLoading && <Spinner />}
           <ErrorAlert error={list.error} />
-          {list.data && people.length === 0 && (
+          {list.data && people.length === 0 && toComplete && (
+            <EmptyState icon={<CircleDashed className="size-10" aria-hidden />} title={t("people.toComplete.emptyTitle")}>
+              {t("people.toComplete.emptyBody")}
+            </EmptyState>
+          )}
+          {list.data && people.length === 0 && !toComplete && (
             <EmptyState
               icon={<Users className="size-10" aria-hidden />}
               title={t("people.emptyTitle")}
@@ -121,7 +143,10 @@ export function PeoplePage() {
             <ul className="card divide-y divide-stone-100">
               {people.map((p) => (
                 <li key={p.id} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <PersonLink treeId={treeId} person={p} />
+                  <div className="min-w-0">
+                    <PersonLink treeId={treeId} person={p} />
+                    {toComplete && <ToCompleteAction treeId={treeId} person={p} />}
+                  </div>
                   <PersonBadges person={p} showPrivacy />
                 </li>
               ))}
@@ -137,5 +162,20 @@ export function PeoplePage() {
         </section>
       )}
     </div>
+  );
+}
+
+/** What is missing for a provisional person, and where to fix it. */
+function ToCompleteAction({ treeId, person }: { treeId: string; person: PersonSummary }) {
+  const { t } = useTranslation();
+  const needsName = person.provisional_state === "needs_details";
+  return (
+    <p className="text-xs text-ink-muted">
+      {t(needsName ? "people.toComplete.needsDetails" : "people.toComplete.unverified")}{" "}
+      <Link className="font-medium text-kumkum-800 underline" to={`/t/${treeId}/people/${person.id}?tab=${needsName ? "overview" : "family"}`}>
+        {t(needsName ? "people.toComplete.addName" : "people.toComplete.reviewEvidence")}
+        <span className="sr-only">: {person.display_name}</span>
+      </Link>
+    </p>
   );
 }

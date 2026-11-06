@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 
 from fastapi import APIRouter, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.api.deps import TreeCtx
 from app.api.schemas import ApiModel, Message
@@ -32,17 +33,30 @@ from app.modules.genealogy.serialize import Serializer
 router = APIRouter(prefix="/trees/{tree_id}", tags=["family"])
 
 
+def _member_counts(ctx, person_ids: Iterable[uuid.UUID]) -> dict[str, int]:  # type: ignore[no-untyped-def]
+    """Headline and administrative member counts (ADR-0020 §8).
+
+    ``member_count`` never includes a pending provisional person (unnamed or unverified), for any
+    viewer: such a record is not yet a family member. ``provisional_member_count`` counts the pending
+    provisional members *this viewer can see* (creator, tree admins, explicit grants), so it is 0
+    for everyone else and reveals nothing about people concealed from them.
+    """
+    ids = set(person_ids)
+    pending = provisional.pending_ids(ctx)
+    concealed = provisional.concealed_ids(ctx)
+    return {
+        "member_count": len(ids - pending),
+        "provisional_member_count": len((ids & pending) - concealed),
+    }
+
+
 def _branch_out(ctx, b: FamilyBranch) -> BranchOut:  # type: ignore[no-untyped-def]
-    q = (
-        select(func.count())
-        .select_from(BranchMembership)
-        .where(BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id)
+    ids = ctx.db.scalars(
+        select(BranchMembership.person_id).where(
+            BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id
+        )
     )
-    concealed = provisional.concealed_ids(ctx)  # never counted for someone who cannot see them
-    if concealed:
-        q = q.where(BranchMembership.person_id.notin_(list(concealed)))
-    n = ctx.db.scalar(q) or 0
-    return BranchOut.model_validate(b).model_copy(update={"member_count": int(n)})
+    return BranchOut.model_validate(b).model_copy(update=_member_counts(ctx, ids))
 
 
 @router.get("/branches", response_model=list[BranchOut])
@@ -107,15 +121,11 @@ def derive_members(branch_id: uuid.UUID, ctx: TreeCtx) -> DeriveOut:
 
 # ------------------------------------------------------------------ households
 def _household_out(ctx, h: Household) -> HouseholdOut:  # type: ignore[no-untyped-def]
-    q = (
-        select(func.count())
-        .select_from(HouseholdMembership)
-        .where(HouseholdMembership.tree_id == ctx.tree_id, HouseholdMembership.household_id == h.id)
+    ids = ctx.db.scalars(
+        select(HouseholdMembership.person_id).where(
+            HouseholdMembership.tree_id == ctx.tree_id, HouseholdMembership.household_id == h.id
+        )
     )
-    concealed = provisional.concealed_ids(ctx)  # never counted for someone who cannot see them
-    if concealed:
-        q = q.where(HouseholdMembership.person_id.notin_(list(concealed)))
-    n = ctx.db.scalar(q) or 0
     place = (
         ctx.db.scalar(
             select(Place.canonical_name).where(Place.tree_id == ctx.tree_id, Place.id == h.place_id)
@@ -123,7 +133,7 @@ def _household_out(ctx, h: Household) -> HouseholdOut:  # type: ignore[no-untype
         if h.place_id
         else None
     )
-    return HouseholdOut.model_validate(h).model_copy(update={"member_count": int(n), "place_name": place})
+    return HouseholdOut.model_validate(h).model_copy(update={**_member_counts(ctx, ids), "place_name": place})
 
 
 @router.get("/households", response_model=list[HouseholdOut])

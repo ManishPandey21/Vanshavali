@@ -35,7 +35,10 @@ class BranchOut(ApiModel):
     founder_person_id: uuid.UUID | None
     parent_branch_id: uuid.UUID | None
     descent_rule: DescentRule
+    # pending provisional people (ADR-0020 §8) are never in member_count; this counts the ones the
+    # viewer can see, and is 0 for everyone else
     member_count: int = 0
+    provisional_member_count: int = 0
     created_at: dt.datetime
 
 
@@ -106,7 +109,10 @@ class HouseholdOut(ApiModel):
     start_date: dict[str, Any] | None
     end_date: dict[str, Any] | None
     notes: str | None
+    # pending provisional people (ADR-0020 §8) are never in member_count; this counts the ones the
+    # viewer can see, and is 0 for everyone else
     member_count: int = 0
+    provisional_member_count: int = 0
     created_at: dt.datetime
 
 
