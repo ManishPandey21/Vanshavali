@@ -233,7 +233,7 @@ seen and confirmed.
   starts as "not recorded" and is stored only if the user enters it, in which case Phase C shows the
   definite word; otherwise it shows the neutral reading (amended 5 Nov; earlier drafts pre-selected
   it from the term).
-- **Progressive form.** Step 1: name (with transliteration suggestion, original kept), living
+- **Progressive form.** Step 1: name (with transliteration suggestion, original kept; ADR-0025), living
   status, approximate year. "Add more details" expands date accuracy, place cascade (when R2 is on),
   occupation, honorific, name format and name language/script.
 
