@@ -19,6 +19,8 @@ import { Dialog } from "../../../components/ui/Dialog";
 import { ErrorAlert, Spinner } from "../../../components/ui/feedback";
 import { Field, Select, TextInput, focusFirstInvalid, intOrNull } from "../../../components/ui/form";
 import { FamilyConsentGate } from "../../../components/consent/FamilyConsent";
+import { cleanName, type NameDraft } from "../../../components/person/NameFields";
+import { TransliterationSuggestion } from "../../../components/person/TransliterationSuggestion";
 
 /** The eight relations offered first; everything else is under "More relations". */
 const PRIMARY = ["father", "mother", "husband", "wife", "son", "daughter", "brother", "sister"];
@@ -35,6 +37,8 @@ interface Details {
   birthYear: string;
   relativeAge: "" | "elder" | "younger";
   otherParentId: string;
+  /** names accepted from a transliteration suggestion (ADR-0025), saved after the typed one */
+  extraNames?: NameDraft[];
 }
 
 /** Devanagari typed in the name field is recorded as Hindi in Devanagari; anything else as typed. */
@@ -48,7 +52,7 @@ export function buildSmartAddPerson(d: Details): PersonCreate {
   return {
     profile_status: d.status,
     sex_at_birth: d.sex || null,
-    names: [{ given_name: d.given.trim() || null, surname: d.surname.trim() || null, language, script, is_preferred: true }],
+    names: [{ given_name: d.given.trim() || null, surname: d.surname.trim() || null, language, script, is_preferred: true }, ...(d.extraNames ?? []).map(cleanName)],
     ...(year ? { birth: { date: { calendar: "gregorian", precision: "circa", year } } } : {}),
   } as PersonCreate;
 }
@@ -376,6 +380,31 @@ function DetailsForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label={t("smartAdd.givenName")}>{(p) => <TextInput {...p} value={value.given} onChange={(e) => set({ given: e.target.value })} autoComplete="off" />}</Field>
         <Field label={t("smartAdd.surname")}>{(p) => <TextInput {...p} value={value.surname} onChange={(e) => set({ surname: e.target.value })} autoComplete="off" />}</Field>
+        <div className="sm:col-span-2">
+          <TransliterationSuggestion
+            name={{ given_name: value.given, surname: value.surname, ...scriptOf(`${value.given} ${value.surname}`) }}
+            onAdd={(n) => set({ extraNames: [...(value.extraNames ?? []), n] })}
+          />
+          {(value.extraNames ?? []).length > 0 && (
+            <ul className="mt-2 space-y-1 text-xs text-ink-muted">
+              {(value.extraNames ?? []).map((n, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  {t("translit.addedNote")}{" "}
+                  <span lang={n.language ?? undefined} className="font-medium text-ink">
+                    {[n.given_name, n.surname].filter(Boolean).join(" ")}
+                  </span>
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={() => set({ extraNames: (value.extraNames ?? []).filter((_, j) => j !== i) })}
+                  >
+                    {t("common.remove")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <Field label={t("person.status")}>
           {(p) => (
             <Select {...p} value={value.status} onChange={(e) => set({ status: e.target.value as ProfileStatus })}>

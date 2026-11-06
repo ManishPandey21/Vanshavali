@@ -3233,5 +3233,15 @@
     "addFailed": "Could not save this entry. Your text is kept; try again.",
     "linked": "Chosen from the list. The text is saved as you typed it.",
     "hint": "Start typing to see suggestions, or write your own."
+  },
+  "translit": {
+    "inDevanagari": "In Devanagari:",
+    "inLatin": "In Latin letters:",
+    "possible": "possible spelling",
+    "add": "Add as another name",
+    "dismiss": "Dismiss",
+    "hint": "Your spelling stays as you typed it. Adding saves this as a separate name.",
+    "addedNote": "Will be saved as another name:",
+    "suggestedConfirmed": "Spelling suggested, confirmed by you"
   }
 }
