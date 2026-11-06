@@ -14,7 +14,8 @@ from app.authz.privacy import can_view_person, load_subjects
 from app.core.textnorm import search_key
 from app.models import Person, Place
 from app.models.enums import EventType, Lineage, ProfileStatus
-from app.modules.genealogy import ageorder, engine, geo, lookup, service
+from app.modules.genealogy import ageorder, engine, geo, lookup, provisional, service
+from app.modules.genealogy.provisional import ProvisionalState
 from app.modules.genealogy.schemas import (
     EventIn,
     EventOut,
@@ -61,10 +62,19 @@ def list_people(
     ctx: TreeCtx,
     q: str | None = Query(default=None, max_length=200),
     status_: ProfileStatus | None = Query(default=None, alias="status"),
+    provisional_state: list[ProvisionalState] | None = Query(
+        default=None,
+        description='Only provisional people in these states: the "To complete" view (ADR-0020 §8). '
+        "Visibility rules are unchanged, so it lists only people the caller may see.",
+    ),
     cursor: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),
 ) -> Page[PersonSummary]:
     offset = decode_cursor(cursor)
+    only: set[uuid.UUID] | None = None
+    if provisional_state:
+        wanted = {str(s) for s in provisional_state}
+        only = {pid for pid, st in provisional.states(ctx).items() if st.value in wanted}
     if q:
         from app.modules.search.service import match_names
 
@@ -79,6 +89,8 @@ def list_people(
         }
         if status_:
             persons = {k: v for k, v in persons.items() if v.profile_status == status_}
+        if only is not None:
+            persons = {k: v for k, v in persons.items() if k in only}
         subjects = load_subjects(ctx, persons.values())
         ranked = [subjects[i] for i in order if i in subjects and can_view_person(ctx, subjects[i])]
         page = ranked[offset : offset + limit]
@@ -87,6 +99,8 @@ def list_people(
         stmt = select(Person).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_(None))
         if status_:
             stmt = stmt.where(Person.profile_status == status_)
+        if only is not None:
+            stmt = stmt.where(Person.id.in_(list(only) or [uuid.UUID(int=0)]))
         stmt = stmt.order_by(Person.preferred_display_name, Person.id)
         visible: list = []
         seen_visible, scan, chunk, exhausted = 0, 0, max(limit * 3, 100), False

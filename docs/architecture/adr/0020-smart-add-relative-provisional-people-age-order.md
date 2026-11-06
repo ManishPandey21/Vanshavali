@@ -1,7 +1,8 @@
 # ADR-0020: Smart Add Relative, provisional people and recorded age order
 
 - Status: Accepted · Date: 2026-11-04 · Amended 2026-11-05 (§4, §6, §7: provisional people's
-  visibility, verification and exports; design review of PR #27)
+  visibility, verification and exports; design review of PR #27; §8: headline counts and the
+  "To complete" view, issues #32 and #33)
 - Relates to: ADR-0003 (relationship model), ADR-0006 (authorisation and privacy), ADR-0011
   (attestation before adding people)
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),
@@ -122,7 +123,7 @@ existence is shown as an anonymous placeholder: an unnamed, unverified record is
 about the family. Once named and verified, a provisional person is an ordinary person at their
 privacy level (still `CUSTOM` until an admin changes it), and may appear as a placeholder like any
 other hidden relative. Leaving provisional people out of headline person counts for those who *can*
-see them, and a "To complete" list, are tracked as R1 follow-ups.
+see them, and a "To complete" list, are covered by §8.
 
 **Exports.** Default GEDCOM and archive exports leave out every pending provisional person, whoever
 exports, and the relationships that touch them: no `INDI`, no placeholder, no `FAMC`/`FAMS`
@@ -137,6 +138,24 @@ would export them as `RESN CONFIDENTIAL` placeholders.
 biological parent to someone with a concealed one is refused with "already has two biological
 parents" (no identity, but it shows that a second parent is recorded). Integrity wins here; recording
 the claim as `DISPUTED` remains possible.
+
+### 8. Headline counts and the "To complete" view (amended 2026-11-05, issues #32, #33)
+A pending provisional person is not yet a family member, so **headline counts never include one,
+for any viewer**: branch and household `member_count`, and the "known" figure of the fan/pedigree
+summary. The people who may see them (creator, tree admins, explicit grants) get them separately:
+`provisional_member_count` on branches and households, and "N to complete" in the ancestry summary.
+For everyone else these are 0 or absent, so they reveal nothing (§7 concealment is unchanged).
+
+The people list takes `provisional_state` (repeatable: `needs_details`, `unverified`, `verified`).
+It narrows the existing list and changes no visibility rule: the same per-person `can_view_person`
+check and visible-only cursor counting apply, so someone who may not see them gets an empty page.
+The UI's **"To complete"** view uses `needs_details` + `unverified` and says, per person, what is
+missing ("No name yet" / "relationships have no supporting evidence yet") with a direct link to the
+place to fix it (the profile's overview for a name, its family tab for relationship evidence).
+
+No schema change. Rejected: a separate `/to-complete` endpoint (a second listing path to keep in
+step with the people list's authorisation) and counting provisional people in `member_count` with a
+footnote (the headline would still overstate the family).
 
 ## Consequences
 - One migration (`is_provisional`, `relative_age_order` with RLS, downgrade). The 2026-11-05
