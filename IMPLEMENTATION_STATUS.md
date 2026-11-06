@@ -181,6 +181,18 @@ Decision: ADR-0018 (classification of every dropdown: controlled values vs exten
 | `SmartSelect` (ARIA combobox, suggestions in any script, "Add as your family's own", falls back to a plain field when the service is off or unreachable) in heritage (gotra, kula, kuladevata, kuladevi), occupation and honorific | VERIFIED | Vitest `SmartSelect.test.tsx` (4), Playwright `master-data.spec.ts` (with axe) | Static `src/data/masterData` lists remain only as fallbacks; nakshatra/rashi stay controlled (`astrology/vocab.py`) |
 | Rollback flag `VSH_MASTERDATA_ENABLED` | VERIFIED | `test_masterdata.py::test_disabled_flag_answers_404`, Vitest fallback test | |
 
+## R1 — Name transliteration suggestions (Nov 2026)
+
+Decision: ADR-0025. No migration: an accepted suggestion is a `name_record` of type `transliteration` with provenance.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Engine: reviewed lexicon (340 common North-Indian given names and surnames) first, Hindi rules on `indic-transliteration` second (no final halant, long final a/i, schwa deletion, "Aa" for initial आ); ≤ 3 labelled candidates; deterministic | VERIFIED | `test_translit.py` (lexicon, rules, no-suggestion cases, determinism, lexicon integrity) | Devanagari ⇄ Latin, Hindi only (v1). The lexicon is pending native-Hindi review (`p5-name-lexicon.csv`) |
+| `POST /transliterate`: signed-in, ≤ 200 characters, rate-limited per user, text never logged or stored | VERIFIED | `test_translit.py` (sign-in, validation, rate limit, no logging) | |
+| Accepted suggestion = separate, non-preferred `transliteration` name; provenance `calculation` + engine version + confirmed by the user, stamped by the server | VERIFIED | `test_translit.py` (provenance, refused disguises, person create, cross-tree, viewer 403) | Exported as GEDCOM `TRAN` (ADR-0008, unchanged) |
+| Suggestion UI in the person form, the name editor and Smart Add | VERIFIED | Vitest `TransliterationSuggestion.test.tsx` (3), `SmartAddDialog.test.tsx`, Playwright `transliteration.spec.ts` (390 px, axe) | |
+| Hindi review pack regenerated; now includes the master-data labels and the name lexicon | DONE (pack) | `ops/i18n/hindi_review_pack.py` | The review itself is a human task: no sign-off yet |
+
 ## R1 — Age-aware kinship terms (Nov 2026)
 
 Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.

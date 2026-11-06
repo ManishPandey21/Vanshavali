@@ -1,6 +1,6 @@
 # ADR-0025: Name transliteration suggestions
 
-- Status: **Proposed** · Date: 2026-11-06 · Issue: #34 (R1)
+- Status: Accepted · Date: 2026-11-06 (accepted as proposed, including both open points) · Issue: #34 (R1)
 - Relates to: ADR-0007 (search normalisation), ADR-0008 (GEDCOM `TRAN`), ADR-0009 (provenance; no
   external AI by default), ADR-0018 (reference data packs), ADR-0003 (names as claims)
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),

@@ -26,4 +26,4 @@ into 0003, 0009 and 0010.
 | 0017 | [Visualization data APIs and Remotion animated exports](0017-visualizations-and-animated-exports.md) | Accepted |
 | 0018 | [Master data: controlled values vs extensible vocabularies](0018-master-data-vocabularies.md) | Accepted |
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |
-| 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Proposed |
+| 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |

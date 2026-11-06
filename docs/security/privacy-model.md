@@ -198,3 +198,14 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   audit log records that an entry was added, not what it says.
 - **Global reference data holds no personal data.** Packs are versioned files in the repository,
   loaded by an operator command.
+
+## 10. Name transliteration suggestions (ADR-0025)
+
+- **The typed name is never changed.** A suggestion in the other script is shown, never applied;
+  accepting it adds a separate name, which is never the preferred one and never counts as evidence.
+- **Names stay on our servers.** Suggestions are computed locally. The text is not logged or stored,
+  and no third-party transliteration service is used.
+- **No learning across families.** The engine never learns from names other families enter; its name
+  list changes only through code review.
+- **No inference.** A name's script or spelling never sets sex, gender, community, region or anything
+  else about a person.
