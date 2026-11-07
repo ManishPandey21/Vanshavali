@@ -33,6 +33,7 @@ from app.models.enums import (
     Confidence,
     EventSignificance,
     EventType,
+    GeoLevel,
     LifeEventCategory,
     Lineage,
     LocationPrecision,
@@ -178,6 +179,12 @@ class Place(TreeScopedMixin, Base):
     geocoding_source: Mapped[str | None] = mapped_column(String(120))
     date_validity: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     lgd_code: Mapped[str | None] = mapped_column(String(40))
+    # set only when the code was picked from the LGD reference (ADR-0019 §4): the unit's level (LGD
+    # codes are unique per level) and the snapshot it was picked from. NULL = a free-text code.
+    lgd_level: Mapped[GeoLevel | None] = mapped_column(enum_column(GeoLevel, "place_lgd_level"))
+    lgd_snapshot_id: Mapped[str | None] = mapped_column(
+        String(7), ForeignKey("geo_snapshot.id", ondelete="SET NULL")
+    )
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
     # geo-tagging (ADR-0015): administrative context, precision, provenance and coordinate privacy
     locality: Mapped[str | None] = mapped_column(String(200))

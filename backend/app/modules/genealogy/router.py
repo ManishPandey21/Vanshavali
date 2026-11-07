@@ -43,6 +43,8 @@ from app.modules.genealogy.schemas import (
     RelativeOut,
 )
 from app.modules.genealogy.serialize import Serializer, name_out, relationship_out
+from app.modules.geo import service as geo_service
+from app.modules.geo.schemas import PlaceLgdNote
 
 router = APIRouter(prefix="/trees/{tree_id}", tags=["genealogy"])
 
@@ -279,6 +281,9 @@ def _place_out(ctx, p: Place) -> PlaceOut:  # type: ignore[no-untyped-def]
         "longitude": coords.longitude if coords else None,
         "coordinates_coarsened": bool(coords and coords.coarsened),
     }
+    note = geo_service.place_notes(ctx.db, [p]).get(p.id)
+    if note is not None:
+        update["lgd_note"] = PlaceLgdNote.model_validate(note)
     if coords is not None:
         update["location_precision"] = coords.precision
         if coords.coarsened:
