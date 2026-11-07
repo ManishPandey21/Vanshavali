@@ -18,6 +18,7 @@ from app.models.enums import (
     ReviewState,
     ReviewTarget,
 )
+from app.modules.genealogy.schemas import PersonSummary
 
 MAX_ITEMS = 50
 MAX_TEXT = 2000
@@ -198,3 +199,32 @@ class NotificationsOut(ApiModel):
 
 class NotificationsReadIn(ApiModel):
     ids: list[uuid.UUID] = Field(default=[], max_length=200)  # empty = all
+
+
+class DuplicateNameIn(ApiModel):
+    given_name: str | None = Field(default=None, max_length=200)
+    surname: str | None = Field(default=None, max_length=200)
+
+
+class DuplicateCheckIn(ApiModel):
+    """The person about to be added, and who they will be linked to (ADR-0021 §8)."""
+
+    names: list[DuplicateNameIn] = Field(min_length=1, max_length=5)
+    birth_year: int | None = Field(default=None, ge=1, le=2200)
+    sex_at_birth: str | None = Field(default=None, max_length=20)
+    parent_ids: list[uuid.UUID] = Field(default=[], max_length=4)
+    spouse_ids: list[uuid.UUID] = Field(default=[], max_length=4)
+    birth_place_id: uuid.UUID | None = None
+    # the anchor and anyone else already chosen: never suggested as a duplicate
+    exclude_ids: list[uuid.UUID] = Field(default=[], max_length=20)
+
+
+class DuplicateMatch(ApiModel):
+    person: PersonSummary
+    score: float
+    likely: bool
+    reasons: list[str]
+
+
+class DuplicateCheckOut(ApiModel):
+    candidates: list[DuplicateMatch]

@@ -14,6 +14,7 @@ from app.api.schemas import Page, decode_cursor, encode_cursor
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden
+from app.core.ratelimit import enforce
 from app.models import (
     ChangeProposal,
     ChangeProposalItem,
@@ -24,12 +25,14 @@ from app.models import (
 )
 from app.models.enums import ChangeProposalStatus, ReviewState
 from app.modules.genealogy import lookup
-from app.modules.review import history, notify, policy, redaction, service
+from app.modules.review import duplicates, history, notify, policy, redaction, service
 from app.modules.review.schemas import (
     ChallengeIn,
     CommentIn,
     CommentOut,
     DecisionIn,
+    DuplicateCheckIn,
+    DuplicateCheckOut,
     NotificationsOut,
     NotificationsReadIn,
     ProposalIn,
@@ -361,3 +364,22 @@ def notifications_read(body: NotificationsReadIn, ctx: TreeCtx) -> Notifications
     ctx.db.flush()
     items, unread, more = notify.list_for(ctx, 0, 30)
     return NotificationsOut(items=items, unread=unread, next_cursor=encode_cursor(30) if more else None)  # type: ignore[arg-type]
+
+
+# ------------------------------------------------------------------ duplicates at entry
+@router.post("/duplicates/check", response_model=DuplicateCheckOut)
+def check_duplicates(body: DuplicateCheckIn, ctx: TreeCtx) -> DuplicateCheckOut:
+    """Is the person about to be added already in the tree? Visible people only; nothing is merged."""
+    ctx.require(Permission.PERSON_WRITE)
+    enforce(f"dup-check:{ctx.user_id}", 60)
+    found = duplicates.check(
+        ctx,
+        names=[n.model_dump() for n in body.names],
+        birth_year=body.birth_year,
+        sex_at_birth=body.sex_at_birth,
+        parent_ids=body.parent_ids,
+        spouse_ids=body.spouse_ids,
+        birth_place_id=body.birth_place_id,
+        exclude_ids=body.exclude_ids,
+    )
+    return DuplicateCheckOut(candidates=found)  # type: ignore[arg-type]
