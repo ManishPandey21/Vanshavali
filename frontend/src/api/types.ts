@@ -253,3 +253,7 @@ export type VocabularyTerm = S["VocabularyTermOut"];
 export type VocabularyTerms = S["VocabularyTermsOut"];
 export type TreeTermIn = S["TreeTermIn"];
 export type TreeTermOut = S["TreeTermOut"];
+
+// name transliteration suggestions (ADR-0025)
+export type TransliterateOut = S["TransliterateOut"];
+export type TransliterationCandidate = S["TransliterationCandidate"];

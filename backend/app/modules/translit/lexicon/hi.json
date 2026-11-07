@@ -1,0 +1,2460 @@
+{
+ "version": "1",
+ "language": "hi",
+ "source": "Written for Vanshavali: common North-Indian given names and surnames (ADR-0025)",
+ "licence": "CC0-1.0",
+ "reviewed_by": null,
+ "review_status": "pending native-Hindi review (ADR-0025 §8)",
+ "entries": [
+  {
+   "latin": [
+    "Sunita"
+   ],
+   "deva": "सुनीता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Anita"
+   ],
+   "deva": "अनीता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kavita"
+   ],
+   "deva": "कविता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Savita"
+   ],
+   "deva": "सविता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sarita"
+   ],
+   "deva": "सरिता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Geeta",
+    "Gita"
+   ],
+   "deva": "गीता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Seema",
+    "Sima"
+   ],
+   "deva": "सीमा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Reena",
+    "Rina"
+   ],
+   "deva": "रीना",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Meena",
+    "Mina"
+   ],
+   "deva": "मीना",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Neeta",
+    "Nita"
+   ],
+   "deva": "नीता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pooja",
+    "Puja"
+   ],
+   "deva": "पूजा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Priya"
+   ],
+   "deva": "प्रिया",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Priyanka"
+   ],
+   "deva": "प्रियंका",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Neha"
+   ],
+   "deva": "नेहा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sneha"
+   ],
+   "deva": "स्नेहा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Anjali"
+   ],
+   "deva": "अंजलि",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Asha"
+   ],
+   "deva": "आशा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Usha"
+   ],
+   "deva": "उषा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Nisha"
+   ],
+   "deva": "निशा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rekha"
+   ],
+   "deva": "रेखा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Lata"
+   ],
+   "deva": "लता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kamla",
+    "Kamala"
+   ],
+   "deva": "कमला",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vimla",
+    "Vimala"
+   ],
+   "deva": "विमला",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shanti"
+   ],
+   "deva": "शांति",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shakuntala"
+   ],
+   "deva": "शकुंतला",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Lakshmi",
+    "Laxmi"
+   ],
+   "deva": "लक्ष्मी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Saraswati"
+   ],
+   "deva": "सरस्वती",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Parvati"
+   ],
+   "deva": "पार्वती",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Durga"
+   ],
+   "deva": "दुर्गा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Radha"
+   ],
+   "deva": "राधा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sita",
+    "Seeta"
+   ],
+   "deva": "सीता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Gauri"
+   ],
+   "deva": "गौरी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Uma"
+   ],
+   "deva": "उमा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ganga"
+   ],
+   "deva": "गंगा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Yamuna"
+   ],
+   "deva": "यमुना",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kiran"
+   ],
+   "deva": "किरण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Suman"
+   ],
+   "deva": "सुमन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Poonam",
+    "Punam"
+   ],
+   "deva": "पूनम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sapna"
+   ],
+   "deva": "सपना",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shalini"
+   ],
+   "deva": "शालिनी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Deepa",
+    "Dipa"
+   ],
+   "deva": "दीपा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Deepika",
+    "Dipika"
+   ],
+   "deva": "दीपिका",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Jyoti"
+   ],
+   "deva": "ज्योति",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rashmi"
+   ],
+   "deva": "रश्मि",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Smita"
+   ],
+   "deva": "स्मिता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mamta",
+    "Mamata"
+   ],
+   "deva": "ममता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sangeeta",
+    "Sangita"
+   ],
+   "deva": "संगीता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vandana"
+   ],
+   "deva": "वंदना",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Archana"
+   ],
+   "deva": "अर्चना",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Aarti",
+    "Arti"
+   ],
+   "deva": "आरती",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Renu"
+   ],
+   "deva": "रेणु",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Manju"
+   ],
+   "deva": "मंजू",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Anju"
+   ],
+   "deva": "अंजू",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Saroj"
+   ],
+   "deva": "सरोज",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pushpa"
+   ],
+   "deva": "पुष्पा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Indu"
+   ],
+   "deva": "इंदु",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kusum"
+   ],
+   "deva": "कुसुम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shobha"
+   ],
+   "deva": "शोभा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Nirmala"
+   ],
+   "deva": "निर्मला",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kamini"
+   ],
+   "deva": "कामिनी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Madhu"
+   ],
+   "deva": "मधु",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Malti",
+    "Malati"
+   ],
+   "deva": "मालती",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sudha"
+   ],
+   "deva": "सुधा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pratibha"
+   ],
+   "deva": "प्रतिभा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Preeti",
+    "Priti"
+   ],
+   "deva": "प्रीति",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Swati"
+   ],
+   "deva": "स्वाति",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shweta",
+    "Sweta"
+   ],
+   "deva": "श्वेता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ritu"
+   ],
+   "deva": "ऋतु",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Divya"
+   ],
+   "deva": "दिव्या",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kajal"
+   ],
+   "deva": "काजल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Khushi"
+   ],
+   "deva": "ख़ुशी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Aditi"
+   ],
+   "deva": "अदिति",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ananya"
+   ],
+   "deva": "अनन्या",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Diya"
+   ],
+   "deva": "दिया",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Isha"
+   ],
+   "deva": "ईशा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Tanvi"
+   ],
+   "deva": "तन्वी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Riya"
+   ],
+   "deva": "रिया",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Saanvi"
+   ],
+   "deva": "सान्वी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Aaradhya",
+    "Aradhya"
+   ],
+   "deva": "आराध्या",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kriti"
+   ],
+   "deva": "कृति",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Megha"
+   ],
+   "deva": "मेघा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Nandini"
+   ],
+   "deva": "नंदिनी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pallavi"
+   ],
+   "deva": "पल्लवी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Payal"
+   ],
+   "deva": "पायल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rani"
+   ],
+   "deva": "रानी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Devi"
+   ],
+   "deva": "देवी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kumari"
+   ],
+   "deva": "कुमारी",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Bharti",
+    "Bharati"
+   ],
+   "deva": "भारती",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Hema"
+   ],
+   "deva": "हेमा",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Jaya"
+   ],
+   "deva": "जया",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kanchan"
+   ],
+   "deva": "कंचन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Lalita"
+   ],
+   "deva": "ललिता",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Maya"
+   ],
+   "deva": "माया",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shashi"
+   ],
+   "deva": "शशि",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Urmila"
+   ],
+   "deva": "उर्मिला",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ramesh"
+   ],
+   "deva": "रमेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Suresh"
+   ],
+   "deva": "सुरेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mahesh"
+   ],
+   "deva": "महेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Dinesh"
+   ],
+   "deva": "दिनेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rajesh"
+   ],
+   "deva": "राजेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mukesh"
+   ],
+   "deva": "मुकेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rakesh"
+   ],
+   "deva": "राकेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Naresh"
+   ],
+   "deva": "नरेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ganesh"
+   ],
+   "deva": "गणेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Umesh"
+   ],
+   "deva": "उमेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Yogesh"
+   ],
+   "deva": "योगेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Hitesh"
+   ],
+   "deva": "हितेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ritesh"
+   ],
+   "deva": "रितेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kamlesh"
+   ],
+   "deva": "कमलेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Brijesh"
+   ],
+   "deva": "बृजेश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mohan"
+   ],
+   "deva": "मोहन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sohan"
+   ],
+   "deva": "सोहन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rohan"
+   ],
+   "deva": "रोहन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Gopal"
+   ],
+   "deva": "गोपाल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Govind"
+   ],
+   "deva": "गोविंद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Krishna",
+    "Krishan"
+   ],
+   "deva": "कृष्ण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ram"
+   ],
+   "deva": "राम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shyam"
+   ],
+   "deva": "श्याम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Hari"
+   ],
+   "deva": "हरि",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shiv",
+    "Shiva"
+   ],
+   "deva": "शिव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vishnu"
+   ],
+   "deva": "विष्णु",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Raghav"
+   ],
+   "deva": "राघव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Madhav"
+   ],
+   "deva": "माधव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Amit"
+   ],
+   "deva": "अमित",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sumit"
+   ],
+   "deva": "सुमित",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rohit"
+   ],
+   "deva": "रोहित",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mohit"
+   ],
+   "deva": "मोहित",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ankit"
+   ],
+   "deva": "अंकित",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Anil"
+   ],
+   "deva": "अनिल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sunil"
+   ],
+   "deva": "सुनील",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kapil"
+   ],
+   "deva": "कपिल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Nikhil"
+   ],
+   "deva": "निखिल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sahil"
+   ],
+   "deva": "साहिल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vijay"
+   ],
+   "deva": "विजय",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ajay"
+   ],
+   "deva": "अजय",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sanjay"
+   ],
+   "deva": "संजय",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Abhay"
+   ],
+   "deva": "अभय",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Akshay"
+   ],
+   "deva": "अक्षय",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vinod"
+   ],
+   "deva": "विनोद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pramod"
+   ],
+   "deva": "प्रमोद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Manoj"
+   ],
+   "deva": "मनोज",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Dheeraj",
+    "Dhiraj"
+   ],
+   "deva": "धीरज",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Deepak",
+    "Dipak"
+   ],
+   "deva": "दीपक",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ashok"
+   ],
+   "deva": "अशोक",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Alok"
+   ],
+   "deva": "आलोक",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vivek"
+   ],
+   "deva": "विवेक",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pradeep",
+    "Pradip"
+   ],
+   "deva": "प्रदीप",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sandeep",
+    "Sandip"
+   ],
+   "deva": "संदीप",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kuldeep",
+    "Kuldip"
+   ],
+   "deva": "कुलदीप",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rajeev",
+    "Rajiv"
+   ],
+   "deva": "राजीव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sanjeev",
+    "Sanjiv"
+   ],
+   "deva": "संजीव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Naveen",
+    "Navin"
+   ],
+   "deva": "नवीन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Praveen",
+    "Pravin"
+   ],
+   "deva": "प्रवीण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Arun"
+   ],
+   "deva": "अरुण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Varun"
+   ],
+   "deva": "वरुण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Tarun"
+   ],
+   "deva": "तरुण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Karan"
+   ],
+   "deva": "करण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Arjun"
+   ],
+   "deva": "अर्जुन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Aarav",
+    "Arav"
+   ],
+   "deva": "आरव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vivaan",
+    "Vivan"
+   ],
+   "deva": "विवान",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Aditya"
+   ],
+   "deva": "आदित्य",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ayaan",
+    "Ayan"
+   ],
+   "deva": "अयान",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ishaan",
+    "Ishan"
+   ],
+   "deva": "ईशान",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Reyansh"
+   ],
+   "deva": "रेयांश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Arnav"
+   ],
+   "deva": "अर्णव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kabir"
+   ],
+   "deva": "कबीर",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vihaan",
+    "Vihan"
+   ],
+   "deva": "विहान",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Aryan"
+   ],
+   "deva": "आर्यन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Yash"
+   ],
+   "deva": "यश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Dev"
+   ],
+   "deva": "देव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Harsh"
+   ],
+   "deva": "हर्ष",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rahul"
+   ],
+   "deva": "राहुल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Gaurav"
+   ],
+   "deva": "गौरव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Saurabh",
+    "Saurav"
+   ],
+   "deva": "सौरभ",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vaibhav"
+   ],
+   "deva": "वैभव",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Abhishek"
+   ],
+   "deva": "अभिषेक",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ashish"
+   ],
+   "deva": "आशीष",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Manish"
+   ],
+   "deva": "मनीष",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Girish"
+   ],
+   "deva": "गिरीश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Satish"
+   ],
+   "deva": "सतीश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Harish"
+   ],
+   "deva": "हरीश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Jagdish",
+    "Jagadish"
+   ],
+   "deva": "जगदीश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Prakash"
+   ],
+   "deva": "प्रकाश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Subhash"
+   ],
+   "deva": "सुभाष",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kailash"
+   ],
+   "deva": "कैलाश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Avinash"
+   ],
+   "deva": "अविनाश",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vikas"
+   ],
+   "deva": "विकास",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Vikram"
+   ],
+   "deva": "विक्रम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Pawan",
+    "Pavan"
+   ],
+   "deva": "पवन",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mahendra"
+   ],
+   "deva": "महेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Surendra"
+   ],
+   "deva": "सुरेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Narendra"
+   ],
+   "deva": "नरेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rajendra"
+   ],
+   "deva": "राजेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Jitendra"
+   ],
+   "deva": "जितेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Dharmendra"
+   ],
+   "deva": "धर्मेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Virendra"
+   ],
+   "deva": "वीरेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Devendra"
+   ],
+   "deva": "देवेंद्र",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ravi"
+   ],
+   "deva": "रवि",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kavi"
+   ],
+   "deva": "कवि",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shankar"
+   ],
+   "deva": "शंकर",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Bhola"
+   ],
+   "deva": "भोला",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shambhu"
+   ],
+   "deva": "शंभू",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Prem"
+   ],
+   "deva": "प्रेम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kishore",
+    "Kishor"
+   ],
+   "deva": "किशोर",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Lakshman",
+    "Laxman"
+   ],
+   "deva": "लक्ष्मण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Bharat"
+   ],
+   "deva": "भरत",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Shatrughan"
+   ],
+   "deva": "शत्रुघ्न",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Hanuman"
+   ],
+   "deva": "हनुमान",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Jagannath"
+   ],
+   "deva": "जगन्नाथ",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kashinath"
+   ],
+   "deva": "काशीनाथ",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Gorakh"
+   ],
+   "deva": "गोरख",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mahavir"
+   ],
+   "deva": "महावीर",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ranjit"
+   ],
+   "deva": "रणजीत",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Inderjit",
+    "Indrajit"
+   ],
+   "deva": "इंद्रजीत",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Gurpreet"
+   ],
+   "deva": "गुरप्रीत",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Harpreet"
+   ],
+   "deva": "हरप्रीत",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Mohammad",
+    "Mohammed"
+   ],
+   "deva": "मोहम्मद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Ahmad",
+    "Ahmed"
+   ],
+   "deva": "अहमद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Salim",
+    "Saleem"
+   ],
+   "deva": "सलीम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Rahim",
+    "Raheem"
+   ],
+   "deva": "रहीम",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Faisal"
+   ],
+   "deva": "फ़ैसल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Kumar"
+   ],
+   "deva": "कुमार",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Lal"
+   ],
+   "deva": "लाल",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Prasad"
+   ],
+   "deva": "प्रसाद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Nath"
+   ],
+   "deva": "नाथ",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Chand"
+   ],
+   "deva": "चंद",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Dutt",
+    "Datt"
+   ],
+   "deva": "दत्त",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Swaroop",
+    "Swarup"
+   ],
+   "deva": "स्वरूप",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Narayan"
+   ],
+   "deva": "नारायण",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Das"
+   ],
+   "deva": "दास",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Singh"
+   ],
+   "deva": "सिंह",
+   "kind": "given"
+  },
+  {
+   "latin": [
+    "Sharma"
+   ],
+   "deva": "शर्मा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Verma"
+   ],
+   "deva": "वर्मा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Gupta"
+   ],
+   "deva": "गुप्ता",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Mishra",
+    "Misra"
+   ],
+   "deva": "मिश्रा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Tiwari",
+    "Tewari"
+   ],
+   "deva": "तिवारी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Pandey",
+    "Pande"
+   ],
+   "deva": "पांडेय",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Dubey",
+    "Dube"
+   ],
+   "deva": "दुबे",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Chaubey",
+    "Choubey"
+   ],
+   "deva": "चौबे",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Shukla"
+   ],
+   "deva": "शुक्ला",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Tripathi"
+   ],
+   "deva": "त्रिपाठी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Dwivedi"
+   ],
+   "deva": "द्विवेदी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Trivedi"
+   ],
+   "deva": "त्रिवेदी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Chaturvedi"
+   ],
+   "deva": "चतुर्वेदी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Upadhyay",
+    "Upadhyaya"
+   ],
+   "deva": "उपाध्याय",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bajpai",
+    "Vajpayee"
+   ],
+   "deva": "बाजपेयी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Srivastava",
+    "Shrivastava"
+   ],
+   "deva": "श्रीवास्तव",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Saxena"
+   ],
+   "deva": "सक्सेना",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Mathur"
+   ],
+   "deva": "माथुर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Nigam"
+   ],
+   "deva": "निगम",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bhatnagar"
+   ],
+   "deva": "भटनागर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Agarwal",
+    "Agrawal",
+    "Aggarwal"
+   ],
+   "deva": "अग्रवाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bansal"
+   ],
+   "deva": "बंसल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Goel",
+    "Goyal"
+   ],
+   "deva": "गोयल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Jain"
+   ],
+   "deva": "जैन",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Mittal"
+   ],
+   "deva": "मित्तल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Singhal"
+   ],
+   "deva": "सिंघल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Garg"
+   ],
+   "deva": "गर्ग",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kansal"
+   ],
+   "deva": "कंसल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Jindal"
+   ],
+   "deva": "जिंदल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Khandelwal"
+   ],
+   "deva": "खंडेलवाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Yadav"
+   ],
+   "deva": "यादव",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Chauhan"
+   ],
+   "deva": "चौहान",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Rathore",
+    "Rathod"
+   ],
+   "deva": "राठौड़",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Thakur"
+   ],
+   "deva": "ठाकुर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Rajput"
+   ],
+   "deva": "राजपूत",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Tomar"
+   ],
+   "deva": "तोमर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bhadoria",
+    "Bhadauria"
+   ],
+   "deva": "भदौरिया",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Parmar"
+   ],
+   "deva": "परमार",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Solanki"
+   ],
+   "deva": "सोलंकी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Shekhawat"
+   ],
+   "deva": "शेखावत",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kumar"
+   ],
+   "deva": "कुमार",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Prasad"
+   ],
+   "deva": "प्रसाद",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sinha"
+   ],
+   "deva": "सिन्हा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Jha"
+   ],
+   "deva": "झा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Chaudhary",
+    "Choudhary",
+    "Chaudhari"
+   ],
+   "deva": "चौधरी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Patel"
+   ],
+   "deva": "पटेल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Shah"
+   ],
+   "deva": "शाह",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Mehta"
+   ],
+   "deva": "मेहता",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Desai"
+   ],
+   "deva": "देसाई",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Joshi"
+   ],
+   "deva": "जोशी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Pant"
+   ],
+   "deva": "पंत",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bisht"
+   ],
+   "deva": "बिष्ट",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Negi"
+   ],
+   "deva": "नेगी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Rawat"
+   ],
+   "deva": "रावत",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bhatt",
+    "Bhat"
+   ],
+   "deva": "भट्ट",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Nautiyal"
+   ],
+   "deva": "नौटियाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Dobhal"
+   ],
+   "deva": "डोभाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Semwal"
+   ],
+   "deva": "सेमवाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Uniyal"
+   ],
+   "deva": "उनियाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kapoor",
+    "Kapur"
+   ],
+   "deva": "कपूर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Khanna"
+   ],
+   "deva": "खन्ना",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Malhotra"
+   ],
+   "deva": "मल्होत्रा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Mehra"
+   ],
+   "deva": "मेहरा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Chopra"
+   ],
+   "deva": "चोपड़ा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Arora"
+   ],
+   "deva": "अरोड़ा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bhatia"
+   ],
+   "deva": "भाटिया",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sethi"
+   ],
+   "deva": "सेठी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Ahuja"
+   ],
+   "deva": "आहूजा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kohli"
+   ],
+   "deva": "कोहली",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sood"
+   ],
+   "deva": "सूद",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Tandon"
+   ],
+   "deva": "टंडन",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sahni",
+    "Sawhney"
+   ],
+   "deva": "साहनी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Grover"
+   ],
+   "deva": "ग्रोवर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bedi"
+   ],
+   "deva": "बेदी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Gill"
+   ],
+   "deva": "गिल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sandhu"
+   ],
+   "deva": "संधू",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Dhillon"
+   ],
+   "deva": "ढिल्लों",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sidhu"
+   ],
+   "deva": "सिद्धू",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Grewal"
+   ],
+   "deva": "ग्रेवाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kaur"
+   ],
+   "deva": "कौर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Bhardwaj",
+    "Bharadwaj"
+   ],
+   "deva": "भारद्वाज",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Vashisht",
+    "Vashishtha"
+   ],
+   "deva": "वशिष्ठ",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kaushik"
+   ],
+   "deva": "कौशिक",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Gautam"
+   ],
+   "deva": "गौतम",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Rai"
+   ],
+   "deva": "राय",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Roy"
+   ],
+   "deva": "रॉय",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Banerjee"
+   ],
+   "deva": "बनर्जी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Mukherjee"
+   ],
+   "deva": "मुखर्जी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Chatterjee"
+   ],
+   "deva": "चटर्जी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Iyer"
+   ],
+   "deva": "अय्यर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Nair"
+   ],
+   "deva": "नायर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Reddy"
+   ],
+   "deva": "रेड्डी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Rao"
+   ],
+   "deva": "राव",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Naidu"
+   ],
+   "deva": "नायडू",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Khan"
+   ],
+   "deva": "ख़ान",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Ansari"
+   ],
+   "deva": "अंसारी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Siddiqui"
+   ],
+   "deva": "सिद्दीक़ी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Qureshi"
+   ],
+   "deva": "क़ुरैशी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sheikh",
+    "Shaikh"
+   ],
+   "deva": "शेख़",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Saini"
+   ],
+   "deva": "सैनी",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kushwaha"
+   ],
+   "deva": "कुशवाहा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Maurya"
+   ],
+   "deva": "मौर्य",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Pal"
+   ],
+   "deva": "पाल",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Prajapati"
+   ],
+   "deva": "प्रजापति",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Vishwakarma"
+   ],
+   "deva": "विश्वकर्मा",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Sonkar"
+   ],
+   "deva": "सोनकर",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Kashyap"
+   ],
+   "deva": "कश्यप",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Nishad"
+   ],
+   "deva": "निषाद",
+   "kind": "surname"
+  },
+  {
+   "latin": [
+    "Baghel"
+   ],
+   "deva": "बघेल",
+   "kind": "surname"
+  }
+ ]
+}

@@ -40,6 +40,7 @@ from app.models.enums import (
     ParticipantRole,
     PrivacyLevel,
     ProfileStatus,
+    ProvenanceOrigin,
     RelationshipType,
 )
 from app.modules.genealogy import lookup
@@ -193,9 +194,18 @@ def _apply_name_keys(n: NameRecord) -> None:
 
 
 def _new_name(ctx: TreeContext, person_id: uuid.UUID, body: NameIn) -> NameRecord:
-    data = body.model_dump(mode="json", exclude={"date_range"})
+    data = body.model_dump(mode="json", exclude={"date_range", "suggestion"})
     n = NameRecord(tree_id=ctx.tree_id, person_id=person_id, created_by=ctx.user_id, **data)
     n.date_range = {k: date_to_json(v) for k, v in (body.date_range or {}).items()} or None
+    if body.suggestion is not None:
+        # accepted from a transliteration suggestion (ADR-0025 §5): calculated, then confirmed by
+        # this user. The engine id is the server's, never the client's.
+        from app.modules.translit import engine as translit
+
+        n.prov_origin = ProvenanceOrigin.CALCULATION
+        n.prov_algorithm = f"{translit.ENGINE} {translit.VERSION} ({body.suggestion.method})"[:120]
+        n.prov_confirmed_by = ctx.user_id
+        n.prov_confirmed_at = dt.datetime.now(dt.UTC)
     _apply_name_keys(n)
     return n
 

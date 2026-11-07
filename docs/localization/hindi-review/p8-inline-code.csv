@@ -1,5 +1,6 @@
 priority,area,source,key,english,hindi,legal_review,language_ok (yes/no),suggested_hindi,reviewer,notes
 8,inline-code,frontend/src/components/layout/AppShell.tsx,line 17,,वंशावली,,,,,
+8,inline-code,frontend/src/components/person/TransliterationSuggestion.tsx,line 37,,"* ""In Devanagari: सुनीता शर्मा — Add as another name"" (ADR-0025 §7). A suggestion is never applied",,,,,
 8,inline-code,frontend/src/data/masterData/gotras.ts,line 17,,"{ id: '1', name: 'Kashyapa', nameHindi: 'कश्यप', nameTamil: 'கசியப', nameTelugu: 'కశ్యప', nameKannada: 'ಕಶ್ಯಪ', nameMalayalam: 'കശ്യപ', aliases: ['Kashyap', 'Kashyapa', 'Kashyapam', 'Kashyapasa'], pravara: 'Kashyapa, Aghamarshana, Naidhruva', rishi: 'Sage Kashyapa', description: 'One of the most com",,,,,
 8,inline-code,frontend/src/data/masterData/gotras.ts,line 18,,"{ id: '2', name: 'Bharadwaj', nameHindi: 'भरद्वाज', nameTamil: 'பரத்வாஜ', nameTelugu: 'భరద్వాజ', nameKannada: 'ಭರದ್ವಾಜ', nameMalayalam: 'ഭരദ്വാജ്', aliases: ['Bharadwaja', 'Bharathwaj', 'Bhardwaj', 'Bharadwaja'], pravara: 'Angirasa, Bharhaspatya, Bharadwaja', rishi: 'Sage Bharadwaja', description: '",,,,,
 8,inline-code,frontend/src/data/masterData/gotras.ts,line 19,,"{ id: '3', name: 'Vashishtha', nameHindi: 'वशिष्ठ', nameTamil: 'வசிட்ட', nameTelugu: 'వశిష్ఠ', nameKannada: 'ವಶಿಷ್ಠ', nameMalayalam: 'വശിഷ്ഠ', aliases: ['Vasishtha', 'Vasishta', 'Washishtha', 'Vasist'], pravara: 'Vashishtha, Indrapramada, Abhipraraja', rishi: 'Sage Vashishtha', description: 'One of ",,,,,
@@ -79,3 +80,4 @@ priority,area,source,key,english,hindi,legal_review,language_ok (yes/no),suggest
 8,inline-code,frontend/src/lib/names.ts,line 14,,"{ script: ""Deva"", language: ""mr"", label: ""देवनागरी (Marathi)"" },",,,,,
 8,inline-code,frontend/src/lib/names.ts,line 15,,"{ script: ""Deva"", language: ""sa"", label: ""देवनागरी (Sanskrit)"" },",,,,,
 8,inline-code,frontend/src/lib/names.ts,line 28,,"[/[ऀ-ॿ]/, ""Deva"", ""hi""],",,,,,
+8,inline-code,frontend/src/pages/tree/person/SmartAddDialog.tsx,line 46,,"return /[ऀ-ॿ]/.test(text) ? { language: ""hi"", script: ""Deva"" } : { language: ""en"", script: ""Latn"" };",,,,,

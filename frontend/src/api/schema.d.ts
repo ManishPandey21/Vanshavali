@@ -1088,6 +1088,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transliterate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transliterate */
+        post: operations["transliterate_api_v1_transliterate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/life-events": {
         parameters: {
             query?: never;
@@ -5909,6 +5926,7 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"];
             /** @default unknown */
             confidence?: components["schemas"]["Confidence"];
+            suggestion?: components["schemas"]["NameSuggestionIn"] | null;
         };
         /** NameOut */
         NameOut: {
@@ -5958,6 +5976,20 @@ export interface components {
              * @default
              */
             display?: string;
+        };
+        /**
+         * NameSuggestionIn
+         * @description Marks a name the user accepted from a transliteration suggestion (ADR-0025 §5).
+         *
+         *     The server, not the client, records the provenance: origin ``calculation``, its own engine
+         *     version and the user as the one who confirmed it.
+         */
+        NameSuggestionIn: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "lexicon" | "rules";
         };
         /**
          * NameType
@@ -8648,6 +8680,37 @@ export interface components {
              * @default []
              */
             to_holders?: components["schemas"]["HolderOut"][];
+        };
+        /** TransliterateIn */
+        TransliterateIn: {
+            /** Text */
+            text: string;
+            /**
+             * Target Script
+             * @enum {string}
+             */
+            target_script: "Deva" | "Latn";
+        };
+        /** TransliterateOut */
+        TransliterateOut: {
+            /** Candidates */
+            candidates: components["schemas"]["TransliterationCandidate"][];
+            /** Engine */
+            engine: string;
+            /** Version */
+            version: string;
+            /** Lexicon Version */
+            lexicon_version: string;
+        };
+        /** TransliterationCandidate */
+        TransliterationCandidate: {
+            /** Text */
+            text: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "lexicon" | "rules";
         };
         /** TreeCreate */
         TreeCreate: {
@@ -11437,6 +11500,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TreeTermOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transliterate_api_v1_transliterate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransliterateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransliterateOut"];
                 };
             };
             /** @description Validation Error */

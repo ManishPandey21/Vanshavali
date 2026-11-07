@@ -212,7 +212,13 @@ function NameDialog({ personId, name, onClose }: { personId: string; name: NameO
     name ? toDraft(name) : { type: "transliteration", language: "hi", script: "Deva", given_name: "", surname: "", is_preferred: false, evidence_status: "USER_ASSERTION" },
   );
   const [err, setErr] = useState<string | null>(null);
+  // names accepted from a transliteration suggestion (ADR-0025), saved with this one
+  const [extra, setExtra] = useState<NameDraft[]>([]);
   const mutation = name ? update : add;
+  const saveExtra = async () => {
+    for (const n of extra) await add.mutateAsync(cleanName(n));
+    onClose();
+  };
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!nameHasContent(draft)) {
@@ -224,8 +230,8 @@ function NameDialog({ personId, name, onClose }: { personId: string; name: NameO
       // PATCH: send every editable part so cleared fields become null.
       const body: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(draft)) body[k] = typeof v === "string" ? v.trim() || null : v;
-      update.mutate({ id: name.id, body }, { onSuccess: onClose });
-    } else add.mutate(cleanName(draft), { onSuccess: onClose });
+      update.mutate({ id: name.id, body }, { onSuccess: () => void saveExtra() });
+    } else add.mutate(cleanName(draft), { onSuccess: () => void saveExtra() });
   };
   return (
     <Dialog
@@ -245,7 +251,17 @@ function NameDialog({ personId, name, onClose }: { personId: string; name: NameO
       }
     >
       <form id="name-form" onSubmit={submit} noValidate className="space-y-3">
-        <NameFields index={0} value={draft} onChange={setDraft} error={err} />
+        <NameFields index={0} value={draft} onChange={setDraft} error={err} onAddName={(n) => setExtra((xs) => [...xs, n])} />
+        {extra.length > 0 && (
+          <p className="text-xs text-ink-muted">
+            {t("translit.addedNote")}{" "}
+            {extra.map((n) => (
+              <span key={`${n.given_name}|${n.surname}`} lang={n.language ?? undefined} className="mr-2 font-medium text-ink">
+                {[n.given_name, n.surname].filter(Boolean).join(" ")}
+              </span>
+            ))}
+          </p>
+        )}
         <ErrorAlert error={mutation.error} />
       </form>
     </Dialog>

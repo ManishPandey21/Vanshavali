@@ -177,6 +177,7 @@ export function PersonForm({
             onChange={(v) => setName(i, v)}
             onRemove={draft.names.length > 1 ? () => set({ names: draft.names.filter((_, j) => j !== i).map((x, j, arr) => (arr.some((y) => y.is_preferred) ? x : { ...x, is_preferred: j === 0 })) }) : undefined}
             error={i === 0 && errors.names ? t(errors.names) : null}
+            onAddName={(extra) => set({ names: [...draft.names, extra] })}
           />
         ))}
         <Button

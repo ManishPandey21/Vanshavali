@@ -7,7 +7,10 @@ source with the current Hindi text. Every user-facing Hindi string appears exact
 - the SPA locale (frontend/src/i18n/locales/hi.json);
 - the kinship terms (frontend/src/lib/kinship.ts);
 - the server-owned consent statements;
-- the account emails.
+- the account emails;
+- the Hindi labels of the master-data packs (backend/app/modules/masterdata/packs/*.json, ADR-0018);
+- the name transliteration lexicon (backend/app/modules/translit/lexicon/hi.json, ADR-0025): a wrong
+  pair would be suggested to every family, so each pair is reviewed.
 
 Blank columns are left for the reviewer. Re-run it after any wording change: rows keep their
 `source` + `key`, so a reviewer can diff the new pack against the reviewed one.
@@ -208,6 +211,38 @@ def rows() -> list[dict[str, object]]:
                 "key": chain,
                 "english": " → ".join(chain.split(",")) + " (chain)",
                 "hindi": term,
+                "legal_review": "",
+            }
+        )
+    # Master-data pack labels (ADR-0018): suggestion lists families pick from
+    for pack in sorted((ROOT / "backend/app/modules/masterdata/packs").glob("*.json")):
+        data = json.loads(pack.read_text(encoding="utf-8"))
+        for term in data.get("terms", []):
+            labels = term.get("labels", {})
+            if labels.get("hi"):
+                out.append(
+                    {
+                        "priority": 8,
+                        "area": "master-data",
+                        "source": pack.relative_to(ROOT).as_posix(),
+                        "key": f"{data['key']}.{term['code']}",
+                        "english": labels.get("en", ""),
+                        "hindi": labels["hi"],
+                        "legal_review": "",
+                    }
+                )
+    # Name transliteration lexicon (ADR-0025): every pair is suggested to every family
+    lex_path = ROOT / "backend/app/modules/translit/lexicon/hi.json"
+    lex = json.loads(lex_path.read_text(encoding="utf-8"))
+    for e in lex["entries"]:
+        out.append(
+            {
+                "priority": 5,
+                "area": "name-lexicon",
+                "source": lex_path.relative_to(ROOT).as_posix(),
+                "key": f"{e['kind']}:{e['latin'][0]}",
+                "english": " / ".join(e["latin"]),
+                "hindi": e["deva"],
                 "legal_review": "",
             }
         )
