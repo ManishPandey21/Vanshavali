@@ -24,6 +24,7 @@ from app.models.base import (
     Base,
     EvidenceMixin,
     ProvenanceMixin,
+    ReviewMixin,
     TreeScopedMixin,
     enum_column,
     tree_fk,
@@ -47,7 +48,7 @@ from app.models.enums import (
 )
 
 
-class Person(TreeScopedMixin, Base):
+class Person(TreeScopedMixin, ReviewMixin, Base):
     __tablename__ = "person"
     __table_args__ = (tree_unique("person"), tree_fk(["merged_into_id"], "person", ondelete="SET NULL"))
 
@@ -121,7 +122,7 @@ class MergeRecord(TreeScopedMixin, Base):
     reverted_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
 
 
-class NameRecord(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
+class NameRecord(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, ReviewMixin, Base):
     __tablename__ = "name_record"
     __table_args__ = (
         tree_unique("name_record"),
@@ -209,7 +210,7 @@ class Place(TreeScopedMixin, Base):
     )
 
 
-class Relationship(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
+class Relationship(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, ReviewMixin, Base):
     """Typed edge. Parent types: person_a = parent, person_b = child. Symmetric types: a < b."""
 
     __tablename__ = "relationship"
@@ -237,7 +238,7 @@ class Relationship(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text)
 
 
-class Event(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
+class Event(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, ReviewMixin, Base):
     __tablename__ = "event"
     __table_args__ = (
         tree_unique("event"),

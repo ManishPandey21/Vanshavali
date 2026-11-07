@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.ids import uuid7
 from app.models.base import Base, TimestampMixin, TreeScopedMixin, enum_column, tree_fk, tree_unique
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode
+from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode, ReviewPolicy
 
 
 class Tree(TimestampMixin, Base):
@@ -26,6 +26,12 @@ class Tree(TimestampMixin, Base):
         enum_column(PrivacyLevel, "default_person_privacy"),
         default=PrivacyLevel.TREE_MEMBERS,
         server_default=PrivacyLevel.TREE_MEMBERS.value,
+    )
+    # which direct writes need family review (ADR-0021 §1); off = everything is written directly
+    review_policy: Mapped[ReviewPolicy] = mapped_column(
+        enum_column(ReviewPolicy),
+        default=ReviewPolicy.OFF,
+        server_default=ReviewPolicy.OFF.value,
     )
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="SET NULL")

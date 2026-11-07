@@ -12,6 +12,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     ForeignKeyConstraint,
+    Integer,
     MetaData,
     String,
     Text,
@@ -22,7 +23,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 from app.core.ids import uuid7
-from app.models.enums import Confidence, EvidenceStatus, ProvenanceOrigin
+from app.models.enums import Confidence, EvidenceStatus, ProvenanceOrigin, ReviewState
 
 NAMING = {
     "ix": "ix_%(column_0_label)s",
@@ -134,3 +135,21 @@ class ProvenanceMixin:
     prov_extracted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     prov_confirmed_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     prov_confirmed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ReviewMixin:
+    """Revision counter and family review state (ADR-0021 §3, §6).
+
+    ``revision`` is incremented by every change to the record's facts (``app.modules.review.revisions``
+    does this in one flush hook for every write path). ``review_state`` is family review, never
+    evidence: any later change sets it back to ``unreviewed``.
+    """
+
+    revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    review_state: Mapped[ReviewState] = mapped_column(
+        enum_column(ReviewState),
+        default=ReviewState.UNREVIEWED,
+        server_default=ReviewState.UNREVIEWED.value,
+    )
+    review_state_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    review_state_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))

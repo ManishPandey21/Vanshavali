@@ -63,6 +63,7 @@ from app.modules.genealogy.schemas import (
 )
 from app.modules.genealogy.serialize import name_display
 from app.modules.geo import service as geo_service
+from app.modules.review import policy as review_policy
 
 
 # ---------------------------------------------------------------- places
@@ -283,6 +284,7 @@ def update_name(ctx: TreeContext, person_id: uuid.UUID, name_id: uuid.UUID, body
     n = lookup.get_name(ctx, name_id)
     if n.person_id != person.id:
         raise NotFound("Name not found")
+    review_policy.require_direct(ctx, "all", [person.id], [n])
     changes = body.model_dump(mode="json", exclude_unset=True)
     preferred = changes.pop("is_preferred", None)
     for k, v in changes.items():
@@ -303,6 +305,7 @@ def delete_name(ctx: TreeContext, person_id: uuid.UUID, name_id: uuid.UUID) -> N
     n = lookup.get_name(ctx, name_id)
     if n.person_id != person.id:
         raise NotFound("Name not found")
+    review_policy.require_direct(ctx, "all", [person.id], [n])
     remaining = ctx.db.scalar(
         select(func.count())
         .select_from(NameRecord)
@@ -509,6 +512,7 @@ def get_event_checked(ctx: TreeContext, event_id: uuid.UUID) -> tuple[Event, uui
 def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Event:
     e, principal = get_event_checked(ctx, event_id)
     ctx.require(Permission.PERSON_WRITE, person_id=principal)
+    review_policy.require_direct(ctx, "all", [principal], [e])
     fields = set(body.model_fields_set)
     core = fields & (_CORE_FIELDS | {"origin_place_id"})
     _apply_event_core(ctx, e, body, core)
@@ -529,6 +533,7 @@ def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Ev
 def delete_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
     e, principal = get_event_checked(ctx, event_id)
     ctx.require(Permission.PERSON_WRITE, person_id=principal)
+    review_policy.require_direct(ctx, "all", [principal], [e])
     ctx.db.execute(
         sa_delete(EventParticipant).where(
             EventParticipant.tree_id == ctx.tree_id, EventParticipant.event_id == e.id
@@ -566,6 +571,7 @@ def create_person(ctx: TreeContext, body: PersonCreate, *, provisional: bool = F
     )
     ctx.db.add(person)
     ctx.db.flush()
+    review_policy.remember_new_person(ctx, person.id)  # links to a new person are additions (§1)
     names = [] if provisional else [_new_name(ctx, person.id, n) for n in body.names]
     for n in names:
         ctx.db.add(n)
@@ -603,6 +609,7 @@ def create_person(ctx: TreeContext, body: PersonCreate, *, provisional: bool = F
 def update_person(ctx: TreeContext, person_id: uuid.UUID, body: PersonUpdate) -> Person:
     person = lookup.get_person(ctx, person_id)
     ctx.require(Permission.PERSON_WRITE, person_id=person.id)
+    review_policy.require_direct(ctx, "all", [person.id], [person])
     changes = body.model_dump(exclude_unset=True)
     if "profile_status" in changes and changes["profile_status"] != person.profile_status:
         audit.log(
@@ -663,6 +670,7 @@ def set_privacy(ctx: TreeContext, subject: Subject, body: PrivacyUpdate) -> Pers
 def delete_person(ctx: TreeContext, person_id: uuid.UUID) -> None:
     person = lookup.get_person(ctx, person_id)
     ctx.require(Permission.PERSON_WRITE, person_id=person.id)
+    review_policy.require_direct(ctx, "all", [person.id], [person])
     person.deleted_at = dt.datetime.now(dt.UTC)
     person.updated_by = ctx.user_id
     audit.log(ctx, "person.deleted", target_type="person", target_id=person.id)
@@ -738,6 +746,9 @@ def create_relationship(ctx: TreeContext, body: RelationshipIn, **provenance: An
     lookup.get_person(ctx, a)
     lookup.get_person(ctx, b)
     _require_rel_write(ctx, a, b)
+    if not (review_policy.is_new_person(ctx, a) or review_policy.is_new_person(ctx, b)):
+        # linking two people who were already in the tree is a change, not an addition (§1)
+        review_policy.require_direct(ctx, "structure", [a, b], [])
     t = body.type
     if t in PARENT_TYPES:
         if is_ancestor(ctx, b, a) or a == b:
@@ -805,6 +816,7 @@ def update_relationship(ctx: TreeContext, rel_id: uuid.UUID, body: RelationshipU
     lookup.get_person(ctx, rel.person_a_id)
     lookup.get_person(ctx, rel.person_b_id)
     _require_rel_write(ctx, rel.person_a_id, rel.person_b_id)
+    review_policy.require_direct(ctx, "structure", [rel.person_a_id, rel.person_b_id], [rel])
     fields = body.model_fields_set
     if "type" in fields and body.type is not None and body.type != rel.type:
         old_parent = rel.type in PARENT_TYPES
@@ -845,6 +857,7 @@ def delete_relationship(ctx: TreeContext, rel_id: uuid.UUID) -> None:
     lookup.get_person(ctx, rel.person_a_id)
     lookup.get_person(ctx, rel.person_b_id)
     _require_rel_write(ctx, rel.person_a_id, rel.person_b_id)
+    review_policy.require_direct(ctx, "structure", [rel.person_a_id, rel.person_b_id], [rel])
     # detach children linked to this union rather than deleting their parentage
     for child_edge in ctx.db.scalars(
         select(Relationship).where(Relationship.tree_id == ctx.tree_id, Relationship.union_id == rel.id)
@@ -979,6 +992,55 @@ def relationships_of(ctx: TreeContext, person_id: uuid.UUID) -> list[Relationshi
 
 
 def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
+    """Erase, without copying the erased values into revision history, and remove that history.
+
+    The erasure is flushed while the revision hook is off, then every revision row that belongs to
+    the person (their own record, names, claims, vitals and relationships) is deleted (ADR-0021 §3).
+    """
+    from app.models import RecordRevision
+    from app.modules.review import revisions
+
+    ev_ids = set(
+        ctx.db.scalars(
+            select(EventParticipant.event_id).where(
+                EventParticipant.tree_id == ctx.tree_id, EventParticipant.person_id == person_id
+            )
+        )
+    )
+    record_ids = set(ev_ids)
+    record_ids |= set(
+        ctx.db.scalars(
+            select(NameRecord.id).where(NameRecord.tree_id == ctx.tree_id, NameRecord.person_id == person_id)
+        )
+    )
+    record_ids |= set(
+        ctx.db.scalars(
+            select(Relationship.id).where(
+                Relationship.tree_id == ctx.tree_id,
+                or_(Relationship.person_a_id == person_id, Relationship.person_b_id == person_id),
+            )
+        )
+    )
+    from app.models import Assertion
+    from app.modules.review import service as review_service
+
+    record_ids |= set(
+        ctx.db.scalars(
+            select(Assertion.id).where(Assertion.tree_id == ctx.tree_id, Assertion.person_id == person_id)
+        )
+    )
+    with revisions.suppressed(ctx.db):
+        person = _erase_person(ctx, person_id, reason)
+        ctx.db.flush()
+    review_service.on_person_erased(ctx, person_id, record_ids)
+    conds = [RecordRevision.person_id == person_id, RecordRevision.person_b_id == person_id]
+    if ev_ids:
+        conds.append(RecordRevision.record_id.in_(ev_ids))
+    ctx.db.execute(sa_delete(RecordRevision).where(RecordRevision.tree_id == ctx.tree_id, or_(*conds)))
+    return person
+
+
+def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
     """Privacy erasure (PRS §54): remove personal data but keep a placeholder so the tree's shape holds.
 
     Names, events, heritage/astrology claims, notes and contact data are deleted; relationships are

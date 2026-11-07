@@ -28,6 +28,7 @@ class Permission(StrEnum):
     GEDCOM_IMPORT = "gedcom.import"
     GEDCOM_EXPORT = "gedcom.export"
     AUDIT_READ = "audit.read"
+    CHANGE_REVIEW = "change.review"  # decide proposed changes and challenges (ADR-0021 §4)
 
 
 P = Permission
@@ -48,6 +49,7 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.DOCUMENT_UPLOAD,
             P.EXTRACTION_REVIEW,
             P.ASTROLOGY_WRITE,
+            P.CHANGE_REVIEW,  # within their branch (BRANCH_SCOPED_WRITES)
         }
     ),
     Role.CONTRIBUTOR: frozenset(
@@ -67,6 +69,8 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
     ),
     Role.RESEARCHER: frozenset({P.TREE_READ, P.SOURCE_WRITE, P.ASSERTION_WRITE}),
     Role.VIEWER: frozenset({P.TREE_READ}),
+    # reviews proposed changes and challenges; combine with CONTRIBUTOR to also edit (ADR-0021 §4)
+    Role.REVIEWER: frozenset({P.TREE_READ, P.CHANGE_REVIEW}),
     Role.DOCUMENT_CUSTODIAN: frozenset(
         {
             P.TREE_READ,
@@ -91,7 +95,9 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
 }
 
 # Permissions that, for branch-scoped memberships, only apply to people inside the branch.
-BRANCH_SCOPED_WRITES = frozenset({P.PERSON_WRITE, P.RELATIONSHIP_WRITE, P.ASSERTION_WRITE, P.ASTROLOGY_WRITE})
+BRANCH_SCOPED_WRITES = frozenset(
+    {P.PERSON_WRITE, P.RELATIONSHIP_WRITE, P.ASSERTION_WRITE, P.ASTROLOGY_WRITE, P.CHANGE_REVIEW}
+)
 
 ADMIN_ROLES = frozenset({Role.OWNER, Role.FAMILY_ADMIN})
 
