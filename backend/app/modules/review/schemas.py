@@ -108,7 +108,7 @@ class CommentOut(ApiModel):
     created_at: dt.datetime
 
 
-class ProposalOut(ApiModel):
+class ChangeProposalOut(ApiModel):
     id: uuid.UUID
     kind: ProposalKind
     status: ChangeProposalStatus
@@ -219,7 +219,7 @@ class DuplicateCheckIn(ApiModel):
     exclude_ids: list[uuid.UUID] = Field(default=[], max_length=20)
 
 
-class DuplicateMatch(ApiModel):
+class EntryDuplicateMatch(ApiModel):
     person: PersonSummary
     score: float
     likely: bool
@@ -227,4 +227,4 @@ class DuplicateMatch(ApiModel):
 
 
 class DuplicateCheckOut(ApiModel):
-    candidates: list[DuplicateMatch]
+    candidates: list[EntryDuplicateMatch]

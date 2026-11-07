@@ -20,6 +20,8 @@ import { Field, TextArea } from "../../../components/ui/form";
 import { Tabs } from "../../../components/ui/Tabs";
 import { Badge } from "../../../components/ui/Badge";
 import { OverviewTab } from "./OverviewTab";
+import { HistoryTab } from "./HistoryTab";
+import { PendingChangesNotice } from "../../../components/review/PendingChangesNotice";
 import { TimelineTab } from "./TimelineTab";
 import { EventsTab } from "./EventsTab";
 import { PhotosTab } from "./PhotosTab";
@@ -32,7 +34,7 @@ import { DocumentsTab, PropertyInterestsSection } from "./DocumentsTab";
 import { ApiError } from "../../../api/client";
 import { ClaimInviteDialog } from "../../../components/consent/ClaimInviteShare";
 
-const TABS = ["overview", "family", "events", "timeline", "photos", "heritage", "documents", "astrology", "property", "sources", "households", "visualizations", "privacy"] as const;
+const TABS = ["overview", "family", "events", "timeline", "photos", "heritage", "documents", "astrology", "property", "sources", "households", "visualizations", "history", "privacy"] as const;
 type TabId = (typeof TABS)[number];
 
 export function PersonProfilePage() {
@@ -131,6 +133,7 @@ export function PersonProfilePage() {
           </div>
         </div>
       </header>
+      <PendingChangesNotice treeId={treeId} personId={p.id} />
 
       <Tabs
         label={t("person.sections")}
@@ -154,6 +157,7 @@ export function PersonProfilePage() {
         {tab === "property" && canProperty && <PropertyInterestsSection personId={p.id} />}
         {tab === "sources" && <SourcesTab personId={p.id} canEdit={!!p.can_edit} />}
         {tab === "households" && <HouseholdsTab person={p} />}
+        {tab === "history" && <HistoryTab person={p} />}
         {tab === "privacy" && canPrivacy && <PrivacyTab person={p} isClaimant={isClaimant} />}
       </Tabs>
 

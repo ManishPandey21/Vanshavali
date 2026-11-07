@@ -267,3 +267,19 @@ export type GeoUnitsPage = S["GeoUnitsPage"];
 export type GeoUnitResponse = S["GeoUnitResponse"];
 export type PincodeOut = S["PincodeOut"];
 export type PlaceLgdNote = S["PlaceLgdNote"];
+
+// change proposals, family review and duplicates at entry (ADR-0021)
+export type ReviewPolicy = S["ReviewPolicy"];
+export type ReviewState = S["ReviewState"];
+export type ReviewTarget = S["ReviewTarget"];
+export type ProposalOp = S["ProposalOp"];
+export type ProposalIn = S["ProposalIn"];
+export type ProposalItemIn = S["ProposalItemIn"];
+export type ChangeProposalOut = S["ChangeProposalOut"];
+export type ProposalSummary = S["ProposalSummary"];
+export type ChallengeIn = S["ChallengeIn"];
+export type RevisionOut = S["RevisionOut"];
+export type RevertOut = S["RevertOut"];
+export type NotificationsOut = S["NotificationsOut"];
+export type DuplicateCheckIn = S["DuplicateCheckIn"];
+export type DuplicateCheckOut = S["DuplicateCheckOut"];

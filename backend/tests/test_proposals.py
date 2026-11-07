@@ -218,7 +218,7 @@ def test_propose_review_and_apply(owner: ApiClient, tree: dict[str, Any], member
     assert [
         p["id"] for p in reviewer.get(f"/trees/{tid}/proposals", params={"view": "to_review"}).json()["items"]
     ] == [prop["id"]]
-    notes = reviewer.get(f"/trees/{tid}/notifications").json()
+    notes = reviewer.get(f"/trees/{tid}/inbox").json()
     assert notes["unread"] == 1 and "Cousin Ravi proposed 1 change(s)" in notes["items"][0]["text"]
     # a reviewer cannot write directly
     assert reviewer.patch(f"/trees/{tid}/relationships/{rel['id']}", json={"notes": "x"}).status_code == 403
@@ -234,7 +234,7 @@ def test_propose_review_and_apply(owner: ApiClient, tree: dict[str, Any], member
         stored = db.get(Relationship, rel["id"])
         assert stored is not None and stored.notes == "adopted, per the 1962 deed"
         assert stored.review_state.value == "family_reviewed"
-    assert contributor.get(f"/trees/{tid}/notifications").json()["items"][0]["kind"] == "proposal_accepted"
+    assert contributor.get(f"/trees/{tid}/inbox").json()["items"][0]["kind"] == "proposal_accepted"
 
 
 def test_a_stale_proposal_is_never_applied_and_can_be_rebased(
@@ -260,7 +260,7 @@ def test_a_stale_proposal_is_never_applied_and_can_be_rebased(
         from app.models import Relationship
 
         assert db.get(Relationship, rel["id"]).notes == "owner's note"  # type: ignore[union-attr]
-    assert contributor.get(f"/trees/{tid}/notifications").json()["items"][0]["kind"] == "proposal_stale"
+    assert contributor.get(f"/trees/{tid}/inbox").json()["items"][0]["kind"] == "proposal_stale"
     # rebase: a fresh proposal, needing a fresh review
     assert owner.post(f"/trees/{tid}/proposals/{prop['id']}/rebase").status_code == 403
     new = contributor.post(f"/trees/{tid}/proposals/{prop['id']}/rebase")
@@ -386,7 +386,7 @@ def test_a_challenge_marks_nothing_until_upheld(
     owner: ApiClient, tree: dict[str, Any], member_factory: Any
 ) -> None:
     tid = tree["id"]
-    _, son, rel = family(owner, tid)
+    _, _, rel = family(owner, tid)
     viewer = member_factory(["VIEWER"], name="Nana")
     r = viewer.post(
         f"/trees/{tid}/challenges",
@@ -398,7 +398,7 @@ def test_a_challenge_marks_nothing_until_upheld(
         from app.models import Relationship
 
         assert db.get(Relationship, rel["id"]).review_state.value == "unreviewed"  # type: ignore[union-attr]
-    assert owner.get(f"/trees/{tid}/notifications").json()["items"][0]["kind"] in (
+    assert owner.get(f"/trees/{tid}/inbox").json()["items"][0]["kind"] in (
         "challenge_opened",
         "proposal_to_review",
     )
@@ -413,7 +413,7 @@ def test_a_challenge_marks_nothing_until_upheld(
         stored = db.get(Relationship, rel["id"])
         assert stored is not None and stored.review_state.value == "contested"
         assert stored.evidence_status.value == "DISPUTED"
-    assert viewer.get(f"/trees/{tid}/notifications").json()["items"][0]["kind"] == "challenge_upheld"
+    assert viewer.get(f"/trees/{tid}/inbox").json()["items"][0]["kind"] == "challenge_upheld"
 
 
 def test_open_challenges_are_capped_per_member(

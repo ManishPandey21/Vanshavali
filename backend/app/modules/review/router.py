@@ -28,6 +28,7 @@ from app.modules.genealogy import lookup
 from app.modules.review import duplicates, history, notify, policy, redaction, service
 from app.modules.review.schemas import (
     ChallengeIn,
+    ChangeProposalOut,
     CommentIn,
     CommentOut,
     DecisionIn,
@@ -37,7 +38,6 @@ from app.modules.review.schemas import (
     NotificationsReadIn,
     ProposalIn,
     ProposalItemOut,
-    ProposalOut,
     ProposalSummary,
     RejectIn,
     RevertOut,
@@ -76,7 +76,7 @@ def _item_label(item: ChangeProposalItem) -> str:
     return f"{verb} {item.target_type.value.replace('_', ' ')}"
 
 
-def _out(ctx: TreeCtx, p: ChangeProposal) -> ProposalOut:
+def _out(ctx: TreeCtx, p: ChangeProposal) -> ChangeProposalOut:
     items = service.items_of(ctx, p.id)
     comments = list(
         ctx.db.scalars(
@@ -110,7 +110,7 @@ def _out(ctx: TreeCtx, p: ChangeProposal) -> ProposalOut:
         )
     )
     mine = ctx.user_id is not None and p.proposer_id == ctx.user_id
-    return ProposalOut(
+    return ChangeProposalOut(
         id=p.id,
         kind=p.kind,
         status=p.status,
@@ -178,8 +178,8 @@ def set_review_policy(body: ReviewPolicyIn, ctx: TreeCtx) -> ReviewPolicyIn:
 
 
 # ------------------------------------------------------------------ proposals
-@router.post("/proposals", response_model=ProposalOut, status_code=status.HTTP_201_CREATED)
-def create_proposal(body: ProposalIn, ctx: TreeCtx) -> ProposalOut:
+@router.post("/proposals", response_model=ChangeProposalOut, status_code=status.HTTP_201_CREATED)
+def create_proposal(body: ProposalIn, ctx: TreeCtx) -> ChangeProposalOut:
     ctx.require(Permission.TREE_READ)
     return _out(ctx, service.create_proposal(ctx, body))
 
@@ -247,64 +247,68 @@ def list_proposals(
     )
 
 
-@router.get("/proposals/{proposal_id}", response_model=ProposalOut)
-def get_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ProposalOut:
+@router.get("/proposals/{proposal_id}", response_model=ChangeProposalOut)
+def get_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ChangeProposalOut:
     return _out(ctx, service.get_proposal(ctx, proposal_id))
 
 
-@router.post("/proposals/{proposal_id}/submit", response_model=ProposalOut)
-def submit_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ProposalOut:
+@router.post("/proposals/{proposal_id}/submit", response_model=ChangeProposalOut)
+def submit_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ChangeProposalOut:
     return _out(ctx, service.submit(ctx, proposal_id))
 
 
-@router.post("/proposals/{proposal_id}/withdraw", response_model=ProposalOut)
-def withdraw_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ProposalOut:
+@router.post("/proposals/{proposal_id}/withdraw", response_model=ChangeProposalOut)
+def withdraw_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ChangeProposalOut:
     return _out(ctx, service.withdraw(ctx, proposal_id))
 
 
 @router.post(
-    "/proposals/{proposal_id}/approve", response_model=ProposalOut, responses={409: {"description": "Stale"}}
+    "/proposals/{proposal_id}/approve",
+    response_model=ChangeProposalOut,
+    responses={409: {"description": "Stale"}},
 )
 def approve_proposal(proposal_id: uuid.UUID, body: DecisionIn, ctx: TreeCtx) -> Any:
     return _stale_response(ctx, service.approve(ctx, proposal_id, body.note))
 
 
-@router.post("/proposals/{proposal_id}/reject", response_model=ProposalOut)
-def reject_proposal(proposal_id: uuid.UUID, body: RejectIn, ctx: TreeCtx) -> ProposalOut:
+@router.post("/proposals/{proposal_id}/reject", response_model=ChangeProposalOut)
+def reject_proposal(proposal_id: uuid.UUID, body: RejectIn, ctx: TreeCtx) -> ChangeProposalOut:
     return _out(ctx, service.reject(ctx, proposal_id, body.note))
 
 
 @router.post(
-    "/proposals/{proposal_id}/rebase", response_model=ProposalOut, status_code=status.HTTP_201_CREATED
+    "/proposals/{proposal_id}/rebase", response_model=ChangeProposalOut, status_code=status.HTTP_201_CREATED
 )
-def rebase_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ProposalOut:
+def rebase_proposal(proposal_id: uuid.UUID, ctx: TreeCtx) -> ChangeProposalOut:
     return _out(ctx, service.rebase(ctx, proposal_id))
 
 
 @router.post(
-    "/proposals/{proposal_id}/comments", response_model=ProposalOut, status_code=status.HTTP_201_CREATED
+    "/proposals/{proposal_id}/comments", response_model=ChangeProposalOut, status_code=status.HTTP_201_CREATED
 )
-def comment(proposal_id: uuid.UUID, body: CommentIn, ctx: TreeCtx) -> ProposalOut:
+def comment(proposal_id: uuid.UUID, body: CommentIn, ctx: TreeCtx) -> ChangeProposalOut:
     service.add_comment(ctx, proposal_id, body.body)
     return _out(ctx, service.get_proposal(ctx, proposal_id))
 
 
 # ------------------------------------------------------------------ challenges
-@router.post("/challenges", response_model=ProposalOut, status_code=status.HTTP_201_CREATED)
-def create_challenge(body: ChallengeIn, ctx: TreeCtx) -> ProposalOut:
+@router.post("/challenges", response_model=ChangeProposalOut, status_code=status.HTTP_201_CREATED)
+def create_challenge(body: ChallengeIn, ctx: TreeCtx) -> ChangeProposalOut:
     ctx.require(Permission.TREE_READ)
     return _out(ctx, service.create_challenge(ctx, body))
 
 
 @router.post(
-    "/proposals/{proposal_id}/uphold", response_model=ProposalOut, responses={409: {"description": "Stale"}}
+    "/proposals/{proposal_id}/uphold",
+    response_model=ChangeProposalOut,
+    responses={409: {"description": "Stale"}},
 )
 def uphold(proposal_id: uuid.UUID, body: UpholdIn, ctx: TreeCtx) -> Any:
     return _stale_response(ctx, service.uphold(ctx, proposal_id, body.note, body.mark_disputed))
 
 
-@router.post("/proposals/{proposal_id}/dismiss", response_model=ProposalOut)
-def dismiss(proposal_id: uuid.UUID, body: RejectIn, ctx: TreeCtx) -> ProposalOut:
+@router.post("/proposals/{proposal_id}/dismiss", response_model=ChangeProposalOut)
+def dismiss(proposal_id: uuid.UUID, body: RejectIn, ctx: TreeCtx) -> ChangeProposalOut:
     return _out(ctx, service.dismiss(ctx, proposal_id, body.note))
 
 
@@ -347,7 +351,7 @@ def revert(revision_id: uuid.UUID, ctx: TreeCtx) -> RevertOut:
 
 
 # ------------------------------------------------------------------ notifications
-@router.get("/notifications", response_model=NotificationsOut)
+@router.get("/inbox", response_model=NotificationsOut)
 def notifications(
     ctx: TreeCtx, cursor: str | None = None, limit: int = Query(default=30, ge=1, le=100)
 ) -> NotificationsOut:
@@ -358,7 +362,7 @@ def notifications(
     )  # type: ignore[arg-type]
 
 
-@router.post("/notifications/read", response_model=NotificationsOut)
+@router.post("/inbox/read", response_model=NotificationsOut)
 def notifications_read(body: NotificationsReadIn, ctx: TreeCtx) -> NotificationsOut:
     notify.mark_read(ctx, body.ids)
     ctx.db.flush()

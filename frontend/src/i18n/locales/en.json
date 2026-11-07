@@ -111,6 +111,7 @@
     "people": "People",
     "places": "Places",
     "relationship": "How are we related?",
+    "review": "Review",
     "search": "Search",
     "settings": "Tree settings",
     "skipToContent": "Skip to main content",
@@ -235,6 +236,119 @@
       "openTree": "Open the tree's members",
       "submit": "Close my account permanently"
     }
+  },
+  "review": {
+    "requiredNotice": "Your family reviews changes like this one. We opened a form to send it for review instead.",
+    "state": {
+      "family_reviewed": "Family-confirmed",
+      "contested": "Challenged"
+    },
+    "challengeLabel": "Challenge: {{what}}",
+    "challengeTitle": "Challenge this fact",
+    "challengeHint": "Say why you think it is wrong. Nothing changes until a reviewer looks at it.",
+    "sendChallenge": "Send challenge",
+    "challengeSent": "Your challenge was sent. A reviewer will look at it.",
+    "challengeReason": "Why it may be wrong",
+    "proposeTitle": "Send this change for review",
+    "proposeHint": "Your family reviews changes like this before they are made. Nothing changes until a reviewer approves it.",
+    "openProposal": "Open the proposal",
+    "sendForReview": "Send for review",
+    "sent": "Sent for review. You will be told when it is decided.",
+    "op": {
+      "create": "Add",
+      "update": "Change",
+      "delete": "Remove"
+    },
+    "target": {
+      "person": "person",
+      "name": "name",
+      "event": "event or vital record",
+      "relationship": "relationship",
+      "assertion": "heritage detail"
+    },
+    "rationale": "Why this change is right",
+    "rationaleHint": "For example: \"Grandfather's school certificate gives 1932\".",
+    "notifications": "Notifications",
+    "notificationsUnread_one": "Notifications, {{count}} unread",
+    "notificationsUnread_other": "Notifications, {{count}} unread",
+    "markAllRead": "Mark all read",
+    "noNotifications": "Nothing new.",
+    "dupTitle": "Already in the tree?",
+    "dupUse": "Use this person",
+    "dupSomeoneElse": "This is someone else",
+    "title": "Review",
+    "subtitle": "Proposed changes and challenges in this family tree",
+    "view": {
+      "to_review": "To review",
+      "mine": "Mine",
+      "closed": "Closed"
+    },
+    "empty": {
+      "to_review": "Nothing is waiting for your review.",
+      "mine": "You have not proposed any changes.",
+      "closed": "No decided proposals yet."
+    },
+    "challengeAbout": "Challenge about {{person}}",
+    "someone": "someone in the tree",
+    "changesTo_one": "{{count}} change to {{person}}",
+    "changesTo_other": "{{count}} changes to {{person}}",
+    "formerMember": "A former member",
+    "status": {
+      "draft": "Draft",
+      "awaiting_review": "Awaiting review",
+      "accepted": "Accepted",
+      "rejected": "Not accepted",
+      "withdrawn": "Withdrawn",
+      "stale": "Out of date"
+    },
+    "by": "Proposed by {{name}}",
+    "openPerson": "Open this person's profile",
+    "staleNotice": "Out of date:",
+    "decisionNote": "Note from {{name}}:",
+    "correction": "Proposed correction",
+    "changes": "Changes",
+    "outdated": "Changed since proposed",
+    "field": {
+      "label": "Field"
+    },
+    "now": "Now",
+    "proposed": "Proposed",
+    "hiddenField": "Hidden from you",
+    "decide": "Your decision",
+    "note": "Note",
+    "noteHint": "Required when you do not accept.",
+    "uphold": "Uphold challenge",
+    "approve": "Approve",
+    "dismiss": "Dismiss challenge",
+    "reject": "Do not accept",
+    "rebase": "Propose again against today's record",
+    "withdraw": "Withdraw",
+    "becameStale": "The record changed after this was proposed. Nothing was applied; the proposer can propose it again.",
+    "comments": "Comments",
+    "addComment": "Add a comment",
+    "postComment": "Post comment",
+    "historyEmpty": "No changes recorded yet.",
+    "reverted": "The earlier values are back.",
+    "revertProposed": "Sent for review: the earlier values come back once a reviewer approves.",
+    "system": "An import or merge",
+    "reviewedBy": "reviewed by {{name}}",
+    "revert": "Revert",
+    "pendingForPerson_one": "{{count}} change to this person awaits review.",
+    "pendingForPerson_other": "{{count}} changes to this person await review.",
+    "see": "See",
+    "policyTitle": "Family review",
+    "policyIntro": "Choose which changes by contributors need a reviewer's approval. Owners, family admins and reviewers always write directly. Every change is kept in each person's history.",
+    "policy": {
+      "off": "No review",
+      "structure": "Review relationships and heritage",
+      "all": "Review all changes"
+    },
+    "policyHint": {
+      "off": "Changes are made at once (the default).",
+      "structure": "Changes to relationships and heritage details (gotra, kul and others) wait for a reviewer.",
+      "all": "Also names, dates and other facts. Adding new people never waits."
+    },
+    "policySave": "Save review setting"
   },
   "trees": {
     "create": "New family tree",
@@ -378,7 +492,8 @@
       "property": "Property",
       "events": "Events",
       "photos": "Photos",
-      "visualizations": "Charts"
+      "visualizations": "Charts",
+      "history": "History"
     },
     "viewInTree": "View in tree",
     "vitals": "Life details"
@@ -1060,6 +1175,7 @@
       "OWNER": "Owner",
       "PROPERTY_CUSTODIAN": "Property custodian",
       "RESEARCHER": "Researcher",
+      "REVIEWER": "Reviewer",
       "VIEWER": "Viewer"
     },
     "roleHint": {
@@ -1070,6 +1186,7 @@
       "OWNER": "Full control, including deletion",
       "PROPERTY_CUSTODIAN": "Manages ancestral property records",
       "RESEARCHER": "Adds sources and proposes facts",
+      "REVIEWER": "Reviews changes others propose and challenges to facts; edits nothing by itself.",
       "VIEWER": "Read-only"
     },
     "evidence": {

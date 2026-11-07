@@ -4388,6 +4388,1160 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/review-policy": {
+   "put": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Set Review Policy",
+    "operationId": "set_review_policy_api_v1_trees__tree_id__review_policy_put",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewPolicyIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewPolicyIn"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Create Proposal",
+    "operationId": "create_proposal_api_v1_trees__tree_id__proposals_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProposalIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "List Proposals",
+    "operationId": "list_proposals_api_v1_trees__tree_id__proposals_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "view",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^(to_review|mine|closed|all)$",
+       "default": "to_review",
+       "title": "View"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_ProposalSummary_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}": {
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Get Proposal",
+    "operationId": "get_proposal_api_v1_trees__tree_id__proposals__proposal_id__get",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/submit": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Submit Proposal",
+    "operationId": "submit_proposal_api_v1_trees__tree_id__proposals__proposal_id__submit_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/withdraw": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Withdraw Proposal",
+    "operationId": "withdraw_proposal_api_v1_trees__tree_id__proposals__proposal_id__withdraw_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/approve": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Approve Proposal",
+    "operationId": "approve_proposal_api_v1_trees__tree_id__proposals__proposal_id__approve_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Stale"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/reject": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Reject Proposal",
+    "operationId": "reject_proposal_api_v1_trees__tree_id__proposals__proposal_id__reject_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RejectIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/rebase": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Rebase Proposal",
+    "operationId": "rebase_proposal_api_v1_trees__tree_id__proposals__proposal_id__rebase_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/comments": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Comment",
+    "operationId": "comment_api_v1_trees__tree_id__proposals__proposal_id__comments_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CommentIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/challenges": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Create Challenge",
+    "operationId": "create_challenge_api_v1_trees__tree_id__challenges_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChallengeIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/uphold": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Uphold",
+    "operationId": "uphold_api_v1_trees__tree_id__proposals__proposal_id__uphold_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpholdIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Stale"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/dismiss": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Dismiss",
+    "operationId": "dismiss_api_v1_trees__tree_id__proposals__proposal_id__dismiss_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RejectIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/review-state": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Set Review State",
+    "operationId": "set_review_state_api_v1_trees__tree_id__review_state_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewStateIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewStateOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/history": {
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Person History",
+    "operationId": "person_history_api_v1_trees__tree_id__people__person_id__history_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_RevisionOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/revisions/{revision_id}/revert": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Revert",
+    "operationId": "revert_api_v1_trees__tree_id__revisions__revision_id__revert_post",
+    "parameters": [
+     {
+      "name": "revision_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Revision Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RevertOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/inbox": {
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Notifications",
+    "operationId": "notifications_api_v1_trees__tree_id__inbox_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NotificationsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/inbox/read": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Notifications Read",
+    "operationId": "notifications_read_api_v1_trees__tree_id__inbox_read_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/NotificationsReadIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NotificationsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/duplicates/check": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Check Duplicates",
+    "description": "Is the person about to be added already in the tree? Visible people only; nothing is merged.",
+    "operationId": "check_duplicates_api_v1_trees__tree_id__duplicates_check_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DuplicateCheckIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DuplicateCheckOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/life-events": {
    "get": {
     "tags": [
@@ -13625,6 +14779,10 @@
    },
    "AssertionOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -15846,6 +17004,272 @@
     "type": "object",
     "title": "BranchUpdate"
    },
+   "ChallengeIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 3,
+      "title": "Rationale"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalItemIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Items",
+      "default": []
+     },
+     "source_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "title": "Source Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "rationale"
+    ],
+    "title": "ChallengeIn"
+   },
+   "ChangeProposalOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ProposalKind"
+     },
+     "status": {
+      "$ref": "#/components/schemas/ChangeProposalStatus"
+     },
+     "rationale": {
+      "type": "string",
+      "title": "Rationale"
+     },
+     "proposer": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "person_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Label"
+     },
+     "target_type": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "target_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target Id"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "submitted_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Submitted At"
+     },
+     "decided_by": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "decided_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decided At"
+     },
+     "decision_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decision Note"
+     },
+     "stale_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stale Reason"
+     },
+     "supersedes_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Supersedes Id"
+     },
+     "source_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Source Ids",
+      "default": []
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalItemOut"
+      },
+      "type": "array",
+      "title": "Items",
+      "default": []
+     },
+     "comments": {
+      "items": {
+       "$ref": "#/components/schemas/CommentOut"
+      },
+      "type": "array",
+      "title": "Comments",
+      "default": []
+     },
+     "can_decide": {
+      "type": "boolean",
+      "title": "Can Decide",
+      "default": false
+     },
+     "cannot_decide_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cannot Decide Reason"
+     },
+     "can_withdraw": {
+      "type": "boolean",
+      "title": "Can Withdraw",
+      "default": false
+     },
+     "can_rebase": {
+      "type": "boolean",
+      "title": "Can Rebase",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "status",
+     "rationale",
+     "proposer",
+     "person_id",
+     "created_at",
+     "submitted_at"
+    ],
+    "title": "ChangeProposalOut"
+   },
+   "ChangeProposalStatus": {
+    "type": "string",
+    "enum": [
+     "draft",
+     "awaiting_review",
+     "accepted",
+     "rejected",
+     "withdrawn",
+     "stale"
+    ],
+    "title": "ChangeProposalStatus"
+   },
    "ChannelsOut": {
     "properties": {
      "email": {
@@ -16629,6 +18053,57 @@
     ],
     "title": "CloseAccountIn"
    },
+   "CommentIn": {
+    "properties": {
+     "body": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Body"
+     }
+    },
+    "type": "object",
+    "required": [
+     "body"
+    ],
+    "title": "CommentIn"
+   },
+   "CommentOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "author": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "body": {
+      "type": "string",
+      "title": "Body"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "author",
+     "body",
+     "created_at"
+    ],
+    "title": "CommentOut"
+   },
    "CommitIn": {
     "properties": {
      "decisions": {
@@ -16987,6 +18462,24 @@
      "unknown"
     ],
     "title": "DatePrecision"
+   },
+   "DecisionIn": {
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "title": "DecisionIn"
    },
    "DeliveryOut": {
     "properties": {
@@ -17728,6 +19221,108 @@
     ],
     "title": "DuplicateCandidate"
    },
+   "DuplicateCheckIn": {
+    "properties": {
+     "names": {
+      "items": {
+       "$ref": "#/components/schemas/DuplicateNameIn"
+      },
+      "type": "array",
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Names"
+     },
+     "birth_year": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 2200.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Year"
+     },
+     "sex_at_birth": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 20
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex At Birth"
+     },
+     "parent_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Parent Ids",
+      "default": []
+     },
+     "spouse_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Spouse Ids",
+      "default": []
+     },
+     "birth_place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Place Id"
+     },
+     "exclude_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "title": "Exclude Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "names"
+    ],
+    "title": "DuplicateCheckIn",
+    "description": "The person about to be added, and who they will be linked to (ADR-0021 \u00a78)."
+   },
+   "DuplicateCheckOut": {
+    "properties": {
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/EntryDuplicateMatch"
+      },
+      "type": "array",
+      "title": "Candidates"
+     }
+    },
+    "type": "object",
+    "required": [
+     "candidates"
+    ],
+    "title": "DuplicateCheckOut"
+   },
    "DuplicateMatch": {
     "properties": {
      "person": {
@@ -17757,6 +19352,36 @@
      "reasons"
     ],
     "title": "DuplicateMatch"
+   },
+   "DuplicateNameIn": {
+    "properties": {
+     "given_name": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Given Name"
+     },
+     "surname": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Surname"
+     }
+    },
+    "type": "object",
+    "title": "DuplicateNameIn"
    },
    "EmailIn": {
     "properties": {
@@ -17792,6 +19417,36 @@
     },
     "type": "object",
     "title": "EndMembershipIn"
+   },
+   "EntryDuplicateMatch": {
+    "properties": {
+     "person": {
+      "$ref": "#/components/schemas/PersonSummary"
+     },
+     "score": {
+      "type": "number",
+      "title": "Score"
+     },
+     "likely": {
+      "type": "boolean",
+      "title": "Likely"
+     },
+     "reasons": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Reasons"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person",
+     "score",
+     "likely",
+     "reasons"
+    ],
+    "title": "EntryDuplicateMatch"
    },
    "EraseIn": {
     "properties": {
@@ -18383,6 +20038,10 @@
    },
    "EventOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -19026,6 +20685,30 @@
      "siblings"
     ],
     "title": "FamilyOut"
+   },
+   "FieldChange": {
+    "properties": {
+     "field": {
+      "type": "string",
+      "title": "Field"
+     },
+     "current": {
+      "title": "Current"
+     },
+     "proposed": {
+      "title": "Proposed"
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "field"
+    ],
+    "title": "FieldChange"
    },
    "GenealogicalDate": {
     "properties": {
@@ -22767,6 +24450,10 @@
    },
    "NameOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -23251,6 +24938,115 @@
     ],
     "title": "NotificationChannel"
    },
+   "NotificationKind": {
+    "type": "string",
+    "enum": [
+     "proposal_to_review",
+     "proposal_accepted",
+     "proposal_rejected",
+     "proposal_stale",
+     "challenge_opened",
+     "challenge_upheld",
+     "challenge_dismissed",
+     "proposal_comment"
+    ],
+    "title": "NotificationKind"
+   },
+   "NotificationOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/NotificationKind"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "read": {
+      "type": "boolean",
+      "title": "Read"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "proposal_id",
+     "text",
+     "created_at",
+     "read"
+    ],
+    "title": "NotificationOut"
+   },
+   "NotificationsOut": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/NotificationOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "unread": {
+      "type": "integer",
+      "title": "Unread"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "unread"
+    ],
+    "title": "NotificationsOut"
+   },
+   "NotificationsReadIn": {
+    "properties": {
+     "ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 200,
+      "title": "Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "title": "NotificationsReadIn"
+   },
    "OcrLineOut": {
     "properties": {
      "line_no": {
@@ -23521,6 +25317,60 @@
      "items"
     ],
     "title": "Page[PlaceOut]"
+   },
+   "Page_ProposalSummary_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalSummary"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[ProposalSummary]"
+   },
+   "Page_RevisionOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/RevisionOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[RevisionOut]"
    },
    "Page_SourceOut_": {
     "properties": {
@@ -28000,6 +29850,174 @@
     "type": "object",
     "title": "PropertyUpdate"
    },
+   "ProposalIn": {
+    "properties": {
+     "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Rationale",
+      "default": ""
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalItemIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Items"
+     },
+     "source_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "title": "Source Ids",
+      "default": []
+     },
+     "submit": {
+      "type": "boolean",
+      "title": "Submit",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "ProposalIn"
+   },
+   "ProposalItemIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "op": {
+      "$ref": "#/components/schemas/ProposalOp"
+     },
+     "target_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target Id"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "patch": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Patch",
+      "default": {}
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "op"
+    ],
+    "title": "ProposalItemIn"
+   },
+   "ProposalItemOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "op": {
+      "$ref": "#/components/schemas/ProposalOp"
+     },
+     "target_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target Id"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "changes": {
+      "items": {
+       "$ref": "#/components/schemas/FieldChange"
+      },
+      "type": "array",
+      "title": "Changes"
+     },
+     "outdated": {
+      "type": "boolean",
+      "title": "Outdated",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "target_type",
+     "op",
+     "target_id",
+     "person_id",
+     "label",
+     "changes"
+    ],
+    "title": "ProposalItemOut"
+   },
+   "ProposalKind": {
+    "type": "string",
+    "enum": [
+     "change",
+     "challenge"
+    ],
+    "title": "ProposalKind"
+   },
+   "ProposalOp": {
+    "type": "string",
+    "enum": [
+     "create",
+     "update",
+     "delete"
+    ],
+    "title": "ProposalOp"
+   },
    "ProposalOut": {
     "properties": {
      "id": {
@@ -28202,6 +30220,100 @@
      "rejected"
     ],
     "title": "ProposalStatus"
+   },
+   "ProposalSummary": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ProposalKind"
+     },
+     "status": {
+      "$ref": "#/components/schemas/ChangeProposalStatus"
+     },
+     "proposer": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "person_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Label"
+     },
+     "item_count": {
+      "type": "integer",
+      "title": "Item Count"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "submitted_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Submitted At"
+     },
+     "decided_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decided At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "status",
+     "proposer",
+     "person_id",
+     "item_count",
+     "created_at",
+     "submitted_at",
+     "decided_at"
+    ],
+    "title": "ProposalSummary"
    },
    "ProvenanceOrigin": {
     "type": "string",
@@ -28411,6 +30523,21 @@
      "display_name"
     ],
     "title": "RegisterIn"
+   },
+   "RejectIn": {
+    "properties": {
+     "note": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "required": [
+     "note"
+    ],
+    "title": "RejectIn"
    },
    "RelatedEventOut": {
     "properties": {
@@ -28664,6 +30791,10 @@
    },
    "RelationshipOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -29943,6 +32074,35 @@
     ],
     "title": "ReprocessOut"
    },
+   "RevertOut": {
+    "properties": {
+     "outcome": {
+      "type": "string",
+      "enum": [
+       "applied",
+       "proposed"
+      ],
+      "title": "Outcome"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "outcome"
+    ],
+    "title": "RevertOut"
+   },
    "ReviewIn": {
     "properties": {
      "action": {
@@ -30018,6 +32178,219 @@
     ],
     "title": "ReviewIn"
    },
+   "ReviewPolicy": {
+    "type": "string",
+    "enum": [
+     "off",
+     "structure",
+     "all"
+    ],
+    "title": "ReviewPolicy",
+    "description": "Which direct writes need review by someone with change.review (ADR-0021 \u00a71)."
+   },
+   "ReviewPolicyIn": {
+    "properties": {
+     "review_policy": {
+      "$ref": "#/components/schemas/ReviewPolicy"
+     }
+    },
+    "type": "object",
+    "required": [
+     "review_policy"
+    ],
+    "title": "ReviewPolicyIn"
+   },
+   "ReviewState": {
+    "type": "string",
+    "enum": [
+     "unreviewed",
+     "family_reviewed",
+     "contested"
+    ],
+    "title": "ReviewState",
+    "description": "Family review of a fact. Separate from EvidenceStatus: approval is not evidence (\u00a76)."
+   },
+   "ReviewStateIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "family_reviewed",
+       "unreviewed"
+      ],
+      "title": "State"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "state"
+    ],
+    "title": "ReviewStateIn"
+   },
+   "ReviewStateOut": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState"
+     },
+     "review_state_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Review State At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "review_state"
+    ],
+    "title": "ReviewStateOut"
+   },
+   "ReviewTarget": {
+    "type": "string",
+    "enum": [
+     "person",
+     "name",
+     "event",
+     "relationship",
+     "assertion"
+    ],
+    "title": "ReviewTarget",
+    "description": "Record types that carry revisions and review state (and can be proposed or challenged)."
+   },
+   "RevisionChange": {
+    "properties": {
+     "field": {
+      "type": "string",
+      "title": "Field"
+     },
+     "before": {
+      "title": "Before"
+     },
+     "after": {
+      "title": "After"
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "field"
+    ],
+    "title": "RevisionChange"
+   },
+   "RevisionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "record_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "record_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Record Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "op": {
+      "$ref": "#/components/schemas/ProposalOp"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "actor": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "reviewer": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "changes": {
+      "items": {
+       "$ref": "#/components/schemas/RevisionChange"
+      },
+      "type": "array",
+      "title": "Changes"
+     },
+     "revertible": {
+      "type": "boolean",
+      "title": "Revertible",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "record_type",
+     "record_id",
+     "revision",
+     "op",
+     "created_at",
+     "changes"
+    ],
+    "title": "RevisionOut"
+   },
    "Role": {
     "type": "string",
     "enum": [
@@ -30028,7 +32401,8 @@
      "RESEARCHER",
      "VIEWER",
      "DOCUMENT_CUSTODIAN",
-     "PROPERTY_CUSTODIAN"
+     "PROPERTY_CUSTODIAN",
+     "REVIEWER"
     ],
     "title": "Role"
    },
@@ -32484,6 +34858,10 @@
      "default_person_privacy": {
       "$ref": "#/components/schemas/PrivacyLevel"
      },
+     "review_policy": {
+      "$ref": "#/components/schemas/ReviewPolicy",
+      "default": "off"
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -32745,6 +35123,29 @@
     ],
     "title": "UpcomingOut"
    },
+   "UpholdIn": {
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "mark_disputed": {
+      "type": "boolean",
+      "title": "Mark Disputed",
+      "default": true
+     }
+    },
+    "type": "object",
+    "title": "UpholdIn"
+   },
    "UserOut": {
     "properties": {
      "id": {
@@ -32794,6 +35195,31 @@
      "created_at"
     ],
     "title": "UserOut"
+   },
+   "UserRef": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "display_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Display Name"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id"
+    ],
+    "title": "UserRef"
    },
    "ValidationError": {
     "properties": {

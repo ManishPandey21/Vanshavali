@@ -179,6 +179,7 @@ class Serializer:
             "location_precision": ev.location_precision,
             "privacy_level": None if ctx.public else ev.privacy_level,
             "media_count": (media or {}).get(ev.id, (0, None))[0],
+            "review_state": ev.review_state,
             "cover_document_id": (media or {}).get(ev.id, (0, None))[1],
         }
         place = places.get(ev.place_id) if ev.place_id else None

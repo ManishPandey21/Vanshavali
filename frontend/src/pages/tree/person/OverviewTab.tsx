@@ -1,3 +1,4 @@
+import { ChallengeButton, ReviewBadge } from "../../../components/review/ReviewParts";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit3, Plus, Star, Trash2 } from "lucide-react";
@@ -142,12 +143,16 @@ function NamesSection({ person }: { person: PersonOut }) {
                   </Badge>
                 )}
                 <EvidenceBadge status={n.evidence_status} />
+                <ReviewBadge state={n.review_state} />
               </div>
               {n.full_name_as_recorded && n.full_name_as_recorded !== nameText(n) && (
                 <p className="mt-1 text-xs text-ink-muted" lang={n.language ?? undefined}>
                   {t("names.asRecorded")}: “{n.full_name_as_recorded}”
                 </p>
               )}
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <ChallengeButton treeId={treeId} targetType="name" targetId={n.id} label={nameText(n)} />
             </div>
             {person.can_edit && (
               <div className="flex shrink-0 gap-1">

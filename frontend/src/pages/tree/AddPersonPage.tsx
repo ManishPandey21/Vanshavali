@@ -9,6 +9,7 @@ import { focusFirstInvalid } from "../../components/ui/form";
 import { Button, ButtonLink } from "../../components/ui/Button";
 import { ErrorAlert, PageHeader } from "../../components/ui/feedback";
 import { FamilyConsentGate } from "../../components/consent/FamilyConsent";
+import { DuplicatePanel, duplicateCheckFor } from "../../components/review/ReviewParts";
 
 export function AddPersonPage() {
   const { t, i18n } = useTranslation();
@@ -40,6 +41,7 @@ export function AddPersonPage() {
       <FamilyConsentGate treeId={treeId}>
         <form onSubmit={submit} noValidate className="card space-y-5 p-5">
           <PersonForm treeId={treeId} draft={draft} onChange={setDraft} showErrors={submitted} treeDefaultPrivacy={tree.default_person_privacy} headingLevel={2} />
+          <DuplicatePanel treeId={treeId} check={duplicateCheckFor(draft)} />
           {clientError && (
             <p role="alert" className="field-error text-sm">
               {clientError}
