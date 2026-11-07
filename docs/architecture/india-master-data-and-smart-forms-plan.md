@@ -368,7 +368,7 @@ exclusion, headline counts and the "To complete" view (5 Nov). Still open in R1:
 suggestions and native Hindi review (issue #34).
 
 **Super Admin console (5 Nov 2026):** global vocabularies can be curated in the browser by system
-admins with MFA, through reviewed change requests with history (ADR-0025). Geography is designed in
+admins with MFA, through reviewed change requests with history (ADR-0026). Geography is designed in
 ADR-0019 (proposed); optional religion/community suggestions are only proposed (ADR-0018
 amendment 2).
 

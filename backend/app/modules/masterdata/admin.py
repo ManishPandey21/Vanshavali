@@ -1,4 +1,4 @@
-"""Super Admin curation of the global vocabularies (ADR-0025).
+"""Super Admin curation of the global vocabularies (ADR-0026).
 
 Every edit is a ``vocabulary_change``: saved as a draft (pending) or published at once. Publishing
 applies the change to ``vocabulary_term`` in one transaction, checks that the term has not moved on

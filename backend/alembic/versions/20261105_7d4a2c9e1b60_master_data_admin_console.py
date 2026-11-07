@@ -4,7 +4,7 @@ Revision ID: 7d4a2c9e1b60
 Revises: 5c2d8e1f7a90
 Create Date: 2026-11-05
 
-ADR-0025: change requests and history for global vocabulary terms (``vocabulary_change``), plus
+ADR-0026: change requests and history for global vocabulary terms (``vocabulary_change``), plus
 revision counters (optimistic concurrency and cache refresh), pack/console ownership, successor
 codes and authorship on ``vocabulary_term``, and console grouping / closed-set flags on
 ``vocabulary``. All global reference data: no row-level security, nothing about any family.

@@ -1,8 +1,8 @@
-# ADR-0025: Super Admin master-data console
+# ADR-0026: Super Admin master-data console
 
 - Status: Accepted · Date: 2026-11-05
 - Relates to: ADR-0006 (authorisation; SYSTEM_ADMIN has no tree access), ADR-0018 (vocabularies),
-  ADR-0019 (geography, proposed), ADR-0005 (sessions, CSRF), threat T12, T41, T43
+  ADR-0019 (geography, proposed), ADR-0005 (sessions, CSRF), threat T12, T41, T44
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),
   phase A ("admin curation endpoints") and the Super Admin console request of 5 Nov 2026
 

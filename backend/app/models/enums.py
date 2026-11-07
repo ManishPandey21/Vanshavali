@@ -667,14 +667,14 @@ class VocabularyTermStatus(StrEnum):
 
 
 class VocabularyTermManagedBy(StrEnum):
-    """Who maintains a global term (ADR-0025 §4). The pack loader never changes ``admin`` terms."""
+    """Who maintains a global term (ADR-0026 §4). The pack loader never changes ``admin`` terms."""
 
     PACK = "pack"
     ADMIN = "admin"
 
 
 class VocabularyChangeAction(StrEnum):
-    """What a master-data change request does to one global term (ADR-0025 §3)."""
+    """What a master-data change request does to one global term (ADR-0026 §3)."""
 
     CREATE = "create"
     UPDATE = "update"
@@ -683,7 +683,7 @@ class VocabularyChangeAction(StrEnum):
 
 
 class VocabularyChangeStatus(StrEnum):
-    """Master-data change request lifecycle (ADR-0025 §3). Only ``pending`` changes can move on."""
+    """Master-data change request lifecycle (ADR-0026 §3). Only ``pending`` changes can move on."""
 
     PENDING = "pending"
     PUBLISHED = "published"

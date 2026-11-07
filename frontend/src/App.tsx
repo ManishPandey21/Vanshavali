@@ -39,7 +39,7 @@ const VisualizationsPage = lazy(() => import("./pages/tree/VisualizationsPage").
 const EventsPage = lazy(() => import("./pages/tree/EventsPage").then((m) => ({ default: m.EventsPage })));
 const RemindersPage = lazy(() => import("./pages/tree/RemindersPage").then((m) => ({ default: m.RemindersPage })));
 const TimelinePage = lazy(() => import("./pages/tree/TimelinePage").then((m) => ({ default: m.TimelinePage })));
-// Super Admin master-data console (ADR-0025): only system admins ever load it.
+// Super Admin master-data console (ADR-0026): only system admins ever load it.
 const MasterDataLayout = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.MasterDataLayout })));
 const MasterDataDashboard = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.MasterDataDashboard })));
 const VocabularyAdminPage = lazy(() => import("./pages/admin/MasterDataPages").then((m) => ({ default: m.VocabularyAdminPage })));

@@ -198,7 +198,7 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   audit log records that an entry was added, not what it says.
 - **Global reference data holds no personal data.** Packs are versioned files in the repository,
   loaded by an operator command, and system admins curate the terms in the Super Admin console
-  (ADR-0025). Change requests and their history (`vocabulary_change`) hold only global terms and
+  (ADR-0026). Change requests and their history (`vocabulary_change`) hold only global terms and
   the admin's reason and source, never anything about a family.
 - **Curating global data opens no family data.** The console is a platform capability, separate
   from tree permissions: a system admin is still a member of no tree, gets 404 on every tree route,

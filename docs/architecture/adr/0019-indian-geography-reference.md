@@ -2,7 +2,7 @@
 
 - Status: Accepted · Date: 2026-11-06 (proposed 2026-11-05; owner go-ahead to start phase 2, 6 Nov 2026).
   The licensing question below is still open, so **no official data is committed** to the repository.
-- Relates to: ADR-0018 (master data), ADR-0025 (Super Admin console, change requests),
+- Relates to: ADR-0018 (master data), ADR-0026 (Super Admin console, change requests),
   ADR-0015 (places, geotags), open question Q15
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),
   phase B / release R2
@@ -20,7 +20,7 @@ vocabulary model of ADR-0018, and the data has an authoritative publisher.
 | Kind | Where | Who changes it |
 |---|---|---|
 | **Official reference** (LGD units, India Post offices) | `geo_unit`, `geo_pin_office`, per snapshot | Only by activating a validated snapshot (§3) |
-| **Curated additions** (aliases, local-script names, historical names, corrections, units outside LGD) | `geo_unit_alias`, `geo_unit` rows with `origin = curated` | Super Admin change requests (ADR-0025 §3), four-eyes required |
+| **Curated additions** (aliases, local-script names, historical names, corrections, units outside LGD) | `geo_unit_alias`, `geo_unit` rows with `origin = curated` | Super Admin change requests (ADR-0026 §3), four-eyes required |
 | **Family places** | tree-scoped `place` (RLS), optional `lgd_code` | Family members, as today |
 
 An official row is never edited in place. A correction is a curated alias or a curated successor
@@ -51,7 +51,7 @@ mapping, so the next official snapshot does not silently undo it and the source 
 2. Validation job: schema, code formats, hierarchy (missing parents, wrong levels), duplicates,
    and a **diff against the active snapshot**: added, renamed, moved, split/merged, retired codes.
 3. The console shows the report (counts and samples, downloadable). One admin approves, **a second
-   admin activates** (four-eyes, ADR-0025 §3). Activation flips `active` in one transaction; the
+   admin activates** (four-eyes, ADR-0026 §3). Activation flips `active` in one transaction; the
    previous snapshot becomes `superseded` and stays available for **rollback** (reactivate it).
 4. Retired codes stay resolvable: lookups by code search the active snapshot, then older ones,
    and follow `successor_codes`.
@@ -80,7 +80,7 @@ codes resolve; rollback restores the previous snapshot; no tree data in any geo 
 - **Tables**: `geo_snapshot`, `geo_unit`, `geo_pin_office`, `geo_pin_unit`. Official alternate and
   former names are columns of `geo_unit` (`alt_names`, `former_names`) from the snapshot itself.
   The separate **curated** `geo_unit_alias` table and curated units (§1, second row) come in the
-  next increment, through ADR-0025 change requests.
+  next increment, through ADR-0026 change requests.
 - **Hierarchy in the database**: a trigger refuses a parent from another snapshot or of a level not
   allowed for the child (village → sub-district; town → sub-district or district; block and ULB →
   district; gram panchayat → block or sub-district; sub-district → district; district → state;

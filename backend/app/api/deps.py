@@ -118,7 +118,7 @@ PublicCtx = Annotated[TreeContext, Depends(public_context)]
 
 @dataclass
 class AdminContext:
-    """A request by a user holding a platform capability (ADR-0025). Carries no tree."""
+    """A request by a user holding a platform capability (ADR-0026). Carries no tree."""
 
     db: Session
     user: User

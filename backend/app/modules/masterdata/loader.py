@@ -2,7 +2,7 @@
 
 New terms are inserted, changed ones updated; a term no longer in its pack is marked ``retired``
 (never deleted) so stored references keep resolving. Terms curated in the Super Admin console
-(``managed_by = admin``, ADR-0025 §4) are never changed or retired by a pack: the report lists them
+(``managed_by = admin``, ADR-0026 §4) are never changed or retired by a pack: the report lists them
 as ``kept`` so an operator can see where a pack and the console disagree. Run after
 ``alembic upgrade``:
 
@@ -26,7 +26,7 @@ from app.models.enums import VocabularyTermManagedBy, VocabularyTermStatus
 PACK_DIR = Path(__file__).parent / "packs"
 _CODE = re.compile(r"^[a-z0-9][a-z0-9_]{0,79}$")
 _LANGS_REQUIRED = ("en", "hi")
-# console groups (ADR-0025 §6); the frontend has a label for each
+# console groups (ADR-0026 §6); the frontend has a label for each
 CATEGORIES = ("heritage", "languages_terminology", "astrology", "religion_community", "geography", "other")
 
 
@@ -171,7 +171,7 @@ def load_packs(
                 changed_terms += 1
                 report.changes.append(f"- {pack['key']}:{row.code} (retired)")
         if changed_terms and not is_new:
-            vocab.revision += 1  # clients holding the old list refresh it (ADR-0025 §7)
+            vocab.revision += 1  # clients holding the old list refresh it (ADR-0026 §7)
     if dry_run:
         db.rollback()
     else:

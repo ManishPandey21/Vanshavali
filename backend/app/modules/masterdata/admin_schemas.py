@@ -1,4 +1,4 @@
-"""Request/response schemas of the Super Admin master-data console (ADR-0025).
+"""Request/response schemas of the Super Admin master-data console (ADR-0026).
 
 Input models forbid unknown fields, so a request cannot set ``managed_by``, ``revision``, authorship
 or anything else the server owns (mass assignment).

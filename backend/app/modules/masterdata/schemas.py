@@ -17,7 +17,7 @@ class VocabularyOut(ApiModel):
     licence: str | None = None
     allows_custom: bool
     category: str = "other"
-    # bumped on every published change (ADR-0025 §7): a client holding another revision refreshes
+    # bumped on every published change (ADR-0026 §7): a client holding another revision refreshes
     revision: int = 1
     term_count: int = 0
 

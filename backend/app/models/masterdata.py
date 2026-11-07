@@ -45,7 +45,7 @@ class Vocabulary(TimestampMixin, Base):
     source: Mapped[str | None] = mapped_column(Text)
     licence: Mapped[str | None] = mapped_column(String(120))
     allows_custom: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
-    # ADR-0025: console grouping, whether admins may add/retire terms (closed sets), and a counter
+    # ADR-0026: console grouping, whether admins may add/retire terms (closed sets), and a counter
     # bumped on every published change so clients can tell their cached list is out of date
     category: Mapped[str] = mapped_column(String(40), default="other", server_default="other")
     fixed_membership: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
@@ -73,7 +73,7 @@ class VocabularyTerm(TimestampMixin, Base):
         server_default=VocabularyTermStatus.DRAFT.value,
     )
     sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
-    # ADR-0025: optimistic concurrency, pack vs console ownership, successor of a retired term
+    # ADR-0026: optimistic concurrency, pack vs console ownership, successor of a retired term
     revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     managed_by: Mapped[VocabularyTermManagedBy] = mapped_column(
         enum_column(VocabularyTermManagedBy),
@@ -90,7 +90,7 @@ class VocabularyTerm(TimestampMixin, Base):
 
 
 class VocabularyChange(Base):
-    """A proposed change to one global term, and after publication its permanent history (ADR-0025).
+    """A proposed change to one global term, and after publication its permanent history (ADR-0026).
 
     ``previous`` is the term as it was when the change was proposed (empty for a new term) and
     ``proposed`` the complete set of editable fields after the change. Global reference data only:

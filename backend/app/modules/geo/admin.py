@@ -1,4 +1,4 @@
-"""Snapshot review and activation for system admins (ADR-0019 §3, ADR-0025).
+"""Snapshot review and activation for system admins (ADR-0019 §3, ADR-0026).
 
 validated → approved (one admin) → active (a *different* admin; the previous active snapshot of the
 source becomes superseded). A superseded snapshot can be re-activated (rollback, one admin).

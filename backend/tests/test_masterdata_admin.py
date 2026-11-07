@@ -1,4 +1,4 @@
-"""Super Admin master-data console (ADR-0025): capability, MFA, drafts and publication, optimistic
+"""Super Admin master-data console (ADR-0026): capability, MFA, drafts and publication, optimistic
 concurrency, duplicates, retirement, closed sets, pack coexistence, audit, and the guarantee that
 curating global data opens no door into any family's tree."""
 
@@ -508,7 +508,7 @@ def test_new_tree_after_publication_sees_the_term(admin, owner, vocab):
 
 
 def test_the_database_allows_one_open_change_per_term(vocab):
-    """Backs the 409 `change_pending` check even if two proposals race (ADR-0025 §3)."""
+    """Backs the 409 `change_pending` check even if two proposals race (ADR-0026 §3)."""
     from sqlalchemy.exc import IntegrityError
 
     def change(status: str) -> VocabularyChange:

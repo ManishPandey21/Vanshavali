@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { api, freshTotpWindow, registerVerified, totp, uniqueEmail } from "./helpers";
 
 /**
- * ADR-0025: a system admin (seeded by the dev CLI, temporary password) must turn on two-step
+ * ADR-0026: a system admin (seeded by the dev CLI, temporary password) must turn on two-step
  * sign-in, then adds a gotra in the Super Admin console and publishes it. An ordinary user then
  * finds it in the suggestions without any deployment, and cannot reach the console at all.
  */

@@ -1,4 +1,4 @@
-"""Super Admin master-data console API (ADR-0025). Every handler depends on ``MasterDataAdmin``:
+"""Super Admin master-data console API (ADR-0026). Every handler depends on ``MasterDataAdmin``:
 system admins with two-step sign-in only; everyone else gets 404."""
 
 from __future__ import annotations

@@ -10,7 +10,7 @@ Modular monolith (ADR-0001):
   runs them inline). Domain modules in `backend/app/modules/*` (identity, trees, genealogy, heritage,
   family, evidence, documents, extraction, astrology, property, gedcom, merge, archive, search,
   consent, public, smartadd, masterdata, geo). All authorisation and field redaction live in `backend/app/authz`; the server is
-  the authority. Platform capabilities (`authz/platform.py`, ADR-0025) are separate from tree permissions: a system admin
+  the authority. Platform capabilities (`authz/platform.py`, ADR-0026) are separate from tree permissions: a system admin
   curates global master data at `/admin/master-data` and still has no tree access. Indian geography (ADR-0019) is
   global reference data loaded as reviewed snapshots (`app.cli.geo`, `docs/operations/geo-import.md`). API under `/api/v1`, structured errors `{error: {code, message, details}}`.
 - `frontend/` — Vite 6 + React 18 + TypeScript (strict) SPA: React Router, TanStack Query,

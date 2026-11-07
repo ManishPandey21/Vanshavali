@@ -11,7 +11,7 @@ import type {
 } from "../types";
 
 /**
- * Super Admin master-data console (ADR-0025). The server is the authority: it answers 404 to
+ * Super Admin master-data console (ADR-0026). The server is the authority: it answers 404 to
  * anyone without the platform capability and 403 `admin_mfa_required` to an admin without MFA.
  */
 const BASE = "/admin/master-data";

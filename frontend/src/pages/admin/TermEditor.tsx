@@ -37,7 +37,7 @@ interface ExtraLabel {
 }
 
 /**
- * Create or edit one global term (ADR-0025). Every field is shown, a duplicate check runs while
+ * Create or edit one global term (ADR-0026). Every field is shown, a duplicate check runs while
  * typing, and the admin chooses "Save as draft" or "Publish". The server re-validates everything.
  */
 export function TermEditorDialog({

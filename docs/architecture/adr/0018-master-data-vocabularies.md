@@ -118,9 +118,9 @@ has passed (plan, phase A transition step 3).
 ## Amendment 1 (5 Nov 2026): curation in the Super Admin console — Accepted
 Global terms can now be curated in the browser through change requests (draft → publish, with
 history, optimistic concurrency and audit) by system admins with two-step sign-in. Packs still seed
-the lists; the loader never overwrites a term curated in the console. See ADR-0025. §3's
+the lists; the loader never overwrites a term curated in the console. See ADR-0026. §3's
 "promotion … outside the app (later)" stays deferred, now designed as an explicit, sanitised
-family submission that lands as a pending change (ADR-0025, Consequences).
+family submission that lands as a pending change (ADR-0026, Consequences).
 
 ## Amendment 2 (proposed, 5 Nov 2026): optional religion / community / jati suggestions — **Proposed, not accepted**
 The Super Admin console request (5 Nov 2026) asks for optional catalogues for religion, sampradaya,

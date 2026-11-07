@@ -27,4 +27,4 @@ into 0003, 0009 and 0010.
 | 0018 | [Master data: controlled values vs extensible vocabularies](0018-master-data-vocabularies.md) | Accepted (amendment 2 on religion/community suggestions: Proposed) |
 | 0019 | [Indian geography reference data (LGD and India Post)](0019-indian-geography-reference.md) | Accepted (licensing open: no official data committed) |
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |
-| 0025 | [Super Admin master-data console](0025-super-admin-master-data-console.md) | Accepted |
+| 0026 | [Super Admin master-data console](0026-super-admin-master-data-console.md) | Accepted |
