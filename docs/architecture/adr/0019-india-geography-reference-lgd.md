@@ -1,6 +1,6 @@
 # ADR-0019: Indian geography reference data (LGD) and place cascades
 
-- Status: **Proposed** · Date: 2026-11-07 · Release: R2
+- Status: Accepted · Date: 2026-11-07 (accepted as proposed, including the three open points) · Release: R2
 - Relates to: ADR-0018 (global reference data, operator-loaded packs), ADR-0015 (place fields,
   precision, coordinate privacy, no PostGIS), ADR-0007 (search normalisation), ADR-0006 (field
   redaction), ADR-0014 (pilot hosting, backups)
@@ -198,3 +198,8 @@ Measured on the full village table on pilot-sized hardware (ADR-0014):
 - **Urban detail.** Proposal: urban local bodies only for R2, with wards later if families ask.
 - **Fixture data.** Proposal: a small real LGD extract under GODL-India with attribution, rather
   than synthetic names, so the importer is tested on the real file layout.
+  *Implementation note (7 Nov 2026):* LGD's download directory is a session form with a captcha, and
+  data.gov.in is not reachable from the build environment. So the first fixture is synthetic, in the
+  published column layouts, and labelled as synthetic. The importer matches headers tolerantly and
+  refuses files it does not recognise. Replacing the fixture with a real one-district extract,
+  downloaded by hand, is tracked as a follow-up.
