@@ -245,7 +245,12 @@ Built as decided. These points refine the ADR where the data or the code needed 
    take theirs. The Places page has it in the place editor.
 10. **Read-only role.** The grant SQL revokes writes on the four tables whenever they exist, and it
     contains no `%` because `ensure_app_role` sends it through the driver.
-11. **Benchmark (§10).** Not yet measured on pilot hardware with the national files. A synthetic-scale
-    run is recorded in `docs/operations/performance.md`, and the pilot run stays open in
-    `IMPLEMENTATION_STATUS.md`.
+11. **Benchmark (§10).** A synthetic national-scale run in the build container meets every target:
+    - cascade children p95 5.9 ms;
+    - search p95 79 ms all-India and 88 ms within a state;
+    - largest-state import 14 s;
+    - 382 MB with indexes.
 
+    Measuring led to ancestor-column indexes, exact-first search with prefix indexes and a 0.4
+    trigram threshold (`docs/operations/performance.md`). The run on pilot hardware with the
+    national files stays open in `IMPLEMENTATION_STATUS.md`.

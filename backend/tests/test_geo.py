@@ -605,3 +605,32 @@ def test_the_family_archive_credits_lgd_when_places_are_linked(
     text_ = readme()
     assert "Source: Local Government Directory, Government of India; India Post" in text_
     assert "GODL-India" in text_ and "Snapshots: 2026-02." in text_
+
+
+def test_an_exact_match_is_never_crowded_out_by_many_prefix_matches(owner: ApiClient, tmp_path: Path) -> None:
+    # 250 "Rampur Kalan N" villages are stored before the one "Rampur": the candidate query must
+    # still return the exact match first (it used to take any 200 rows, unordered)
+    s = write(tmp_path, "s.csv", STATES_HEADER + "1,9,1,Uttar Pradesh,\n")
+    d = write(tmp_path, "d.csv", "State Code,District Code,District Name (In English)\n9,9901,Prayagraj\n")
+    sd = write(
+        tmp_path,
+        "sd.csv",
+        "State Code,District Code,Sub-district Code,Sub-district Name (In English)\n9,9901,99001,Phulpur\n",
+    )
+    rows = [f"9,9901,99001,{9000000 + i},Rampur Kalan {i}" for i in range(250)] + [
+        "9,9901,99001,9100000,Rampur"
+    ]
+    v = write(
+        tmp_path,
+        "v.csv",
+        "State Code,District Code,Sub-District Code,Village Code,Village Name (In English)\n"
+        + "\n".join(rows)
+        + "\n",
+    )
+    with owner_session() as db:
+        importer.import_files(db, stage=1, snapshot="2026-02", files=[f(s), f(d), f(sd)])
+        importer.import_files(db, stage=2, snapshot="2026-02", state="9", files=[f(v)])
+        importer.activate(db, "2026-02", operator="op")
+        db.commit()
+    items = owner.get("/geo/units", params={"q": "Rampur"}).json()["items"]
+    assert items[0]["lgd_code"] == "9100000" and items[0]["name_en"] == "Rampur"

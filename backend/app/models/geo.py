@@ -64,16 +64,29 @@ class GeoUnit(Base):
             unique=True,
             postgresql_where=text("last_snapshot IS NULL"),
         ),
-        Index(
-            "ix_geo_unit_current_children",
-            "parent_level",
-            "parent_lgd_code",
-            "level",
-            "name_en",
-            postgresql_where=text("last_snapshot IS NULL"),
+        # the cascade and scoped searches filter by ancestor (state / district / sub-district code)
+        # among current rows; one partial index per ancestor level, ordered for children listing
+        *(
+            Index(
+                f"ix_geo_unit_current_{col}",
+                col,
+                "level",
+                "name_en",
+                postgresql_where=text("last_snapshot IS NULL"),
+            )
+            for col in ("state_code", "district_code", "sub_district_code")
         ),
         Index("ix_geo_unit_code", "level", "lgd_code"),
-        Index("ix_geo_unit_children", "parent_level", "parent_lgd_code", "level"),
+        # exact and prefix name matches among current rows (search step 1)
+        *(
+            Index(
+                f"ix_geo_unit_current_{col}_prefix",
+                col,
+                postgresql_ops={col: "text_pattern_ops"},
+                postgresql_where=text("last_snapshot IS NULL"),
+            )
+            for col in ("name_key", "local_key")
+        ),
         Index("ix_geo_unit_state", "state_code", "level"),
         Index(
             "ix_geo_unit_name_trgm",
@@ -116,6 +129,7 @@ class GeoUnitAlias(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("level", "lgd_code", "name_key", name="uq_geo_unit_alias"),
         Index("ix_geo_unit_alias_unit", "level", "lgd_code"),
+        Index("ix_geo_unit_alias_prefix", "name_key", postgresql_ops={"name_key": "text_pattern_ops"}),
         Index(
             "ix_geo_unit_alias_trgm",
             "name_key",

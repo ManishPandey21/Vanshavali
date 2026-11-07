@@ -116,9 +116,11 @@ free-text place fields. Existing links stay on the places. Same rollback pattern
   rebuilt from the recorded files: each snapshot stores file names, checksums, source URL and
   download date.
 - **Size and speed:** the ADR's targets are cascade children p95 < 50 ms, name search p95 < 150 ms
-  and importing the largest state in < 5 min, with an estimated 300–500 MB. The national benchmark on
-  pilot hardware is still to be run (see `IMPLEMENTATION_STATUS.md`); a synthetic-scale measurement
-  is recorded in [performance.md](performance.md).
+  and importing the largest state in < 5 min, with an estimated 300–500 MB. A synthetic national-scale
+  run met all of them: children 5.9 ms, search 79–88 ms, largest state 14 s, 382 MB
+  ([performance.md](performance.md)). Repeat it on the pilot VM before go-live, into a scratch
+  database whose name ends in `_bench`:
+  `uv run python -m app.cli.geo_benchmark --database-url postgresql+psycopg://…/vsh_geo_bench`.
 
 ## 8. Never in production
 

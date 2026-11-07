@@ -26,6 +26,8 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 APP_ROLE = "vanshavali_app"
+# partial indexes on current rows, one per ancestor the cascade and scoped searches filter by
+ANCESTOR_COLUMNS = ("state_code", "district_code", "sub_district_code")
 
 
 def upgrade() -> None:
@@ -120,6 +122,13 @@ def upgrade() -> None:
         postgresql_ops={"name_key": "gin_trgm_ops"},
     )
     op.create_index("ix_geo_unit_alias_unit", "geo_unit_alias", ["level", "lgd_code"], unique=False)
+    op.create_index(
+        "ix_geo_unit_alias_prefix",
+        "geo_unit_alias",
+        ["name_key"],
+        unique=False,
+        postgresql_ops={"name_key": "text_pattern_ops"},
+    )
     op.create_table(
         "geo_unit",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -189,17 +198,24 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_geo_unit")),
         sa.UniqueConstraint("level", "lgd_code", "first_snapshot", name="uq_geo_unit_version"),
     )
-    op.create_index(
-        "ix_geo_unit_children", "geo_unit", ["parent_level", "parent_lgd_code", "level"], unique=False
-    )
     op.create_index("ix_geo_unit_code", "geo_unit", ["level", "lgd_code"], unique=False)
-    op.create_index(
-        "ix_geo_unit_current_children",
-        "geo_unit",
-        ["parent_level", "parent_lgd_code", "level", "name_en"],
-        unique=False,
-        postgresql_where=sa.text("last_snapshot IS NULL"),
-    )
+    for col in ("name_key", "local_key"):
+        op.create_index(
+            f"ix_geo_unit_current_{col}_prefix",
+            "geo_unit",
+            [col],
+            unique=False,
+            postgresql_ops={col: "text_pattern_ops"},
+            postgresql_where=sa.text("last_snapshot IS NULL"),
+        )
+    for col in ANCESTOR_COLUMNS:
+        op.create_index(
+            f"ix_geo_unit_current_{col}",
+            "geo_unit",
+            [col, "level", "name_en"],
+            unique=False,
+            postgresql_where=sa.text("last_snapshot IS NULL"),
+        )
     op.create_index(
         "ix_geo_unit_local_trgm",
         "geo_unit",
@@ -327,14 +343,13 @@ def downgrade() -> None:
         postgresql_using="gin",
         postgresql_ops={"local_key": "gin_trgm_ops"},
     )
-    op.drop_index(
-        "ix_geo_unit_current_children",
-        table_name="geo_unit",
-        postgresql_where=sa.text("last_snapshot IS NULL"),
-    )
+    for col in ANCESTOR_COLUMNS:
+        op.drop_index(f"ix_geo_unit_current_{col}", table_name="geo_unit")
+    for col in ("name_key", "local_key"):
+        op.drop_index(f"ix_geo_unit_current_{col}_prefix", table_name="geo_unit")
     op.drop_index("ix_geo_unit_code", table_name="geo_unit")
-    op.drop_index("ix_geo_unit_children", table_name="geo_unit")
     op.drop_table("geo_unit")
+    op.drop_index("ix_geo_unit_alias_prefix", table_name="geo_unit_alias")
     op.drop_index("ix_geo_unit_alias_unit", table_name="geo_unit_alias")
     op.drop_index(
         "ix_geo_unit_alias_trgm",

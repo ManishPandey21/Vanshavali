@@ -204,7 +204,7 @@ Decision: ADR-0019 (implementation notes there). Migration `8e4a1f6c2b37`: `geo_
 | Tree places: a picked code is checked against the active snapshot and stamped by the server; LGD changes only add a note (renamed, moved, district renamed, retired with successors); `lgd_accept_current` re-links on the user's choice; archive README credits GODL-India | VERIFIED | `test_geo.py` (place and archive tests) | |
 | `PlaceCascade` (State > District > Tehsil/Taluka/Mandal… > Village/Town, all-India search, PIN suggestion, "My village is not listed", attribution) in the Places editor and in `PlacePicker` (vital, event, heritage and property places); LGD note on place cards; en/hi | VERIFIED | Vitest `PlaceCascade.test.tsx` (11), Playwright `lgd-places.spec.ts` (2, 390 px, axe) | Hindi strings await the native review (#34) |
 | Ancestral-village suggestion: optional family branch on the person form; the branch's ancestral village is offered for the birth place, never filled | VERIFIED | Vitest `PlaceCascade.test.tsx`, Playwright `lgd-places.spec.ts` | |
-| Acceptance benchmark (§10) on pilot hardware with the national files | NOT_STARTED | `python -m app.cli.geo_benchmark` (synthetic national scale) | Synthetic-scale numbers from the build container: `docs/operations/performance.md` |
+| Acceptance benchmark (§10) on pilot hardware with the national files | PARTIAL | `python -m app.cli.geo_benchmark` (synthetic, 6.5 lakh villages) | Build container: children p95 5.9 ms, search p95 79/88 ms, largest state 14 s, 382 MB, all within target (`docs/operations/performance.md`). Pilot-hardware run with real files still to do |
 
 ## R1 — Age-aware kinship terms (Nov 2026)
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import ColumnElement, and_, func, literal, or_, select
+from sqlalchemy import ColumnElement, and_, case, func, literal, or_, select, text
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -23,6 +23,7 @@ from app.modules.translit import engine as translit
 
 ATTRIBUTION = "Source: Local Government Directory, Government of India; India Post"
 SEARCH_CANDIDATES = 200
+TRIGRAM_THRESHOLD = 0.4
 _ANCESTOR_COLUMN = {
     GeoLevel.STATE: GeoUnit.state_code,
     GeoLevel.DISTRICT: GeoUnit.district_code,
@@ -161,15 +162,26 @@ def children(
     return [unit_out(u, anc) for u in rows[:limit]], len(rows) > limit
 
 
-def _query_keys(q: str) -> list[str]:
-    """The search key of the query plus its transliterations, so "रामपुर" also meets "Rampur"."""
-    keys = [search_key(q)]
+def _query_keys(q: str) -> tuple[list[str], list[str]]:
+    """Search keys for the English-name column and for the local-script-name column.
+
+    The typed text's own key goes against the column of its script, and its transliterations
+    (ADR-0025 engine) against the other, so "रामपुर" also meets "Rampur" and "Rampur" meets
+    "रामपुर", without comparing every key with both columns.
+    """
+    own = search_key(q)
     script = translit.script_of(q)
     target: translit.Script | None = "Latn" if script == "Deva" else "Deva" if script == "Latn" else None
-    if target:
-        for c in translit.suggest(q, target)[:2]:
-            keys.append(search_key(c.text))
-    return [k for i, k in enumerate(keys) if k and k not in keys[:i]]
+    other = [search_key(c.text) for c in translit.suggest(q, target)[:2]] if target else []
+
+    def uniq(xs: list[str]) -> list[str]:
+        return [k for i, k in enumerate(xs) if k and k not in xs[:i]]
+
+    if script == "Latn":
+        return uniq([own]), uniq(other)
+    if script == "Deva":
+        return uniq(other), uniq([own])
+    return uniq([own]), uniq([own])
 
 
 def search(
@@ -185,44 +197,79 @@ def search(
     q = q.strip()
     if len(q) < 2:
         raise Unprocessable("type at least two letters")
-    keys = _query_keys(q)
+    name_keys, local_keys = _query_keys(q)
+    keys = list(dict.fromkeys(name_keys + local_keys))  # for aliases, which may be in either script
     if not keys:
         return [], False
     scope = _scope(parent, parent_level, levels[0] if len(levels) == 1 else None)
     short = min(len(k) for k in keys) < 3
     if short and scope is None:
         return [], False  # two letters across all of India would match everything
-    prefixes = [k + "%" for k in keys]
 
-    def matches(col: Any) -> ColumnElement[bool]:
-        conds = [col.like(p) for p in prefixes]
-        if not short:
-            conds += [col.op("%")(k) for k in keys]
-        return or_(*conds)
-
-    def sim(col: Any) -> Any:
+    def sim(col: Any, ks: list[str]) -> Any:
+        if not ks:
+            return literal(0.0)
         return (
-            func.greatest(*[func.similarity(col, k) for k in keys])
-            if len(keys) > 1
-            else func.similarity(col, keys[0])
+            func.greatest(*[func.similarity(col, k) for k in ks])
+            if len(ks) > 1
+            else func.similarity(col, ks[0])
         )
 
+    def prefixed(pairs: list[tuple[Any, list[str]]]) -> ColumnElement[bool]:
+        return or_(*[c.like(k + "%") for c, ks in pairs for k in ks])
+
+    def exact_first(pairs: list[tuple[Any, list[str]]]) -> Any:
+        return case((or_(*[c.in_(ks) for c, ks in pairs if ks]), 0), else_=1)
+
+    def fuzzy(pairs: list[tuple[Any, list[str]]]) -> ColumnElement[bool]:
+        return or_(*[c.op("%")(k) for c, ks in pairs for k in ks])
+
+    unit_pairs = [(GeoUnit.name_key, name_keys), (GeoUnit.local_key, local_keys)]
+    unit_pairs = [(c, ks) for c, ks in unit_pairs if ks]
+    alias_pairs = [(GeoUnitAlias.name_key, keys)]
+    unit_cols = (sim(GeoUnit.name_key, name_keys), sim(GeoUnit.local_key, local_keys))
     base = [_valid(a), GeoUnit.level.in_(levels)]
     if scope is not None:
         base.append(scope)
-    unit_rows = db.execute(
-        select(GeoUnit, sim(GeoUnit.name_key), sim(GeoUnit.local_key), literal(None))
-        .where(*base, or_(matches(GeoUnit.name_key), matches(GeoUnit.local_key)))
-        .limit(SEARCH_CANDIDATES)
-    ).all()
-    alias_rows = db.execute(
-        select(GeoUnit, sim(GeoUnitAlias.name_key), literal(0.0), GeoUnitAlias.name)
-        .join(
-            GeoUnitAlias, and_(GeoUnitAlias.level == GeoUnit.level, GeoUnitAlias.lgd_code == GeoUnit.lgd_code)
-        )
-        .where(*base, matches(GeoUnitAlias.name_key))
-        .limit(SEARCH_CANDIDATES)
-    ).all()
+    alias_join = and_(GeoUnitAlias.level == GeoUnit.level, GeoUnitAlias.lgd_code == GeoUnit.lgd_code)
+
+    # 1. exact and prefix matches (btree text_pattern_ops indexes), exact ones first: an exact
+    #    match is never crowded out of the candidates by many prefix matches
+    unit_rows = list(
+        db.execute(
+            select(GeoUnit, *unit_cols, literal(None))
+            .where(*base, prefixed(unit_pairs))
+            .order_by(exact_first(unit_pairs), GeoUnit.name_en, GeoUnit.lgd_code)
+            .limit(SEARCH_CANDIDATES)
+        ).all()
+    )
+    alias_rows = list(
+        db.execute(
+            select(GeoUnit, sim(GeoUnitAlias.name_key, keys), literal(0.0), GeoUnitAlias.name)
+            .join(GeoUnitAlias, alias_join)
+            .where(*base, prefixed(alias_pairs))
+            .order_by(exact_first(alias_pairs), GeoUnit.name_en)
+            .limit(SEARCH_CANDIDATES)
+        ).all()
+    )
+    # 2. similar spellings (trigram), best first, only when the page is not already full
+    if not short and len(unit_rows) + len(alias_rows) <= offset + limit:
+        # 0.4 keeps real variants (Phoolpur/Phulpur 0.42) but not every name sharing "-nagar":
+        # at the default 0.3 a common suffix matched ~4% of all villages (benchmark, Nov 2026)
+        db.execute(text(f"SET LOCAL pg_trgm.similarity_threshold = {TRIGRAM_THRESHOLD}"))
+        unit_rows += db.execute(
+            select(GeoUnit, *unit_cols, literal(None))
+            .where(*base, fuzzy(unit_pairs))
+            .order_by(func.greatest(*unit_cols).desc())
+            .limit(SEARCH_CANDIDATES)
+        ).all()
+        alias_rows += db.execute(
+            select(GeoUnit, sim(GeoUnitAlias.name_key, keys), literal(0.0), GeoUnitAlias.name)
+            .join(GeoUnitAlias, alias_join)
+            .where(*base, fuzzy(alias_pairs))
+            .order_by(sim(GeoUnitAlias.name_key, keys).desc())
+            .limit(SEARCH_CANDIDATES)
+        ).all()
 
     keyset = set(keys)
 

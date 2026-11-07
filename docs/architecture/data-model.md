@@ -550,7 +550,7 @@ Constraints/indexes: `INDEX uq_geo_snapshot_active (status) UNIQUE`
 | `last_snapshot` | VARCHAR(7) | yes | → geo_snapshot |
 | `successor_codes` | ARRAY | no |  |
 
-Constraints/indexes: `UNIQUE (level, lgd_code, first_snapshot)`; `INDEX uq_geo_unit_current (level, lgd_code) UNIQUE`; `INDEX ix_geo_unit_children (parent_level, parent_lgd_code, level)`; `INDEX ix_geo_unit_local_trgm (local_key)`; `INDEX ix_geo_unit_current_children (parent_level, parent_lgd_code, level, name_en)`; `INDEX ix_geo_unit_state (state_code, level)`; `INDEX ix_geo_unit_code (level, lgd_code)`; `INDEX ix_geo_unit_name_trgm (name_key)`
+Constraints/indexes: `UNIQUE (level, lgd_code, first_snapshot)`; `INDEX uq_geo_unit_current (level, lgd_code) UNIQUE`; `INDEX ix_geo_unit_current_sub_district_code (sub_district_code, level, name_en)`; `INDEX ix_geo_unit_current_local_key_prefix (local_key)`; `INDEX ix_geo_unit_local_trgm (local_key)`; `INDEX ix_geo_unit_current_state_code (state_code, level, name_en)`; `INDEX ix_geo_unit_code (level, lgd_code)`; `INDEX ix_geo_unit_state (state_code, level)`; `INDEX ix_geo_unit_current_district_code (district_code, level, name_en)`; `INDEX ix_geo_unit_current_name_key_prefix (name_key)`; `INDEX ix_geo_unit_name_trgm (name_key)`
 
 ### `geo_unit_alias`
 
@@ -567,7 +567,7 @@ Constraints/indexes: `UNIQUE (level, lgd_code, first_snapshot)`; `INDEX uq_geo_u
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
 
-Constraints/indexes: `UNIQUE (level, lgd_code, name_key)`; `INDEX ix_geo_unit_alias_trgm (name_key)`; `INDEX ix_geo_unit_alias_unit (level, lgd_code)`
+Constraints/indexes: `UNIQUE (level, lgd_code, name_key)`; `INDEX ix_geo_unit_alias_prefix (name_key)`; `INDEX ix_geo_unit_alias_trgm (name_key)`; `INDEX ix_geo_unit_alias_unit (level, lgd_code)`
 
 ### `pincode_office`
 
@@ -591,7 +591,7 @@ Constraints/indexes: `UNIQUE (level, lgd_code, name_key)`; `INDEX ix_geo_unit_al
 | `first_snapshot` | VARCHAR(7) | no | → geo_snapshot |
 | `last_snapshot` | VARCHAR(7) | yes | → geo_snapshot |
 
-Constraints/indexes: `UNIQUE (pincode, office_key, first_snapshot)`; `INDEX ix_pincode_office_pincode (pincode)`; `INDEX ix_pincode_office_current (pincode)`
+Constraints/indexes: `UNIQUE (pincode, office_key, first_snapshot)`; `INDEX ix_pincode_office_current (pincode)`; `INDEX ix_pincode_office_pincode (pincode)`
 
 ## Evidence
 
