@@ -233,7 +233,7 @@ seen and confirmed.
   starts as "not recorded" and is stored only if the user enters it, in which case Phase C shows the
   definite word; otherwise it shows the neutral reading (amended 5 Nov; earlier drafts pre-selected
   it from the term).
-- **Progressive form.** Step 1: name (with transliteration suggestion, original kept), living
+- **Progressive form.** Step 1: name (with transliteration suggestion, original kept; ADR-0025), living
   status, approximate year. "Add more details" expands date accuracy, place cascade (when R2 is on),
   occupation, honorific, name format and name language/script.
 
@@ -364,8 +364,9 @@ The full LGD import (R2) runs in parallel with R1 and does not block it.
 **R1 progress (5 Nov 2026):** Smart Add Relative (ADR-0020), the minimal master-data service with
 the ADR-0018 classification, and age-aware kinship terms in the calculator (ADR-0020 amendment) are
 implemented (see `IMPLEMENTATION_STATUS.md`), as are provisional people's privacy, export
-exclusion, headline counts and the "To complete" view (5 Nov). Still open in R1: transliteration
-suggestions and native Hindi review (issue #34).
+exclusion, headline counts and the "To complete" view (5 Nov), and name transliteration
+suggestions (ADR-0025, 6 Nov). Still open in R1: the native-Hindi review itself (the pack is
+regenerated, including the name lexicon; issue #34).
 
 **Super Admin console (5 Nov 2026):** global vocabularies can be curated in the browser by system
 admins with MFA, through reviewed change requests with history (ADR-0026). Geography is designed in

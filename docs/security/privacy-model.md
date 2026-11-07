@@ -212,3 +212,14 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   query text.
 - **Religion, community and jati** still have no global list. An opt-in design is proposed in
   ADR-0018 amendment 2 and needs the owner's decision, a privacy review and legal review first.
+
+## 10. Name transliteration suggestions (ADR-0025)
+
+- **The typed name is never changed.** A suggestion in the other script is shown, never applied;
+  accepting it adds a separate name, which is never the preferred one and never counts as evidence.
+- **Names stay on our servers.** Suggestions are computed locally. The text is not logged or stored,
+  and no third-party transliteration service is used.
+- **No learning across families.** The engine never learns from names other families enter; its name
+  list changes only through code review.
+- **No inference.** A name's script or spelling never sets sex, gender, community, region or anything
+  else about a person.

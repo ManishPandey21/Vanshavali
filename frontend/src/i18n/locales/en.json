@@ -3529,5 +3529,15 @@
       "rollback": "{{label}} restored",
       "discard": "{{label}} discarded"
     }
+  },
+  "translit": {
+    "inDevanagari": "In Devanagari:",
+    "inLatin": "In Latin letters:",
+    "possible": "possible spelling",
+    "add": "Add as another name",
+    "dismiss": "Dismiss",
+    "hint": "Your spelling stays as you typed it. Adding saves this as a separate name.",
+    "addedNote": "Will be saved as another name:",
+    "suggestedConfirmed": "Spelling suggested, confirmed by you"
   }
 }

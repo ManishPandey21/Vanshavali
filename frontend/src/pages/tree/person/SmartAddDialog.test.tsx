@@ -141,6 +141,33 @@ describe("SmartAddDialog", () => {
     expect(body.new_person.birth).toBeUndefined();
   });
 
+  it("can add the new person's name in the other script too, as a separate suggested name", async () => {
+    const fetchMock = server();
+    const withTranslit = vi.fn((url: RequestInfo | URL, init?: RequestInit) => {
+      if (String(url).endsWith("/transliterate")) {
+        const text = JSON.parse(String(init?.body)).text;
+        const candidates = text === "विक्रम" ? [{ text: "Vikram", method: "lexicon" }] : [];
+        return Promise.resolve(jsonResponse({ candidates, engine: "vanshavali-translit", version: "hi-Latn/1", lexicon_version: "1" }));
+      }
+      return attested(fetchMock)(url, init);
+    });
+    vi.stubGlobal("fetch", withTranslit);
+    renderWithProviders(<SmartAddDialog anchor={anchor} onClose={() => undefined} />);
+    const dialog = screen.getByRole("dialog");
+    await userEvent.click(await within(dialog).findByRole("button", { name: /^Brother/ }));
+    await userEvent.type(await within(dialog).findByLabelText("Given name"), "विक्रम");
+    expect(await within(dialog).findByText("In Latin letters:")).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: /Add as another name: Vikram/ }));
+    expect(within(dialog).getByText("Will be saved as another name:")).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Review" }));
+    await userEvent.click(await within(dialog).findByRole("button", { name: "Confirm and add" }));
+    await waitFor(() => expect(commits(fetchMock)).toHaveLength(1));
+    const names = JSON.parse(String(commits(fetchMock)[0][1]!.body)).new_person.names;
+    expect(names).toHaveLength(2);
+    expect(names[0]).toMatchObject({ given_name: "विक्रम", script: "Deva", is_preferred: true });
+    expect(names[1]).toMatchObject({ type: "transliteration", given_name: "Vikram", script: "Latn", is_preferred: false, suggestion: { method: "lexicon" } });
+  });
+
   it("refuses to review without any name", async () => {
     const fetchMock = server();
     vi.stubGlobal("fetch", vi.fn(attested(fetchMock)));

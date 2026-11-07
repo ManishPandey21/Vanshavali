@@ -271,3 +271,7 @@ export type GeoUnitPage = S["GeoUnitPage"];
 export type GeoPin = S["GeoPinOut"];
 export type GeoLevel = GeoUnit["level"];
 export type GeoSnapshot = S["GeoSnapshotOut"];
+
+// name transliteration suggestions (ADR-0025)
+export type TransliterateOut = S["TransliterateOut"];
+export type TransliterationCandidate = S["TransliterationCandidate"];

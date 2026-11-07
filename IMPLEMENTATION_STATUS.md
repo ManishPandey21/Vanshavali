@@ -216,6 +216,18 @@ trigger), `geo_pin_office`, `geo_pin_unit`, `place.lgd_level`. Runbook: `docs/op
 | `PlaceCascade` in the place form (search, step by step with the state's sub-district term, PIN first; fills district/state/code, never the family's own name or historical names; hidden when the directory is off) | VERIFIED | Vitest `PlaceCascade.test.tsx` (6), Playwright `geography.spec.ts` (Hindi search, cascade, PIN, free-text pre-1947 place; axe) | Not yet in the vital/event place pickers or parcels |
 | Curated aliases and units through change requests, gram panchayat / block data, "remember my ancestral village" | NOT_STARTED | | Next increments (ADR-0019 §1, plan phase B) |
 
+## R1 — Name transliteration suggestions (Nov 2026)
+
+Decision: ADR-0025. No migration: an accepted suggestion is a `name_record` of type `transliteration` with provenance.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Engine: reviewed lexicon (340 common North-Indian given names and surnames) first, Hindi rules on `indic-transliteration` second (no final halant, long final a/i, schwa deletion, "Aa" for initial आ); ≤ 3 labelled candidates; deterministic | VERIFIED | `test_translit.py` (lexicon, rules, no-suggestion cases, determinism, lexicon integrity) | Devanagari ⇄ Latin, Hindi only (v1). The lexicon is pending native-Hindi review (`p5-name-lexicon.csv`) |
+| `POST /transliterate`: signed-in, ≤ 200 characters, rate-limited per user, text never logged or stored | VERIFIED | `test_translit.py` (sign-in, validation, rate limit, no logging) | |
+| Accepted suggestion = separate, non-preferred `transliteration` name; provenance `calculation` + engine version + confirmed by the user, stamped by the server | VERIFIED | `test_translit.py` (provenance, refused disguises, person create, cross-tree, viewer 403) | Exported as GEDCOM `TRAN` (ADR-0008, unchanged) |
+| Suggestion UI in the person form, the name editor and Smart Add | VERIFIED | Vitest `TransliterationSuggestion.test.tsx` (3), `SmartAddDialog.test.tsx`, Playwright `transliteration.spec.ts` (390 px, axe) | |
+| Hindi review pack regenerated; now includes the master-data labels and the name lexicon | DONE (pack) | `ops/i18n/hindi_review_pack.py` | The review itself is a human task: no sign-off yet |
+
 ## R1 — Age-aware kinship terms (Nov 2026)
 
 Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.

@@ -5226,6 +5226,47 @@
     }
    }
   },
+  "/api/v1/transliterate": {
+   "post": {
+    "tags": [
+     "transliteration"
+    ],
+    "summary": "Transliterate",
+    "operationId": "transliterate_api_v1_transliterate_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TransliterateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TransliterateOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/life-events": {
    "get": {
     "tags": [
@@ -24147,6 +24188,16 @@
      "confidence": {
       "$ref": "#/components/schemas/Confidence",
       "default": "unknown"
+     },
+     "suggestion": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NameSuggestionIn"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -24366,6 +24417,24 @@
      "confidence"
     ],
     "title": "NameOut"
+   },
+   "NameSuggestionIn": {
+    "properties": {
+     "method": {
+      "type": "string",
+      "enum": [
+       "lexicon",
+       "rules"
+      ],
+      "title": "Method"
+     }
+    },
+    "type": "object",
+    "required": [
+     "method"
+    ],
+    "title": "NameSuggestionIn",
+    "description": "Marks a name the user accepted from a transliteration suggestion (ADR-0025 \u00a75).\n\nThe server, not the client, records the provenance: origin ``calculation``, its own engine\nversion and the user as the one who confirmed it."
    },
    "NameType": {
     "type": "string",
@@ -33517,6 +33586,83 @@
     ],
     "title": "TransferOut"
    },
+   "TransliterateIn": {
+    "properties": {
+     "text": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Text"
+     },
+     "target_script": {
+      "type": "string",
+      "enum": [
+       "Deva",
+       "Latn"
+      ],
+      "title": "Target Script"
+     }
+    },
+    "type": "object",
+    "required": [
+     "text",
+     "target_script"
+    ],
+    "title": "TransliterateIn"
+   },
+   "TransliterateOut": {
+    "properties": {
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/TransliterationCandidate"
+      },
+      "type": "array",
+      "title": "Candidates"
+     },
+     "engine": {
+      "type": "string",
+      "title": "Engine"
+     },
+     "version": {
+      "type": "string",
+      "title": "Version"
+     },
+     "lexicon_version": {
+      "type": "string",
+      "title": "Lexicon Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "candidates",
+     "engine",
+     "version",
+     "lexicon_version"
+    ],
+    "title": "TransliterateOut"
+   },
+   "TransliterationCandidate": {
+    "properties": {
+     "text": {
+      "type": "string",
+      "title": "Text"
+     },
+     "method": {
+      "type": "string",
+      "enum": [
+       "lexicon",
+       "rules"
+      ],
+      "title": "Method"
+     }
+    },
+    "type": "object",
+    "required": [
+     "text",
+     "method"
+    ],
+    "title": "TransliterationCandidate"
+   },
    "TreeCreate": {
     "properties": {
      "name": {
@@ -34318,7 +34464,7 @@
      "reactivate"
     ],
     "title": "VocabularyChangeAction",
-    "description": "What a master-data change request does to one global term (ADR-0025 \u00a73)."
+    "description": "What a master-data change request does to one global term (ADR-0026 \u00a73)."
    },
    "VocabularyChangeStatus": {
     "type": "string",
@@ -34329,7 +34475,7 @@
      "withdrawn"
     ],
     "title": "VocabularyChangeStatus",
-    "description": "Master-data change request lifecycle (ADR-0025 \u00a73). Only ``pending`` changes can move on."
+    "description": "Master-data change request lifecycle (ADR-0026 \u00a73). Only ``pending`` changes can move on."
    },
    "VocabularyDuplicateCheckIn": {
     "properties": {
@@ -34562,7 +34708,7 @@
      "admin"
     ],
     "title": "VocabularyTermManagedBy",
-    "description": "Who maintains a global term (ADR-0025 \u00a74). The pack loader never changes ``admin`` terms."
+    "description": "Who maintains a global term (ADR-0026 \u00a74). The pack loader never changes ``admin`` terms."
    },
    "VocabularyTermOut": {
     "properties": {

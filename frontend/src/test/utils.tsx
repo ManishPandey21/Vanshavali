@@ -65,16 +65,20 @@ export function emptyVocabulary(key: string) {
 }
 
 /**
- * Wraps a fetch mock so the family-data attestation check (ADR-0011) answers "already confirmed"
- * and vocabulary suggestion lookups (ADR-0018) answer with an empty list; every other request
- * goes to `inner`.
+ * Wraps a fetch mock so the family-data attestation check (ADR-0011) answers "already confirmed",
+ * vocabulary suggestion lookups (ADR-0018) answer with an empty list and transliteration
+ * suggestions (ADR-0025) offer nothing; every other request goes to `inner`.
  */
+/** A transliteration answer with no suggestion (ADR-0025). */
+export const noTransliteration = { candidates: [], engine: "vanshavali-translit", version: "hi-Latn/1", lexicon_version: "1" };
+
 export function attested(inner: (...args: [RequestInfo | URL, RequestInit?]) => unknown) {
   return (url: RequestInfo | URL, init?: RequestInit) => {
     const u = String(url);
     if (u.includes("/attestation")) return Promise.resolve(jsonResponse({ attested: true, current_version: "v1", attestation: null }));
     const vocab = u.match(/\/vocabularies\/([a-z_]+)(?:\?|$)/);
     if (vocab && (!init?.method || init.method === "GET")) return Promise.resolve(jsonResponse(emptyVocabulary(vocab[1])));
+    if (u.endsWith("/transliterate")) return Promise.resolve(jsonResponse(noTransliteration));
     return inner(url, init);
   };
 }

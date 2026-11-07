@@ -5,6 +5,7 @@ import type { EvidenceStatus, NameIn, NameType } from "../../api/types";
 import { SCRIPTS, detectScript, isRtl } from "../../lib/names";
 import { Field, Select, TextInput } from "../ui/form";
 import { SmartSelect } from "../ui/SmartSelect";
+import { TransliterationSuggestion } from "./TransliterationSuggestion";
 
 export const NAME_TYPES: NameType[] = ["birth", "married", "alias", "religious", "professional", "nickname", "transliteration", "historical"];
 export const EVIDENCE_STATUSES: EvidenceStatus[] = [
@@ -46,12 +47,15 @@ export function NameFields({
   onRemove,
   index,
   error,
+  onAddName,
 }: {
   value: NameDraft;
   onChange: (n: NameDraft) => void;
   onRemove?: () => void;
   index: number;
   error?: string | null;
+  /** When given, offers the name in the other script as a separate name (ADR-0025). */
+  onAddName?: (n: NameDraft) => void;
 }) {
   const { t } = useTranslation();
   const [more, setMore] = useState(false);
@@ -158,6 +162,8 @@ export function NameFields({
           {(p) => <TextInput {...p} lang="en" value={value.romanized_value ?? ""} onChange={(e) => set({ romanized_value: e.target.value })} />}
         </Field>
       </div>
+      {onAddName && !value.suggestion && <TransliterationSuggestion name={value} onAdd={onAddName} />}
+      {value.suggestion && <p className="mt-2 text-xs text-ink-muted">{t("translit.suggestedConfirmed")}</p>}
       <button type="button" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-kumkum-800" aria-expanded={more} onClick={() => setMore(!more)}>
         {more ? <ChevronDown className="size-3.5" aria-hidden /> : <ChevronRight className="size-3.5" aria-hidden />}
         {t("names.moreParts")}
