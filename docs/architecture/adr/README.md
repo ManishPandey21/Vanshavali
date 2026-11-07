@@ -27,5 +27,5 @@ into 0003, 0009 and 0010.
 | 0018 | [Master data: controlled values vs extensible vocabularies](0018-master-data-vocabularies.md) | Accepted |
 | 0019 | [Indian geography reference data (LGD) and place cascades](0019-india-geography-reference-lgd.md) | Accepted |
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |
-| 0021 | [Change proposals, family review and duplicates at entry](0021-change-proposals-family-review.md) | Proposed |
+| 0021 | [Change proposals, family review and duplicates at entry](0021-change-proposals-family-review.md) | Accepted |
 | 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |

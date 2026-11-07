@@ -1,6 +1,6 @@
 # ADR-0021: Change proposals, family review and duplicates at entry
 
-- Status: Proposed · Date: 2026-11-07 · Release: R3
+- Status: Accepted · Date: 2026-11-07 (accepted as proposed, including the four open points) · Release: R3
 - Relates to: ADR-0003 (relationships as typed claims), ADR-0006 (roles, branch scope, field
   redaction), ADR-0009 (provenance; proposals before canonical data), ADR-0011 (attestation),
   ADR-0020 (Smart Add, provisional people), ADR-0019 (LGD place links)
