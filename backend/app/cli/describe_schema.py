@@ -39,6 +39,14 @@ GROUPS = {
     ],
     "Master data": ["vocabulary", "vocabulary_term", "tree_vocabulary_term"],
     "Geography reference (LGD, India Post)": ["geo_snapshot", "geo_unit", "geo_unit_alias", "pincode_office"],
+    "Review and history (ADR-0021)": [
+        "change_proposal",
+        "change_proposal_item",
+        "proposal_citation",
+        "proposal_comment",
+        "record_revision",
+        "user_notification",
+    ],
     "Evidence": ["source", "citation"],
     "Documents & extraction": [
         "document",

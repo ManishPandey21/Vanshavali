@@ -56,6 +56,7 @@ Constraints/indexes: `INDEX ix_user_session_user_active (user_id, revoked_at)`
 | `deleted_at` | DATETIME | yes |  |
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
+| `review_policy` | enum(off, structure, all) | no |  |
 
 ### `tree_membership`
 
@@ -142,6 +143,10 @@ Constraints/indexes: `UNIQUE (tree_id, user_id, resource_type, resource_id, perm
 | `updated_by` | UUID | yes | → app_user |
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
+| `revision` | INTEGER | no |  |
+| `review_state` | enum(unreviewed, family_reviewed, contested) | no |  |
+| `review_state_by` | UUID | yes |  |
+| `review_state_at` | DATETIME | yes |  |
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_person_tree_id (tree_id)`
 
@@ -184,6 +189,10 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_person_tree_id (tree_id)`
 | `prov_extracted_at` | DATETIME | yes |  |
 | `prov_confirmed_by` | UUID | yes |  |
 | `prov_confirmed_at` | DATETIME | yes |  |
+| `revision` | INTEGER | no |  |
+| `review_state` | enum(unreviewed, family_reviewed, contested) | no |  |
+| `review_state_by` | UUID | yes |  |
+| `review_state_at` | DATETIME | yes |  |
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_name_record_person (tree_id, person_id)`; `INDEX ix_name_record_tree_id (tree_id)`; `INDEX ix_name_record_search_trgm (search_text)`
 
@@ -218,6 +227,10 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_name_record_person (tree_
 | `prov_extracted_at` | DATETIME | yes |  |
 | `prov_confirmed_by` | UUID | yes |  |
 | `prov_confirmed_at` | DATETIME | yes |  |
+| `revision` | INTEGER | no |  |
+| `review_state` | enum(unreviewed, family_reviewed, contested) | no |  |
+| `review_state_by` | UUID | yes |  |
+| `review_state_at` | DATETIME | yes |  |
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `CHECK person_a_id <> person_b_id`; `UNIQUE (tree_id, type, person_a_id, person_b_id)`; `INDEX ix_relationship_a (tree_id, person_a_id, type)`; `INDEX ix_relationship_b (tree_id, person_b_id, type)`; `INDEX ix_relationship_tree_id (tree_id)`
 
@@ -263,6 +276,10 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `CHECK person_a_id <> person_b_id`;
 | `prov_extracted_at` | DATETIME | yes |  |
 | `prov_confirmed_by` | UUID | yes |  |
 | `prov_confirmed_at` | DATETIME | yes |  |
+| `revision` | INTEGER | no |  |
+| `review_state` | enum(unreviewed, family_reviewed, contested) | no |  |
+| `review_state_by` | UUID | yes |  |
+| `review_state_at` | DATETIME | yes |  |
 
 Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_event_tree_id (tree_id)`; `INDEX ix_event_type_sort (tree_id, type, date_sort_from)`
 
@@ -385,6 +402,10 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `CHECK elder_person_id <> younger_p
 | `prov_extracted_at` | DATETIME | yes |  |
 | `prov_confirmed_by` | UUID | yes |  |
 | `prov_confirmed_at` | DATETIME | yes |  |
+| `revision` | INTEGER | no |  |
+| `review_state` | enum(unreviewed, family_reviewed, contested) | no |  |
+| `review_state_by` | UUID | yes |  |
+| `review_state_at` | DATETIME | yes |  |
 
 Constraints/indexes: `CHECK (subject_type = 'person' AND person_id IS NOT NULL AND branch_id IS NULL) OR (subject_type = 'branch' AND branch_id IS NOT NULL AND person_id IS NULL)`; `UNIQUE (tree_id, id)`; `INDEX ix_assertion_subject (tree_id, person_id, branch_id, attribute)`; `INDEX ix_assertion_tree_id (tree_id)`
 
@@ -592,6 +613,129 @@ Constraints/indexes: `UNIQUE (level, lgd_code, name_key)`; `INDEX ix_geo_unit_al
 | `last_snapshot` | VARCHAR(7) | yes | → geo_snapshot |
 
 Constraints/indexes: `UNIQUE (pincode, office_key, first_snapshot)`; `INDEX ix_pincode_office_current (pincode)`; `INDEX ix_pincode_office_pincode (pincode)`
+
+## Review and history (ADR-0021)
+
+### `change_proposal`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `proposer_id` | UUID | yes |  |
+| `kind` | enum(change, challenge) | no |  |
+| `status` | enum(draft, awaiting_review, accepted, rejected, withdrawn, stale) | no |  |
+| `rationale` | TEXT | no |  |
+| `person_id` | UUID | yes |  |
+| `target_type` | enum(person, name, event, relationship, assertion) | yes |  |
+| `target_id` | UUID | yes |  |
+| `submitted_at` | DATETIME | yes |  |
+| `decided_by` | UUID | yes |  |
+| `decided_at` | DATETIME | yes |  |
+| `decision_note` | TEXT | yes |  |
+| `stale_reason` | TEXT | yes |  |
+| `supersedes_id` | UUID | yes | → change_proposal (composite, same tree) |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_change_proposal_tree_id (tree_id)`; `INDEX ix_change_proposal_status (tree_id, status, created_at)`; `INDEX ix_change_proposal_person (tree_id, person_id)`
+
+### `change_proposal_item`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `proposal_id` | UUID | no | → change_proposal (composite, same tree) |
+| `position` | INTEGER | no |  |
+| `target_type` | enum(person, name, event, relationship, assertion) | no |  |
+| `op` | enum(create, update, delete) | no |  |
+| `target_id` | UUID | yes |  |
+| `person_id` | UUID | yes |  |
+| `patch` | JSONB | no |  |
+| `base_revisions` | JSONB | no |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_change_proposal_item_proposal (tree_id, proposal_id)`; `INDEX ix_change_proposal_item_tree_id (tree_id)`; `INDEX ix_change_proposal_item_target (tree_id, target_type, target_id)`
+
+### `proposal_citation`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `proposal_id` | UUID | no | → change_proposal (composite, same tree) |
+| `source_id` | UUID | no | → source (composite, same tree) |
+| `note` | VARCHAR(500) | yes |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_proposal_citation_proposal (tree_id, proposal_id)`; `INDEX ix_proposal_citation_tree_id (tree_id)`
+
+### `proposal_comment`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `proposal_id` | UUID | no | → change_proposal (composite, same tree) |
+| `author_id` | UUID | yes |  |
+| `body` | TEXT | no |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_proposal_comment_tree_id (tree_id)`; `INDEX ix_proposal_comment_proposal (tree_id, proposal_id, created_at)`
+
+### `record_revision`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `record_type` | enum(person, name, event, relationship, assertion) | no |  |
+| `record_id` | UUID | no |  |
+| `revision` | INTEGER | no |  |
+| `op` | enum(create, update, delete) | no |  |
+| `person_id` | UUID | yes |  |
+| `person_b_id` | UUID | yes |  |
+| `before` | JSONB | no |  |
+| `after` | JSONB | no |  |
+| `actor_id` | UUID | yes |  |
+| `proposal_id` | UUID | yes |  |
+| `reviewer_id` | UUID | yes |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_record_revision_record (tree_id, record_type, record_id, revision)`; `INDEX ix_record_revision_tree_id (tree_id)`; `INDEX ix_record_revision_person (tree_id, person_id, created_at)`; `INDEX ix_record_revision_person_b (tree_id, person_b_id)`
+
+### `user_notification`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `user_id` | UUID | no |  |
+| `kind` | enum(proposal_to_review, proposal_accepted, proposal_rejected, proposal_stale, challenge_opened, challenge_upheld, challenge_dismissed, proposal_comment) | no |  |
+| `proposal_id` | UUID | yes |  |
+| `actor_id` | UUID | yes |  |
+| `read_at` | DATETIME | yes |  |
+| `id` | UUID | no | PK |
+| `tree_id` | UUID | no | → tree |
+| `created_by` | UUID | yes | → app_user |
+| `updated_by` | UUID | yes | → app_user |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_user_notification_user (tree_id, user_id, read_at, created_at)`; `INDEX ix_user_notification_tree_id (tree_id)`
 
 ## Evidence
 

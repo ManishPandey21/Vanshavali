@@ -280,3 +280,42 @@ Under `/api/v1/trees/{tree_id}`, all authorised, typed and paginated by cursor:
   Alternative: contributors and above only.
 - **History retention.** Proposal: keep revisions for as long as the record exists, erased with the
   person. Alternative: keep values for 2 years, field names only after that.
+
+## Implementation notes (7 Nov 2026)
+Built as decided. These points refine the ADR where the code needed it:
+
+1. **One hook records every write path.** A SQLAlchemy `before_flush` hook (`review/revisions.py`)
+   sees every insert, update and delete of the five record types, whichever code made it: the
+   direct endpoints, Smart Add, GEDCOM import, merge, or an applied proposal. A test covers the
+   merge path. A name, vital, claim or relationship change also increments the owning person's
+   revision, so adding something to a person binds to that person.
+2. **Erasure** flushes with the hook switched off, then deletes the person's revision rows,
+   including those of their names, claims, vitals and relationships. It drops values from open
+   proposals and marks them stale.
+3. **Where review is enforced.** The policy is checked inside the write services, right after
+   their permission checks, so every caller is covered.
+   - Adding stays direct: new people, and also a new name, event or claim on an existing person,
+     because these add claims and overwrite nothing.
+   - Linking two people who were already in the tree is gated. Links to a person created earlier
+     in the same request are not.
+   - Applying an accepted proposal runs the same services *as the proposer*, so their rights are
+     checked again by the services themselves.
+4. **Stale approval.** Approving a stale proposal answers `409 proposal_stale`, and the `stale`
+   status is committed in the same transaction. The response is returned rather than raised.
+5. **Notifications** live at `/trees/{id}/inbox`, because `/trees/{id}/notifications` already
+   serves reminder delivery history (ADR-0016). Using that path briefly shadowed it; a new
+   `test_routes_unique.py` now refuses any method and path registered twice.
+6. **Scope of v1.**
+   - Only a person's heritage claims can be proposed; branch heritage stays with family writers.
+   - A Smart Add plan that links two existing people answers `409 review_required` like any other
+     gated write. Turning that plan into a proposal from Smart Add is a follow-up; meanwhile the
+     relationship can be proposed from the person's page.
+7. **Duplicates at entry.**
+   - The cut-off is 0.45, so an exact same-name match alone is shown.
+   - "Use this person" switches Add relative to the existing person.
+   - Smart Add and Add person show the candidates with links, because those flows have no
+     "existing person" mode.
+   - The "possible duplicate" badge reuses the existing `/duplicates?person_id=` scorer.
+8. **API names.** Schemas are named `ChangeProposalOut` and `EntryDuplicateMatch`, because
+   `ProposalOut` (extraction) and `DuplicateMatch` (GEDCOM) already exist.
+

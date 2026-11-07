@@ -1,3 +1,4 @@
+import { DuplicatePanel } from "../../../components/review/ReviewParts";
 import { useId, useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, CircleDashed, Undo2, UserCheck, UserPlus } from "lucide-react";
@@ -366,6 +367,7 @@ function DetailsForm({
   error: string | null;
 }) {
   const { t } = useTranslation();
+  const { treeId } = useTreeCtx();
   const set = (patch: Partial<Details>) => onChange({ ...value, ...patch });
   const ageName = useId();
   const blocked = plan?.target?.blocked;
@@ -385,6 +387,21 @@ function DetailsForm({
             name={{ given_name: value.given, surname: value.surname, ...scriptOf(`${value.given} ${value.surname}`) }}
             onAdd={(n) => set({ extraNames: [...(value.extraNames ?? []), n] })}
           />
+          {/* duplicates at entry (ADR-0021 §8): people already visible in the tree, never hidden ones */}
+          <div className="mt-2">
+            <DuplicatePanel
+              treeId={treeId}
+              check={
+                value.given.trim().length >= 2
+                  ? {
+                      names: [{ given_name: value.given.trim(), surname: value.surname.trim() || null }],
+                      birth_year: /^\d{3,4}$/.test(value.birthYear.trim()) ? Number(value.birthYear.trim()) : null,
+                      exclude_ids: [anchor.id],
+                    }
+                  : null
+              }
+            />
+          </div>
           {(value.extraNames ?? []).length > 0 && (
             <ul className="mt-2 space-y-1 text-xs text-ink-muted">
               {(value.extraNames ?? []).map((n, i) => (

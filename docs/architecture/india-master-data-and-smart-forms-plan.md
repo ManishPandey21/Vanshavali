@@ -368,6 +368,11 @@ exclusion, headline counts and the "To complete" view (5 Nov), and name translit
 suggestions (ADR-0025, 6 Nov). Still open in R1: the native-Hindi review itself (the pack is
 regenerated, including the name lexicon; issue #34).
 
+**R3 progress (7 Nov 2026):** change proposals bound to revisions, reviewers, challenges, family
+review state, value history with revert, in-app notifications and duplicates at entry are
+implemented (ADR-0021; see `IMPLEMENTATION_STATUS.md`). Still open: proposing a Smart Add plan
+that links two existing people from Smart Add itself.
+
 **Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)
 must be signed off by counsel before any public launch, regardless of which releases have shipped.
 
