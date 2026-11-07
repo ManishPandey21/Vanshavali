@@ -45,6 +45,7 @@ export type EventType = S["EventType"];
 
 export type PlaceOut = S["PlaceOut"];
 export type PlaceIn = S["PlaceIn"];
+export type PlaceUpdate = S["PlaceUpdate"];
 export type PlaceName = S["PlaceName"];
 export type PlaceType = S["PlaceType"];
 
@@ -257,3 +258,12 @@ export type TreeTermOut = S["TreeTermOut"];
 // name transliteration suggestions (ADR-0025)
 export type TransliterateOut = S["TransliterateOut"];
 export type TransliterationCandidate = S["TransliterationCandidate"];
+
+// Indian geography reference data (ADR-0019)
+export type GeoLevel = S["GeoLevel"];
+export type GeoUnitOut = S["GeoUnitOut"];
+export type GeoUnitBrief = S["GeoUnitBrief"];
+export type GeoUnitsPage = S["GeoUnitsPage"];
+export type GeoUnitResponse = S["GeoUnitResponse"];
+export type PincodeOut = S["PincodeOut"];
+export type PlaceLgdNote = S["PlaceLgdNote"];

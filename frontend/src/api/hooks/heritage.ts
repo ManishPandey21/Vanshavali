@@ -32,10 +32,11 @@ export type HeritageSubject = { kind: "person" | "branch"; id: string };
 
 const subjectPath = (s: HeritageSubject) => (s.kind === "person" ? `people/${s.id}` : `branches/${s.id}`);
 
-export function useHeritage(treeId: string, subject: HeritageSubject) {
+export function useHeritage(treeId: string, subject: HeritageSubject, enabled = true) {
   return useQuery({
     queryKey: ["tree", treeId, subject.kind === "person" ? "person" : "branch", subject.id, "heritage"],
     queryFn: () => api.get<HeritageProfileOut>(`/trees/${treeId}/${subjectPath(subject)}/heritage`),
+    enabled,
   });
 }
 

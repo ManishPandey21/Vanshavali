@@ -4156,6 +4156,238 @@
     }
    }
   },
+  "/api/v1/geo/units": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "List Units",
+    "operationId": "list_units_api_v1_geo_units_get",
+    "parameters": [
+     {
+      "name": "level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/GeoLevel"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Level"
+      }
+     },
+     {
+      "name": "parent",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{1,20}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent"
+      }
+     },
+     {
+      "name": "parent_level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/GeoLevel"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent Level"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 100
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoUnitsPage"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/units/{lgd_code}": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "Get Unit",
+    "operationId": "get_unit_api_v1_geo_units__lgd_code__get",
+    "parameters": [
+     {
+      "name": "lgd_code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^\\d{1,20}$",
+       "title": "Lgd Code"
+      }
+     },
+     {
+      "name": "level",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/GeoLevel",
+       "description": "LGD codes are unique per level only"
+      },
+      "description": "LGD codes are unique per level only"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoUnitResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/pincodes/{pin}": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "Get Pincode",
+    "operationId": "get_pincode_api_v1_geo_pincodes__pin__get",
+    "parameters": [
+     {
+      "name": "pin",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[1-9]\\d{5}$",
+       "title": "Pin"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PincodeOut"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/life-events": {
    "get": {
     "tags": [
@@ -18945,6 +19177,78 @@
     "title": "GenealogicalTime",
     "description": "A time of day with explicit precision; approximate values are never presented as exact."
    },
+   "GeoAlias": {
+    "properties": {
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/GeoAliasKind"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     }
+    },
+    "type": "object",
+    "required": [
+     "name",
+     "kind"
+    ],
+    "title": "GeoAlias"
+   },
+   "GeoAliasKind": {
+    "type": "string",
+    "enum": [
+     "alternative",
+     "historical",
+     "curated"
+    ],
+    "title": "GeoAliasKind"
+   },
+   "GeoLevel": {
+    "type": "string",
+    "enum": [
+     "state",
+     "district",
+     "sub_district",
+     "village",
+     "urban_body"
+    ],
+    "title": "GeoLevel",
+    "description": "Local Government Directory unit levels loaded in R2 (ADR-0019 \u00a71)."
+   },
+   "GeoMatch": {
+    "properties": {
+     "reason": {
+      "type": "string",
+      "enum": [
+       "name",
+       "local_name",
+       "alias"
+      ],
+      "title": "Reason"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     }
+    },
+    "type": "object",
+    "required": [
+     "reason",
+     "text"
+    ],
+    "title": "GeoMatch"
+   },
    "GeoPoint": {
     "properties": {
      "latitude": {
@@ -18971,6 +19275,434 @@
      "precision"
     ],
     "title": "GeoPoint"
+   },
+   "GeoSnapshotInfo": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "activated_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Activated At"
+     },
+     "attribution": {
+      "type": "string",
+      "title": "Attribution"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "attribution"
+    ],
+    "title": "GeoSnapshotInfo"
+   },
+   "GeoUnitBrief": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "lgd_code": {
+      "type": "string",
+      "title": "Lgd Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "lgd_code",
+     "name_en"
+    ],
+    "title": "GeoUnitBrief"
+   },
+   "GeoUnitDetail": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "lgd_code": {
+      "type": "string",
+      "title": "Lgd Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "parent_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "parent_lgd_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Parent Lgd Code"
+     },
+     "state_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Code"
+     },
+     "district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Code"
+     },
+     "sub_district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District Code"
+     },
+     "sub_district_label": {
+      "type": "string",
+      "enum": [
+       "sub_district",
+       "tehsil",
+       "taluka",
+       "mandal",
+       "block",
+       "circle",
+       "subdivision"
+      ],
+      "title": "Sub District Label",
+      "default": "sub_district"
+     },
+     "ancestors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitBrief"
+      },
+      "type": "array",
+      "title": "Ancestors",
+      "default": []
+     },
+     "match": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoMatch"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "current",
+       "retired"
+      ],
+      "title": "Status"
+     },
+     "successors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Successors",
+      "default": []
+     },
+     "aliases": {
+      "items": {
+       "$ref": "#/components/schemas/GeoAlias"
+      },
+      "type": "array",
+      "title": "Aliases",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "lgd_code",
+     "name_en",
+     "status"
+    ],
+    "title": "GeoUnitDetail"
+   },
+   "GeoUnitOut": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "lgd_code": {
+      "type": "string",
+      "title": "Lgd Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "parent_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "parent_lgd_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Parent Lgd Code"
+     },
+     "state_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Code"
+     },
+     "district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Code"
+     },
+     "sub_district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District Code"
+     },
+     "sub_district_label": {
+      "type": "string",
+      "enum": [
+       "sub_district",
+       "tehsil",
+       "taluka",
+       "mandal",
+       "block",
+       "circle",
+       "subdivision"
+      ],
+      "title": "Sub District Label",
+      "default": "sub_district"
+     },
+     "ancestors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitBrief"
+      },
+      "type": "array",
+      "title": "Ancestors",
+      "default": []
+     },
+     "match": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoMatch"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "lgd_code",
+     "name_en"
+    ],
+    "title": "GeoUnitOut"
+   },
+   "GeoUnitResponse": {
+    "properties": {
+     "unit": {
+      "$ref": "#/components/schemas/GeoUnitDetail"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/GeoSnapshotInfo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "unit",
+     "snapshot"
+    ],
+    "title": "GeoUnitResponse"
+   },
+   "GeoUnitsPage": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/GeoSnapshotInfo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "snapshot"
+    ],
+    "title": "GeoUnitsPage"
    },
    "GrantCreate": {
     "properties": {
@@ -24975,6 +25707,56 @@
     "type": "object",
     "title": "PersonUpdate"
    },
+   "PincodeOut": {
+    "properties": {
+     "pincode": {
+      "type": "string",
+      "title": "Pincode"
+     },
+     "offices": {
+      "items": {
+       "$ref": "#/components/schemas/PostOffice"
+      },
+      "type": "array",
+      "title": "Offices"
+     },
+     "states": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "States"
+     },
+     "districts": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Districts"
+     },
+     "sub_districts": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Sub Districts"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/GeoSnapshotInfo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "pincode",
+     "offices",
+     "states",
+     "districts",
+     "sub_districts",
+     "snapshot"
+    ],
+    "title": "PincodeOut",
+    "description": "Post offices for a PIN and the LGD units they suggest. Never a village (\u00a76)."
+   },
    "PlaceIn": {
     "properties": {
      "canonical_name": {
@@ -25064,6 +25846,16 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "locality": {
       "anyOf": [
@@ -25167,6 +25959,62 @@
      "canonical_name"
     ],
     "title": "PlaceIn"
+   },
+   "PlaceLgdNote": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "since": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Since"
+     },
+     "unit": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoUnitOut"
+       },
+       {
+        "$ref": "#/components/schemas/GeoUnitBrief"
+       }
+      ],
+      "title": "Unit"
+     },
+     "previous_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous Name"
+     },
+     "successors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitBrief"
+      },
+      "type": "array",
+      "title": "Successors",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "unit"
+    ],
+    "title": "PlaceLgdNote",
+    "description": "The linked unit changed in LGD since it was picked. Informational: the place is unchanged."
    },
    "PlaceName": {
     "properties": {
@@ -25323,6 +26171,37 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "lgd_snapshot_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lgd Snapshot Id"
+     },
+     "lgd_note": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PlaceLgdNote"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "locality": {
       "anyOf": [
@@ -25630,13 +26509,29 @@
      "lgd_code": {
       "anyOf": [
        {
-        "type": "string"
+        "type": "string",
+        "maxLength": 40
        },
        {
         "type": "null"
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "lgd_accept_current": {
+      "type": "boolean",
+      "title": "Lgd Accept Current",
+      "default": false
      },
      "locality": {
       "anyOf": [
@@ -25743,6 +26638,74 @@
     },
     "type": "object",
     "title": "PlaceUpdate"
+   },
+   "PostOffice": {
+    "properties": {
+     "office_name": {
+      "type": "string",
+      "title": "Office Name"
+     },
+     "office_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Office Type"
+     },
+     "delivery": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delivery"
+     },
+     "district_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Name"
+     },
+     "state_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Name"
+     },
+     "district_lgd_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Lgd Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "office_name"
+    ],
+    "title": "PostOffice"
    },
    "PreferenceIn": {
     "properties": {

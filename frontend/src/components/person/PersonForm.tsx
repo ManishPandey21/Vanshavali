@@ -13,7 +13,9 @@ import type {
 import { emptyDate, normalizeDate, validateDate, validateTime } from "../../lib/dates";
 import { GenealogicalDateEditor } from "../dates/GenealogicalDateEditor";
 import { TimeEditor, TimezoneSelect } from "../dates/TimeEditor";
-import { PlacePicker, emptyPlace, type PlaceValue } from "../pickers";
+import { PlacePicker, emptyPlace, type PlaceSuggestion, type PlaceValue } from "../pickers";
+import { useBranches } from "../../api/hooks/family";
+import { useHeritage } from "../../api/hooks/heritage";
 import { SmartSelect } from "../ui/SmartSelect";
 import { Field, Select } from "../ui/form";
 import { Button } from "../ui/Button";
@@ -57,6 +59,8 @@ export interface PersonDraft {
   occupation: string;
   birth: VitalDraft;
   death: VitalDraft;
+  /** optional family branch to add the person to ("" = none) */
+  branch_id: string;
 }
 
 export function emptyPersonDraft(uiLang = "en"): PersonDraft {
@@ -68,6 +72,7 @@ export function emptyPersonDraft(uiLang = "en"): PersonDraft {
     occupation: "",
     birth: emptyVital(),
     death: emptyVital(),
+    branch_id: "",
   };
 }
 
@@ -128,7 +133,23 @@ export function buildPersonCreate(d: PersonDraft): PersonCreate {
   if (d.occupation.trim()) body.occupation = d.occupation.trim();
   if (vitalHasContent(d.birth, true)) body.birth = buildVital(d.birth, true);
   if (d.profile_status === "deceased" && vitalHasContent(d.death, false)) body.death = buildVital(d.death, false);
+  if (d.branch_id) body.branch_ids = [d.branch_id];
   return body;
+}
+
+/**
+ * The ancestral village recorded on a branch's heritage profile, offered (never filled) as the
+ * birth place of someone added to that branch (ADR-0019 §8). Only a village linked to a tree place
+ * is offered; accepting it is the user's own choice for this person.
+ */
+function useAncestralVillage(treeId: string, branchId: string, branchName: string | undefined): PlaceSuggestion | null {
+  const { t } = useTranslation();
+  const heritage = useHeritage(treeId, { kind: "branch", id: branchId }, !!branchId);
+  if (!branchId) return null;
+  const a = heritage.data?.attributes.find((x) => x.attribute === "ancestral_village")?.preferred;
+  if (!a?.place_id) return null;
+  const label = a.place_name ?? a.value_text ?? "";
+  return { place_id: a.place_id, place_label: label, reason: t("lgd.ancestral.offer", { branch: branchName ?? "" }) };
 }
 
 /** Full new-person form: names, status, sex, privacy, birth details and (if deceased) death details. */
@@ -155,6 +176,9 @@ export function PersonForm({
   const [birthOpen, setBirthOpen] = useState(!compact);
   const errors = showErrors ? validatePersonDraft(draft) : {};
   const set = (patch: Partial<PersonDraft>) => onChange({ ...draft, ...patch });
+  const branches = useBranches(treeId);
+  const branchList = Array.isArray(branches.data) ? branches.data : [];
+  const ancestral = useAncestralVillage(treeId, draft.branch_id, branchList.find((b) => b.id === draft.branch_id)?.name);
 
   const setName = (i: number, n: NameDraft) => {
     let names = draft.names.map((x, j) => (j === i ? n : x));
@@ -232,6 +256,20 @@ export function PersonForm({
             </Select>
           )}
         </Field>
+        {branchList.length > 0 && (
+          <Field label={t("person.form.branch")} hint={t("person.form.branchHint")}>
+            {(p) => (
+              <Select {...p} value={draft.branch_id} onChange={(e) => set({ branch_id: e.target.value })}>
+                <option value="">{t("common.none")}</option>
+                {branchList.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
         {/* suggestions only: occupation stays free text (ADR-0018 §6) */}
         <SmartSelect vocabulary="occupation" linkable={false} label={t("person.occupation")} text={draft.occupation} onChange={(v) => set({ occupation: v })} />
         {draft.profile_status !== "deceased" && <p className="text-xs text-ink-muted sm:col-span-2">{t("person.form.livingNotice")}</p>}
@@ -245,7 +283,7 @@ export function PersonForm({
           </button>
         </H>
         {birthOpen && (
-          <VitalFields treeId={treeId} value={draft.birth} onChange={(birth) => set({ birth })} withTime showErrors={showErrors} kind="birth" />
+          <VitalFields treeId={treeId} value={draft.birth} onChange={(birth) => set({ birth })} withTime showErrors={showErrors} kind="birth" suggestion={ancestral} />
         )}
       </section>
 
@@ -268,8 +306,10 @@ export function VitalFields({
   withTime,
   showErrors,
   kind,
+  suggestion,
 }: {
   treeId: string;
+  suggestion?: PlaceSuggestion | null;
   value: VitalDraft;
   onChange: (v: VitalDraft) => void;
   withTime: boolean;
@@ -294,7 +334,7 @@ export function VitalFields({
           <TimezoneSelect value={value.timezone_id} onChange={(timezone_id) => set({ timezone_id })} />
         </div>
       )}
-      <PlacePicker treeId={treeId} label={t(`person.form.${kind}Place`)} value={value.place} onChange={(place) => set({ place })} />
+      <PlacePicker treeId={treeId} label={t(`person.form.${kind}Place`)} value={value.place} onChange={(place) => set({ place })} suggestion={suggestion} />
     </div>
   );
 }

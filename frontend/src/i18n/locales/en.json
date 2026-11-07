@@ -32,6 +32,61 @@
     "rateLimited": "Too many attempts. Please wait a minute and try again.",
     "validation": "Please check the highlighted fields"
   },
+  "lgd": {
+    "ancestral": {
+      "dismiss": "Dismiss",
+      "offer": "Ancestral village of {{branch}}",
+      "use": "Use {{place}}"
+    },
+    "attribution": "Source: Local Government Directory, Government of India; India Post (data of {{snapshot}}). Government Open Data Licence – India.",
+    "change": "Change {{level}} ({{name}})",
+    "find": "Find in the Local Government Directory",
+    "hint": "Pick the state, district and village, or search. You can still edit the name afterwards: your family's spelling is kept.",
+    "level": {
+      "district": "District",
+      "state": "State or union territory",
+      "sub_district": "Sub-district",
+      "urban_body": "Town (urban local body)",
+      "village": "Village",
+      "villageOrTown": "Village or town"
+    },
+    "linkedShort": "LGD {{level}} {{code}}",
+    "matchAlias": "also known as {{name}}",
+    "noResults": "No match in the directory",
+    "note": {
+      "choose": "Choose the current village or town",
+      "renamed": "LGD now lists this {{level}} as {{name}} (since {{since}}).",
+      "retired": "LGD no longer lists this {{level}} (since {{since}}).",
+      "successors": "It now lists: {{names}}.",
+      "unchanged": "Your record stays as it is until you update it.",
+      "under": "LGD now lists this {{level}} under {{path}} (since {{since}}).",
+      "update": "Update to LGD's current listing"
+    },
+    "notListed": "My village is not listed",
+    "notListedDone": "Not listed: the district and state are kept as text, without an LGD code.",
+    "pin": "PIN code",
+    "pinHint": "Optional. A PIN code suggests the district; it never picks the village.",
+    "pinNoDistrict": "This PIN's district is not matched in the directory; choose it above.",
+    "pinOffices": "PIN {{pin}}: {{offices}}",
+    "pinUnknown": "No post office with this PIN code in the directory.",
+    "searchAll": "Search all villages and towns",
+    "searchAllHint": "Type at least three letters, in English or Hindi, or choose a state first.",
+    "searchAllPlaceholder": "e.g. Rampur, रामपुर",
+    "searchAllScoped": "Searching within {{place}}.",
+    "subDistrict": {
+      "sub_district": "Sub-district",
+      "tehsil": "Tehsil",
+      "taluka": "Taluka",
+      "mandal": "Mandal",
+      "block": "Block",
+      "circle": "Circle",
+      "subdivision": "Sub-division"
+    },
+    "title": "Local Government Directory",
+    "typeToFilter": "Type to filter…",
+    "useDistrict": "Use {{district}}, {{state}}",
+    "useUnit": "Use {{name}} ({{level}})"
+  },
   "nav": {
     "audit": "Audit log",
     "branches": "Branches",
@@ -282,6 +337,8 @@
       "birthDetails": "Birth details",
       "birthPlace": "Place of birth",
       "birthTime": "Time of birth",
+      "branch": "Family branch",
+      "branchHint": "Optional. Adds the person to this branch.",
       "deathDate": "Date of death",
       "deathDetails": "Death details",
       "deathPlace": "Place of death",

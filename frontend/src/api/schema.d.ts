@@ -1105,6 +1105,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/geo/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Units */
+        get: operations["list_units_api_v1_geo_units_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/units/{lgd_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Unit */
+        get: operations["get_unit_api_v1_geo_units__lgd_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/pincodes/{pin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pincode */
+        get: operations["get_pincode_api_v1_geo_pincodes__pin__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/life-events": {
         parameters: {
             query?: never;
@@ -4825,6 +4876,35 @@ export interface components {
             /** Original Text */
             original_text?: string | null;
         };
+        /** GeoAlias */
+        GeoAlias: {
+            /** Name */
+            name: string;
+            kind: components["schemas"]["GeoAliasKind"];
+            /** Script */
+            script?: string | null;
+        };
+        /**
+         * GeoAliasKind
+         * @enum {string}
+         */
+        GeoAliasKind: "alternative" | "historical" | "curated";
+        /**
+         * GeoLevel
+         * @description Local Government Directory unit levels loaded in R2 (ADR-0019 §1).
+         * @enum {string}
+         */
+        GeoLevel: "state" | "district" | "sub_district" | "village" | "urban_body";
+        /** GeoMatch */
+        GeoMatch: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "name" | "local_name" | "alias";
+            /** Text */
+            text: string;
+        };
         /** GeoPoint */
         GeoPoint: {
             /** Latitude */
@@ -4837,6 +4917,125 @@ export interface components {
              * @default false
              */
             coarsened?: boolean;
+        };
+        /** GeoSnapshotInfo */
+        GeoSnapshotInfo: {
+            /** Id */
+            id: string;
+            /** Activated At */
+            activated_at?: string | null;
+            /** Attribution */
+            attribution: string;
+        };
+        /** GeoUnitBrief */
+        GeoUnitBrief: {
+            level: components["schemas"]["GeoLevel"];
+            /** Lgd Code */
+            lgd_code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+        };
+        /** GeoUnitDetail */
+        GeoUnitDetail: {
+            level: components["schemas"]["GeoLevel"];
+            /** Lgd Code */
+            lgd_code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+            /** Category */
+            category?: string | null;
+            parent_level?: components["schemas"]["GeoLevel"] | null;
+            /** Parent Lgd Code */
+            parent_lgd_code?: string | null;
+            /** State Code */
+            state_code?: string | null;
+            /** District Code */
+            district_code?: string | null;
+            /** Sub District Code */
+            sub_district_code?: string | null;
+            /**
+             * Sub District Label
+             * @default sub_district
+             * @enum {string}
+             */
+            sub_district_label?: "sub_district" | "tehsil" | "taluka" | "mandal" | "block" | "circle" | "subdivision";
+            /**
+             * Ancestors
+             * @default []
+             */
+            ancestors?: components["schemas"]["GeoUnitBrief"][];
+            match?: components["schemas"]["GeoMatch"] | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "current" | "retired";
+            /**
+             * Successors
+             * @default []
+             */
+            successors?: components["schemas"]["GeoUnitOut"][];
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: components["schemas"]["GeoAlias"][];
+        };
+        /** GeoUnitOut */
+        GeoUnitOut: {
+            level: components["schemas"]["GeoLevel"];
+            /** Lgd Code */
+            lgd_code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+            /** Category */
+            category?: string | null;
+            parent_level?: components["schemas"]["GeoLevel"] | null;
+            /** Parent Lgd Code */
+            parent_lgd_code?: string | null;
+            /** State Code */
+            state_code?: string | null;
+            /** District Code */
+            district_code?: string | null;
+            /** Sub District Code */
+            sub_district_code?: string | null;
+            /**
+             * Sub District Label
+             * @default sub_district
+             * @enum {string}
+             */
+            sub_district_label?: "sub_district" | "tehsil" | "taluka" | "mandal" | "block" | "circle" | "subdivision";
+            /**
+             * Ancestors
+             * @default []
+             */
+            ancestors?: components["schemas"]["GeoUnitBrief"][];
+            match?: components["schemas"]["GeoMatch"] | null;
+        };
+        /** GeoUnitResponse */
+        GeoUnitResponse: {
+            unit: components["schemas"]["GeoUnitDetail"];
+            snapshot: components["schemas"]["GeoSnapshotInfo"];
+        };
+        /** GeoUnitsPage */
+        GeoUnitsPage: {
+            /** Items */
+            items: components["schemas"]["GeoUnitOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            snapshot: components["schemas"]["GeoSnapshotInfo"];
         };
         /** GrantCreate */
         GrantCreate: {
@@ -6698,6 +6897,23 @@ export interface components {
             /** Residential Address */
             residential_address?: string | null;
         };
+        /**
+         * PincodeOut
+         * @description Post offices for a PIN and the LGD units they suggest. Never a village (§6).
+         */
+        PincodeOut: {
+            /** Pincode */
+            pincode: string;
+            /** Offices */
+            offices: components["schemas"]["PostOffice"][];
+            /** States */
+            states: components["schemas"]["GeoUnitOut"][];
+            /** Districts */
+            districts: components["schemas"]["GeoUnitOut"][];
+            /** Sub Districts */
+            sub_districts: components["schemas"]["GeoUnitOut"][];
+            snapshot: components["schemas"]["GeoSnapshotInfo"];
+        };
         /** PlaceIn */
         PlaceIn: {
             /** Canonical Name */
@@ -6724,6 +6940,7 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -6740,6 +6957,25 @@ export interface components {
             /** @default unknown */
             geo_confidence?: components["schemas"]["Confidence"];
             coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /**
+         * PlaceLgdNote
+         * @description The linked unit changed in LGD since it was picked. Informational: the place is unchanged.
+         */
+        PlaceLgdNote: {
+            /** Kind */
+            kind: string;
+            /** Since */
+            since?: string | null;
+            /** Unit */
+            unit: components["schemas"]["GeoUnitOut"] | components["schemas"]["GeoUnitBrief"];
+            /** Previous Name */
+            previous_name?: string | null;
+            /**
+             * Successors
+             * @default []
+             */
+            successors?: components["schemas"]["GeoUnitBrief"][];
         };
         /** PlaceName */
         PlaceName: {
@@ -6782,6 +7018,10 @@ export interface components {
             geocoding_source: string | null;
             /** Lgd Code */
             lgd_code: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
+            /** Lgd Snapshot Id */
+            lgd_snapshot_id?: string | null;
+            lgd_note?: components["schemas"]["PlaceLgdNote"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -6848,6 +7088,12 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
+            /**
+             * Lgd Accept Current
+             * @default false
+             */
+            lgd_accept_current?: boolean;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -6863,6 +7109,21 @@ export interface components {
             location_precision?: components["schemas"]["LocationPrecision"] | null;
             geo_confidence?: components["schemas"]["Confidence"] | null;
             coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /** PostOffice */
+        PostOffice: {
+            /** Office Name */
+            office_name: string;
+            /** Office Type */
+            office_type?: string | null;
+            /** Delivery */
+            delivery?: boolean | null;
+            /** District Name */
+            district_name?: string | null;
+            /** State Name */
+            state_name?: string | null;
+            /** District Lgd Code */
+            district_lgd_code?: string | null;
         };
         /** PreferenceIn */
         PreferenceIn: {
@@ -11534,6 +11795,128 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TransliterateOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_units_api_v1_geo_units_get: {
+        parameters: {
+            query?: {
+                level?: components["schemas"]["GeoLevel"] | null;
+                parent?: string | null;
+                parent_level?: components["schemas"]["GeoLevel"] | null;
+                q?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoUnitsPage"];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_unit_api_v1_geo_units__lgd_code__get: {
+        parameters: {
+            query: {
+                /** @description LGD codes are unique per level only */
+                level: components["schemas"]["GeoLevel"];
+            };
+            header?: never;
+            path: {
+                lgd_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoUnitResponse"];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pincode_api_v1_geo_pincodes__pin__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PincodeOut"];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

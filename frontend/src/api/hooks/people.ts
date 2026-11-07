@@ -17,6 +17,7 @@ import type {
   PersonSummary,
   PersonUpdate,
   PlaceIn,
+  PlaceUpdate,
   PlaceOut,
   PrivacyUpdate,
   ProfileStatus,
@@ -230,7 +231,7 @@ export function useCreatePlace(treeId: string) {
 export function useUpdatePlace(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: Partial<PlaceIn> }) =>
+    mutationFn: ({ id, body }: { id: string; body: PlaceUpdate }) =>
       api.patch<PlaceOut>(`/trees/${treeId}/places/${id}`, body),
     onSuccess: invalidate,
   });
