@@ -147,7 +147,7 @@ scope (principle 3).
   tree terms isolated across trees (authz + RLS); no inference across every cultural vocabulary;
   SmartSelect keyboard, screen-reader names and Devanagari search; migration round trip.
 
-### Phase B: Indian geography reference — ADR-0019
+### Phase B: Indian geography reference — [ADR-0019](adr/0019-india-geography-reference-lgd.md)
 
 **Goal.** State → District → Sub-district/Tehsil/Taluka → Village/Town with stable LGD codes, PIN
 lookup, historical names and "My village is not listed". Runs **in parallel** with R1 and never
