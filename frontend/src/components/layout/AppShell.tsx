@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LogOut, TreePine, UserCircle } from "lucide-react";
+import { Database, LogOut, TreePine, UserCircle } from "lucide-react";
 import { useLogout, useMe } from "../../api/hooks/auth";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
@@ -29,6 +29,13 @@ export function UserMenu() {
   if (!me.data) return null;
   return (
     <div className="flex items-center gap-2">
+      {me.data.is_system_admin && (
+        <Link to="/admin/master-data" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-ink hover:bg-parchment-deep">
+          <Database className="size-4" aria-hidden />
+          <span className="hidden sm:inline">{t("mdAdmin.menuLink")}</span>
+          <span className="sr-only sm:hidden">{t("mdAdmin.menuLink")}</span>
+        </Link>
+      )}
       <Link to="/account" className="hidden items-center gap-1.5 rounded-md px-2 py-1 text-sm text-ink hover:bg-parchment-deep sm:inline-flex">
         <UserCircle className="size-4" aria-hidden />
         <span className="max-w-[10rem] truncate">{me.data.display_name}</span>

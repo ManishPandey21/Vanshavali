@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import hmac
 import uuid
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, Path, Request
@@ -12,9 +13,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.authz.context import RequestInfo, TreeContext, load_public_context, load_tree_context
+from app.authz.platform import PlatformCapability, require_platform
 from app.core.config import get_settings
 from app.core.db import get_db
-from app.core.errors import ApiError, Unauthorized
+from app.core.errors import ApiError, NotFound, Unauthorized
 from app.core.security import token_hash
 from app.models import User, UserSession
 
@@ -112,3 +114,26 @@ def public_context(request: Request, db: DbDep, slug: Annotated[str, Path()]) ->
 
 
 PublicCtx = Annotated[TreeContext, Depends(public_context)]
+
+
+@dataclass
+class AdminContext:
+    """A request by a user holding a platform capability (ADR-0026). Carries no tree."""
+
+    db: Session
+    user: User
+    request: RequestInfo
+
+    @property
+    def user_id(self) -> uuid.UUID:
+        return self.user.id
+
+
+def master_data_admin(request: Request, db: DbDep, user: CurrentUser) -> AdminContext:
+    if not get_settings().masterdata_enabled:
+        raise NotFound("Not found")
+    require_platform(user, PlatformCapability.MASTER_DATA_ADMIN)
+    return AdminContext(db=db, user=user, request=request_info(request))
+
+
+MasterDataAdmin = Annotated[AdminContext, Depends(master_data_admin)]

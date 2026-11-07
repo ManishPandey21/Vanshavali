@@ -1,0 +1,15 @@
+level,code,parent_level,parent_code,name_en,name_local,local_script,local_term,category,alternate_names,former_names,valid_from,valid_to,successor_codes
+country,IN,,,India,भारत,Deva,,,,,,,
+state,909,country,IN,Uttar Pradesh,उत्तर प्रदेश,Deva,,,UP,United Provinces,,,
+state,927,country,IN,Maharashtra,महाराष्ट्र,Deva,,,,,,,
+district,90187,state,909,Varanasi,वाराणसी,Deva,,,Banaras|Benares|Kashi,,,,
+district,90520,state,927,Pune,पुणे,Deva,,,Poona,,,,
+subdistrict,90901,district,90187,Pindra,पिंडरा,Deva,Tehsil,,,,,,
+subdistrict,90902,district,90187,Varanasi Sadar,वाराणसी सदर,Deva,Tehsil,,,,,,
+subdistrict,94101,district,90520,Haveli,हवेली,Deva,Taluka,,,,,,
+village,9100001,subdistrict,90901,Babatpur,बाबतपुर,Deva,,,Babatpura,,,,
+village,9100002,subdistrict,90901,Phulpur,फूलपुर,Deva,,,,,,,
+village,9100003,subdistrict,90902,Shivpur,शिवपुर,Deva,,,Sheopur,,,,
+village,9100004,subdistrict,90902,Old Khera,पुराना खेड़ा,Deva,,,,,1950-01-26,1991-03-31,9100003
+village,9200001,subdistrict,94101,Khed Shivapur,खेड शिवापूर,Deva,,,Khed Shivapur,,,,
+town,9300001,district,90187,Varanasi,वाराणसी,Deva,,Municipal Corporation,,,,,

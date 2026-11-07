@@ -8,7 +8,7 @@ development, CI and test stacks only and **refuses to run unless `VSH_ENV` is `d
 | Account | Role | Trees | First sign-in |
 |---|---|---|---|
 | `demo@example.com` | Ordinary verified user | `OWNER` of "Iyer Family (demo)" (fictional people) | Signs in directly |
-| `superadmin@example.com` | Platform system admin (`is_system_admin`) | **None.** A system admin has no implicit tree access (ADR-0006, threat T12) | Must choose a new password (`must_change_password`) |
+| `superadmin@example.com` | Platform system admin (`is_system_admin`): the master-data console at `/admin/master-data` (ADR-0026) | **None.** A system admin has no implicit tree access (ADR-0006, threat T12) | Must choose a new password (`must_change_password`), then turn on two-step sign-in before the console opens |
 
 ## Required environment variables
 

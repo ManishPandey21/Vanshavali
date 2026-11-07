@@ -75,7 +75,7 @@ Limits: `VSH_RENDER_MAX_ACTIVE_PER_USER` (3), `VSH_RENDER_MAX_PER_DAY_PER_TREE` 
 
 ```
 cd renderer && npm ci && npm run bundle        # build/bundle (webpack) once per release
-npm test                                       # real renders: all posters + two MP4s, ffprobe check
+npm test                                       # real renders: all posters + two MP4s, ffprobe duration check
 npm run studio                                 # Remotion Studio with fictional sample props
 
 # API side
@@ -87,6 +87,11 @@ Chromium: `REMOTION_BROWSER_EXECUTABLE` / `VSH_RENDERER_BROWSER_EXECUTABLE`, els
 headless shell if present, else Remotion downloads Chrome Headless Shell (`npx remotion browser
 ensure`, done in the Docker image). Fonts: Noto (Devanagari, Tamil, …) must be installed on the
 render host for Indic names (`fonts-noto-core`, `fonts-noto-extra` in the image).
+
+FFmpeg: no system ffmpeg is needed. Remotion encodes with the FFmpeg build in its platform package
+(`@remotion/compositor-<platform>`, pinned by `package-lock.json`), and `npm test` checks MP4
+durations with the `ffprobe` from that same package (`scripts/ffprobe.mjs`; override with
+`FFPROBE=/path/to/ffprobe`). The duration check is mandatory: no working ffprobe fails the test.
 
 Each render opens **one** Chromium and shares it across `selectComposition`, `renderStill` and
 `renderMedia` (`scripts/browser.mjs`). Remotion allows a fixed 25 s for Chrome to accept the

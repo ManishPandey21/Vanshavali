@@ -181,6 +181,41 @@ Decision: ADR-0018 (classification of every dropdown: controlled values vs exten
 | `SmartSelect` (ARIA combobox, suggestions in any script, "Add as your family's own", falls back to a plain field when the service is off or unreachable) in heritage (gotra, kula, kuladevata, kuladevi), occupation and honorific | VERIFIED | Vitest `SmartSelect.test.tsx` (4), Playwright `master-data.spec.ts` (with axe) | Static `src/data/masterData` lists remain only as fallbacks; nakshatra/rashi stay controlled (`astrology/vocab.py`) |
 | Rollback flag `VSH_MASTERDATA_ENABLED` | VERIFIED | `test_masterdata.py::test_disabled_flag_answers_404`, Vitest fallback test | |
 
+## Super Admin master-data console, increment 1 (Nov 2026)
+
+Decision: ADR-0026 (accepted). Proposed for the next increments: ADR-0019 (geography) and ADR-0018
+amendment 2 (optional religion/community suggestions, not implemented). One migration
+(`7d4a2c9e1b60`, with downgrade): `vocabulary_change`, term `revision` / `managed_by` /
+`successor_code` / authorship, vocabulary `category` / `fixed_membership` / `revision`.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Platform capability `MASTER_DATA_ADMIN` (`authz/platform.py`), separate from tree permissions; 404 for everyone else; MFA required (403 `admin_mfa_required`); CSRF on writes | VERIFIED | `test_masterdata_admin.py` (10 endpoints × signed-out/tree owner, MFA, CSRF, no tree access) | System admins remain members of no tree (T12, T44) |
+| Change requests: draft or publish at once, pending reviews, publish / reject (note) / withdraw (proposer), one open change per term, optional four-eyes (`VSH_MASTERDATA_REQUIRE_SECOND_ADMIN`) | VERIFIED | `test_masterdata_admin.py` (draft, decisions, four-eyes) | Self-publication allowed while the pilot has one admin |
+| Optimistic concurrency (`revision`, 409 `stale_revision` / `stale_change`), history with previous/proposed values, audit without family data | VERIFIED | `test_edits_are_refused_when_someone_else_changed_the_term`, `test_a_draft_goes_stale_when_the_term_moves_on`, `test_published_term_reaches_users_without_a_deployment` | |
+| Pack loader keeps console curation (`managed_by = admin` never changed or retired; reported as `kept`) | VERIFIED | `test_pack_loader_never_overwrites_console_curation` | |
+| Duplicate detection across scripts/spellings (live check + 409 `possible_duplicate`, confirm to override), code never reused | VERIFIED | `test_duplicates_are_caught_before_they_are_created` | |
+| Retire (optional successor) / reactivate, never delete; stored family values stay readable | VERIFIED | `test_retired_terms_keep_stored_values_readable` | |
+| Closed sets (`fixed_membership`, now `language`): relabel only | VERIFIED | `test_fixed_sets_can_be_relabelled_but_not_grown_or_shrunk` | Astronomical sets stay in code (`astrology/vocab.py`) |
+| Validation: unknown fields refused, label/alias caps, en+hi required, `http(s)` links only, parent/successor active in the same list | VERIFIED | `test_malicious_or_malformed_changes_are_refused` (13 cases), `test_parent_must_be_an_active_term_and_labels_are_stored_as_text` | |
+| Console UI (`/admin/master-data`): dashboard by category with planned areas, term table (search in any script, status filter, sort, cursor paging), reusable term editor (labels in more languages, aliases, scope, source, preview, live duplicate warning, draft/publish), retire/reactivate, per-term history, pending reviews, change history; en/hi | VERIFIED | Vitest `MasterData.test.tsx` (5), Playwright `master-data-admin.spec.ts` (seeded admin → new password → MFA → publish → ordinary user finds it, console 404; axe on dashboard, table and editor) | Native Hindi review of the new strings outstanding |
+| Bulk import/export, geography (ADR-0019), cultural phase G vocabularies (pravara, devak), astrology label maintenance, family-term promotion, usage counts per term | NOT_STARTED | | Remaining phases, see ADR-0026 Consequences and ADR-0019 |
+
+## R2 — India geography, increment 1 (Nov 2026)
+
+Decision: ADR-0019 (accepted 6 Nov 2026; licensing still open, so only fictional fixtures are in the
+repository). One migration (`9e3b5d7f2a14`, with downgrade): `geo_snapshot`, `geo_unit` (hierarchy
+trigger), `geo_pin_office`, `geo_pin_unit`, `place.lgd_level`. Runbook: `docs/operations/geo-import.md`.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Canonical CSV formats, operator CLI `app.cli.geo stage` (limits, strict UTF-8/header, row validation, failed snapshots store nothing), diff against the active snapshot (added, retired, renamed, moved, samples), synthetic generator | VERIFIED | `test_geo.py` (bad rows ×10, unusable files ×4, limits, diff, synthetic) | Mapping from real LGD / India Post downloads to the canonical format still to be written and checked against a real file |
+| Hierarchy enforced in the database (level rules, same snapshot) | VERIFIED | `test_the_database_refuses_an_invalid_hierarchy`, `test_parent_table_and_database_trigger_agree` | |
+| Snapshot review in the console: report, approve, activate by a different admin, restore, discard; operator activation for the single-admin pilot | VERIFIED | `test_activation_needs_a_second_admin_and_approval_first`, `test_ordinary_users_cannot_manage_snapshots` ×6, `test_operator_activation_needs_an_approved_snapshot`, `test_unused_snapshots_can_be_discarded`, Vitest `PlaceCascade.test.tsx` (snapshot page ×2) | Console upload of files deferred (staging is a server command) |
+| `/geo/units` (cascade, any-script search over English, local, alternate and former names), `/geo/units/{level}/{code}` (historical and retired codes resolve), `/geo/pincodes/{pin}` (many-to-many); sign-in, rate limit, feature flag | VERIFIED | `test_cascade_state_district_subdistrict_village`, `test_search_in_any_script_spelling_alias_or_former_name` ×11, `test_pincode_maps_to_many_offices_and_places`, `test_historical_units_resolve_but_are_not_offered`, `test_rate_limit_and_feature_flag` | Benchmarks at 6.5 lakh villages in `docs/operations/geo-import.md` (all within the plan's targets on the dev container; repeat on pilot hardware) |
+| `PlaceCascade` in the place form (search, step by step with the state's sub-district term, PIN first; fills district/state/code, never the family's own name or historical names; hidden when the directory is off) | VERIFIED | Vitest `PlaceCascade.test.tsx` (6), Playwright `geography.spec.ts` (Hindi search, cascade, PIN, free-text pre-1947 place; axe) | Not yet in the vital/event place pickers or parcels |
+| Curated aliases and units through change requests, gram panchayat / block data, "remember my ancestral village" | NOT_STARTED | | Next increments (ADR-0019 §1, plan phase B) |
+
 ## R1 — Name transliteration suggestions (Nov 2026)
 
 Decision: ADR-0025. No migration: an accepted suggestion is a `name_record` of type `transliteration` with provenance.

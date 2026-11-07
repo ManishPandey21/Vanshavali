@@ -16,9 +16,12 @@ from app.modules.extraction.router import router as extraction_router
 from app.modules.family.router import router as family_router
 from app.modules.gedcom.router import router as gedcom_router
 from app.modules.genealogy.router import router as genealogy_router
+from app.modules.geo.admin_router import router as geo_admin_router
+from app.modules.geo.router import router as geo_router
 from app.modules.heritage.router import router as heritage_router
 from app.modules.identity.router import router as auth_router
 from app.modules.lifeevents.router import router as lifeevents_router
+from app.modules.masterdata.admin_router import router as masterdata_admin_router
 from app.modules.masterdata.router import router as masterdata_router
 from app.modules.merge.router import router as merge_router
 from app.modules.notifications.router import router as reminders_router
@@ -39,6 +42,9 @@ api_router.include_router(trees_router)
 api_router.include_router(genealogy_router)
 api_router.include_router(smartadd_router)
 api_router.include_router(masterdata_router)
+api_router.include_router(masterdata_admin_router)
+api_router.include_router(geo_router)
+api_router.include_router(geo_admin_router)
 api_router.include_router(translit_router)
 api_router.include_router(lifeevents_router)
 api_router.include_router(reminders_router)

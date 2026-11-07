@@ -114,3 +114,42 @@ has passed (plan, phase A transition step 3).
 - **YAML packs.** Rejected for now: needs a new dependency, and JSON is enough.
 - **Seeding packs in a migration.** Rejected: packs change more often than the schema, and
   migrations that import a loader which later evolves stop being replayable.
+
+## Amendment 1 (5 Nov 2026): curation in the Super Admin console — Accepted
+Global terms can now be curated in the browser through change requests (draft → publish, with
+history, optimistic concurrency and audit) by system admins with two-step sign-in. Packs still seed
+the lists; the loader never overwrites a term curated in the console. See ADR-0026. §3's
+"promotion … outside the app (later)" stays deferred, now designed as an explicit, sanitised
+family submission that lands as a pending change (ADR-0026, Consequences).
+
+## Amendment 2 (proposed, 5 Nov 2026): optional religion / community / jati suggestions — **Proposed, not accepted**
+The Super Admin console request (5 Nov 2026) asks for optional catalogues for religion, sampradaya,
+community and jati. §2 above deliberately gives these **no** vocabulary. This amendment is a
+proposal for the owner and a privacy review; **nothing is implemented** and the decision in §2
+stands until it is accepted.
+
+**Risks of a global list.** It steers people towards caste and religious categories (Q4, PRS §2.3);
+a published list of jatis is itself sensitive and contested (naming, hierarchy, regional
+variation); it could enable ranking, matching or discrimination; and a curated list invites the
+inference ADR-0003 forbids ("surname X → jati Y").
+
+**Safer design, if accepted.**
+1. Each tree decides first: the fields stay hidden until a FAMILY_ADMIN turns on "Show community
+   and religion fields" for the tree, with an explanation of the privacy defaults.
+2. Each person entry is opt-in: the field starts empty and collapsed under "Optional and private";
+   it offers "Prefer not to say", "Unknown" and "Not applicable" as **value statuses** (heritage
+   `ValueStatus`), never as list terms, and always accepts the family's own wording.
+3. Suggestions only for **religion / faith tradition** at first (a short, non-hierarchical list with
+   neutral, self-descriptive names and sources). **No global jati list**: jati and community stay
+   free text with the family's own entries (`tree_vocabulary_term`), never published globally.
+4. The existing field-group redaction (`community`, `jati`: `PRIVATE_TREE_ADMINS` by default,
+   never public, excluded from exports unless the owner allows it) applies unchanged.
+5. No inference, scoring, matching, ranking or eligibility use, enforced by tests in the style of
+   `test_vocabularies_never_infer_a_value`; the values are excluded from search facets and
+   statistics.
+6. The Super Admin manages only the global suggestion list, sees no family's chosen values, and
+   family entries are never promoted automatically.
+
+**Needed before acceptance:** owner decision (Q4 follow-up), privacy-model and threat-model
+updates, legal review under the DPDP Act (sensitive personal data, purpose limitation), and a
+native-speaker / community review of any religion labels.

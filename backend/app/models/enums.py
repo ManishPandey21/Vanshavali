@@ -664,3 +664,65 @@ class VocabularyTermStatus(StrEnum):
     DRAFT = "draft"
     REVIEWED = "reviewed"
     RETIRED = "retired"
+
+
+class VocabularyTermManagedBy(StrEnum):
+    """Who maintains a global term (ADR-0026 §4). The pack loader never changes ``admin`` terms."""
+
+    PACK = "pack"
+    ADMIN = "admin"
+
+
+class VocabularyChangeAction(StrEnum):
+    """What a master-data change request does to one global term (ADR-0026 §3)."""
+
+    CREATE = "create"
+    UPDATE = "update"
+    RETIRE = "retire"
+    REACTIVATE = "reactivate"
+
+
+class VocabularyChangeStatus(StrEnum):
+    """Master-data change request lifecycle (ADR-0026 §3). Only ``pending`` changes can move on."""
+
+    PENDING = "pending"
+    PUBLISHED = "published"
+    REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"
+
+
+class GeoSource(StrEnum):
+    """Official geography sources (ADR-0019)."""
+
+    LGD = "lgd"
+    INDIA_POST = "india_post"
+
+
+class GeoSnapshotStatus(StrEnum):
+    """staged → validated (or failed) → approved → active → superseded (ADR-0019 §3)."""
+
+    STAGED = "staged"
+    VALIDATED = "validated"
+    FAILED = "failed"
+    APPROVED = "approved"
+    ACTIVE = "active"
+    SUPERSEDED = "superseded"
+
+
+class GeoLevel(StrEnum):
+    """LGD administrative levels (ADR-0019 §2)."""
+
+    COUNTRY = "country"
+    STATE = "state"
+    DISTRICT = "district"
+    SUBDISTRICT = "subdistrict"
+    BLOCK = "block"
+    GRAM_PANCHAYAT = "gram_panchayat"
+    VILLAGE = "village"
+    TOWN = "town"
+    ULB = "ulb"
+
+
+class GeoUnitOrigin(StrEnum):
+    OFFICIAL = "official"
+    CURATED = "curated"
