@@ -250,6 +250,22 @@ def build_archive(
         )
     files["source-index.csv"] = buf.getvalue().encode()
 
+    # GODL-India attribution for place codes picked from the Local Government Directory (ADR-0019 §9)
+    lgd_snapshots = sorted(
+        x
+        for x in ctx.db.scalars(
+            select(Place.lgd_snapshot_id)
+            .where(Place.tree_id == ctx.tree_id, Place.lgd_snapshot_id.is_not(None))
+            .distinct()
+        )
+        if x
+    )
+    lgd_note = (
+        "Place codes: Source: Local Government Directory, Government of India; India Post. Used under\n"
+        f"the Government Open Data Licence – India (GODL-India). Snapshots: {', '.join(lgd_snapshots)}.\n\n"
+        if lgd_snapshots
+        else ""
+    )
     files["README.txt"] = (
         "Vanshavali family archive\n\n"
         f"Tree: {ctx.tree.name}\nGenerated: {dt.datetime.now(dt.UTC).isoformat()}\n\n"
@@ -258,7 +274,8 @@ def build_archive(
         "property/properties.json      property register, interests and timelines (not a legal title opinion)\n"
         "documents/                    original files you were permitted to export, plus index.json\n"
         "checksums.sha256              verify with: sha256sum -c checksums.sha256\n\n"
-        "This export reflects what the exporting user was allowed to see. It may contain personal data:\n"
+        + lgd_note
+        + "This export reflects what the exporting user was allowed to see. It may contain personal data:\n"
         "store it securely.\n"
     ).encode()
 

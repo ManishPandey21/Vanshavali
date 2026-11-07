@@ -664,3 +664,27 @@ class VocabularyTermStatus(StrEnum):
     DRAFT = "draft"
     REVIEWED = "reviewed"
     RETIRED = "retired"
+
+
+class GeoLevel(StrEnum):
+    """Local Government Directory unit levels loaded in R2 (ADR-0019 §1)."""
+
+    STATE = "state"
+    DISTRICT = "district"
+    SUB_DISTRICT = "sub_district"
+    VILLAGE = "village"
+    URBAN_BODY = "urban_body"
+
+
+class GeoSnapshotStatus(StrEnum):
+    """staged: imported, under review; active: the one snapshot queries read; inactive: kept for rollback."""
+
+    STAGED = "staged"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+
+class GeoAliasKind(StrEnum):
+    ALTERNATIVE = "alternative"  # published by LGD
+    HISTORICAL = "historical"  # a former LGD name, recorded when a rename is imported
+    CURATED = "curated"  # added by code review (app/modules/geo/aliases.json)

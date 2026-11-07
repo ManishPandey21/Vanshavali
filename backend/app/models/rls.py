@@ -82,8 +82,16 @@ def disable_sql(table: str) -> list[str]:
     ]
 
 
+# Global reference data the application only reads (ADR-0019 §2): loaded by operator CLIs as the
+# schema owner. The grant below revokes write access on these, whenever they exist.
+READ_ONLY_TABLES: tuple[str, ...] = ("geo_snapshot", "geo_unit", "geo_unit_alias", "pincode_office")
+
+# (the array below must list READ_ONLY_TABLES; tests/test_geo.py checks that it does). No "%" in
+# this SQL: ensure_app_role sends it through the driver, where "%" starts a placeholder.
 GRANT_APP_ROLE_SQL = """
 DO $$
+DECLARE
+  t text;
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{role}') THEN
     EXECUTE 'GRANT USAGE ON SCHEMA public TO {role}';
@@ -91,6 +99,11 @@ BEGIN
     EXECUTE 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {role}';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {role}';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {role}';
+    FOREACH t IN ARRAY ARRAY['geo_snapshot', 'geo_unit', 'geo_unit_alias', 'pincode_office'] LOOP
+      IF to_regclass('public.' || t) IS NOT NULL THEN
+        EXECUTE 'REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ' || quote_ident(t) || ' FROM {role}';
+      END IF;
+    END LOOP;
   END IF;
 END
 $$;

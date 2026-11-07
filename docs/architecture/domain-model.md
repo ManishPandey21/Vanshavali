@@ -30,6 +30,10 @@ erDiagram
   EVENT ||--o{ EVENT_PARTICIPANT : has
   EVENT }o--o| PLACE : "occurs at / migrated from"
   PLACE }o--o| PLACE : "within (village → tehsil → district → state → country)"
+  PLACE }o--o| GEO_UNIT : "lgd_level + lgd_code, picked in snapshot lgd_snapshot_id (never rewritten)"
+  GEO_SNAPSHOT ||--o{ GEO_UNIT : "versioned rows: first_snapshot … last_snapshot"
+  GEO_UNIT ||--o{ GEO_UNIT_ALIAS : "former / alternative names"
+  PINCODE_OFFICE }o--o| GEO_UNIT : "suggests district (matched by name)"
 
   PERSON ||--o{ ASSERTION : "heritage claims (gotra, pravara, kula…)"
   FAMILY_BRANCH ||--o{ ASSERTION : "branch heritage"
@@ -105,6 +109,7 @@ graph LR
 | Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents; the relationship calculator treats such a pair as sharing a virtual parent that is never returned. | `genealogy.engine.family`, `engine._LazyGraph` (ADR-0020) |
 | A name in another script that the user accepted from a suggestion is its own `name_record` (type `transliteration`, never preferred, provenance `calculation` confirmed by the user); the typed name is never changed. | `name_record`, `translit.engine` (ADR-0025) |
 | Kinship terms (Mama, Tau, Bhabhi…) are never stored. Smart Add turns a term into basic edges, after a preview the user confirms. | `smartadd.terms`, `smartadd.service` (ADR-0020) |
+| Indian places can link to a Local Government Directory unit (global, read-only reference data, versioned by snapshot). A link records the unit's level, code and the snapshot it was picked from; a later snapshot that renames, moves or retires the unit only adds a note. The family's own spelling, district and state stay on their place. | `place.lgd_level`, `place.lgd_snapshot_id`, `geo_unit`, `geo.service.place_notes` (ADR-0019) |
 | Suggestion lists (gotra, kula, kuladevata, occupation, honorific, language) are master data; system values (roles, relationship types, statuses…) stay controlled enums. A chosen value keeps its label and names its entry. | `vocabulary`, `vocabulary_term`, `tree_vocabulary_term` (ADR-0018) |
 | "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. It decides age-dependent terms (Tau/Chacha) over birth dates; dates decide only when unambiguous and visible to the viewer. | `relative_age_order`, `genealogy.ageorder` (ADR-0020) |
 | A person added "as unknown for now" is `is_provisional` (their origin, kept for good); created only on the user's explicit choice. Whether they still *need details* (no name) or are *verified* (every relationship has supporting evidence) is derived, never stored. Until verified, only the creator and tree admins can see them and exports leave them out. | `person.is_provisional`, `genealogy.provisional` (ADR-0020 §4, §7) |

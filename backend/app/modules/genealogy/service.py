@@ -35,6 +35,7 @@ from app.models.enums import (
     SYMMETRIC_TYPES,
     EventType,
     EvidenceStatus,
+    GeoLevel,
     LifeEventCategory,
     LocationPrecision,
     ParticipantRole,
@@ -61,6 +62,7 @@ from app.modules.genealogy.schemas import (
     VitalIn,
 )
 from app.modules.genealogy.serialize import name_display
+from app.modules.geo import service as geo_service
 
 
 # ---------------------------------------------------------------- places
@@ -94,6 +96,9 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
             if body.latitude is not None
             else LocationPrecision.UNKNOWN.value
         )
+    data["lgd_snapshot_id"] = (
+        geo_service.link_snapshot(ctx.db, body.lgd_level, body.lgd_code) if body.lgd_level else None
+    )
     place = Place(tree_id=ctx.tree_id, created_by=ctx.user_id, **data)
     place.parent_place_id = body.parent_place_id
     place.search_text = _place_search(place)
@@ -101,6 +106,30 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
     ctx.db.flush()
     audit.log(ctx, "place.created", target_type="place", target_id=place.id)
     return place
+
+
+def _apply_lgd_link(ctx: TreeContext, place: Place, changes: dict[str, Any]) -> None:
+    """ADR-0019 §4: a code picked from the cascade is checked and stamped with the active snapshot.
+
+    Re-sending the same pick keeps the snapshot it was linked under (so a later LGD change keeps
+    its note); ``lgd_accept_current`` re-links on purpose. A code typed without ``lgd_level`` is
+    free text and unlinks.
+    """
+    accept = bool(changes.pop("lgd_accept_current", False))
+    if "lgd_code" not in changes and "lgd_level" not in changes and not accept:
+        return
+    code = changes.get("lgd_code", place.lgd_code)
+    level = changes.get("lgd_level", place.lgd_level if "lgd_code" not in changes else None)
+    if not level:
+        changes["lgd_level"] = None
+        changes["lgd_snapshot_id"] = None
+        return
+    level = GeoLevel(level)
+    same = level == place.lgd_level and code == place.lgd_code and place.lgd_snapshot_id
+    if same and not accept:
+        return
+    changes["lgd_level"] = level
+    changes["lgd_snapshot_id"] = geo_service.link_snapshot(ctx.db, level, code)
 
 
 def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Place:
@@ -133,6 +162,7 @@ def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Pl
             )
             seen += 1
         changes["parent_place_id"] = pid
+    _apply_lgd_link(ctx, place, changes)
     # never overwrite a historical name: canonical renames are appended to history automatically
     if "canonical_name" in changes and changes["canonical_name"] != place.canonical_name:
         hist = list(changes.get("historical_names", place.historical_names) or [])

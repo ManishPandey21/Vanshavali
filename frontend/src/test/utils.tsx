@@ -79,6 +79,8 @@ export function attested(inner: (...args: [RequestInfo | URL, RequestInit?]) => 
     const vocab = u.match(/\/vocabularies\/([a-z_]+)(?:\?|$)/);
     if (vocab && (!init?.method || init.method === "GET")) return Promise.resolve(jsonResponse(emptyVocabulary(vocab[1])));
     if (u.endsWith("/transliterate")) return Promise.resolve(jsonResponse(noTransliteration));
+    // the person form's optional branch list (none: the branch field stays hidden)
+    if (/\/trees\/[^/]+\/branches$/.test(u) && (!init?.method || init.method === "GET")) return Promise.resolve(jsonResponse([]));
     return inner(url, init);
   };
 }

@@ -38,6 +38,8 @@ env = {**os.environ, "VSH_DATABASE_URL": target}
 subprocess.run(["uv", "run", "alembic", "upgrade", "head"], cwd=backend, env=env, check=True)
 # master-data vocabularies (ADR-0018), loaded by the owner like the migrate service does
 subprocess.run(["uv", "run", "python", "-m", "app.cli.masterdata", "load"], cwd=backend, env=env, check=True)
+# SYNTHETIC geography fixture (ADR-0019; backend/tests/fixtures/geo): the cascade needs data
+subprocess.run(["uv", "run", "python", "-m", "app.cli.geo", "load-test-fixture"], cwd=backend, env=env, check=True)
 app_role = os.environ.get("VSH_E2E_APP_ROLE", "vsh_app_e2e")
 role_env = {**env, "VSH_APP_DB_ROLE": app_role, "VSH_APP_DB_PASSWORD": app_role}
 subprocess.run(["uv", "run", "python", "-m", "app.cli.ensure_app_role"], cwd=backend, env=role_env, check=True)

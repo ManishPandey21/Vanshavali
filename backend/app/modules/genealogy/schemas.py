@@ -14,6 +14,7 @@ from app.models.enums import (
     EventSignificance,
     EventType,
     EvidenceStatus,
+    GeoLevel,
     LifeEventCategory,
     Lineage,
     LocationPrecision,
@@ -26,6 +27,7 @@ from app.models.enums import (
     RelationshipType,
     SexAtBirth,
 )
+from app.modules.geo.schemas import PlaceLgdNote
 
 
 class ProvenanceOut(ApiModel):
@@ -72,6 +74,9 @@ class PlaceIn(ApiModel):
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = Field(default=None, max_length=120)
     lgd_code: str | None = Field(default=None, max_length=40)
+    # set when the code was picked from the LGD cascade (ADR-0019 §4); the server then checks the
+    # code and records the snapshot. Without it, lgd_code is free text as before.
+    lgd_level: GeoLevel | None = None
     locality: str | None = Field(default=None, max_length=200)
     district: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
@@ -102,7 +107,10 @@ class PlaceUpdate(ApiModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = None
-    lgd_code: str | None = None
+    lgd_code: str | None = Field(default=None, max_length=40)
+    lgd_level: GeoLevel | None = None
+    # the user accepts the unit as LGD lists it now: re-link to the active snapshot (clears the note)
+    lgd_accept_current: bool = False
     locality: str | None = Field(default=None, max_length=200)
     district: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
@@ -125,6 +133,10 @@ class PlaceOut(ApiModel):
     longitude: float | None
     geocoding_source: str | None
     lgd_code: str | None
+    lgd_level: GeoLevel | None = None
+    lgd_snapshot_id: str | None = None
+    # the linked unit changed in LGD since it was picked; informational, the place is unchanged
+    lgd_note: PlaceLgdNote | None = None
     locality: str | None = None
     district: str | None = None
     state: str | None = None

@@ -209,3 +209,16 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   list changes only through code review.
 - **No inference.** A name's script or spelling never sets sex, gender, community, region or anything
   else about a person.
+
+## 11. Indian geography reference data (ADR-0019)
+
+- **No personal data in the reference tables.** LGD units, aliases and PIN offices are national open
+  data (GODL-India, attributed under the cascade, on the About page and in the family archive). They
+  hold nothing about any family, and a family's own spelling never enters them.
+- **Linking adds nothing about a person.** A village name stays where it was (the place, and the
+  person's `BIRTH_PLACE_DETAIL` field group, redacted for protected people as before). LGD gives no
+  coordinates, and PIN office coordinates are not imported.
+- **Searches stay private.** Place searches go only to our own server, never to a third-party
+  geocoder. They are rate-limited per user, and only request paths are logged, never the query.
+- **Nothing is rewritten.** A quarterly update never changes a family's record; it shows a note the
+  user may act on. The ancestral-village suggestion is offered, never filled.

@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "about": "Curated alternative names for LGD units (ADR-0019 §2). Changes only by code review: each entry needs level, lgd_code, name and a source. Never a family's own spelling.",
+  "entries": []
+}
