@@ -297,6 +297,8 @@ Constraints/indexes: `UNIQUE (event_id, person_id, role)`; `UNIQUE (tree_id, id)
 | `geocoding_source` | VARCHAR(120) | yes |  |
 | `date_validity` | JSONB | yes |  |
 | `lgd_code` | VARCHAR(40) | yes |  |
+| `lgd_level` | enum(state, district, sub_district, village, urban_body) | yes | set when picked from LGD (ADR-0019) |
+| `lgd_snapshot_id` | VARCHAR(7) | yes | → geo_snapshot |
 | `search_text` | TEXT | no |  |
 | `locality` | VARCHAR(200) | yes |  |
 | `district` | VARCHAR(120) | yes |  |
@@ -509,6 +511,87 @@ Constraints/indexes: `UNIQUE (vocabulary_key, code)`; `INDEX ix_vocabulary_term_
 | `updated_at` | DATETIME | no |  |
 
 Constraints/indexes: `UNIQUE (tree_id, vocabulary_key, code)`; `UNIQUE (tree_id, id)`; `INDEX ix_tree_vocabulary_term_tree_id (tree_id)`
+
+## Geography reference (LGD, India Post)
+
+### `geo_snapshot`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | VARCHAR(7) | no | PK |
+| `status` | enum(staged, active, inactive) | no |  |
+| `imports` | JSONB | no |  |
+| `activated_at` | DATETIME | yes |  |
+| `activated_by` | VARCHAR(120) | yes |  |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `INDEX uq_geo_snapshot_active (status) UNIQUE`
+
+### `geo_unit`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `level` | enum(state, district, sub_district, village, urban_body) | no |  |
+| `lgd_code` | VARCHAR(20) | no |  |
+| `parent_level` | enum(state, district, sub_district, village, urban_body) | yes |  |
+| `parent_lgd_code` | VARCHAR(20) | yes |  |
+| `state_code` | VARCHAR(20) | yes |  |
+| `district_code` | VARCHAR(20) | yes |  |
+| `sub_district_code` | VARCHAR(20) | yes |  |
+| `name_en` | VARCHAR(200) | no |  |
+| `name_local` | VARCHAR(200) | yes |  |
+| `local_script` | VARCHAR(10) | yes |  |
+| `category` | VARCHAR(80) | yes |  |
+| `name_key` | TEXT | no |  |
+| `local_key` | TEXT | no |  |
+| `first_snapshot` | VARCHAR(7) | no | → geo_snapshot |
+| `last_snapshot` | VARCHAR(7) | yes | → geo_snapshot |
+| `successor_codes` | ARRAY | no |  |
+
+Constraints/indexes: `UNIQUE (level, lgd_code, first_snapshot)`; `INDEX uq_geo_unit_current (level, lgd_code) UNIQUE`; `INDEX ix_geo_unit_children (parent_level, parent_lgd_code, level)`; `INDEX ix_geo_unit_local_trgm (local_key)`; `INDEX ix_geo_unit_current_children (parent_level, parent_lgd_code, level, name_en)`; `INDEX ix_geo_unit_state (state_code, level)`; `INDEX ix_geo_unit_code (level, lgd_code)`; `INDEX ix_geo_unit_name_trgm (name_key)`
+
+### `geo_unit_alias`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `level` | enum(state, district, sub_district, village, urban_body) | no |  |
+| `lgd_code` | VARCHAR(20) | no |  |
+| `name` | VARCHAR(200) | no |  |
+| `script` | VARCHAR(10) | yes |  |
+| `kind` | enum(alternative, historical, curated) | no |  |
+| `source` | VARCHAR(200) | yes |  |
+| `name_key` | TEXT | no |  |
+| `created_at` | DATETIME | no |  |
+| `updated_at` | DATETIME | no |  |
+
+Constraints/indexes: `UNIQUE (level, lgd_code, name_key)`; `INDEX ix_geo_unit_alias_trgm (name_key)`; `INDEX ix_geo_unit_alias_unit (level, lgd_code)`
+
+### `pincode_office`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `pincode` | VARCHAR(6) | no |  |
+| `office_name` | VARCHAR(200) | no |  |
+| `office_key` | VARCHAR(200) | no |  |
+| `office_type` | VARCHAR(20) | yes |  |
+| `delivery` | BOOLEAN | yes |  |
+| `division` | VARCHAR(120) | yes |  |
+| `region` | VARCHAR(120) | yes |  |
+| `circle` | VARCHAR(120) | yes |  |
+| `district_name` | VARCHAR(120) | yes |  |
+| `state_name` | VARCHAR(120) | yes |  |
+| `taluk_name` | VARCHAR(120) | yes |  |
+| `state_code` | VARCHAR(20) | yes |  |
+| `district_code` | VARCHAR(20) | yes |  |
+| `sub_district_code` | VARCHAR(20) | yes |  |
+| `first_snapshot` | VARCHAR(7) | no | → geo_snapshot |
+| `last_snapshot` | VARCHAR(7) | yes | → geo_snapshot |
+
+Constraints/indexes: `UNIQUE (pincode, office_key, first_snapshot)`; `INDEX ix_pincode_office_pincode (pincode)`; `INDEX ix_pincode_office_current (pincode)`
 
 ## Evidence
 

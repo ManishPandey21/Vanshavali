@@ -38,6 +38,7 @@ GROUPS = {
         "household_membership",
     ],
     "Master data": ["vocabulary", "vocabulary_term", "tree_vocabulary_term"],
+    "Geography reference (LGD, India Post)": ["geo_snapshot", "geo_unit", "geo_unit_alias", "pincode_office"],
     "Evidence": ["source", "citation"],
     "Documents & extraction": [
         "document",

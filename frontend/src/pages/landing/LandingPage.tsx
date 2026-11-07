@@ -596,6 +596,8 @@ export function LandingPage() {
             ॥ परंपरा एवं श्रद्धा ॥
           </p>
         </div>
+        {/* GODL-India attribution for the place directory (ADR-0019 §9) */}
+        <p className="mx-auto mt-4 max-w-6xl text-center text-xs sm:text-left">{t("landing.footer.dataCredit")}</p>
       </footer>
     </div>
   );

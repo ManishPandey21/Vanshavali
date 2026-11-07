@@ -203,3 +203,49 @@ Measured on the full village table on pilot-sized hardware (ADR-0014):
   published column layouts, and labelled as synthetic. The importer matches headers tolerantly and
   refuses files it does not recognise. Replacing the fixture with a real one-district extract,
   downloaded by hand, is tracked as a follow-up.
+
+## Implementation notes (7 Nov 2026)
+Built as decided. These points refine the ADR where the data or the code needed it:
+
+1. **LGD codes are unique per level only** (district 9 and state 9 can both exist). So a unit is
+   identified by its level and code:
+   - `place` gets `lgd_level` next to `lgd_snapshot_id`;
+   - `GET /geo/units/{lgd_code}` needs `?level=`.
+2. **Ancestor scopes.** `GET /geo/units` takes `parent_level` with `parent`, so a search can be scoped
+   to a state or district, not only to the direct parent. Each unit stores its state, district and
+   sub-district codes for this.
+3. **Snapshot rules that keep every step reversible:**
+   - only the newest snapshot can be imported into;
+   - a scope (a level, nationally or for one state) is imported once per snapshot;
+   - a new snapshot needs the previous one active;
+   - `discard` deletes the newest snapshot that is not active, unless places were linked under it.
+     It reopens what that snapshot closed.
+4. **Merges and splits.** LGD's plain downloads do not list successors. The operator passes them as
+   a small `--successors` file prepared from LGD's change reports. Successors must name codes that
+   the same import retires.
+5. **PIN sub-districts.** These are suggested only when the India Post file has a taluk column; the
+   current national file has none. The PIN suggestion stays district and state, never a village.
+6. **Search.**
+   - Searching across India needs three letters; two are enough within a chosen state or district.
+   - The "search all" box covers villages and towns. A former district name ("Allahabad") is found
+     in the District picker, through the historical alias recorded when the rename was imported.
+   - Devanagari queries are also compared through the transliteration engine (ADR-0025), so
+     "रामपुर" meets "Rampur".
+7. **Notes (§4).** They cover a unit that was renamed, moved or retired. They also cover a unit whose
+   district (or sub-district, or state) was renamed, which is this ADR's own Prayagraj example.
+   - Saving the same pick again keeps the original snapshot, so the note stays.
+   - `lgd_accept_current` re-links on purpose ("Update to LGD's current listing").
+8. **Ancestral village (§8).**
+   - The person form gains an optional *Family branch* field. The API already accepted `branch_ids`.
+   - Choosing a branch whose heritage profile has an `ancestral_village` linked to a tree place
+     offers that place for the birth place, as a dismissible suggestion.
+   - `PlacePicker` carries the offer, so it can be reused elsewhere.
+9. **Where the cascade appears.** `PlaceCascade` is built into `PlacePicker`. That covers vital and
+   event places, the heritage ancestral village and property places, which is where land parcels
+   take theirs. The Places page has it in the place editor.
+10. **Read-only role.** The grant SQL revokes writes on the four tables whenever they exist, and it
+    contains no `%` because `ensure_app_role` sends it through the driver.
+11. **Benchmark (§10).** Not yet measured on pilot hardware with the national files. A synthetic-scale
+    run is recorded in `docs/operations/performance.md`, and the pilot run stays open in
+    `IMPLEMENTATION_STATUS.md`.
+

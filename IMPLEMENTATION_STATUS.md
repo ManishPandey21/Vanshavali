@@ -193,6 +193,19 @@ Decision: ADR-0025. No migration: an accepted suggestion is a `name_record` of t
 | Suggestion UI in the person form, the name editor and Smart Add | VERIFIED | Vitest `TransliterationSuggestion.test.tsx` (3), `SmartAddDialog.test.tsx`, Playwright `transliteration.spec.ts` (390 px, axe) | |
 | Hindi review pack regenerated; now includes the master-data labels and the name lexicon | DONE (pack) | `ops/i18n/hindi_review_pack.py` | The review itself is a human task: no sign-off yet |
 
+## R2 — Indian geography reference data and place cascades (Nov 2026)
+
+Decision: ADR-0019 (implementation notes there). Migration `8e4a1f6c2b37`: `geo_snapshot`, versioned `geo_unit`, `geo_unit_alias`, `pincode_office`, `place.lgd_level`, `place.lgd_snapshot_id`; the app role may only read the four reference tables.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Importer `python -m app.cli.geo`: header-tolerant LGD and India Post CSV layouts, SHA-256, plain-text validation (NFC, control/bidi refused, length), unknown parents and repeats refused, staged snapshots, change report (CSV + summary), successors for merges/splits, `activate` (large-change guard, audit), rollback, `discard`, `status` | VERIFIED | `test_geo.py` (importer tests), `test_app_role.py`, `test_migrations.py` | Real LGD files not yet imported: downloads need a captcha form and data.gov.in is not reachable from the build environment. The CI fixture is SYNTHETIC (`backend/tests/fixtures/geo`, labelled) |
+| `GET /geo/units`, `/geo/units/{code}?level=`, `/geo/pincodes/{pin}`: signed-in, 240/min per user, ETag on the active snapshot, `VSH_GEO_ENABLED` → 404; search exact > prefix > trigram over English, local-script names and aliases with match reason; PIN suggests district/state, never a village | VERIFIED | `test_geo.py` (API tests) | |
+| Tree places: a picked code is checked against the active snapshot and stamped by the server; LGD changes only add a note (renamed, moved, district renamed, retired with successors); `lgd_accept_current` re-links on the user's choice; archive README credits GODL-India | VERIFIED | `test_geo.py` (place and archive tests) | |
+| `PlaceCascade` (State > District > Tehsil/Taluka/Mandal… > Village/Town, all-India search, PIN suggestion, "My village is not listed", attribution) in the Places editor and in `PlacePicker` (vital, event, heritage and property places); LGD note on place cards; en/hi | VERIFIED | Vitest `PlaceCascade.test.tsx` (11), Playwright `lgd-places.spec.ts` (2, 390 px, axe) | Hindi strings await the native review (#34) |
+| Ancestral-village suggestion: optional family branch on the person form; the branch's ancestral village is offered for the birth place, never filled | VERIFIED | Vitest `PlaceCascade.test.tsx`, Playwright `lgd-places.spec.ts` | |
+| Acceptance benchmark (§10) on pilot hardware with the national files | NOT_STARTED | `python -m app.cli.geo_benchmark` (synthetic national scale) | Synthetic-scale numbers from the build container: `docs/operations/performance.md` |
+
 ## R1 — Age-aware kinship terms (Nov 2026)
 
 Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.

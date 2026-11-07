@@ -20,7 +20,8 @@ export function UnitName({ unit, className }: { unit: Pick<GeoUnitOut, "name_en"
       <span>{unit.name_en}</span>
       {unit.name_local && unit.name_local !== unit.name_en && (
         <>
-          <span aria-hidden> · </span>
+          {/* real spaces around the decorative dot, so names read "Rampur रामपुर", not run together */}{" "}
+          <span aria-hidden>·</span>{" "}
           <span lang={langOfScript(unit.local_script)}>{unit.name_local}</span>
         </>
       )}
@@ -36,7 +37,7 @@ function useUnitOptions(units: GeoUnitOut[], showPath: boolean): ComboOption<Geo
     textValue: u.name_en,
     label: (
       <span className="flex flex-col">
-        <UnitName unit={u} className="font-medium" />
+        <UnitName unit={u} className="font-medium" />{" "}
         <span className="text-xs text-ink-muted">
           {[showPath ? ancestryLabel(u) : null, u.level === "urban_body" ? (u.category ?? t("lgd.level.urban_body")) : null, u.match?.reason === "alias" ? t("lgd.matchAlias", { name: u.match.text }) : null]
             .filter(Boolean)

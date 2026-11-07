@@ -583,3 +583,25 @@ def test_an_lgd_update_never_rewrites_a_place_and_only_adds_a_note(
         importer.activate(db, "2026-02", operator="op")
         with pytest.raises(ImportRefused, match="place\\(s\\) were linked while 2026-05 was active"):
             importer.discard(db, "2026-05", operator="op")
+
+
+def test_the_family_archive_credits_lgd_when_places_are_linked(
+    owner: ApiClient, tree: dict[str, Any]
+) -> None:
+    import io
+    import zipfile
+
+    load("2026-02")
+    tid = tree["id"]
+
+    def readme() -> str:
+        r = owner.get(f"/trees/{tid}/exports/archive")
+        assert r.status_code == 200, r.text
+        return zipfile.ZipFile(io.BytesIO(r.content)).read("family-export/README.txt").decode()
+
+    place(owner, tid, canonical_name="Old village", lgd_code="LGD-77")  # free text: no credit needed
+    assert "Local Government Directory" not in readme()
+    place(owner, tid, canonical_name="Rampur", lgd_code="9900001", lgd_level="village")
+    text_ = readme()
+    assert "Source: Local Government Directory, Government of India; India Post" in text_
+    assert "GODL-India" in text_ and "Snapshots: 2026-02." in text_
