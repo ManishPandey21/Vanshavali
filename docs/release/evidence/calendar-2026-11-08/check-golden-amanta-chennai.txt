@@ -1,0 +1,6 @@
+coverage: tithi endings cover 363 days; at least 3 years are needed
+coverage: the aparahna rule for memorial days is not checked against a published observance at chennai
+coverage: the sunrise rule for birthday days is not checked against a published observance at chennai
+mismatch: 2026-12-09T06:22 krishna 15: month kartika != margashirsha (documented divergence, pending review)
+compared {'tithi_ends': 371, 'sunrises': 395, 'civil_days': 363}; undecidable civil days 1; largest differences: tithi end 36 s, sunrise 53 s
+NOT PASSED

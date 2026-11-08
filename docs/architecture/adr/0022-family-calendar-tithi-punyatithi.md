@@ -1,8 +1,8 @@
 # ADR-0022: Indian family calendar: tithi dates, Punyatithi reminders, family calendar and ICS feed
 
 - Status: Accepted · Date: 2026-11-08 (accepted as proposed) · Release: R5 (first ADR of R5)
-- Still open after acceptance: who signs off the licence review (§1), and who enters the golden
-  tables and from which panchangs (§9). Lunar reminders stay off until both are done (§8).
+- Owner decisions of 8 Nov 2026 (below) settle who signs off the licence review (§1) and which
+  panchangs are the reference (§9). Computed lunar dates stay off until every gate passes (§8).
 - Relates to: ADR-0016 (reminders: opt-in, visible dates only, re-check at send time),
   ADR-0015 (life events), ADR-0006 (privacy, field groups), ADR-0021 (provenance of calculated
   values, review), ADR-0025 (a calculated suggestion is confirmed, never applied), Q6, Q16
@@ -239,10 +239,10 @@ Where the build differs from the text above, or settles something it left open:
   calendar; reading from the table is a later optimisation. Flagging dates that move after an engine
   upgrade (stress test 5) is not built yet; `ENGINE_VERSION` is recorded on each accepted
   conversion so it can be.
-- **Gate (§8):** a convention is offered only when `VSH_LUNAR_CALENDAR_ENABLED` is on, the engine
-  is available, and the convention is `golden_verified`, which a test allows only with a passing,
-  cited golden table. None ships, so nothing lunar is offered yet. The calendar says why
-  (`lunar_unavailable`: `disabled`, `convention_not_offered`, `no_city`).
+- **Gate (§8):** superseded by the owner decisions below. A convention is offered **at a city**
+  only with the operator switch, the engine, a licence sign-off, an accuracy approval and an
+  activation, all recorded in `data/approvals.json`. None is recorded, so nothing lunar is offered.
+  The calendar says why (`lunar_unavailable`: `disabled`, `no_city`, `convention_not_offered`).
 - **Reminders (§5):** one reminder per event and member, as before; a tithi reminder needs a
   convention (`convention_required`) and a city (`observance_place_required`), recurs yearly, and
   is cancelled with a reason, never moved to a guessed day, when its convention stops being
@@ -254,3 +254,47 @@ Where the build differs from the text above, or settles something it left open:
   request) rather than cursor pages; a month grid is a later addition.
 - **Feed (§7):** `calendar_feed` is resolved by token outside RLS, like invitations; the access log
   carries the route template only, so the token is never logged (tested).
+
+## Owner decisions (8 Nov 2026)
+The product owner's answers to the open points above. They change §1, §8 and §9 as follows.
+
+1. **Astronomy licensing (§1).**
+   - Skyfield 1.55 and jplephem 2.24 are kept **provisionally**, subject to documenting their MIT
+     licences and dependencies.
+   - A licence and data-use review of JPL DE440s is prepared, covering its source, SHA-256,
+     redistribution conditions and attribution.
+   - The development team prepares the evidence, a qualified licensing reviewer signs it off, and
+     the product owner gives the final activation approval. The review is not treated as approved.
+   - Evidence: [family-calendar-licence-review.md](../../operations/family-calendar-licence-review.md).
+     It also records that no modified ephemeris or excerpt is used: the 18.5 MB excerpt tried
+     during development was not adopted.
+2. **Reference sources (§9).**
+   - The Government of India's Rashtriya Panchang (IMD / Positional Astronomy Centre) is the
+     primary astronomical reference, taken from its available official editions.
+   - Supplementary published sources, with verified permissions, cover amanta/purnimanta and the
+     regional observance rules.
+   - Developers prepare and enter source-attributed golden data, and an independent
+     panchang-domain reviewer reviews it before any convention is verified.
+   - Expected values are never invented, and sanity checks are not verification.
+   - Inventory and first results: [family-calendar-sources.md](../../operations/family-calendar-sources.md).
+3. **Activation (§8).**
+   - Computed tithi conversions and lunar reminders stay disabled until the licence,
+     reference-data and accuracy gates pass.
+   - Validation covers one city and one convention first, and expands only after independent
+     verification.
+   - Approval is bound to the engine version, the convention, the location and the source tables.
+   - Any material engine, ephemeris or convention change needs revalidation.
+   - A convention is never enabled merely because a test file was added.
+
+How the code holds these decisions:
+- `conventions.offered(convention, city)` replaces the boolean `golden_verified`, and requires the
+  five gates in [family-calendar-approvals.md](../../operations/family-calendar-approvals.md).
+- `ENGINE_VERSION` is derived from the installed Skyfield and jplephem versions.
+- Accuracy approvals carry the digests of the engine, the ephemeris, the convention's rules and
+  the golden table, so a change to any of them makes the approval stale.
+- The golden table moves to format 2: source facts (tithi ending moments and city sunrises) with
+  page checksums and documented divergences.
+- The ADR's original coverage rule (Varanasi, Delhi, Pune, Bengaluru, London and San Francisco
+  before anything is offered) is replaced by the same coverage required **per city** that is
+  approved, starting with one.
+

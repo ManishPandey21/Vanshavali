@@ -2,17 +2,32 @@
 
 What ships today: tithi dates entered and shown as the family wrote them, the family calendar by
 Gregorian date, and the private ICS feed. **Nothing lunar is computed** (no tithi days on the
-calendar, no tithi reminders, no conversion suggestions) until all three gates below are open.
+calendar, no tithi reminders, no conversion suggestions) until all five gates below are open.
 
 ## Gates
 
-| Gate | Where | How it opens |
-|---|---|---|
-| Engine licence review signed off | ADR-0022 §1 | The owner (or counsel) signs off Skyfield, jplephem and JPL DE440s. |
-| `VSH_LUNAR_CALENDAR_ENABLED=true` | environment | Only after the sign-off. Default `false`. |
-| A convention is `golden_verified` | `backend/app/modules/calendar/data/conventions.json` | Only with a passing golden table in `golden/<convention>.json`, cited row by row from a published panchang (see `golden/README.md`). A test fails a verified convention without one. Never generate rows with the engine. |
+Computed lunar dates are offered for a **convention at a city** only when all five gates hold:
 
-The calendar page tells families which gate is closed (`lunar_unavailable`).
+1. the operator switch;
+2. the ephemeris;
+3. the licence sign-off;
+4. the accuracy approval for that convention and city;
+5. the product owner's activation.
+
+Gates 3 to 5 are records in `backend/app/modules/calendar/data/approvals.json`, bound to the engine,
+ephemeris, convention and golden table. See
+[family-calendar-approvals.md](family-calendar-approvals.md) for the records, the validation
+checklist and the outstanding sign-offs. None is recorded, so nothing lunar is offered.
+
+| Gate | How it opens |
+|---|---|
+| `VSH_LUNAR_CALENDAR_ENABLED=true` | Set by the operator only after the product owner's activation is recorded. Default `false`. |
+| Licence sign-off | A qualified licensing reviewer signs [the evidence](family-calendar-licence-review.md). |
+| Accuracy approval | An independent panchang reviewer signs the validation checklist for one convention at one city, against the golden table ([sources](family-calendar-sources.md)). |
+| Activation | The product owner, per convention and city. |
+
+A golden table or a passing `check-golden` never opens a gate. The calendar page tells families
+when tithi days are unavailable (`lunar_unavailable`).
 
 ## Ephemeris
 
@@ -27,14 +42,19 @@ cd backend && uv run python -m app.cli.calendar fetch-ephemeris
 - Without it the engine reports itself unavailable and nothing lunar is offered; nothing else
   breaks.
 
-## Checking a golden table
+## Golden tables and approvals
 
 ```bash
-cd backend && uv run python -m app.cli.calendar check-golden --convention purnimanta
+cd backend
+uv run python -m app.cli.calendar check-golden --convention amanta --city mumbai
+uv run python -m app.cli.calendar approval-template --convention amanta --city mumbai
+uv run python -m app.cli.calendar transcribe-rp --pages <saved pages> --out app/modules/calendar/golden/amanta.json
 ```
 
-It reports coverage gaps (cities, years, an adhik year, sources) and every mismatch. Mark a
-convention `golden_verified` only when this passes, in a reviewed change.
+`check-golden` reports coverage gaps and every mismatch for one convention at one city. A pass is
+evidence for the reviewer, never an approval. `transcribe-rp` re-reads saved Rashtriya Panchang
+pages (with `SHA256SUMS` and `RETRIEVED`) and keeps the divergences and observances that reviewers
+added. Any change to a golden table makes its accuracy approvals stale.
 
 ## Caching calendar days (optional)
 

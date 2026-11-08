@@ -1,0 +1,12 @@
+{
+  "convention": "amanta",
+  "city": "mumbai",
+  "engine_version": "skyfield-1.55/jplephem-2.24/de440s/lahiri-iau2006/1",
+  "ephemeris_sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2",
+  "convention_sha256": "69788f8c97a0a2dd0d1d7ec20b9d09972ac5a2431694c03a11ece5471058216d",
+  "golden_sha256": "6ebef514cd345b1df278e3d5e1715f2b4643319748d6e5528b19de0d77f015a3",
+  "prepared_by": "",
+  "reviewer": "",
+  "reviewed_on": "",
+  "record": ""
+}
