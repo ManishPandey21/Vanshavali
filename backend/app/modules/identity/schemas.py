@@ -50,6 +50,9 @@ class UserOut(ApiModel):
     email: str
     display_name: str
     preferred_language: str
+    # which relationship words this person sees (ADR-0026 §6); separate from the UI language
+    kinship_lang: str | None = None
+    kinship_region: str | None = None
     created_at: dt.datetime
     mfa_enabled: bool = False
     email_verified: bool = False

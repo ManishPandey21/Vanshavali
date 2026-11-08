@@ -20,6 +20,9 @@ class TreeUpdate(ApiModel):
     description: str | None = Field(default=None, max_length=5000)
     public_mode: PublicMode | None = None
     default_person_privacy: PrivacyLevel | None = None
+    # the tree's default relationship words (ADR-0026 §6); null = the reader's UI language
+    kinship_lang: str | None = Field(default=None, pattern=r"^[a-z]{2,3}$")
+    kinship_region: str | None = Field(default=None, pattern=r"^[a-z_]{1,40}$")
 
 
 class TreeOut(ApiModel):
@@ -31,6 +34,8 @@ class TreeOut(ApiModel):
     default_person_privacy: PrivacyLevel
     # which changes need family review (ADR-0021 §1)
     review_policy: ReviewPolicy = ReviewPolicy.OFF
+    kinship_lang: str | None = None
+    kinship_region: str | None = None
     created_at: dt.datetime
     my_roles: list[Role] = []
     my_permissions: list[str] = []

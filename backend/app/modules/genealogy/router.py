@@ -417,4 +417,9 @@ def relationship_path(
     to_id: uuid.UUID = Query(alias="to"),
     lineage: LineageQuery = None,
 ) -> RelationshipPathOut:
-    return engine.relationship_path(ctx, from_id, to_id, set(lineage) if lineage else None)
+    from app.modules.kinship.service import terms_for
+
+    out = engine.relationship_path(ctx, from_id, to_id, set(lineage) if lineage else None)
+    if out.found:
+        out = out.model_copy(update={"terms": terms_for(ctx, from_id, out.chain, out.age_orders)})
+    return out
