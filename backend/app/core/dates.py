@@ -12,6 +12,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.core.lunar import LunarDate
+
 
 class DateCalendar(StrEnum):
     GREGORIAN = "gregorian"
@@ -68,6 +70,8 @@ class GenealogicalDate(BaseModel):
     end_month: int | None = Field(default=None, ge=1, le=12)
     end_day: int | None = Field(default=None, ge=1, le=31)
     original_text: str | None = Field(default=None, max_length=500)
+    # a tithi date as the family gives it (ADR-0022 §2); never derived from the Gregorian fields
+    lunar: LunarDate | None = None
     redacted: bool = False
 
     @model_validator(mode="after")
@@ -137,7 +141,7 @@ class GenealogicalDate(BaseModel):
     def display(self) -> str:
         """Human readable; always shows qualifiers so approximations never look exact."""
         if self.precision == DatePrecision.UNKNOWN or self.year is None:
-            return "unknown"
+            return self.lunar.label() if self.lunar else "unknown"
         parts = [str(self.year)]
         if self.month:
             parts.append(f"{self.month:02d}")
@@ -158,7 +162,8 @@ class GenealogicalDate(BaseModel):
                 )
             )
             return f"between {base} and {end}{cal}"
-        return f"{prefix}{base}{cal}"
+        lunar = f" ({self.lunar.label()})" if self.lunar else ""
+        return f"{prefix}{base}{cal}{lunar}"
 
     def year_only(self) -> GenealogicalDate:
         """Redacted form used for protected living-person dates (PRS §6)."""

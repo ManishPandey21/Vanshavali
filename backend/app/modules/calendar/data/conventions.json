@@ -1,0 +1,22 @@
+{
+  "conventions": [
+    {
+      "key": "purnimanta",
+      "labels": {"en": "Purnimanta (month ends at the full moon)", "hi": "पूर्णिमांत (मास पूर्णिमा पर समाप्त)"},
+      "month_convention": "purnimanta",
+      "day_rule": {"memorial": "aparahna", "birthday": "sunrise", "default": "sunrise"},
+      "adhik_rule": "nija",
+      "regions": ["UP", "BR", "MP", "RJ", "PB", "HR", "HP", "JH", "CT", "DL", "UK"],
+      "golden_verified": false
+    },
+    {
+      "key": "amanta",
+      "labels": {"en": "Amanta (month ends at the new moon)", "hi": "अमांत (मास अमावस्या पर समाप्त)"},
+      "month_convention": "amanta",
+      "day_rule": {"memorial": "aparahna", "birthday": "sunrise", "default": "sunrise"},
+      "adhik_rule": "nija",
+      "regions": ["MH", "GJ", "KA", "AP", "TG", "GA"],
+      "golden_verified": false
+    }
+  ]
+}

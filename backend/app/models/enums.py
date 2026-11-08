@@ -623,6 +623,13 @@ class ReminderRecurrence(StrEnum):
     ANNUAL = "annual"
 
 
+class ReminderDateRule(StrEnum):
+    """Which date drives a reminder (ADR-0022 §5): the Gregorian day, or the tithi."""
+
+    SOLAR = "solar"
+    LUNAR = "lunar"
+
+
 class DeliveryStatus(StrEnum):
     PENDING = "pending"
     SENT = "sent"

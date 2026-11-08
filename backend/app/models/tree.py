@@ -33,6 +33,9 @@ class Tree(TimestampMixin, Base):
         default=ReviewPolicy.OFF,
         server_default=ReviewPolicy.OFF.value,
     )
+    # family calendar defaults (ADR-0022 §3, §4): chosen by a tree admin, never inferred
+    calendar_convention: Mapped[str | None] = mapped_column(String(40))
+    observance_city: Mapped[str | None] = mapped_column(String(60))
     # the tree's default kinship words (ADR-0026 §6); a member's own choice comes first
     kinship_lang: Mapped[str | None] = mapped_column(String(16))
     kinship_region: Mapped[str | None] = mapped_column(String(40))

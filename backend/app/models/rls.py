@@ -10,7 +10,8 @@ not restrict (policies are not FORCEd), so migrations, backups and bulk tooling 
 
 Identity/control tables that must be read before a tree is known — ``tree``, ``tree_membership``,
 ``tree_invitation``, ``profile_claim_invite``, ``app_user``, ``user_session``, ``auth_token``,
-``external_identity``, ``notification_contact`` (a user's own phone numbers) — and the
+``external_identity``, ``notification_contact`` (a user's own phone numbers), ``calendar_feed``
+(resolved by its token, ADR-0022) — and the
 append-only ``audit_event`` are not covered; they are protected by the service layer (and their own
 rules). The two invite tables are resolved by a 256-bit token before the holder is a member; the
 handler then binds the invite's tree for everything else it reads.
@@ -93,7 +94,13 @@ def disable_sql(table: str) -> list[str]:
 
 # Global reference data the application only reads (ADR-0019 §2): loaded by operator CLIs as the
 # schema owner. The grant below revokes write access on these, whenever they exist.
-READ_ONLY_TABLES: tuple[str, ...] = ("geo_snapshot", "geo_unit", "geo_unit_alias", "pincode_office")
+READ_ONLY_TABLES: tuple[str, ...] = (
+    "geo_snapshot",
+    "geo_unit",
+    "geo_unit_alias",
+    "pincode_office",
+    "panchang_day",
+)
 
 # (the array below must list READ_ONLY_TABLES; tests/test_geo.py checks that it does). No "%" in
 # this SQL: ensure_app_role sends it through the driver, where "%" starts a placeholder.
@@ -108,7 +115,7 @@ BEGIN
     EXECUTE 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {role}';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {role}';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {role}';
-    FOREACH t IN ARRAY ARRAY['geo_snapshot', 'geo_unit', 'geo_unit_alias', 'pincode_office'] LOOP
+    FOREACH t IN ARRAY ARRAY['geo_snapshot', 'geo_unit', 'geo_unit_alias', 'pincode_office', 'panchang_day'] LOOP
       IF to_regclass('public.' || t) IS NOT NULL THEN
         EXECUTE 'REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ' || quote_ident(t) || ' FROM {role}';
       END IF;
