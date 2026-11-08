@@ -35,8 +35,12 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      # cached .deb files, bounded and retried downloads, fallback mirror (.github/actions/apt-install)
       - name: System packages (OCR)
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-hin
+        uses: ./.github/actions/apt-install
+        timeout-minutes: 12
+        with:
+          packages: tesseract-ocr tesseract-ocr-hin
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
@@ -155,7 +159,11 @@ jobs:
           --health-cmd "pg_isready -U vanshavali" --health-interval 5s --health-retries 20
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-hin
+      - name: System packages (OCR)
+        uses: ./.github/actions/apt-install
+        timeout-minutes: 12
+        with:
+          packages: tesseract-ocr tesseract-ocr-hin
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
@@ -241,4 +249,4 @@ jobs:
           docker run --rm -v "$PWD/deploy/pilot/monitoring:/m:ro" -w /m --entrypoint promtool \
             prom/prometheus:v3.5.0 test rules alerts.test.yml
       - name: Shell scripts (shellcheck)
-        run: shellcheck -x -P SCRIPTDIR deploy/pilot/scripts/*.sh deploy/pilot/drill/run-drill.sh ops/backup/drill.sh ops/loadtest/*.sh
+        run: shellcheck -x -P SCRIPTDIR deploy/pilot/scripts/*.sh deploy/pilot/drill/run-drill.sh ops/backup/drill.sh ops/loadtest/*.sh .github/actions/apt-install/apt-install.sh
