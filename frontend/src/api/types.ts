@@ -302,3 +302,18 @@ export type TraditionsOut = S["TraditionsOut"];
 export type TraditionLinkIn = S["TraditionLinkIn"];
 export type TraditionLinkOut = S["TraditionLinkOut"];
 export type TraditionRevisionOut = S["TraditionRevisionOut"];
+
+// ADR-0022: family calendar
+export type LunarDate = S["LunarDate"];
+export type Paksha = S["Paksha"];
+export type MonthConvention = S["MonthConvention"];
+export type Samvat = S["Samvat"];
+export type DateDerivation = S["DateDerivation"];
+export type CalendarSettingsOut = S["CalendarSettingsOut"];
+export type CalendarSettingsIn = S["CalendarSettingsIn"];
+export type CalendarOut = S["CalendarOut"];
+export type CalendarEntryOut = S["CalendarEntryOut"];
+export type ConvertIn = S["ConvertIn"];
+export type ConvertOut = S["ConvertOut"];
+export type FeedOut = S["FeedOut"];
+export type ReminderDateRule = S["ReminderDateRule"];

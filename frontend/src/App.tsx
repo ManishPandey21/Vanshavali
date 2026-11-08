@@ -40,6 +40,7 @@ const PropertyDetailPage = lazy(() => import("./pages/tree/property/PropertyDeta
 const VisualizationsPage = lazy(() => import("./pages/tree/VisualizationsPage").then((m) => ({ default: m.VisualizationsPage })));
 const EventsPage = lazy(() => import("./pages/tree/EventsPage").then((m) => ({ default: m.EventsPage })));
 const RemindersPage = lazy(() => import("./pages/tree/RemindersPage").then((m) => ({ default: m.RemindersPage })));
+const CalendarPage = lazy(() => import("./pages/tree/CalendarPage").then((m) => ({ default: m.CalendarPage })));
 const TimelinePage = lazy(() => import("./pages/tree/TimelinePage").then((m) => ({ default: m.TimelinePage })));
 const ImportExportPage = lazy(() => import("./pages/tree/ImportExportPage").then((m) => ({ default: m.ImportExportPage })));
 
@@ -124,6 +125,7 @@ export default function App() {
             <Route path="visualizations" element={<Lazy><VisualizationsPage /></Lazy>} />
             <Route path="events" element={<Lazy><EventsPage /></Lazy>} />
             <Route path="reminders" element={<Lazy><RemindersPage /></Lazy>} />
+            <Route path="calendar" element={<Lazy><CalendarPage /></Lazy>} />
             <Route path="timeline" element={<Lazy><TimelinePage /></Lazy>} />
             <Route path="joint-family" element={<JointFamilyPage />} />
             <Route path="branches" element={<BranchesPage />} />
