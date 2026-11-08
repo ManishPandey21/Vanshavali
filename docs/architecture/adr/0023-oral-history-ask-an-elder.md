@@ -1,6 +1,6 @@
 # ADR-0023: Oral history: "Ask an Elder", recorded stories, consent and transcripts
 
-- Status: **Proposed** (revised after the owner's review of 8 Nov 2026; still awaiting design review) · Release: R5, phase I
+- Status: **Proposed** (revised twice after the owner's reviews of 8 Nov 2026; awaiting design review) · Release: R5, phase I
 - Relates to: ADR-0004 (document storage and the vault pipeline), ADR-0006 (privacy, field groups),
   ADR-0009 (OCR/AI output is a proposal), ADR-0011 (single-use invite links, "remove me"),
   ADR-0014 (pilot hosting and backups), ADR-0016 (notifications), ADR-0021 (proposals and family
@@ -63,10 +63,15 @@ Voice is unlike a scanned document:
     are deleted.
 - **Pilot limits** (owner decision 3), all configurable:
   - **60 minutes and 200 MB per recording**;
-  - **5 GB of active oral-history media per tree.** This counts everything stored for the tree's
-    stories: originals, consent clips, **temporary upload parts**, **derivatives** (transcripts,
-    previews) and archived audio. An upload that would exceed the quota is refused before it
-    starts, and the remaining space is shown.
+  - **5 GB in total of oral-history media per tree** (owner decisions 3 and, in the second round,
+    5). It is one quota covering everything stored for the tree's stories:
+    - originals and consent clips;
+    - **archived recordings**, with no separate archive quota in the pilot;
+    - **temporary upload parts**;
+    - **derivatives** (transcripts, previews).
+
+    An upload that would exceed the quota is refused before it starts, and the remaining space is
+    shown.
 - **Elders and low-end phones.** Controls are large, the screen is in the elder's language, and the
   recording can be reviewed before sending. Upload continues after a dropped connection. (Phase L
   will build on this.)
@@ -76,10 +81,19 @@ Owner decision 10: a recording can stay private, and sharing it is never a condi
 
 | Visibility | Who can see the story and play the audio |
 |---|---|
-| **Private** (default) | The narrator (if they have an account) and the interviewer. Tree admins see only that a private story exists and how much space it uses, for quota and moderation. They don't see its title, audio or transcript. |
+| **Private** (default) | The narrator (if they have an account) and the interviewer. |
 | **Shared in the tree** | Members allowed by the story's privacy level (§6). Needs consent scope 4 (§4). |
 
 A story is **never public** in v1, whatever the tree's public mode, as for the traditions archive.
+
+**Administrators and private stories** (second-round owner decision 7):
+- By default, tree admins and owners see **only the tree's aggregate oral-history storage usage**.
+- Ordinary admin access exposes **no metadata** of a private story (title, narrator, dates, mentions,
+  or even its existence as a row), and no audio or transcript.
+- This is enforced on the server. Story queries filter private stories to their narrator and
+  interviewer **whatever the caller's role**. Usage is computed by an aggregate query that returns
+  totals only. Admin, audit and export screens use the same rules.
+- Withdrawal, erasure, retention and quota jobs run as system jobs, not as an admin.
 
 ### 4. Consent before anything is recorded
 **Scopes** are each a separate yes or no, and none is required beyond scope 1:
@@ -142,15 +156,16 @@ private again at once.
   A member-recorded story gets a code too, given to the narrator.
 - **Narrator attribution** (owner decision 10):
   - A recording that arrives by link is held as **"narrator not confirmed"**. Until confirmed, only
-    the asking member and tree admins can see that it exists, and only the asking member can play
-    it, to identify the voice.
+    the asking member can see it and play it, to identify the voice. Admins see it only in the
+    aggregate usage.
   - Confirmation names the narrator (a person in the tree, or a name only), and records who
     confirmed it, how ("I know this voice" or "the narrator confirmed with their account") and
     when.
   - **The consent stays the speaker's, whoever they turn out to be.** Changing the attribution
     doesn't transfer or widen it.
-  - A recording that isn't confirmed within 30 days is deleted, and the asking member is warned
-    5 days before.
+  - A recording that isn't confirmed within **30 days** is deleted (second-round owner decision 4).
+    The asking member, and the narrator **where a verified contact exists** (a verified phone or
+    email), are warned 5 days before.
 
 ### 6. Privacy of shared stories and of the people mentioned
 - **The default privacy is the most restrictive** of three: the narrator's, every tagged living
@@ -201,27 +216,51 @@ private again at once.
 **Who can withdraw:**
 - the narrator (or their guardian), at any time, with the withdrawal code;
 - or from their own account, if they have one;
-- or by asking a tree admin, who must act within 7 days (proposed);
 - after the narrator's death, only a **verified Legacy Nominee** (§10).
 
-**Immediately on withdrawal** (owner decision 11):
+These are **verified withdrawals**. Each takes effect the moment it is made, with no person in the
+loop.
+
+**Requests without verification** (second-round owner decision 3):
+- If the narrator has lost the code and has no account, and asks a tree admin, the admin must
+  verify the requester and act within **7 days**.
+- Meanwhile the story is suspended: no processing, and no access except the narrator's.
+- This manual path never delays a verified withdrawal.
+
+**Immediately on a valid withdrawal** (owner decision 11; second-round decision 2):
 1. **Future processing stops.** Queued and running transcription jobs are cancelled, no external
    call is started, and no new proposal is created from the story.
 2. **Media access is revoked.**
    - No new signed URL is issued.
    - Playback and download stop.
-   - Existing signed URLs can't outlive their lifetime. This is at most 5 minutes for oral-history
-     media, shorter than the vault default.
+   - Existing signed URLs can't outlive their lifetime. Oral-history playback and download URLs
+     last **at most 5 minutes** (second-round decision 3), shorter than the vault default.
 3. **The story disappears** from every member's view, except as "withdrawn".
 
+**Work already running** (second-round decision 2):
+- **Queued jobs** are removed.
+- **A running job** checks the story's withdrawal flag before each step and before writing any
+  output. Output from a job that finishes after the withdrawal is discarded, never stored.
+- **An external transcription call in flight** has its response discarded. Where the provider
+  supports it, a deletion request is sent, and the request and its reply are recorded.
+- **An upload in progress** has further parts refused, and its parts are deleted with the rest.
+
 **Within 24 hours (erasure job):**
-- **Hard-delete:** the recording, the consent clip, the temporary upload parts, every derivative and
-  every transcript version, and every unreviewed proposal from the story.
+- **Hard-delete from primary storage:** the recording, the consent clip, the temporary upload
+  parts, every derivative and every transcript version, and every unreviewed proposal from the
+  story.
+- **Every version is deleted.** The document bucket keeps noncurrent versions for 30 days
+  (backup-restore runbook), so erasure removes all versions of each object, not just the current
+  one.
 - **Kept, without content, as evidence:** the consent record (scopes, dates, statement version) and
   the withdrawal record. The audit log records the event without content.
-- **Backups:** erased media leave backups as they rotate out, within the backup retention stated in
-  the ADR-0014 runbook. The privacy model states that limit, and the legal review confirms it is
-  acceptable.
+- **Backups** (documented handling):
+  - Backups are not edited. The nightly object mirror and database dumps are kept for 35 days under
+    Object Lock (backup-restore runbook), so withdrawn media leave backups **within 35 days**.
+  - **Restores re-apply withdrawals.** The withdrawal records are kept (without content) in the
+    database and in an append-only withdrawal log. After any restore, the erasure job replays every
+    withdrawal made since the backup was taken, before the system is reopened to users.
+  - The privacy model states these limits, and the legal review confirms they are acceptable.
 
 **Facts accepted before the withdrawal** (owner decision 11, defined separately):
 - **A fact is genealogy data a reviewer accepted.** It is not part of the recording, so it isn't
@@ -237,7 +276,8 @@ private again at once.
 **Retention without archive consent** (owner decision 5):
 - Raw audio is deleted **30 days after the transcript is reviewed**, and in any case **no later
   than 90 days after upload**, even if no transcript was reviewed.
-- Members are warned 14 days before an unreviewed recording reaches 90 days.
+- **Where possible** (second-round decision 4), the interviewer, and the narrator if a verified
+  contact exists, are warned **14 days before** temporary raw audio reaches its 90-day maximum.
 - Reviewed transcripts stay at the story's visibility and privacy.
 
 **Long-term archive** keeps the raw audio until withdrawal. It is allowed only with the narrator's
@@ -249,10 +289,15 @@ private again at once.
 - **Who names one.** A narrator may name a **Legacy Nominee**: one person who may withdraw the
   narrator's stories, or change their scopes, after the narrator's death or incapacity. This
   follows the nomination right in DPDP Act Section 14, subject to the legal review (§13).
-- **How the nominee is recorded.** The nomination names the person and how they will be contacted.
-  The nominee is **verified when they act**: an account with a verified email or phone, matched to
-  the nomination, plus evidence of death or incapacity reviewed by a tree admin. Every step is
-  audited.
+- **How the nominee is recorded.** The narrator makes the nomination themselves (with the
+  withdrawal code or from their account). It names the person and how they will be contacted.
+- **Before a nominee can act** (second-round owner decision 6), both are required:
+  1. **verified identity:** an account with a verified phone or email matching the nomination,
+     plus whatever identity check the legal review sets;
+  2. **documented authority:** the narrator's own nomination record, plus documentary evidence of
+     the narrator's death or incapacity.
+- **Who checks the evidence** is set by the legal review. Checking it grants **no access** to the
+  story's content. Every step is audited.
 - **Nobody else.** Tree admins and heirs **do not automatically** gain this authority. Without a
   verified nominee, consent given while the narrator was alive stays in force, the story keeps its
   visibility, and retention still applies.
@@ -329,10 +374,10 @@ private again at once.
 3. *An elder speaks about a cousin's divorce.* The cousin, if tagged, raises the story's privacy and
    can ask for the passage to be hidden; the whole recording is restricted while the request is
    open.
-4. *An elder wants a recording only for their grandchild.* It stays private (scope 4 not given);
-   admins see only that it exists and its size.
-5. *Withdrawal arrives while a transcription is running.* The job is cancelled and access revoked at
-   once; erasure finishes within 24 hours. Accepted facts get tombstone citations, and facts that
+4. *An elder wants a recording only for their grandchild.* It stays private (scope 4 not given).
+   Admins see only the tree's aggregate usage, not the story.
+5. *Withdrawal arrives while a transcription is running.* The job is stopped at its next step,
+   its output is discarded and access is revoked at once; erasure finishes within 24 hours. Accepted facts get tombstone citations, and facts that
    relied only on this story are flagged.
 6. *The narrator has died; a son asks to delete.* Without a verified Legacy Nominee, he cannot. With
    one, the nominee can, after verification.
@@ -345,11 +390,12 @@ private again at once.
 10. *A child is recorded.* Only with a guardian's consent, and never through a link.
 
 ## Open points for design review
-1. The admin action time for withdrawal requests (proposed: 7 days); the erasure job time (24 hours);
-   the signed-URL lifetime for oral-history media (5 minutes).
-2. The deletion time for unconfirmed link recordings (30 days, with a warning 5 days before), and
-   the warning time before the 90-day raw-audio limit (14 days).
-3. Whether archived audio needs a quota of its own, separate from the 5 GB of active media.
-4. How a Legacy Nominee's verification and the evidence of death or incapacity are checked in
-   practice (subject to the legal review).
-5. Whether admins should see that a private story exists at all, or only the tree's total usage.
+Resolved by the second-round owner decisions: the withdrawal timings (immediate effect, 24-hour
+erasure, 7-day manual follow-up), the 5-minute URLs, the 30-day and 5-day and 14-day timings, a
+single 5 GB quota including archives, and aggregate-only admin visibility. Remaining:
+1. Nominee identity checks and who reviews the evidence of death or incapacity (legal review, §13).
+2. Whether 35 days of withdrawn media in backups is acceptable, and the restore re-apply procedure
+   (legal review; the privacy model will state it).
+3. How a moderation or abuse report about a private story is handled without giving admins
+   ordinary access to it. Proposed: a narrow, audited, case-specific process, defined with the
+   privacy model.
