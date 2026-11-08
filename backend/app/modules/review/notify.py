@@ -21,6 +21,7 @@ from app.models import (
     ChangeProposal,
     ChangeProposalItem,
     TreeMembership,
+    TreeVocabularyTerm,
     User,
     UserNotification,
 )
@@ -36,6 +37,8 @@ TEXT = {
     NotificationKind.CHALLENGE_UPHELD: "Your challenge about {person} was upheld.",
     NotificationKind.CHALLENGE_DISMISSED: "Your challenge about {person} was dismissed.",
     NotificationKind.PROPOSAL_COMMENT: "{actor} commented on a proposed change to {person}.",
+    NotificationKind.OFFER_ACCEPTED: "Your family's entry “{label}” was added to the common suggestions.",
+    NotificationKind.OFFER_DECLINED: "Your family's entry “{label}” was not added to the common suggestions.",
 }
 
 
@@ -96,8 +99,15 @@ def _text(
         if p.person_id in visible:
             person = visible[p.person_id].person.preferred_display_name or person
     actor = names.get(n.actor_id, "A family member") if n.actor_id else "A family member"
+    label = "an entry"
+    if n.subject_id is not None and n.kind in (
+        NotificationKind.OFFER_ACCEPTED,
+        NotificationKind.OFFER_DECLINED,
+    ):
+        term = ctx.db.get(TreeVocabularyTerm, n.subject_id)
+        label = term.label if term is not None and term.tree_id == ctx.tree_id else label
     return TEXT[n.kind].format(
-        actor=actor, person=person, n=counts.get(n.proposal_id, 1) if n.proposal_id else 1
+        actor=actor, person=person, label=label, n=counts.get(n.proposal_id, 1) if n.proposal_id else 1
     )
 
 

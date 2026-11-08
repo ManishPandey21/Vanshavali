@@ -4,6 +4,7 @@ from app.models import rls as _rls
 from app.models.astrology import AstrologyProfile
 from app.models.audit import AuditEvent
 from app.models.base import Base
+from app.models.culture import KinshipOverride, TraditionEntry, TraditionLink
 from app.models.documents import (
     Document,
     DocumentDerivative,
@@ -84,6 +85,7 @@ __all__ = [
     "Household",
     "HouseholdMembership",
     "ImportJob",
+    "KinshipOverride",
     "LandParcel",
     "MergeRecord",
     "NameRecord",
@@ -107,6 +109,8 @@ __all__ = [
     "RenderArtifact",
     "RenderJob",
     "Source",
+    "TraditionEntry",
+    "TraditionLink",
     "Tree",
     "TreeInvitation",
     "TreeMembership",

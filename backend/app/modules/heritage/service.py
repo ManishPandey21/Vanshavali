@@ -22,6 +22,7 @@ from app.models.enums import (
     AssertionSubject,
     CitationTarget,
     HeritageAttribute,
+    PlaceType,
     PrivacyLevel,
     Role,
     ValueStatus,
@@ -49,7 +50,24 @@ MULTI_VALUED = {
     HeritageAttribute.RECORDED_PARENT_NAME.value,
     HeritageAttribute.FAMILY_TRADITIONS.value,
     HeritageAttribute.LANGUAGE_TRADITIONS.value,
+    # ADR-0026 §2: a family speaks several languages and may have followed several occupations
+    HeritageAttribute.FAMILY_LANGUAGE.value,
+    HeritageAttribute.ANCESTRAL_OCCUPATION.value,
 }
+
+# the only vocabulary a list-picked value of each attribute may name (ADR-0018 §2, ADR-0026 §2)
+VOCABULARY_FOR = {
+    HeritageAttribute.GOTRA.value: "gotra",
+    HeritageAttribute.PRAVARA.value: "pravara",
+    HeritageAttribute.KULA_OR_VAMSHA.value: "kula",
+    HeritageAttribute.KULADEVATA.value: "kuladevata",
+    HeritageAttribute.KULADEVI.value: "kuladevi",
+    HeritageAttribute.DEVAK.value: "devak",
+    HeritageAttribute.ANCESTRAL_OCCUPATION.value: "occupation",
+    HeritageAttribute.FAMILY_LANGUAGE.value: "language",
+}
+# a deity claim may name the temple it is worshipped at (ADR-0026 §5): only a place of type temple
+TEMPLE_ATTRIBUTES = {HeritageAttribute.KULADEVATA.value, HeritageAttribute.KULADEVI.value}
 
 
 def _group(attribute: str) -> str:
@@ -109,8 +127,8 @@ def create_assertion(
     else:
         ctx.require(Permission.FAMILY_WRITE)
     if body.place_id:
-        lookup.get_place(ctx, body.place_id)
-    _check_vocabulary_value(ctx, body.value_text, body.value_json)
+        _check_place(ctx, body.attribute.value, lookup.get_place(ctx, body.place_id))
+    _check_vocabulary_value(ctx, body.value_text, body.value_json, body.attribute.value)
     researcher_only = ctx.roles <= {Role.RESEARCHER}
     a = Assertion(
         tree_id=ctx.tree_id,
@@ -171,9 +189,17 @@ def get_assertion(ctx: TreeContext, assertion_id: uuid.UUID) -> tuple[Assertion,
     return a, subject
 
 
-def _check_vocabulary_value(ctx: TreeContext, value_text: str | None, value_json: Any) -> None:
+def _check_place(ctx: TreeContext, attribute: str, place: Place) -> None:
+    if attribute in TEMPLE_ATTRIBUTES and place.place_type != PlaceType.TEMPLE:
+        raise Unprocessable("A family deity's place must be a temple", code="place_not_temple")
+
+
+def _check_vocabulary_value(
+    ctx: TreeContext, value_text: str | None, value_json: Any, attribute: str
+) -> None:
     """A value picked from a vocabulary (ADR-0018 §6) keeps its label as entered in ``value_text``
-    and names an existing global or family entry; nothing is ever filled in from the vocabulary."""
+    and names an existing global or family entry of the attribute's own vocabulary; nothing is
+    ever filled in from the vocabulary."""
     from app.modules.masterdata.service import check_reference
 
     if isinstance(value_json, dict) and "vocabulary" in value_json:
@@ -182,6 +208,9 @@ def _check_vocabulary_value(ctx: TreeContext, value_text: str | None, value_json
                 "A value chosen from a list keeps its label in value_text",
                 code="invalid_vocabulary_reference",
             )
+        expected = VOCABULARY_FOR.get(attribute)
+        if expected is None or value_json.get("vocabulary") != expected:
+            raise Unprocessable("This value comes from another list", code="invalid_vocabulary_reference")
         check_reference(ctx, value_json)
 
 
@@ -200,7 +229,9 @@ def update_assertion(ctx: TreeContext, assertion_id: uuid.UUID, body: AssertionU
     for f in body.model_fields_set - {"is_preferred"}:
         setattr(a, f, getattr(body, f))
     if {"value_text", "value_json"} & body.model_fields_set:
-        _check_vocabulary_value(ctx, a.value_text, a.value_json)
+        _check_vocabulary_value(ctx, a.value_text, a.value_json, a.attribute)
+    if "place_id" in body.model_fields_set and a.place_id is not None:
+        _check_place(ctx, a.attribute, lookup.get_place(ctx, a.place_id))
     has_value = bool(a.value_text) or a.value_json is not None or a.place_id is not None
     if a.value_status == ValueStatus.KNOWN and not has_value:
         raise Unprocessable("a known value needs value_text, value_json or place_id")

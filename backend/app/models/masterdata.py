@@ -7,16 +7,17 @@ live in the tree-scoped ``tree_vocabulary_term`` (row-level security).
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 from typing import Any
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.ids import uuid7
 from app.models.base import Base, TimestampMixin, TreeScopedMixin, enum_column, tree_unique
-from app.models.enums import VocabularyTermStatus
+from app.models.enums import OfferStatus, VocabularyTermStatus
 
 
 class Vocabulary(TimestampMixin, Base):
@@ -66,3 +67,15 @@ class TreeVocabularyTerm(TreeScopedMixin, Base):
     code: Mapped[str] = mapped_column(String(90))
     label: Mapped[str] = mapped_column(String(200))
     aliases: Mapped[list[str]] = mapped_column(ARRAY(String(200)), default=list, server_default="{}")
+    # offered to the common suggestion lists (ADR-0026 §4); who offered stays private to operators
+    offer_status: Mapped[OfferStatus] = mapped_column(
+        enum_column(OfferStatus), default=OfferStatus.NONE, server_default=OfferStatus.NONE.value
+    )
+    offered_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="SET NULL")
+    )
+    offered_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    offer_note: Mapped[str | None] = mapped_column(String(500))
+    offer_temple: Mapped[str | None] = mapped_column(String(200))
+    # the global term this entry became once promoted by a code-reviewed pack change
+    promoted_code: Mapped[str | None] = mapped_column(String(80))

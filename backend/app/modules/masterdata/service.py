@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import datetime as dt
+import hashlib
 import re
 import unicodedata
 import uuid
@@ -14,13 +16,15 @@ from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.config import get_settings
-from app.core.errors import NotFound, Unprocessable
+from app.core.errors import Conflict, NotFound, Unprocessable
 from app.models import TreeVocabularyTerm, Vocabulary, VocabularyTerm
-from app.models.enums import VocabularyTermStatus
+from app.models.enums import OfferStatus, VocabularyTermStatus
 from app.modules.masterdata.match import keys_for, matches, same_value
-from app.modules.masterdata.schemas import VocabularyOut, VocabularyTermOut
+from app.modules.masterdata.schemas import OfferOut, VocabularyOut, VocabularyTermOut
 
 MAX_RESULTS = 200
+# a family's own entries that may be offered to the common lists (ADR-0026 §4)
+OFFERABLE = frozenset({"kuladevata", "kuladevi", "devak", "gotra", "kula"})
 
 
 def _enabled() -> None:
@@ -83,18 +87,40 @@ def _family_out(t: TreeVocabularyTerm) -> VocabularyTermOut:
         status=VocabularyTermStatus.REVIEWED,
         origin="family",
         id=t.id,
+        offer_status=t.offer_status,
+        promoted_code=t.promoted_code,
     )
 
 
 def _global_terms(
-    db: Session, key: str, *, include_retired: bool = False, parent: str | None = None
+    db: Session,
+    key: str,
+    *,
+    include_retired: bool = False,
+    parent: str | None = None,
+    reviewed_only: bool = False,
+    scope: str | None = None,
 ) -> list[VocabularyTerm]:
     stmt = select(VocabularyTerm).where(VocabularyTerm.vocabulary_key == key)
-    if not include_retired:
+    if reviewed_only:
+        stmt = stmt.where(VocabularyTerm.status == VocabularyTermStatus.REVIEWED)
+    elif not include_retired:
         stmt = stmt.where(VocabularyTerm.status != VocabularyTermStatus.RETIRED)
     if parent is not None:
         stmt = stmt.where(VocabularyTerm.parent_code == parent)
+    if scope is not None:
+        stmt = stmt.where(VocabularyTerm.scope.contains([scope]))
     return list(db.scalars(stmt.order_by(VocabularyTerm.sort_order, VocabularyTerm.code)))
+
+
+def vocabulary_etag(db: Session, key: str, *parts: object) -> str:
+    """A validator for ``GET /vocabularies/{key}``: changes whenever the pack is reloaded."""
+    vocab = _vocabulary(db, key)
+    count, latest = db.execute(
+        select(func.count(), func.max(VocabularyTerm.updated_at)).where(VocabularyTerm.vocabulary_key == key)
+    ).one()
+    seed = "|".join(str(x) for x in (key, vocab.version, vocab.updated_at, count, latest, *parts))
+    return 'W/"' + hashlib.sha256(seed.encode()).hexdigest()[:32] + '"'
 
 
 def _global_match(t: VocabularyTerm, q: str) -> bool:
@@ -110,9 +136,18 @@ def global_terms(
     lang: str = "en",
     parent: str | None = None,
     include_retired: bool = False,
+    reviewed_only: bool = False,
+    scope: str | None = None,
 ) -> tuple[VocabularyOut, list[VocabularyTermOut]]:
     vocab = _vocabulary(db, key)
-    rows = _global_terms(db, key, include_retired=include_retired, parent=parent)
+    rows = _global_terms(
+        db,
+        key,
+        include_retired=include_retired,
+        parent=parent,
+        reviewed_only=reviewed_only,
+        scope=scope,
+    )
     items = [_global_out(t, lang) for t in rows if _global_match(t, q)][:MAX_RESULTS]
     return _vocab_out(db, vocab), items
 
@@ -133,7 +168,11 @@ def tree_terms(
     """Global suggestions plus this family's own entries (family entries first)."""
     ctx.require(Permission.TREE_READ)
     vocab_out, global_items = global_terms(ctx.db, key, q=q, lang=lang)
-    family = [_family_out(t) for t in _tree_terms(ctx, key) if matches(q, *keys_for(t.label, *t.aliases))]
+    own = _tree_terms(ctx, key)
+    family = [_family_out(t) for t in own if matches(q, *keys_for(t.label, *t.aliases))]
+    # a promoted entry keeps the family's own code; the global term it became is not listed twice
+    promoted = {t.promoted_code for t in own if t.promoted_code}
+    global_items = [g for g in global_items if g.code not in promoted]
     return vocab_out, (family + global_items)[:MAX_RESULTS]
 
 
@@ -206,3 +245,92 @@ def check_reference(ctx: TreeContext, value: Any) -> None:
     )
     if not exists:
         raise Unprocessable("Unknown vocabulary entry", code="invalid_vocabulary_reference")
+
+
+# ---------------------------------------------------------------- offers (ADR-0026 §4)
+def _offer_out(t: TreeVocabularyTerm) -> OfferOut:
+    return OfferOut(
+        id=t.id,
+        vocabulary_key=t.vocabulary_key,
+        code=t.code,
+        label=t.label,
+        aliases=t.aliases,
+        offer_status=t.offer_status,
+        offered_at=t.offered_at,
+        offer_note=t.offer_note,
+        offer_temple=t.offer_temple,
+        promoted_code=t.promoted_code,
+    )
+
+
+def _own_term(ctx: TreeContext, key: str, code: str) -> TreeVocabularyTerm:
+    row = ctx.db.scalar(
+        select(TreeVocabularyTerm).where(
+            TreeVocabularyTerm.tree_id == ctx.tree_id,
+            TreeVocabularyTerm.vocabulary_key == key,
+            TreeVocabularyTerm.code == code,
+        )
+    )
+    if row is None:
+        raise NotFound("Family entry not found")
+    return row
+
+
+def offer_tree_term(ctx: TreeContext, key: str, code: str, note: str | None, temple: str | None) -> OfferOut:
+    """A tree admin offers one of the family's own entries to the common lists. Opt-in, per entry.
+
+    The offer carries the label, aliases, an optional temple name and note; who offered it and the
+    tree stay with the row (operators only) and never reach the shared term.
+    """
+    ctx.require(Permission.TREE_MANAGE)
+    _vocabulary(ctx.db, key)
+    if key not in OFFERABLE:
+        raise Unprocessable("Entries in this list cannot be offered", code="vocabulary_not_offerable")
+    row = _own_term(ctx, key, code)
+    if row.offer_status in (OfferStatus.OFFERED, OfferStatus.ACCEPTED):
+        raise Conflict("This entry has already been offered", code="already_offered")
+    row.offer_status = OfferStatus.OFFERED
+    row.offered_by = ctx.user_id
+    row.offered_at = dt.datetime.now(dt.UTC)
+    row.offer_note = note
+    row.offer_temple = temple
+    ctx.db.flush()
+    audit.log(
+        ctx,
+        "vocabulary.family_term_offered",
+        target_type="tree_vocabulary_term",
+        target_id=row.id,
+        details={"vocabulary": key},
+    )
+    return _offer_out(row)
+
+
+def withdraw_offer(ctx: TreeContext, key: str, code: str) -> OfferOut:
+    ctx.require(Permission.TREE_MANAGE)
+    row = _own_term(ctx, key, code)
+    if row.offer_status != OfferStatus.OFFERED:
+        raise Conflict("Only a pending offer can be withdrawn", code="offer_not_pending")
+    row.offer_status = OfferStatus.NONE
+    row.offered_by = None
+    row.offered_at = None
+    row.offer_note = None
+    row.offer_temple = None
+    ctx.db.flush()
+    audit.log(
+        ctx,
+        "vocabulary.family_term_offer_withdrawn",
+        target_type="tree_vocabulary_term",
+        target_id=row.id,
+        details={"vocabulary": key},
+    )
+    return _offer_out(row)
+
+
+def list_offers(ctx: TreeContext) -> list[OfferOut]:
+    ctx.require(Permission.TREE_MANAGE)
+    rows = ctx.db.scalars(
+        select(TreeVocabularyTerm)
+        .where(TreeVocabularyTerm.tree_id == ctx.tree_id, TreeVocabularyTerm.offer_status != OfferStatus.NONE)
+        .order_by(TreeVocabularyTerm.offered_at.desc().nulls_last(), TreeVocabularyTerm.label)
+    )
+    return [_offer_out(t) for t in rows]

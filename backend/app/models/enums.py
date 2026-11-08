@@ -197,6 +197,10 @@ class HeritageAttribute(StrEnum):
     FAMILY_TRADITIONS = "family_traditions"
     LANGUAGE_TRADITIONS = "language_traditions"
     RECORDED_PARENT_NAME = "recorded_parent_name"
+    # ADR-0026 §2
+    DEVAK = "devak"
+    ANCESTRAL_OCCUPATION = "ancestral_occupation"
+    FAMILY_LANGUAGE = "family_language"
     OTHER = "other"
 
 
@@ -254,6 +258,7 @@ class CitationTarget(StrEnum):
     PROPERTY_INTEREST = "property_interest"
     PROPERTY_EVENT = "property_event"
     HOUSEHOLD = "household"
+    TRADITION = "tradition"  # ADR-0026 §7
 
 
 class DocumentCategory(StrEnum):
@@ -394,6 +399,7 @@ class DocumentLinkTarget(StrEnum):
     PROPERTY_EVENT = "property_event"
     SOURCE = "source"
     HOUSEHOLD = "household"
+    TRADITION = "tradition"  # ADR-0026 §7
 
 
 class DerivativeKind(StrEnum):
@@ -736,6 +742,9 @@ class ReviewTarget(StrEnum):
     EVENT = "event"
     RELATIONSHIP = "relationship"
     ASSERTION = "assertion"
+    # ADR-0026: a family tradition and a family's own kinship word (not person-bound)
+    TRADITION = "tradition"
+    KINSHIP_WORD = "kinship_word"
 
 
 class NotificationKind(StrEnum):
@@ -747,3 +756,31 @@ class NotificationKind(StrEnum):
     CHALLENGE_UPHELD = "challenge_upheld"
     CHALLENGE_DISMISSED = "challenge_dismissed"
     PROPOSAL_COMMENT = "proposal_comment"
+    # ADR-0026 §4: an operator's decision on an entry the family offered to the common lists
+    OFFER_ACCEPTED = "offer_accepted"
+    OFFER_DECLINED = "offer_declined"
+
+
+# ---- cultural depth (ADR-0026)
+class OfferStatus(StrEnum):
+    """A family's own vocabulary entry offered to the common suggestion lists (§4)."""
+
+    NONE = "none"
+    OFFERED = "offered"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+
+
+class TraditionKind(StrEnum):
+    RITUAL_GUIDE = "ritual_guide"
+    CUSTOM = "custom"
+    SONG = "song"
+    RECIPE = "recipe"
+    STORY = "story"
+    OTHER = "other"
+
+
+class TraditionLinkTarget(StrEnum):
+    PERSON = "person"
+    EVENT = "event"
+    PLACE = "place"

@@ -33,7 +33,9 @@ def _codes(resp: Any) -> list[str]:
 def test_every_shipped_pack_is_valid_and_bilingual():
     packs = read_packs()
     assert {p["key"] for p in packs} == {
+        "devak",
         "gotra",
+        "pravara",
         "kula",
         "kuladevata",
         "kuladevi",

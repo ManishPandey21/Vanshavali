@@ -1,0 +1,9 @@
+{
+  "key": "devak",
+  "version": 1,
+  "description": "Devak (a family's emblem or totem, mainly among Maharashtrian families). Starts empty and grows from each family's own entries.",
+  "source": "Family entries only; promoted through reviewed offers (ADR-0026 §4).",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": []
+}

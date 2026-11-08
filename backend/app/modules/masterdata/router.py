@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Request, Response, status
 from fastapi.responses import JSONResponse
 
 from app.api.deps import CurrentUser, DbDep, TreeCtx
 from app.modules.masterdata import service
-from app.modules.masterdata.schemas import TreeTermIn, TreeTermOut, VocabularyOut, VocabularyTermsOut
+from app.modules.masterdata.schemas import (
+    OfferIn,
+    OfferOut,
+    TreeTermIn,
+    TreeTermOut,
+    VocabularyOut,
+    VocabularyTermsOut,
+)
 
 router = APIRouter(tags=["master-data"])
 
@@ -18,21 +25,42 @@ def list_vocabularies(user: CurrentUser, db: DbDep) -> list[VocabularyOut]:
     return service.list_vocabularies(db)
 
 
-@router.get("/vocabularies/{key}", response_model=VocabularyTermsOut)
+@router.get(
+    "/vocabularies/{key}",
+    response_model=VocabularyTermsOut,
+    responses={304: {"description": "Not modified (If-None-Match matched the ETag)"}},
+)
 def vocabulary_terms(
     key: str,
+    request: Request,
     user: CurrentUser,
     db: DbDep,
     q: str = Query(default="", max_length=100),
     lang: str = Lang,
     parent: str | None = Query(default=None, max_length=80),
     include_retired: bool = False,
-) -> VocabularyTermsOut:
-    """Global suggestions, searchable by label in any script, alias or spelling."""
+    reviewed_only: bool = Query(
+        default=False, description="only reviewed terms (pravara: only links with a cited source)"
+    ),
+    scope: str | None = Query(default=None, max_length=80, description="a region or tradition"),
+) -> Response:
+    """Global suggestions, searchable by label in any script, alias or spelling. Sends a weak ETag."""
+    etag = service.vocabulary_etag(db, key, q, lang, parent, include_retired, reviewed_only, scope)
+    headers = {"ETag": etag, "Cache-Control": "private, no-cache"}
+    if etag in [t.strip() for t in request.headers.get("if-none-match", "").split(",")]:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
     vocab, items = service.global_terms(
-        db, key, q=q, lang=lang, parent=parent, include_retired=include_retired
+        db,
+        key,
+        q=q,
+        lang=lang,
+        parent=parent,
+        include_retired=include_retired,
+        reviewed_only=reviewed_only,
+        scope=scope,
     )
-    return VocabularyTermsOut(vocabulary=vocab, items=items)
+    out = VocabularyTermsOut(vocabulary=vocab, items=items)
+    return JSONResponse(out.model_dump(mode="json"), headers=headers)
 
 
 @router.get("/trees/{tree_id}/vocabularies/{key}", response_model=VocabularyTermsOut)
@@ -57,3 +85,25 @@ def add_tree_term(key: str, body: TreeTermIn, ctx: TreeCtx, lang: str = Lang) ->
     if created:
         return out
     return JSONResponse(out.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@router.post("/trees/{tree_id}/vocabularies/{key}/terms/{code}/offer", response_model=OfferOut)
+def offer_tree_term(key: str, code: str, body: OfferIn, ctx: TreeCtx) -> OfferOut:
+    """Offer one of the family's own entries to the common suggestion lists (tree admin; ADR-0026 §4).
+
+    Operators review offers; an accepted entry becomes a shared term through a code-reviewed pack
+    change, and the shared term never names the family.
+    """
+    return service.offer_tree_term(ctx, key, code, body.note, body.temple)
+
+
+@router.delete("/trees/{tree_id}/vocabularies/{key}/terms/{code}/offer", response_model=OfferOut)
+def withdraw_offer(key: str, code: str, ctx: TreeCtx) -> OfferOut:
+    """Withdraw a pending offer (tree admin)."""
+    return service.withdraw_offer(ctx, key, code)
+
+
+@router.get("/trees/{tree_id}/vocabulary-offers", response_model=list[OfferOut])
+def list_offers(ctx: TreeCtx) -> list[OfferOut]:
+    """This family's offered entries and what became of them (tree admin)."""
+    return service.list_offers(ctx)

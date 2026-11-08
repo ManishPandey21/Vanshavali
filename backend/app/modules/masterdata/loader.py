@@ -23,6 +23,10 @@ from app.models.enums import VocabularyTermStatus
 PACK_DIR = Path(__file__).parent / "packs"
 _CODE = re.compile(r"^[a-z0-9][a-z0-9_]{0,79}$")
 _LANGS_REQUIRED = ("en", "hi")
+# vocabularies whose terms are links to a parent vocabulary that traditions disagree about
+# (ADR-0026 §3): every term names its parent, and a link is "reviewed" only with a cited source
+# and a named reviewer, recorded here by code review
+SOURCED_LINKS: dict[str, str] = {"pravara": "gotra"}
 
 
 class PackError(ValueError):
@@ -64,6 +68,26 @@ def validate_pack(pack: dict[str, Any], name: str = "pack") -> None:
         }
         if unknown:
             raise PackError(f"{name}: {code} has unknown fields {sorted(unknown)}")
+        if pack["key"] in SOURCED_LINKS:
+            if not t.get("parent"):
+                raise PackError(f"{name}: {code} must name its {SOURCED_LINKS[pack['key']]}")
+            attrs = t.get("attributes") or {}
+            if t.get("status") == VocabularyTermStatus.REVIEWED.value and not (
+                str(attrs.get("source") or "").strip() and str(attrs.get("reviewer") or "").strip()
+            ):
+                raise PackError(f"{name}: {code} is reviewed without a cited source and a reviewer")
+
+
+def validate_pack_set(packs: list[dict[str, Any]]) -> None:
+    """Checks across packs: a sourced link must name a term of its parent vocabulary."""
+    codes = {p["key"]: {t["code"] for t in p["terms"]} for p in packs}
+    for pack in packs:
+        parent_key = SOURCED_LINKS.get(pack["key"])
+        if parent_key is None or parent_key not in codes:
+            continue
+        for t in pack["terms"]:
+            if t["parent"] not in codes[parent_key]:
+                raise PackError(f"{pack['key']}: {t['code']} names an unknown {parent_key} {t['parent']!r}")
 
 
 def read_packs(directory: Path = PACK_DIR) -> list[dict[str, Any]]:
@@ -74,6 +98,7 @@ def read_packs(directory: Path = PACK_DIR) -> list[dict[str, Any]]:
         if pack["key"] != path.stem:
             raise PackError(f"{path.name}: key {pack['key']!r} does not match the file name")
         packs.append(pack)
+    validate_pack_set(packs)
     return packs
 
 
