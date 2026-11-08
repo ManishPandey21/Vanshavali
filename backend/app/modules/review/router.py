@@ -23,7 +23,7 @@ from app.models import (
     TreeMembership,
     User,
 )
-from app.models.enums import ChangeProposalStatus, ReviewState
+from app.models.enums import ChangeProposalStatus, ReviewState, ReviewTarget
 from app.modules.genealogy import lookup
 from app.modules.review import duplicates, history, notify, policy, redaction, service
 from app.modules.review.schemas import (
@@ -62,6 +62,25 @@ def _users(ctx: TreeCtx, ids: set[uuid.UUID | None]) -> dict[uuid.UUID, UserRef]
         .where(TreeMembership.tree_id == ctx.tree_id, User.id.in_(ids))
     ).all()
     return {uid: UserRef(id=uid, display_name=name) for uid, name in rows}
+
+
+def _family_subjects(ctx: TreeCtx, ids: set[uuid.UUID]) -> dict[uuid.UUID, ReviewTarget]:
+    """Proposals about a tradition or the family's words (no person), by their first such item."""
+    if not ids:
+        return {}
+    rows = ctx.db.execute(
+        select(ChangeProposalItem.proposal_id, ChangeProposalItem.target_type)
+        .where(
+            ChangeProposalItem.tree_id == ctx.tree_id,
+            ChangeProposalItem.proposal_id.in_(ids),
+            ChangeProposalItem.target_type.in_(service.FAMILY_TARGETS),
+        )
+        .order_by(ChangeProposalItem.position)
+    ).all()
+    out: dict[uuid.UUID, ReviewTarget] = {}
+    for pid, t in rows:
+        out.setdefault(pid, t)
+    return out
 
 
 def _person_label(ctx: TreeCtx, pid: uuid.UUID | None) -> str | None:
@@ -118,6 +137,7 @@ def _out(ctx: TreeCtx, p: ChangeProposal) -> ChangeProposalOut:
         proposer=users.get(p.proposer_id) if p.proposer_id else None,
         person_id=p.person_id,
         person_label=_person_label(ctx, p.person_id),
+        family_subject=_family_subjects(ctx, {p.id}).get(p.id) if p.person_id is None else None,
         target_type=p.target_type,
         target_id=p.target_id,
         created_at=p.created_at,
@@ -227,6 +247,7 @@ def list_proposals(
         else {}
     )
     users = _users(ctx, {p.proposer_id for p in page})
+    family = _family_subjects(ctx, {p.id for p in page if p.person_id is None})
     return Page(
         items=[
             ProposalSummary(
@@ -236,6 +257,7 @@ def list_proposals(
                 proposer=users.get(p.proposer_id) if p.proposer_id else None,
                 person_id=p.person_id,
                 person_label=_person_label(ctx, p.person_id),
+                family_subject=family.get(p.id),
                 item_count=counts.get(p.id, 0),
                 created_at=p.created_at,
                 submitted_at=p.submitted_at,

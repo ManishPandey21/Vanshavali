@@ -51,14 +51,15 @@ def pack_list(user: User) -> list[KinshipPackOut]:
     ]
 
 
-def preference(ctx: TreeContext) -> tuple[str | None, str | None]:
-    """The reader's own choice, then the tree's default, then the reader's UI language."""
+def preference(ctx: TreeContext, ui_lang: str | None = None) -> tuple[str | None, str | None]:
+    """The reader's own choice, then the tree's default, then the reader's UI language (as sent
+    by the page, else as saved on their profile)."""
     user = ctx.user
     if user is not None and user.kinship_lang:
         return user.kinship_lang, user.kinship_region
     if ctx.tree.kinship_lang:
         return ctx.tree.kinship_lang, ctx.tree.kinship_region
-    lang = (user.preferred_language if user is not None else "en") or "en"
+    lang = ui_lang or (user.preferred_language if user is not None else "en") or "en"
     return lang.split("-")[0].lower(), None
 
 
@@ -114,14 +115,29 @@ def _override(
     return min(rows, key=rank) if rows else None
 
 
+def deciding_age(chain: Sequence[str], age_orders: Sequence[AgeOrderOut]) -> AgeOrderOut | None:
+    """The age order that decides an age-dependent word for this chain (Tau or Chacha: the uncle
+    against the father), in any language: the family is asked it once, whatever words they read."""
+    pattern = pattern_of(chain)
+    for pack in packs.all_packs():
+        rule = pack["terms"].get(pattern, {}).get("age")
+        if rule is not None:
+            return next((a for a in age_orders if a.chain_index == rule["index"]), None)
+    return None
+
+
 def terms_for(
-    ctx: TreeContext, from_id: uuid.UUID, chain: Sequence[str], age_orders: Sequence[AgeOrderOut]
+    ctx: TreeContext,
+    from_id: uuid.UUID,
+    chain: Sequence[str],
+    age_orders: Sequence[AgeOrderOut],
+    ui_lang: str | None = None,
 ) -> list[KinshipTermOut]:
     """The reader's relationship word for a chain, if their language has one; else nothing (the
     English label and description are used)."""
     if not chain:
         return []
-    lang, region = preference(ctx)
+    lang, region = preference(ctx, ui_lang)
     pack = packs.choose(lang, region, is_reviewer(ctx.user))
     ages = [Age(a.chain_index, a.order, a.basis) for a in age_orders]
     pattern = pattern_of(chain)

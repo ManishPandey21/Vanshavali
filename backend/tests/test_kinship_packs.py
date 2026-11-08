@@ -173,6 +173,14 @@ def test_words_follow_the_readers_choice_then_the_tree_then_the_ui(owner, tree):
     f = _family(owner, t)
     me, uncle = f["me"]["id"], f["uncle"]["id"]
     assert _terms(owner, t, me, uncle) == []  # English UI: the English label is the word
+    # ... but the age that decides Tau or Chacha is known in every language
+    path = owner.get(f"/trees/{t}/relationship-path", params={"from": me, "to": uncle}).json()
+    assert (path["age_decision"]["chain_index"], path["age_decision"]["order"]) == (1, "elder")
+    mama = owner.get(f"/trees/{t}/relationship-path", params={"from": uncle, "to": me}).json()
+    assert mama["age_decision"] is None  # brother's son: no age-dependent word
+    # the page's UI language is the last fallback
+    hi = owner.get(f"/trees/{t}/relationship-path", params={"from": me, "to": uncle, "lang": "hi"}).json()
+    assert hi["terms"][0]["term"] == "ताऊ"
     assert owner.patch(f"/trees/{t}", json={"kinship_lang": "hi"}).json()["kinship_lang"] == "hi"
     [term] = _terms(owner, t, me, uncle)
     assert (term["term"], term["basis"], term["review_status"], term["pack"]) == (
@@ -309,3 +317,45 @@ def test_family_words_are_reviewed_when_the_family_reviews_everything(owner, tre
     r = contributor.put(f"/trees/{t}/kinship-overrides", json=body)
     assert r.status_code == 409 and r.json()["error"]["code"] == "review_required"
     assert owner.put(f"/trees/{t}/kinship-overrides", json=body).status_code == 200
+
+
+def test_a_family_word_can_be_proposed_and_approved(owner, tree, member_factory):
+    t = tree["id"]
+    owner.put(f"/trees/{t}/review-policy", json={"review_policy": "all"})
+    contributor = member_factory(["CONTRIBUTOR"], name="Cousin")
+    prop = contributor.post(
+        f"/trees/{t}/proposals",
+        json={
+            "rationale": "We have always said Bhauji",
+            "items": [
+                {
+                    "target_type": "kinship_word",
+                    "op": "create",
+                    "patch": {"pattern": "brother.wife", "lang": "hi", "word": "भौजी"},
+                }
+            ],
+            "submit": True,
+        },
+    )
+    assert prop.status_code == 201, prop.text
+    assert "the family's relationship words" in owner.get(f"/trees/{t}/inbox").json()["items"][0]["text"]
+    assert owner.get(f"/trees/{t}/kinship-overrides").json() == []
+    r = owner.post(f"/trees/{t}/proposals/{prop.json()['id']}/approve", json={})
+    assert r.status_code == 200, r.text
+    [word] = owner.get(f"/trees/{t}/kinship-overrides").json()
+    assert word["word"] == "भौजी"
+    # an invalid word is refused when proposed, not when approved
+    bad = contributor.post(
+        f"/trees/{t}/proposals",
+        json={
+            "rationale": "x",
+            "items": [
+                {
+                    "target_type": "kinship_word",
+                    "op": "create",
+                    "patch": {"pattern": "x!", "lang": "hi", "word": "y"},
+                }
+            ],
+        },
+    )
+    assert bad.status_code == 422

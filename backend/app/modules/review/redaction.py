@@ -55,6 +55,18 @@ def group_for(t: ReviewTarget, field: str, meta: dict[str, Any]) -> str | None:
     return None
 
 
+# records of the family as a whole (ADR-0026): readable as a whole or not at all
+FAMILY_TARGETS = frozenset({ReviewTarget.TRADITION, ReviewTarget.KINSHIP_WORD})
+
+
+def _family_record_hidden(ctx: TreeContext, t: ReviewTarget, record: Any | None) -> bool:
+    if t == ReviewTarget.TRADITION:
+        from app.modules.traditions.service import may_read
+
+        return record is None or not may_read(ctx, record)
+    return not ctx.is_member  # a family word is readable by every member
+
+
 def is_hidden(
     ctx: TreeContext, t: ReviewTarget, field: str, meta: dict[str, Any], subject: Subject | None
 ) -> bool:
@@ -116,6 +128,9 @@ def diff_item(ctx: TreeContext, item: ChangeProposalItem) -> tuple[list[dict[str
         key = f"{item.target_type.value}:{record.id}"
         if key in item.base_revisions and item.base_revisions[key] != record.revision:
             outdated = True
+    family_hidden = (
+        _family_record_hidden(ctx, item.target_type, record) if item.target_type in FAMILY_TARGETS else None
+    )
     subject = _subject(ctx, _people(item, record))
     meta = _meta(record, item.patch)
     if item.op == ProposalOp.DELETE:
@@ -133,7 +148,11 @@ def diff_item(ctx: TreeContext, item: ChangeProposalItem) -> tuple[list[dict[str
     for field, (cur, new) in sorted(fields.items()):
         if item.op == ProposalOp.UPDATE and cur == new:
             continue
-        hidden = is_hidden(ctx, item.target_type, field, meta, subject)
+        hidden = (
+            family_hidden
+            if family_hidden is not None
+            else is_hidden(ctx, item.target_type, field, meta, subject)
+        )
         changes.append(
             {
                 "field": field,
@@ -151,6 +170,8 @@ def item_has_hidden(ctx: TreeContext, item: ChangeProposalItem) -> bool:
 
 
 def revision_has_hidden(ctx: TreeContext, rev: RecordRevision, people: list[uuid.UUID]) -> bool:
+    if rev.record_type in FAMILY_TARGETS:
+        return _family_record_hidden(ctx, rev.record_type, _current(ctx, rev.record_type, rev.record_id))
     subject = _subject(ctx, list(people))
     meta: dict[str, Any] = {}
     for src in (rev.before, rev.after):

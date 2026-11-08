@@ -416,10 +416,18 @@ def relationship_path(
     from_id: uuid.UUID = Query(alias="from"),
     to_id: uuid.UUID = Query(alias="to"),
     lineage: LineageQuery = None,
+    lang: str | None = Query(
+        default=None, pattern=r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$", description="the reader's UI language"
+    ),
 ) -> RelationshipPathOut:
-    from app.modules.kinship.service import terms_for
+    from app.modules.kinship.service import deciding_age, terms_for
 
     out = engine.relationship_path(ctx, from_id, to_id, set(lineage) if lineage else None)
     if out.found:
-        out = out.model_copy(update={"terms": terms_for(ctx, from_id, out.chain, out.age_orders)})
+        out = out.model_copy(
+            update={
+                "terms": terms_for(ctx, from_id, out.chain, out.age_orders, lang),
+                "age_decision": deciding_age(out.chain, out.age_orders),
+            }
+        )
     return out

@@ -1091,8 +1091,15 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
         )
     )
     # SEC-11: every other person-referencing store that can hold personal data
-    from app.models import DocumentLink, ExtractionProposal, GedcomExtension, Relationship, TreeMembership
-    from app.models.enums import DocumentLinkTarget
+    from app.models import (
+        DocumentLink,
+        ExtractionProposal,
+        GedcomExtension,
+        Relationship,
+        TraditionLink,
+        TreeMembership,
+    )
+    from app.models.enums import DocumentLinkTarget, TraditionLinkTarget
 
     db.execute(
         sa_delete(GedcomExtension).where(
@@ -1109,6 +1116,14 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
             DocumentLink.tree_id == ctx.tree_id,
             DocumentLink.target_type == DocumentLinkTarget.PERSON,
             DocumentLink.target_id == person.id,
+        )
+    )
+    # a tradition keeps its text; only its link to the erased person goes (ADR-0026 §7)
+    db.execute(
+        sa_delete(TraditionLink).where(
+            TraditionLink.tree_id == ctx.tree_id,
+            TraditionLink.target_type == TraditionLinkTarget.PERSON,
+            TraditionLink.target_id == person.id,
         )
     )
     for rel in db.scalars(

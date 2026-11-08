@@ -9370,6 +9370,414 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/traditions": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "List Traditions",
+    "description": "Entries the reader may see, newest first; ``q`` searches titles and text in any script.",
+    "operationId": "list_traditions_api_v1_trees__tree_id__traditions_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "kind",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/TraditionKind"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Kind"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "branch_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Branch Id"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Create Tradition",
+    "operationId": "create_tradition_api_v1_trees__tree_id__traditions_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TraditionEntryIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Get Tradition",
+    "operationId": "get_tradition_api_v1_trees__tree_id__traditions__entry_id__get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Update Tradition",
+    "description": "Edit an entry. Someone else's entry follows the tree's review policy (409 review_required:\nsend it as a proposed change).",
+    "operationId": "update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TraditionEntryUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Withdraw Tradition",
+    "description": "Withdraw an entry (author or tree admin); its history is kept.",
+    "operationId": "withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}/history": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Tradition History",
+    "operationId": "tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/TraditionRevisionOut"
+         },
+         "title": "Response Tradition History Api V1 Trees  Tree Id  Traditions  Entry Id  History Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/branches": {
    "get": {
     "tags": [
@@ -17532,6 +17940,16 @@
        }
       ],
       "title": "Person Label"
+     },
+     "family_subject": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "target_type": {
       "anyOf": [
@@ -31210,6 +31628,16 @@
       ],
       "title": "Person Label"
      },
+     "family_subject": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "item_count": {
       "type": "integer",
       "title": "Item Count"
@@ -31976,6 +32404,16 @@
       "type": "array",
       "title": "Terms",
       "default": []
+     },
+     "age_decision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AgeOrderOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -35560,6 +35998,182 @@
     ],
     "title": "TokenIn"
    },
+   "TraditionEntryIn": {
+    "properties": {
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Title"
+     },
+     "body": {
+      "type": "string",
+      "maxLength": 55000,
+      "title": "Body",
+      "default": ""
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Z][a-z]{3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel",
+      "default": "TREE_MEMBERS"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionLinkIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Links",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "title"
+    ],
+    "title": "TraditionEntryIn"
+   },
+   "TraditionEntryUpdate": {
+    "properties": {
+     "kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TraditionKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "body": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 55000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Body"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Z][a-z]{3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "links": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/TraditionLinkIn"
+        },
+        "type": "array",
+        "maxItems": 50
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Links"
+     }
+    },
+    "type": "object",
+    "title": "TraditionEntryUpdate"
+   },
    "TraditionIn": {
     "properties": {
      "tradition_type": {
@@ -35646,6 +36260,412 @@
     ],
     "title": "TraditionIn",
     "description": "Traditional genealogy record details (Bahi / Panda / temple register; PRS \u00a720)."
+   },
+   "TraditionKind": {
+    "type": "string",
+    "enum": [
+     "ritual_guide",
+     "custom",
+     "song",
+     "recipe",
+     "story",
+     "other"
+    ],
+    "title": "TraditionKind"
+   },
+   "TraditionLinkIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/TraditionLinkTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id"
+    ],
+    "title": "TraditionLinkIn"
+   },
+   "TraditionLinkOut": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/TraditionLinkTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "label"
+    ],
+    "title": "TraditionLinkOut"
+   },
+   "TraditionLinkTarget": {
+    "type": "string",
+    "enum": [
+     "person",
+     "event",
+     "place"
+    ],
+    "title": "TraditionLinkTarget"
+   },
+   "TraditionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "excerpt": {
+      "type": "string",
+      "title": "Excerpt"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel"
+     },
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     },
+     "body": {
+      "type": "string",
+      "title": "Body"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionLinkOut"
+      },
+      "type": "array",
+      "title": "Links",
+      "default": []
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "created_by": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created By"
+     },
+     "can_edit": {
+      "type": "boolean",
+      "title": "Can Edit",
+      "default": false
+     },
+     "edit_needs_review": {
+      "type": "boolean",
+      "title": "Edit Needs Review",
+      "default": false
+     },
+     "can_withdraw": {
+      "type": "boolean",
+      "title": "Can Withdraw",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "title",
+     "excerpt",
+     "language",
+     "script",
+     "branch_id",
+     "privacy_level",
+     "author_name",
+     "updated_at",
+     "body",
+     "revision",
+     "review_state",
+     "created_at",
+     "created_by"
+    ],
+    "title": "TraditionOut"
+   },
+   "TraditionRevisionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "op": {
+      "type": "string",
+      "title": "Op"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "actor_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actor Name"
+     },
+     "reviewer_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewer Name"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "changed": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Changed"
+     },
+     "before": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Before"
+     },
+     "after": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "After"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "revision",
+     "op",
+     "created_at",
+     "actor_name",
+     "reviewer_name",
+     "proposal_id",
+     "changed",
+     "before",
+     "after"
+    ],
+    "title": "TraditionRevisionOut"
+   },
+   "TraditionSummaryOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "excerpt": {
+      "type": "string",
+      "title": "Excerpt"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel"
+     },
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "title",
+     "excerpt",
+     "language",
+     "script",
+     "branch_id",
+     "privacy_level",
+     "author_name",
+     "updated_at"
+    ],
+    "title": "TraditionSummaryOut"
+   },
+   "TraditionsOut": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionSummaryOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "TraditionsOut"
    },
    "TransferOut": {
     "properties": {

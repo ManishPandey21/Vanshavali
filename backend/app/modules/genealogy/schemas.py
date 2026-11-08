@@ -651,3 +651,5 @@ class RelationshipPathOut(ApiModel):
     age_orders: list[AgeOrderOut] = []
     # the reader's relationship word in their chosen language and region (ADR-0026 §6)
     terms: list[KinshipTermOut] = []
+    # the age order an age-dependent word depends on (asked once, in any language), if any
+    age_decision: AgeOrderOut | None = None

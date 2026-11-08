@@ -2323,6 +2323,70 @@ export interface paths {
         patch: operations["update_assertion_api_v1_trees__tree_id__assertions__assertion_id__patch"];
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/traditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Traditions
+         * @description Entries the reader may see, newest first; ``q`` searches titles and text in any script.
+         */
+        get: operations["list_traditions_api_v1_trees__tree_id__traditions_get"];
+        put?: never;
+        /** Create Tradition */
+        post: operations["create_tradition_api_v1_trees__tree_id__traditions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/traditions/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Tradition */
+        get: operations["get_tradition_api_v1_trees__tree_id__traditions__entry_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Withdraw Tradition
+         * @description Withdraw an entry (author or tree admin); its history is kept.
+         */
+        delete: operations["withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Tradition
+         * @description Edit an entry. Someone else's entry follows the tree's review policy (409 review_required:
+         *     send it as a proposed change).
+         */
+        patch: operations["update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/traditions/{entry_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tradition History */
+        get: operations["tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/branches": {
         parameters: {
             query?: never;
@@ -4302,6 +4366,7 @@ export interface components {
             person_id: string | null;
             /** Person Label */
             person_label?: string | null;
+            family_subject?: components["schemas"]["ReviewTarget"] | null;
             target_type?: components["schemas"]["ReviewTarget"] | null;
             /** Target Id */
             target_id?: string | null;
@@ -8593,6 +8658,7 @@ export interface components {
             person_id: string | null;
             /** Person Label */
             person_label?: string | null;
+            family_subject?: components["schemas"]["ReviewTarget"] | null;
             /** Item Count */
             item_count: number;
             /**
@@ -8834,6 +8900,7 @@ export interface components {
              * @default []
              */
             terms?: components["schemas"]["KinshipTermOut"][];
+            age_decision?: components["schemas"]["AgeOrderOut"] | null;
         };
         /**
          * RelationshipType
@@ -9969,6 +10036,47 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** TraditionEntryIn */
+        TraditionEntryIn: {
+            kind: components["schemas"]["TraditionKind"];
+            /** Title */
+            title: string;
+            /**
+             * Body
+             * @default
+             */
+            body?: string;
+            /** Language */
+            language?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** @default TREE_MEMBERS */
+            privacy_level?: components["schemas"]["PrivacyLevel"];
+            /**
+             * Links
+             * @default []
+             */
+            links?: components["schemas"]["TraditionLinkIn"][];
+        };
+        /** TraditionEntryUpdate */
+        TraditionEntryUpdate: {
+            kind?: components["schemas"]["TraditionKind"] | null;
+            /** Title */
+            title?: string | null;
+            /** Body */
+            body?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /** Links */
+            links?: components["schemas"]["TraditionLinkIn"][] | null;
+        };
         /**
          * TraditionIn
          * @description Traditional genealogy record details (Bahi / Panda / temple register; PRS §20).
@@ -9988,6 +10096,162 @@ export interface components {
             family_origin_place?: string | null;
             /** Verification Status */
             verification_status?: string | null;
+        };
+        /**
+         * TraditionKind
+         * @enum {string}
+         */
+        TraditionKind: "ritual_guide" | "custom" | "song" | "recipe" | "story" | "other";
+        /** TraditionLinkIn */
+        TraditionLinkIn: {
+            target_type: components["schemas"]["TraditionLinkTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /** TraditionLinkOut */
+        TraditionLinkOut: {
+            target_type: components["schemas"]["TraditionLinkTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Label */
+            label: string;
+        };
+        /**
+         * TraditionLinkTarget
+         * @enum {string}
+         */
+        TraditionLinkTarget: "person" | "event" | "place";
+        /** TraditionOut */
+        TraditionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["TraditionKind"];
+            /** Title */
+            title: string;
+            /** Excerpt */
+            excerpt: string;
+            /** Language */
+            language: string | null;
+            /** Script */
+            script: string | null;
+            /** Branch Id */
+            branch_id: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /** Author Name */
+            author_name: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Body */
+            body: string;
+            /**
+             * Links
+             * @default []
+             */
+            links?: components["schemas"]["TraditionLinkOut"][];
+            /** Revision */
+            revision: number;
+            review_state: components["schemas"]["ReviewState"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit?: boolean;
+            /**
+             * Edit Needs Review
+             * @default false
+             */
+            edit_needs_review?: boolean;
+            /**
+             * Can Withdraw
+             * @default false
+             */
+            can_withdraw?: boolean;
+        };
+        /** TraditionRevisionOut */
+        TraditionRevisionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Revision */
+            revision: number;
+            /** Op */
+            op: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Actor Name */
+            actor_name: string | null;
+            /** Reviewer Name */
+            reviewer_name: string | null;
+            /** Proposal Id */
+            proposal_id: string | null;
+            /** Changed */
+            changed: string[];
+            /** Before */
+            before: {
+                [key: string]: unknown;
+            };
+            /** After */
+            after: {
+                [key: string]: unknown;
+            };
+        };
+        /** TraditionSummaryOut */
+        TraditionSummaryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["TraditionKind"];
+            /** Title */
+            title: string;
+            /** Excerpt */
+            excerpt: string;
+            /** Language */
+            language: string | null;
+            /** Script */
+            script: string | null;
+            /** Branch Id */
+            branch_id: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /** Author Name */
+            author_name: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** TraditionsOut */
+        TraditionsOut: {
+            /** Items */
+            items: components["schemas"]["TraditionSummaryOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** TransferOut */
         TransferOut: {
@@ -15782,6 +16046,211 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssertionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_traditions_api_v1_trees__tree_id__traditions_get: {
+        parameters: {
+            query?: {
+                kind?: components["schemas"]["TraditionKind"] | null;
+                person_id?: string | null;
+                branch_id?: string | null;
+                q?: string;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_tradition_api_v1_trees__tree_id__traditions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraditionEntryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tradition_api_v1_trees__tree_id__traditions__entry_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraditionEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionRevisionOut"][];
                 };
             };
             /** @description Validation Error */

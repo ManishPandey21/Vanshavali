@@ -154,6 +154,9 @@ def build_archive(
                 "members": members,
             }
         )
+    from app.modules.traditions.service import export_entries
+
+    traditions_out = export_entries(ctx, visible_ids)
     files["genealogy/canonical-data.json"] = _json(
         {
             "format": "vanshavali-canonical",
@@ -163,6 +166,8 @@ def build_archive(
             "places": places,
             "branches": branches,
             "households": households,
+            # ADR-0026 §7: entries the exporter may read; GEDCOM has no place for them
+            "traditions": traditions_out,
             "sources": [
                 {
                     "id": str(s.id),
@@ -180,7 +185,13 @@ def build_archive(
             ],
         }
     )
-    counts.update(people=len(people_out), relationships=len(rels), sources=len(sources), places=len(places))
+    counts.update(
+        people=len(people_out),
+        relationships=len(rels),
+        sources=len(sources),
+        places=len(places),
+        traditions=len(traditions_out),
+    )
 
     # --- property (only for people allowed to read property records)
     if ctx.has(Permission.PROPERTY_READ):

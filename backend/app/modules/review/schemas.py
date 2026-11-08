@@ -116,6 +116,8 @@ class ChangeProposalOut(ApiModel):
     proposer: UserRef | None
     person_id: uuid.UUID | None
     person_label: str | None = None
+    # a proposal about the family as a whole (ADR-0026): tradition or kinship_word
+    family_subject: ReviewTarget | None = None
     target_type: ReviewTarget | None = None
     target_id: uuid.UUID | None = None
     created_at: dt.datetime
@@ -142,6 +144,7 @@ class ProposalSummary(ApiModel):
     proposer: UserRef | None
     person_id: uuid.UUID | None
     person_label: str | None = None
+    family_subject: ReviewTarget | None = None
     item_count: int
     created_at: dt.datetime
     submitted_at: dt.datetime | None
