@@ -12,10 +12,13 @@ the printed date). Anything unexpected stops the transcription rather than being
 
 from __future__ import annotations
 
+import calendar
 import datetime as dt
 import hashlib
 import html
 import re
+import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +47,7 @@ MASA = {
     "Jyaishtha": "jyeshtha",
     "Ashadha": "ashadha",
     "Shravana": "shravana",
+    "Sravana": "shravana",  # the printed editions' spelling
     "Bhadra": "bhadrapada",
     "Asvina": "ashvin",
     "Kartika": "kartika",
@@ -71,30 +75,31 @@ TITHI = {
     "Purnima": 15,
     "Amavasya": 15,
 }
+# Spellings found in the printed editions, mapped to the names above. The printed text is kept on
+# every row, so a reviewer sees the original. Anything not listed stops the transcription.
+SPELLING_VARIANTS = {"Chaturti": "Chaturthi"}
 # The metropolitan cities of the sunrise table, in its column order -> our city keys
 METROS = ("chennai", "delhi", "kolkata", "mumbai")
-# First Gregorian day of each National Calendar month of 1948-1949 Saka (the "Explanation" page's
-# table; 2026 and 2027 are not leap years). Every sunrise row is checked against its printed day.
-NATIONAL_MONTH_STARTS = (
-    dt.date(2026, 3, 22),
-    dt.date(2026, 4, 21),
-    dt.date(2026, 5, 22),
-    dt.date(2026, 6, 22),
-    dt.date(2026, 7, 23),
-    dt.date(2026, 8, 23),
-    dt.date(2026, 9, 23),
-    dt.date(2026, 10, 23),
-    dt.date(2026, 11, 22),
-    dt.date(2026, 12, 22),
-    dt.date(2027, 1, 21),
-    dt.date(2027, 2, 20),
-    dt.date(2027, 3, 22),
-)
 JD_ORDINAL_OFFSET = 1721424.5  # JD at 0h UT (05:30 IST) of a date = its proleptic ordinal + this
 
 
 class TranscriptionError(ValueError):
     pass
+
+
+def national_month_starts(saka_year: int) -> list[dt.date]:
+    """The first Gregorian day of each National Calendar month of ``saka_year``, and of the next Chaitra.
+
+    The rule is the one the edition's "Explanation" states: Chaitra 1 is 22 March, or 21 March when
+    the Gregorian year (Saka + 78) is a leap year; Chaitra has 30 days (31 in a leap year), Vaisakha
+    to Bhadra 31, Asvina to Phalguna 30. Every sunrise row is checked against its printed day.
+    """
+    year = saka_year + 78
+    leap = calendar.isleap(year)
+    starts = [dt.date(year, 3, 21 if leap else 22)]
+    for days in [31 if leap else 30, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30]:
+        starts.append(starts[-1] + dt.timedelta(days=days))
+    return starts
 
 
 def _text(fragment: str) -> str:
@@ -107,7 +112,7 @@ def _tithi_items(text: str) -> list[dict[str, Any]]:
     label: tuple[str, str, bool] | None = None
     for part in text.split(" then "):
         m = re.fullmatch(
-            r"(?:\((?:(?P<adj>Mala |Shuddha )?(?P<masa>\w+) )?(?P<paksha>Sukla|Krishna)\) )?(?P<name>\w+) "
+            r"(?:\((?:(?P<adj>Mala |Shuddha |Suddha )?(?P<masa>\w+) )?(?P<paksha>Sukla|Krishna)\) )?(?P<name>\w+) "
             r"(?:h\. (?P<h>\d{1,2})-(?P<m>\d{2})|(?P<aho>ahoratra))",
             part.strip(),
         )
@@ -122,9 +127,9 @@ def _tithi_items(text: str) -> list[dict[str, Any]]:
             if label is None or label[1] != "shukla" or m["paksha"] != "Krishna":
                 raise TranscriptionError(f"a paksha without its month in {text!r}")
             label = (label[0], "krishna", label[2])
-        if label is None or m["name"] not in TITHI:
+        name = SPELLING_VARIANTS.get(m["name"], m["name"])
+        if label is None or name not in TITHI:
             raise TranscriptionError(f"cannot read {part!r} in {text!r}")
-        name = m["name"]
         if (name == "Purnima" and label[1] != "shukla") or (name == "Amavasya" and label[1] != "krishna"):
             raise TranscriptionError(f"{name} in the wrong paksha: {text!r}")
         items.append(
@@ -181,10 +186,11 @@ def month_rows(page: str, source: str, content: str) -> list[dict[str, Any]]:
 
 def sunrise_rows(source: str, content: str, wanted: set[str]) -> list[dict[str, Any]]:
     tables = re.findall(r"<table.*?</table>", content, flags=re.S)
-    if len(tables) != len(NATIONAL_MONTH_STARTS):
-        raise TranscriptionError(f"expected {len(NATIONAL_MONTH_STARTS)} sunrise tables, found {len(tables)}")
+    starts = national_month_starts(1948)
+    if len(tables) != len(starts):
+        raise TranscriptionError(f"expected {len(starts)} sunrise tables, found {len(tables)}")
     rows = []
-    for start, table in zip(NATIONAL_MONTH_STARTS, tables, strict=True):
+    for start, table in zip(starts, tables, strict=True):
         n = 0
         for tr in re.findall(r"<tr.*?</tr>", table, flags=re.S):
             cells = [_text(c) for c in re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", tr, flags=re.S)]
@@ -261,6 +267,163 @@ def transcribe(
                     "sunrise is the upper limb with 31' refraction, to the minute, for the four metropolitan "
                     "cities. No value was computed by the engine under test."
                 ),
+            }
+        },
+        "tithi_ends": ends,
+        "sunrises": rises,
+        "observances": [],
+        "divergences": [],
+    }
+
+
+# ---------------------------------------------------------------- printed editions (PDF)
+_GREGORIAN = "January|February|March|April|May|June|July|August|September|October|November|December"
+SUNRISE_HEADER = "Sunrise, Sunset & Moonrise, Moonset at four metropolitan cities"
+
+
+def pdf_text(pdf: Path) -> str:
+    """The PDF's text with its layout kept (poppler's ``pdftotext -layout``); pages split by form feed."""
+    exe = shutil.which("pdftotext")
+    if exe is None:
+        raise TranscriptionError("pdftotext (poppler-utils) is needed to read a printed edition")
+    # a fixed argument list, no shell: the PDF path is passed as one argument
+    done = subprocess.run([exe, "-layout", str(pdf), "-"], check=True, capture_output=True, timeout=600)  # noqa: S603
+    return done.stdout.decode("utf-8")
+
+
+def _normalise(segment: str) -> str:
+    text = re.sub(r"\s+", " ", segment).strip()
+    text = re.sub(r"\(\s+", "(", text)
+    return re.sub(r"\)(?=\S)", ") ", text)
+
+
+def pdf_tithi_rows(text: str, source: str, page_label: str) -> list[dict[str, Any]]:
+    days = list(re.finditer(r"Julian Day:\s*(\d+\.5)(?!\s*-)", text))
+    if not days:
+        raise TranscriptionError("no daily panchang found")
+    rows = []
+    for k, jd in enumerate(days):
+        date = dt.date.fromordinal(int(float(jd.group(1)) - JD_ORDINAL_OFFSET))
+        printed = re.findall(rf"(\d{{1,2}}) ?({_GREGORIAN}),", text[max(0, jd.start() - 400) : jd.start()])
+        if not printed or (int(printed[-1][0]), printed[-1][1]) != (date.day, date.strftime("%B")):
+            raise TranscriptionError(
+                f"Julian Day {jd.group(1)} does not match the printed date {printed[-1:]}"
+            )
+        end = days[k + 1].start() if k + 1 < len(days) else len(text)
+        segment = re.search(r"Tithi:(.*?)Nakshatra:", text[jd.end() : end], flags=re.S)
+        if not segment:
+            raise TranscriptionError(f"no tithi for {date}")
+        for item in _tithi_items(_normalise(segment.group(1))):
+            if item["end"] is None:
+                continue
+            h, m = item["end"]
+            moment = dt.datetime.combine(date, dt.time()) + dt.timedelta(hours=h, minutes=m)
+            rows.append(
+                {
+                    "source": source,
+                    "page": page_label,
+                    "day": date.isoformat(),
+                    "printed": item["printed"],
+                    "ist": moment.isoformat(timespec="minutes"),
+                    "month_convention": "amanta",
+                    "masa": item["masa"],
+                    "adhik": item["adhik"],
+                    "paksha": item["paksha"],
+                    "tithi": item["tithi"],
+                }
+            )
+    return rows
+
+
+def pdf_sunrise_rows(
+    text: str, source: str, page_label: str, saka_year: int, wanted: set[str]
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Metro sunrises from the tables at the end of the edition. A row that does not have exactly the
+    35 numbers of a full row (a moonrise or moonset left blank shifts the columns) is skipped and
+    reported, never guessed."""
+    # 13 months (Chaitra to the next Chaitra) and the day after the last one
+    starts = national_month_starts(saka_year) + national_month_starts(saka_year + 1)[1:2]
+    rows: list[dict[str, Any]] = []
+    skipped: list[str] = []
+    table, n = -1, 0
+    for page in text.split("\f"):
+        if SUNRISE_HEADER not in page:
+            continue
+        for line in page.splitlines():
+            nums = re.findall(r"\d+", line)
+            if len(nums) < 11 or not line.strip()[:1].isdigit():
+                continue  # headers ("1945 5123 2023 Sun Moon …") and blank lines
+            if int(nums[0]) == 1:
+                table, n = table + 1, 0
+            n += 1
+            if table < 0 or table >= len(starts) - 1 or int(nums[0]) != n:
+                raise TranscriptionError(f"sunrise table out of order at {line.strip()!r}")
+            date = starts[table] + dt.timedelta(days=n - 1)
+            if date >= starts[table + 1]:
+                # a row beyond the month's length under the edition's own calendar rule: kept as an
+                # anomaly for the reviewer, never used
+                skipped.append(
+                    f"ANOMALY after {starts[table + 1] - dt.timedelta(days=1)}: {' '.join(nums[:7])} …"
+                )
+                continue
+            if len(nums) != 35:
+                skipped.append(f"{date}: {len(nums)} numbers")
+                continue
+            times = list(zip(nums[3::2], nums[4::2], strict=True))
+            if not all(len(m) == 2 and int(m) < 60 and len(h) <= 2 and int(h) <= 31 for h, m in times):
+                # the text layer split or merged digits ("6 0 5 1 8 2 0" for "6 05 18 20")
+                skipped.append(f"{date}: malformed times")
+                continue
+            if int(nums[2]) != date.day:
+                raise TranscriptionError(f"sunrise row {line.strip()!r} does not follow {date}")
+            for i, city in enumerate(METROS):
+                if city in wanted:
+                    hh, mm = int(nums[3 + 8 * i]), int(nums[4 + 8 * i])
+                    rows.append(
+                        {
+                            "source": source,
+                            "page": page_label,
+                            "city": city,
+                            "date": date.isoformat(),
+                            "ist": f"{hh:02d}:{mm:02d}",
+                        }
+                    )
+    return rows, skipped
+
+
+def transcribe_pdf(
+    pdf: Path, archive_sha256: str, saka_year: int, url: str, retrieved: str, cities: set[str]
+) -> dict[str, Any]:
+    source = f"rashtriya-panchang-{saka_year}-pdf"
+    text = pdf_text(pdf)
+    ends = sorted(pdf_tithi_rows(text, source, pdf.name), key=lambda r: r["ist"])
+    rises, skipped = pdf_sunrise_rows(text, source, pdf.name, saka_year, cities)
+    first, last = saka_year + 78, saka_year + 79
+    return {
+        "format": 2,
+        "convention": "amanta",
+        "status": "draft: transcribed, not independently reviewed; no approval",
+        "sources": {
+            source: {
+                "publisher": PUBLISHER,
+                "title": f"Rashtriya Panchang, {saka_year} Saka Era ({first}-{str(last)[2:]} A.D.)",
+                "edition": "official English edition, PDF distributed by PAC",
+                "url": url,
+                "retrieved": retrieved,
+                "pages": {
+                    url.rsplit("/", 1)[-1]: archive_sha256,
+                    pdf.name: hashlib.sha256(pdf.read_bytes()).hexdigest(),
+                },
+                "usage": (
+                    "Published by the Government of India (IMD/PAC); the PAC website shows no licence for "
+                    "reuse. Permission to reproduce transcribed values is NOT yet verified."
+                ),
+                "method": (
+                    "Text extracted with poppler 'pdftotext -layout' and transcribed by "
+                    "app.modules.calendar.transcribe_rp; dates from each day's printed Julian Day, checked "
+                    "against the printed date. No value was computed by the engine under test."
+                ),
+                "skipped_sunrise_rows": skipped,
             }
         },
         "tithi_ends": ends,

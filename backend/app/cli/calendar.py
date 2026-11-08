@@ -45,6 +45,13 @@ def main(argv: list[str] | None = None) -> int:
     rp = sub.add_parser("transcribe-rp", help="transcribe saved Rashtriya Panchang pages into a golden table")
     rp.add_argument("--pages", required=True, help="directory with the saved pages, SHA256SUMS and RETRIEVED")
     rp.add_argument("--out", required=True)
+    rpp = sub.add_parser("transcribe-rp-pdf", help="transcribe a printed Rashtriya Panchang edition (PDF)")
+    rpp.add_argument("--pdf", required=True)
+    rpp.add_argument("--archive-sha256", required=True, help="SHA-256 of the ZIP as downloaded")
+    rpp.add_argument("--saka-year", type=int, required=True)
+    rpp.add_argument("--url", required=True)
+    rpp.add_argument("--retrieved", required=True)
+    rpp.add_argument("--out", required=True)
     args = parser.parse_args(argv)
 
     if args.cmd == "fetch-ephemeris":
@@ -77,12 +84,28 @@ def main(argv: list[str] | None = None) -> int:
         Path(args.out).write_text(json.dumps(table, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
         print(f"{len(table['tithi_ends'])} tithi endings, {len(table['sunrises'])} sunrises -> {args.out}")
         return 0
+    if args.cmd == "transcribe-rp-pdf":
+        table = transcribe_rp.transcribe_pdf(
+            Path(args.pdf),
+            args.archive_sha256,
+            args.saka_year,
+            args.url,
+            args.retrieved,
+            set(conventions.cities()),
+        )
+        Path(args.out).write_text(json.dumps(table, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        src = next(iter(table["sources"].values()))
+        print(
+            f"{len(table['tithi_ends'])} tithi endings, {len(table['sunrises'])} sunrises, "
+            f"{len(src['skipped_sunrise_rows'])} sunrise rows skipped -> {args.out}"
+        )
+        return 0
     if args.cmd == "approval-template":
         # the values a reviewer's record must carry; the people, dates and record are theirs to fill in
         template = {
             "convention": args.convention,
             "city": args.city,
-            **conventions.identity(args.convention),
+            **conventions.identity(args.convention, args.city),
             "prepared_by": "",
             "reviewer": "",
             "reviewed_on": "",

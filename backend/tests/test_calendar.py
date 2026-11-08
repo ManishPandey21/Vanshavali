@@ -72,7 +72,7 @@ def lunar_on(monkeypatch):
             {
                 "convention": "purnimanta",
                 "city": c,
-                **conventions.identity("purnimanta"),
+                **conventions.identity("purnimanta", c),
                 "prepared_by": "A developer",
                 "reviewer": "An independent panchang reviewer",
                 **signed,

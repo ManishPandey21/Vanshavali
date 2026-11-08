@@ -11,6 +11,7 @@ import copy
 import datetime as dt
 import importlib.metadata
 import itertools
+import json
 import os
 from pathlib import Path
 
@@ -147,7 +148,7 @@ def _approve(monkeypatch, key: str = "amanta", city: str = "mumbai") -> dict:
             {
                 "convention": key,
                 "city": city,
-                **conventions.identity(key),
+                **conventions.identity(key, city),
                 "prepared_by": "A developer",
                 "reviewer": "An independent panchang reviewer",
                 "reviewed_on": "2026-11-08",
@@ -180,6 +181,9 @@ def test_every_gate_is_needed_and_approvals_are_bound_to_what_was_checked(monkey
         "the convention's rules changed": lambda d: d["accuracy"][0].update(convention_sha256="0" * 64),
         "the engine changed": lambda d: d["accuracy"][0].update(engine_version="skyfield-0.1/x"),
         "the ephemeris changed": lambda d: d["accuracy"][0].update(ephemeris_sha256="0" * 64),
+        "the calculation code changed": lambda d: d["accuracy"][0].update(code_sha256="0" * 64),
+        "the city's coordinates changed": lambda d: d["accuracy"][0].update(city_sha256="0" * 64),
+        "approved for another city": lambda d: d["accuracy"][0].update(city="delhi"),
         "reviewer not independent": lambda d: d["accuracy"][0].update(reviewer="a developer"),
         "no reviewer": lambda d: d["accuracy"][0].update(reviewer=""),
     }
@@ -193,11 +197,57 @@ def test_every_gate_is_needed_and_approvals_are_bound_to_what_was_checked(monkey
     assert not conventions.offered("amanta", "mumbai")
 
 
+def test_a_calculation_change_withdraws_approvals_even_without_a_version_bump(monkeypatch, tmp_path, ready):
+    """Regression: METHOD_VERSION is a hand-kept label; an edit to the calculation that forgets to
+    bump it must still make every approval stale (owner decision 3: revalidate after a material change)."""
+    monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", True)
+    _approve(monkeypatch)
+    assert conventions.offered("amanta", "mumbai")
+    version = engine.ENGINE_VERSION
+    # the same files, one with a changed ayanamsa constant and nothing else
+    originals = conventions.CALCULATION_SOURCES
+    copies = []
+    for path in originals:
+        copy_path = tmp_path / path.name
+        text = path.read_text(encoding="utf-8")
+        if path.name == "engine.py":
+            assert "_LAHIRI_J2000 = 23.857092" in text
+            text = text.replace("_LAHIRI_J2000 = 23.857092", "_LAHIRI_J2000 = 23.85")
+        copy_path.write_text(text, encoding="utf-8")
+        copies.append(copy_path)
+    monkeypatch.setattr(conventions, "CALCULATION_SOURCES", tuple(copies))
+    assert version == engine.ENGINE_VERSION and engine.METHOD_VERSION in version  # the label did not move
+    assert not conventions.offered("amanta", "mumbai")
+    assert any("code_sha256" in p for p in conventions.accuracy_problems("amanta", "mumbai"))
+    # the binding is to the content: restoring the original bytes makes the approval current again
+    for original, copy_path in zip(originals, copies, strict=True):
+        copy_path.write_bytes(original.read_bytes())
+    assert conventions.offered("amanta", "mumbai")
+
+
+def test_moving_an_approved_city_withdraws_its_approval(monkeypatch, tmp_path, ready):
+    monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", True)
+    _approve(monkeypatch)
+    assert conventions.offered("amanta", "mumbai")
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    for name in ("conventions.json", "approvals.json"):
+        (data_dir / name).write_bytes((conventions.DATA / name).read_bytes())
+    cities = json.loads((conventions.DATA / "cities.json").read_text(encoding="utf-8"))
+    for c in cities["cities"]:
+        if c["key"] == "mumbai":
+            c["lat"] = 19.2
+    (data_dir / "cities.json").write_text(json.dumps(cities), encoding="utf-8")
+    monkeypatch.setattr(conventions, "DATA", data_dir)
+    assert not conventions.offered("amanta", "mumbai")
+    assert any("city_sha256" in p for p in conventions.accuracy_problems("amanta", "mumbai"))
+
+
 def test_the_engine_version_names_what_an_approval_is_bound_to():
     assert engine.ENGINE_VERSION.startswith(
         f"skyfield-{importlib.metadata.version('skyfield')}/jplephem-{importlib.metadata.version('jplephem')}/de440s/"
     )
-    ids = {k: conventions.identity(k) for k in conventions.all_conventions()}
+    ids = {k: conventions.identity(k, "mumbai") for k in conventions.all_conventions()}
     assert ids["amanta"]["convention_sha256"] != ids["purnimanta"]["convention_sha256"]
     assert ids["amanta"]["golden_sha256"] and ids["purnimanta"]["golden_sha256"] is None
 
@@ -393,3 +443,60 @@ def test_every_golden_table_cites_its_sources():
         table = conventions.golden_table(path.stem)
         assert table and table.get("format") == 2, path.name
         assert golden_check._sources_gaps(table) == [], (path.name, golden_check._sources_gaps(table))
+
+
+# ---------------------------------------------------------------- transcribing printed editions
+# Synthetic lines in the printed layout: they test the parser's refusals, not any golden value.
+def _sunrise_row(nat: int, ni: int, greg: int, times: str) -> str:
+    return f" {nat:>2}   {ni:>2}   {greg:>2}   {times}"
+
+
+FULL = " ".join(["6 05 18 20 8 11 21 27"] * 4)
+
+
+def test_national_month_starts_follow_the_editions_rule():
+    starts = transcribe_rp.national_month_starts(1948)
+    assert starts[0] == dt.date(2026, 3, 22) and starts[7] == dt.date(2026, 10, 23)
+    assert starts[12] == dt.date(2027, 3, 22) and len(starts) == 13
+    leap = transcribe_rp.national_month_starts(1946)  # 2024 is a leap year: Chaitra 1 is 21 March, 31 days
+    assert leap[0] == dt.date(2024, 3, 21) and leap[1] == dt.date(2024, 4, 21)
+
+
+def test_printed_spellings_are_read_and_unknown_ones_refused():
+    items = transcribe_rp._tithi_items(
+        transcribe_rp._normalise(
+            "( Mala Sravana Krishna) Amavasya h. 8-24 then (Suddha Sravana Sukla)Pratipad h. 28-31"
+        )
+    )
+    assert [(i["masa"], i["adhik"], i["paksha"], i["tithi"]) for i in items] == [
+        ("shravana", True, "krishna", 15),
+        ("shravana", False, "shukla", 1),
+    ]
+    assert transcribe_rp._tithi_items("(Kartika Sukla) Chaturti h. 6-40")[0]["tithi"] == 4
+    with pytest.raises(transcribe_rp.TranscriptionError):
+        transcribe_rp._tithi_items("(Kartika Sukla) Chaturtee h. 6-40")
+    with pytest.raises(transcribe_rp.TranscriptionError):
+        transcribe_rp._tithi_items("(Kartika Krishna) Purnima h. 6-40")  # Purnima ends a sukla paksha
+
+
+def test_sunrise_rows_are_skipped_or_refused_never_guessed():
+    head = transcribe_rp.SUNRISE_HEADER + "\n 1948  5126  2026  Sun Moon\n"
+    split_digits = "6 0 5 1 8 2 0 1 8 37 -- 6 10 18 39 19 03 - - 5 29 17 52 18 11 -- 6 3 2 1 8 5 3 1 9 13 --"
+    lines = [
+        _sunrise_row(1, 8, 22, FULL),
+        _sunrise_row(2, 9, 23, split_digits),
+        _sunrise_row(3, 10, 24, FULL),
+    ]
+    rows, skipped = transcribe_rp.pdf_sunrise_rows(head + "\n".join(lines), "s", "p", 1948, {"mumbai"})
+    assert [(r["date"], r["ist"]) for r in rows] == [("2026-03-22", "06:05"), ("2026-03-24", "06:05")]
+    assert skipped == ["2026-03-23: malformed times"]
+    # a 31st day in a 30-day month (the 1947 SE edition's repeated row) is an anomaly, not data
+    month = [_sunrise_row(n, n + 7, (21 + n - 1) % 31 + 1, FULL) for n in range(1, 31)]
+    extra = _sunrise_row(31, 8, 20, FULL)
+    rows, skipped = transcribe_rp.pdf_sunrise_rows(
+        head + "\n".join([*month, extra]), "s", "p", 1948, {"mumbai"}
+    )
+    assert len(rows) == 30 and skipped[-1].startswith("ANOMALY after 2026-04-20")
+    # a row out of sequence stops the transcription
+    with pytest.raises(transcribe_rp.TranscriptionError):
+        transcribe_rp.pdf_sunrise_rows(head + "\n".join([lines[0], lines[2]]), "s", "p", 1948, {"mumbai"})

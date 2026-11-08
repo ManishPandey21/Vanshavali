@@ -5,7 +5,12 @@ from published panchangs, each citing its source; never values computed by the e
 test.** A table is evidence for an independent reviewer. On its own it enables nothing: computed
 lunar dates need the signed approvals in `../data/approvals.json` (see
 `docs/operations/family-calendar-approvals.md`), and those approvals are bound to this file's
-SHA-256, so editing a table makes them stale.
+SHA-256, so editing a table makes them stale. They are also bound to the engine and ephemeris, the
+calculation source code, the convention's rules and the city's coordinates.
+
+Printed editions (PDF) are transcribed with `python -m app.cli.calendar transcribe-rp-pdf`. It
+reports skipped rows and any `ANOMALY` (a row the edition's own calendar rule rules out), and never
+fills a gap.
 
 ## What ships
 

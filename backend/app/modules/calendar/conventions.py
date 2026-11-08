@@ -10,8 +10,9 @@ only when every gate holds (ADR-0022 §8 and the owner decisions of 8 Nov 2026):
 3. a **licence sign-off** in ``data/approvals.json`` names a qualified reviewer and is bound to the
    current engine (library versions) and ephemeris checksum;
 4. an **accuracy approval** for that convention and city names an independent panchang reviewer and
-   is bound to the engine, the ephemeris, the convention's definition and the golden table, by
-   their digests. Changing any of them makes the approval stale until it is revalidated;
+   is bound, by digests, to the engine (library versions), the ephemeris, the calculation source
+   code, the convention's definition, the city's coordinates and the golden table. Changing any of
+   them makes the approval stale until it is revalidated;
 5. the **product owner's activation** for that convention and city.
 
 A golden table on its own enables nothing. No convention is ever inferred from a surname, a place
@@ -114,12 +115,42 @@ def golden_digest(key: str) -> str | None:
     return _sha256(path.read_bytes()) if path.is_file() else None
 
 
-def identity(key: str) -> dict[str, str | None]:
-    """The values an accuracy approval for ``key`` must carry to be current."""
+# The code that computes a tithi day. An approval is bound to the exact bytes of these files, so any
+# edit (even to a comment) needs a fresh review: METHOD_VERSION alone is a hand-kept label and could
+# be forgotten. Raw bytes rather than an AST or token digest, which differ between Python versions.
+CALCULATION_SOURCES = (
+    Path(__file__).parent / "engine.py",
+    Path(__file__).parent / "observance.py",
+    Path(__file__).parents[2] / "core" / "lunar.py",
+)
+
+
+def code_digest() -> str:
+    h = hashlib.sha256()
+    for path in CALCULATION_SOURCES:
+        h.update(path.name.encode() + b"\0")
+        h.update(path.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    return h.hexdigest()
+
+
+def city_digest(city: str) -> str | None:
+    """The city's coordinates and time zone, which decide its sunrise and civil day."""
+    raw = json.loads((DATA / "cities.json").read_text(encoding="utf-8"))
+    entry = next((c for c in raw["cities"] if c["key"] == city), None)
+    if entry is None:
+        return None
+    place = {k: entry[k] for k in ("key", "lat", "lon", "tz")}
+    return _sha256(json.dumps(place, sort_keys=True, separators=(",", ":")).encode())
+
+
+def identity(key: str, city: str) -> dict[str, str | None]:
+    """The values an accuracy approval for ``key`` at ``city`` must carry to be current."""
     return {
         "engine_version": engine.ENGINE_VERSION,
         "ephemeris_sha256": ephemeris.SHA256,
+        "code_sha256": code_digest(),
         "convention_sha256": convention_digest(key),
+        "city_sha256": city_digest(city),
         "golden_sha256": golden_digest(key),
     }
 
@@ -155,7 +186,7 @@ def accuracy_problems(key: str, city: str) -> list[str]:
     ]
     if not recs:
         return [f"no accuracy approval for {key} at {city}"]
-    want = identity(key)
+    want = identity(key, city)
     problems: list[str] = []
     for rec in recs:
         if not _named(rec, "prepared_by", "reviewer", "reviewed_on", "record"):

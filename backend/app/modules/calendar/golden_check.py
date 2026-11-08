@@ -95,11 +95,7 @@ def coverage_gaps(table: dict[str, Any], convention: str, city: str) -> list[str
     gaps = _sources_gaps(table)
     ends = table.get("tithi_ends") or []
     rises = [r for r in table.get("sunrises") or [] if r.get("city") == city]
-    if ends:
-        first, last = min(r["ist"] for r in ends), max(r["ist"] for r in ends)
-        covered = (dt.datetime.fromisoformat(last) - dt.datetime.fromisoformat(first)).days
-    else:
-        covered = 0
+    covered = _covered_days(ends)
     if covered < MIN_YEARS * 365:
         gaps.append(f"tithi endings cover {covered} days; at least {MIN_YEARS} years are needed")
     if not any(r.get("adhik") for r in ends):
@@ -126,6 +122,17 @@ def coverage_gaps(table: dict[str, Any], convention: str, city: str) -> list[str
                     f"observance at {city}"
                 )
     return gaps
+
+
+def _covered_days(ends: list[dict[str, Any]]) -> int:
+    """Days covered without a break (consecutive endings at most 2 days apart): a missing edition
+    between two others is not counted as covered."""
+    moments = sorted({_ist(r["ist"]) for r in ends})
+    total = sum(
+        ((b - a) for a, b in itertools.pairwise(moments) if b - a <= dt.timedelta(days=2)),
+        dt.timedelta(),
+    )
+    return total.days
 
 
 def _days_by_ends(ends: list[dict[str, Any]], rises: list[dict[str, Any]]) -> dict[str, int]:
