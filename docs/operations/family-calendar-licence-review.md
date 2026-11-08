@@ -1,6 +1,7 @@
 # Family calendar: licence and data-use evidence (ADR-0022 §1)
 
-**Status: evidence prepared by the development team, 8 Nov 2026. NOT signed off.** Per the
+**Status: evidence prepared by the development team, 8 Nov 2026 (updated the same day). NOT signed
+off.** The licence gate stays closed. Per the
 product owner's decision of 8 Nov 2026, a qualified licensing reviewer signs this off and the
 product owner then gives the final activation approval. Until a sign-off is recorded in
 `backend/app/modules/calendar/data/approvals.json` (see
@@ -76,6 +77,31 @@ Shown in the app's "About" / credits and in the calendar's operator documentatio
 The attribution is not shown in the UI yet: it should be added only in the form the reviewer approves
 (open item L-5), and before activation.
 
+## 3a. Rashtriya Panchang values in the repository (separate from JPL)
+
+JPL's statement in §3 covers **JPL's data only**. It says nothing about the Rashtriya Panchang, a
+Government of India publication by IMD's Positional Astronomy Centre, and must not be read as
+covering it (owner decision, 8 Nov 2026).
+
+| Item | Evidence (retrieved 8 Nov 2026) |
+|---|---|
+| What is in the repository | `backend/app/modules/calendar/golden/amanta.json`: 371 tithi ending moments and month names, and 1,580 sunrise times for four cities, transcribed from the 1948 SE online edition, each row with its printed text. Committed in `f3056f1` (8 Nov 2026) on this PR's branch; **not on `main`** (PR #41 is unmerged). |
+| What is not | The pages and PDFs themselves (only their SHA-256), and the 2023-24 and 2025-26 values (assessed locally, not committed). |
+| Online edition | Footer on every page of `https://packolkata.imd.gov.in/panchang/en/`: "© Government of India \| All Rights Reserved". |
+| PAC website | `https://packolkata.imd.gov.in/disclaimer.php` (page SHA-256 `3dfda9e4…74a`): PAC "makes no warranties … Nor this Centre warrants that use of works is free from any claims of copyright infringement." No licence or permission to reuse is stated. |
+| Printed editions (PDF) | Priced publications ("Price : Rs. 225.00"). No copyright or licence statement was found in their text layer, which is not the same as there being none. |
+| Nature of the values | Times and names, published as calendric data; the edition calls itself "a reliable source for obtaining correct calendric data". Whether such values are protected, and what use is permitted, is the reviewer's question; this document does not answer it. |
+
+**Git history.** If the reviewer decides the transcribed values may not stay in the repository:
+- They exist only on the branch `claude/eloquent-franklin-wes4rc` (commits `f3056f1` onwards), in
+  PR #41 and in clones and CI caches of that branch.
+- Removing the file in a new commit leaves it in the branch's history.
+- Removing it from history means rewriting that branch, plus GitHub's own handling of PR refs and
+  caches.
+- Not merging until the review concludes keeps `main`'s history clean.
+
+That decision is the reviewer's and the owner's; nothing has been rewritten.
+
 ## 4. Open items for the licensing reviewer
 
 | # | Question | Evidence above |
@@ -85,7 +111,9 @@ The attribution is not shown in the UI yet: it should be added only in the form 
 | L-3 | Terms of the third-party data bundled inside Skyfield 1.55 (`skyfield/data/`, IERS and ΔT sources). | §1, §2 |
 | L-4 | Does the JPL SSD "Fair Use Policy" (text not retrievable from the FAQ link) add any condition for a one-off file download per build? | §3 |
 | L-5 | Approve the attribution text and where it is shown. | §3 |
-| L-6 | Confirm that Rashtriya Panchang values transcribed into the test table may be kept in the repository (see [family-calendar-sources.md](family-calendar-sources.md), item S-1). | sources inventory |
+| L-6 | May the Rashtriya Panchang values transcribed into the test table be kept in the repository? May further editions (2023-24, 2025-26) be added? Is permission from IMD/PAC needed, and should it be requested? | §3a; [sources](family-calendar-sources.md) S-1, S-2 |
+| L-7 | If not: remove the file only going forward, or also rewrite the branch history before merge? (No history has been rewritten.) | §3a |
+| L-8 | Kane, *History of Dharmaśāstra* and other observance-rule sources: what may be cited or reproduced. | [sources](family-calendar-sources.md) §7 |
 
 When signed off, the reviewer's record (name, role, date, the versions and checksum above) is added
 to `approvals.json` as the `licence` entry in a reviewed change; see

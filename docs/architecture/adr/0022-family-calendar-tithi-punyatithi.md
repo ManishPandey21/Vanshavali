@@ -298,3 +298,28 @@ How the code holds these decisions:
   before anything is offered) is replaced by the same coverage required **per city** that is
   approved, starting with one.
 
+## Owner decisions, second round (8 Nov 2026)
+1. **First scope: amanta × Mumbai, for validation only.** Nothing is activated; the operator switch
+   stays off and no approval is recorded.
+2. **Sources.**
+   - The PAC archive's English editions 2022-23 to 2026-27 are accessible as PDFs.
+   - 2023-24 (1945 SE) and 2025-26 (1947 SE) are assessed as suitable for the 3-year rule at
+     Mumbai, with the limitations listed in
+     [family-calendar-sources.md](../../operations/family-calendar-sources.md) §6.
+   - Their values are not committed until the copyright review.
+3. **Copyright.** The Rashtriya Panchang data goes to qualified review, including the git-history
+   question. JPL's public-domain statement does not cover it. The licence gate stays closed.
+4. **Accuracy.**
+   - D-1 is kept exactly as published. The official PDF prints the same text.
+   - D-2, a spurious sunrise row in the 1947 SE PDF, is recorded and excluded, not corrected.
+   - Clarification is to be sought from PAC or the independent reviewer.
+5. **Observance rules.** Candidate sources are identified, and none is verified as operational yet.
+   Rules differ by community as well as by region.
+6. **Approval integrity.** An approval was bound to `ENGINE_VERSION`, whose `METHOD_VERSION` part is
+   a hand-kept label, so an edit to the calculation without a bump would have kept approvals valid.
+   Approvals are now also bound to:
+   - the exact bytes of the calculation code (`engine.py`, `observance.py`, `core/lunar.py`);
+   - the approved city's coordinates and time zone.
+
+   Both bindings have regression tests.
+
