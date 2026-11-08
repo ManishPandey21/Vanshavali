@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+import logging
 import os
 from typing import Any
 
@@ -332,3 +333,15 @@ def test_feed_rate_limit_and_token_shape(owner, tree, make_client, monkeypatch):
     monkeypatch.setattr(service, "FEEDS_PER_MINUTE", 2)
     codes = [_feed(anon, url).status_code for _ in range(3)]
     assert codes[:2] == [200, 200] and codes[2] == 429
+
+
+def test_the_feed_token_is_never_logged(owner, tree, make_client, caplog):
+    url = owner.post(f"/trees/{tree['id']}/calendar-feed", json={}).json()["url"]
+    token = url.rsplit("/", 1)[1][:-4]
+    with caplog.at_level(logging.DEBUG):
+        assert _feed(make_client(), url).status_code == 200
+    access = [r for r in caplog.records if r.name == "app.access"]
+    assert access and access[-1].route.endswith("/calendar-feeds/{token}.ics")  # type: ignore[attr-defined]
+    server = [r for r in caplog.records if r.name != "httpx"]  # httpx is the test client itself
+    leaks = [(r.name, r.getMessage()[:200]) for r in server if token in (r.getMessage() + str(r.__dict__))]
+    assert leaks == []

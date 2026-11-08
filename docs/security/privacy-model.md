@@ -258,13 +258,13 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   beside: for a living person, the birth-date field groups decide who sees it, on the profile, the
   calendar page, the feed and in reminders.
 - **Nothing is computed into a record.** A Gregorian date found from a tithi (or the reverse) is a
-  suggestion; it is stored only when a person accepts it, with provenance `calculation`, the
-  convention, place and engine version.
+  suggestion; it is stored only when a person accepts it, with a `derived` note (the convention,
+  city and engine version). A redacted (year-only) date drops the tithi and that note with the day.
 - **The calendar feed is the member's, and minimal.** One per member and tree, behind a revocable
   random token stored hashed. Each fetch is evaluated as that member at that moment, so leaving
   the tree empties it. By default it carries only the kind of day ("Punyatithi", "Birthday") and a
   link, because calendar apps are third-party services; names are an explicit opt-in per feed.
-- **Observance places** are the family's own tree places or public city coordinates, used only to
-  compute sunrise. Cached calendar days (`panchang_day`) contain no family data.
+- **Observance places** are public city coordinates from a fixed list (v1; tree places have no time
+  zone yet), used only to compute sunrise and keyed at ~11 km. Cached calendar days (`panchang_day`) contain no family data.
 - **No convention is inferred** from a surname, a place or a community; a person chooses it.
 

@@ -220,3 +220,37 @@ A **convention** is a named, code-reviewed setting, chosen per tree with a per-r
 - **Who enters the golden tables** (a reviewer with access to published panchangs), and which
   panchangs count as sources.
 - **ICS content default:** minimal (no names), names only by opt-in, as proposed.
+
+## Implementation notes (8 Nov 2026)
+Where the build differs from the text above, or settles something it left open:
+
+- **Engine:** `app/modules/calendar/engine.py` (Skyfield 1.55, jplephem 2.24, DE440s, Lahiri
+  ayanamsha from IAU 2006 precession; `ENGINE_VERSION` names all of them). The 32 MB ephemeris is
+  not in git: `python -m app.cli.calendar fetch-ephemeris` downloads it from JPL and accepts it only
+  with its SHA-256; the Docker image fetches it at build time and CI caches it. Without it the
+  engine reports itself unavailable and nothing lunar is offered.
+- **Observance place (§4) is a city from a fixed list in v1** (`data/cities.json`, 20 cities
+  including 7 overseas). Tree places have no time zone yet, so they cannot decide a civil day;
+  using them is a follow-up. Fields are `observance_city` on the tree and on a reminder (the text
+  above says `observance_place`).
+- **`panchang_day` (§6)** exists, read-only to the app role, and is filled by
+  `python -m app.cli.calendar compute --city <key> --year <yyyy>`. The app itself computes in memory
+  with LRU caches (per anchor, convention, city and window), which is fast enough for a family's
+  calendar; reading from the table is a later optimisation. Flagging dates that move after an engine
+  upgrade (stress test 5) is not built yet; `ENGINE_VERSION` is recorded on each accepted
+  conversion so it can be.
+- **Gate (§8):** a convention is offered only when `VSH_LUNAR_CALENDAR_ENABLED` is on, the engine
+  is available, and the convention is `golden_verified`, which a test allows only with a passing,
+  cited golden table. None ships, so nothing lunar is offered yet. The calendar says why
+  (`lunar_unavailable`: `disabled`, `convention_not_offered`, `no_city`).
+- **Reminders (§5):** one reminder per event and member, as before; a tithi reminder needs a
+  convention (`convention_required`) and a city (`observance_place_required`), recurs yearly, and
+  is cancelled with a reason, never moved to a guessed day, when its convention stops being
+  offered. The next date is computed at tick time from the cache, not stored ahead.
+- **Conversion (§2):** an accepted suggestion is stored as `GenealogicalDate.derived`
+  (`source: lunar`, convention, city, engine version); editing the Gregorian parts by hand clears
+  it, and a redacted (year-only) date drops it with the tithi.
+- **Calendar (§7, §10):** a list grouped by month over a date window (at most 400 days per
+  request) rather than cursor pages; a month grid is a later addition.
+- **Feed (§7):** `calendar_feed` is resolved by token outside RLS, like invitations; the access log
+  carries the route template only, so the token is never logged (tested).

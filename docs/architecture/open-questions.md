@@ -12,6 +12,12 @@
 > managed PostgreSQL and S3. The provider account and the RPO/RTO targets still need the owner's
 > confirmation. The proposed targets, and the drill that measures them, are in
 > `docs/operations/backup-restore-runbook.md`.
+>
+> **Update (8 Nov 2026, R5):** ADR-0022 answers Q16 (Skyfield + JPL DE440s, MIT licensed, no
+> AGPL) and the tithi part of Q6 (purnimanta and amanta; regional solar calendars later). Two
+> things remain the owner's: who signs off the engine licence review, and who enters the golden
+> tables from published panchangs. Until both are done, tithi dates are recorded and shown but
+> nothing is computed from them.
 
 These came out of a grill-me style review at project start. Each one blocks or shapes an ADR.
 Record the owner's answer here and update the ADR it affects.
