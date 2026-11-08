@@ -51,6 +51,11 @@ export function BranchesPage() {
                 <Badge tone="stone" icon={<Users className="size-3" aria-hidden />}>
                   {t("branches.memberCount", { count: b.member_count ?? 0 })}
                 </Badge>
+                {(b.provisional_member_count ?? 0) > 0 && (
+                  <Badge tone="saffron" title={t("people.toComplete.countHint")}>
+                    {t("people.toComplete.count", { count: b.provisional_member_count })}
+                  </Badge>
+                )}
               </div>
             </Link>
           </li>

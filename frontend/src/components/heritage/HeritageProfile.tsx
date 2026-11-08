@@ -1,10 +1,11 @@
-import { useId, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronDown, ChevronRight, Edit3, Plus, Star, Trash2 } from "lucide-react";
 import type { AssertionOut, EvidenceStatus, HeritageAttribute, HeritageAttributeView, PrivacyLevel, ValueStatus } from "../../api/types";
 import { useAddAssertion, useDeleteAssertion, useHeritage, useUpdateAssertion, type HeritageSubject } from "../../api/hooks/heritage";
+import { usePravaraSuggestions } from "../../api/hooks/vocabularies";
+import { useCreatePlace } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
-import { gotras } from "../../data/masterData/gotras";
 import { EvidenceBadge, PrivacyBadge, RedactionNotice } from "../person/badges";
 import { EVIDENCE_STATUSES } from "../person/NameFields";
 import { PRIVACY_LEVELS } from "../person/PersonForm";
@@ -14,7 +15,30 @@ import { Button } from "../ui/Button";
 import { ConfirmDialog, Dialog } from "../ui/Dialog";
 import { ErrorAlert, Spinner } from "../ui/feedback";
 import { Checkbox, Field, Select, TextArea, TextInput } from "../ui/form";
+import { LinkedNote, SmartSelect, type VocabRef } from "../ui/SmartSelect";
 import { Badge } from "../ui/Badge";
+
+/** Heritage attributes that take suggestions from a master-data vocabulary (ADR-0018 §2). */
+const VOCABULARY_FOR: Partial<Record<HeritageAttribute, string>> = {
+  gotra: "gotra",
+  pravara: "pravara",
+  kula_or_vamsha: "kula",
+  kuladevata: "kuladevata",
+  kuladevi: "kuladevi",
+  devak: "devak",
+  ancestral_occupation: "occupation",
+  family_language: "language",
+};
+/** A family deity may name the temple where the family worships it (ADR-0026 §5). */
+const TEMPLE_ATTRS = new Set<HeritageAttribute>(["kuladevata", "kuladevi"]);
+
+function refOf(value: unknown): VocabRef | null {
+  if (value && typeof value === "object" && "vocabulary" in value && "code" in value) {
+    const v = value as { vocabulary: unknown; code: unknown };
+    if (typeof v.vocabulary === "string" && typeof v.code === "string") return { vocabulary: v.vocabulary, code: v.code };
+  }
+  return null;
+}
 
 export const HERITAGE_ATTRIBUTES: HeritageAttribute[] = [
   "gotra",
@@ -22,6 +46,7 @@ export const HERITAGE_ATTRIBUTES: HeritageAttribute[] = [
   "kula_or_vamsha",
   "kuladevata",
   "kuladevi",
+  "devak",
   "ancestral_village",
   "ancestral_house_name",
   "tharavad_or_equivalent",
@@ -29,6 +54,8 @@ export const HERITAGE_ATTRIBUTES: HeritageAttribute[] = [
   "community",
   "jati_or_subgroup",
   "religion",
+  "ancestral_occupation",
+  "family_language",
   "family_traditions",
   "language_traditions",
   "recorded_parent_name",
@@ -55,6 +82,9 @@ export function HeritageProfile({ subject, canWrite }: { subject: HeritageSubjec
   const byAttr = new Map<string, HeritageAttributeView>((profile.data?.attributes ?? []).map((a) => [a.attribute, a]));
   const withheld = new Set(profile.data?.withheld_attributes ?? []);
   const shown = HERITAGE_ATTRIBUTES.filter((a) => byAttr.has(a) || withheld.has(a));
+  // the recorded (preferred) gotra, only when it names a list entry: pravara suggestions follow it
+  const gotraRef = refOf(byAttr.get("gotra")?.preferred?.value_json);
+  const gotraCode = gotraRef?.vocabulary === "gotra" ? gotraRef.code : null;
   const missing = HERITAGE_ATTRIBUTES.filter((a) => !byAttr.has(a) && !withheld.has(a));
 
   return (
@@ -90,8 +120,8 @@ export function HeritageProfile({ subject, canWrite }: { subject: HeritageSubjec
           </div>
         </div>
       )}
-      {adding && <AssertionDialog subject={subject} attribute={adding === "any" ? null : adding} assertion={null} onClose={() => setAdding(null)} />}
-      {editing && <AssertionDialog subject={subject} attribute={editing.attribute as HeritageAttribute} assertion={editing} onClose={() => setEditing(null)} />}
+      {adding && <AssertionDialog subject={subject} attribute={adding === "any" ? null : adding} assertion={null} gotraCode={gotraCode} onClose={() => setAdding(null)} />}
+      {editing && <AssertionDialog subject={subject} attribute={editing.attribute as HeritageAttribute} assertion={editing} gotraCode={gotraCode} onClose={() => setEditing(null)} />}
     </section>
   );
 }
@@ -216,15 +246,28 @@ function AssertionLine({ a, preferred, canWrite, onEdit }: { a: AssertionOut; pr
   );
 }
 
-function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: HeritageSubject; attribute: HeritageAttribute | null; assertion: AssertionOut | null; onClose: () => void }) {
+function AssertionDialog({
+  subject,
+  attribute,
+  assertion,
+  gotraCode,
+  onClose,
+}: {
+  subject: HeritageSubject;
+  attribute: HeritageAttribute | null;
+  assertion: AssertionOut | null;
+  gotraCode: string | null;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
-  const listId = useId();
   const add = useAddAssertion(treeId, subject);
   const update = useUpdateAssertion(treeId);
+  const createPlace = useCreatePlace(treeId);
   const [attr, setAttr] = useState<HeritageAttribute>(attribute ?? "gotra");
   const [status, setStatus] = useState<ValueStatus>(assertion?.value_status ?? "known");
   const [text, setText] = useState(assertion?.value_text ?? "");
+  const [ref, setRef] = useState<VocabRef | null>(refOf(assertion?.value_json));
   const [place, setPlace] = useState<PlaceValue>(
     assertion?.place_id ? { place_id: assertion.place_id, place_label: assertion.place_name ?? null, place_as_recorded: assertion.place_name ?? "" } : emptyPlace(),
   );
@@ -235,21 +278,35 @@ function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: 
   const [err, setErr] = useState<string | null>(null);
   const mutation = assertion ? update : add;
   const isPlace = attr === "ancestral_village";
+  const takesTemple = TEMPLE_ATTRS.has(attr);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const known = status === "known";
     // For a place attribute, a linked place is the value; unlinked typed text is kept as value_text.
     const valueTextOut = known ? (isPlace ? (place.place_id ? null : place.place_as_recorded.trim() || null) : text.trim() || null) : null;
-    const placeId = known && isPlace ? place.place_id : null;
+    let placeId = known && (isPlace || takesTemple) ? place.place_id : null;
+    if (known && takesTemple && !placeId && place.place_as_recorded.trim()) {
+      // a temple typed by name becomes a place of type temple in this tree (the deity stays its own fact)
+      try {
+        placeId = (await createPlace.mutateAsync({ canonical_name: place.place_as_recorded.trim(), place_type: "temple" })).id;
+      } catch {
+        return; // the error is shown below
+      }
+    }
     if (known && !valueTextOut && !placeId) {
       setErr(t("heritage.valueRequired"));
       return;
     }
     setErr(null);
+    const vocabulary = VOCABULARY_FOR[attr];
+    // a value picked from a list keeps its label as typed and names the entry (ADR-0018 §6);
+    // other attributes never have their value_json touched here
+    const vocabValue = vocabulary ? { value_json: known && ref && ref.vocabulary === vocabulary ? ref : null } : {};
     const body = {
       value_status: status,
       value_text: valueTextOut,
+      ...vocabValue,
       place_id: placeId,
       evidence_status: evidence,
       privacy_level: privacy || null,
@@ -309,21 +366,40 @@ function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: 
           (isPlace ? (
             <PlacePicker treeId={treeId} label={t("heritage.value")} value={place} onChange={setPlace} />
           ) : (
-            <Field label={t("heritage.value")} hint={attr === "gotra" ? t("heritage.gotraHint") : undefined}>
-              {(p) => (
-                <>
-                  <TextInput {...p} value={text} onChange={(e) => setText(e.target.value)} list={attr === "gotra" ? listId : undefined} />
-                  {attr === "gotra" && (
-                    <datalist id={listId}>
-                      {gotras.flatMap((g) => [g.name, g.nameHindi]).map((n) => (
-                        <option key={n} value={n} />
-                      ))}
-                    </datalist>
-                  )}
-                </>
-              )}
-            </Field>
+            VOCABULARY_FOR[attr] ? (
+              <div>
+                <SmartSelect
+                  key={attr}
+                  vocabulary={VOCABULARY_FOR[attr]!}
+                  label={t("heritage.value")}
+                  hint={attr === "gotra" ? t("heritage.gotraHint") : t("smartSelect.hint")}
+                  text={text}
+                  onChange={(v, r) => {
+                    setText(v);
+                    setRef(r);
+                  }}
+                />
+                {ref && <LinkedNote />}
+                {attr === "pravara" && (
+                  <PravaraSuggestions
+                    gotraCode={gotraCode}
+                    onPick={(label, code) => {
+                      setText(label);
+                      setRef({ vocabulary: "pravara", code });
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <Field label={t("heritage.value")}>{(p) => <TextInput {...p} value={text} onChange={(e) => setText(e.target.value)} />}</Field>
+            )
           ))}
+        {status === "known" && takesTemple && (
+          <div>
+            <PlacePicker treeId={treeId} label={t("heritage.temple")} value={place} onChange={setPlace} />
+            <p className="mt-1 text-xs text-ink-muted">{t("heritage.templeHint")}</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("names.evidence")}>
             {(p) => (
@@ -356,8 +432,37 @@ function AssertionDialog({ subject, attribute, assertion, onClose }: { subject: 
             {err}
           </p>
         )}
-        <ErrorAlert error={mutation.error} />
+        <ErrorAlert error={createPlace.error ?? mutation.error} />
       </form>
     </Dialog>
+  );
+}
+
+/**
+ * Pravaras often associated with the recorded gotra, from reviewed links only (ADR-0026 §3). A
+ * suggestion is never filled in: the person picks one, or types their own.
+ */
+function PravaraSuggestions({ gotraCode, onPick }: { gotraCode: string | null; onPick: (label: string, code: string) => void }) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language.startsWith("hi") ? "hi" : "en";
+  const sugg = usePravaraSuggestions(gotraCode, lang);
+  if (!gotraCode) return <p className="mt-1 text-xs text-ink-muted">{t("heritage.pravaraNoGotra")}</p>;
+  const items = sugg.data?.items ?? [];
+  return (
+    <div className="mt-2 rounded-lg border border-stone-200 p-2" role="group" aria-label={t("heritage.pravaraSuggestions")}>
+      <p className="text-xs text-ink-muted">{t("heritage.pravaraDiffer")}</p>
+      {sugg.isSuccess && items.length === 0 && <p className="mt-1 text-xs text-ink-muted">{t("heritage.pravaraNoneReviewed")}</p>}
+      {items.length > 0 && (
+        <ul className="mt-1 flex flex-wrap gap-1">
+          {items.map((p) => (
+            <li key={p.code}>
+              <button type="button" className="rounded-full border border-stone-300 px-2.5 py-1 text-xs hover:bg-haldi-100" onClick={() => onPick(p.label, p.code)}>
+                {p.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

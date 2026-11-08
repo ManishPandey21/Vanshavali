@@ -23,20 +23,24 @@ cd backend && uv run python ../ops/i18n/hindi_review_pack.py   # writes docs/loc
 - **Columns:** `priority, area, source, key, english, hindi, legal_review, language_ok (yes/no),
   suggested_hindi, reviewer, notes`. The reviewer fills the last four.
 
-Pack generated 2 Oct 2026 (commit of this milestone):
+Pack regenerated 6 Nov 2026, after release R1: Smart Add, master data, age-aware kinship, "To complete"
+and name transliteration (ADR-0025). The generator now also reads the master-data pack labels and the
+name transliteration lexicon.
 
 | Priority | Area | File | Strings | Also needs legal review |
 |---|---|---|---|---|
-| 1 | consent and attestation, profile claims, "remove me", erasure | `hindi-review/p1-consent.csv` | 161 | 161 |
-| 2 | privacy settings and notices, sharing, public view, grants | `hindi-review/p2-privacy.csv` | 73 | 73 |
+| 1 | consent and attestation, profile claims, "remove me", erasure | `hindi-review/p1-consent.csv` | 164 | 164 |
+| 2 | privacy settings and notices, sharing, public view, grants | `hindi-review/p2-privacy.csv` | 75 | 75 |
 | 3 | registration, sign-in, account, invitations | `hindi-review/p3-registration.csv` | 119 | 0 |
 | 4 | email verification, password reset, existing-account emails | `hindi-review/p4-email.csv` | 18 | 0 |
-| 5 | family relationship labels (incl. चाचा/ताऊ, मामा, बुआ…), households, branches, joint family | `hindi-review/p5-relationships.csv` | 224 | 1 |
-| 5 | Hindi inline in the landing page code | `hindi-review/p5-inline-code.csv` | 16 | 0 |
+| 5 | family relationship labels (incl. चाचा/ताऊ, मामा, बुआ…, age-aware terms), households, branches, joint family | `hindi-review/p5-relationships.csv` | 236 | 1 |
+| 5 | **name transliteration lexicon** (Latin ⇄ Devanagari pairs suggested to every family, ADR-0025) | `hindi-review/p5-name-lexicon.csv` | 340 | 0 |
+| 5 | Hindi inline in the landing page code | `hindi-review/p5-inline-code.csv` | 24 | 0 |
 | 6 | property, partition, land terminology | `hindi-review/p6-property.csv` | 243 | 1 |
-| 7 | error messages | `hindi-review/p7-errors.csv` | 26 | 0 |
-| 8 | everything else (dates, documents, GEDCOM, astrology, picker vocabularies…) | `hindi-review/p8-other.csv`, `p8-inline-code.csv` | 1,092 | 10 |
-| | **total** | | **1,972** | **246** |
+| 7 | error messages | `hindi-review/p7-errors.csv` | 35 | 0 |
+| 8 | master-data pack labels (gotra, kula, kuladevata, kuladevi, occupation, honorific, language) | `hindi-review/p8-master-data.csv` | 71 | 0 |
+| 8 | everything else (dates, documents, GEDCOM, astrology, picker vocabularies…) | `hindi-review/p8-other.csv`, `p8-inline-code.csv` | 1,863 | 102 |
+| | **total** | | **3,188** | **343** |
 
 ## Language review (native Hindi speaker)
 Review priorities 1–4 before the pilot, and 5–7 before inviting families who will use Hindi.

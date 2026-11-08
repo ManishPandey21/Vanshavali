@@ -3,7 +3,8 @@
 Only people the caller can see are exported. Protected people (living, unknown-status born within
 110 years, minors) are left out by default; with ``exclude_living=False`` they are included, but a
 protected person whose full birth date the caller cannot see is reduced to a ``NAME Living``
-placeholder that only keeps the family links. Event data goes through the genealogy Serializer, so
+placeholder that only keeps the family links. Provisional people who are still unnamed or unverified
+(ADR-0020 §4) are left out entirely, with the relationships that touch them. Event data goes through the genealogy Serializer, so
 field redaction (year-only dates, hidden birth place/time, hidden residence detail) is identical to
 the API. Sensitive groups (birth time, astrology, notes, contact/address, preserved unknown
 extension payloads) are only written with ``include_sensitive=True``, which needs PRIVACY_MANAGE.
@@ -59,6 +60,7 @@ from app.modules.gedcom import extensions as ext
 from app.modules.gedcom.gdate import MONTHS, format_date, format_time
 from app.modules.gedcom.mapping import OTHER_FAM_EVENTS, OTHER_INDI_EVENTS, STANDARD_ASSERTIONS
 from app.modules.gedcom.parser import format_line
+from app.modules.genealogy import provisional
 from app.modules.genealogy.schemas import EventOut
 from app.modules.genealogy.serialize import Serializer
 
@@ -152,9 +154,16 @@ class Exporter:
         subjects = load_subjects(ctx, persons)
         self.full: dict[uuid.UUID, Subject] = {}
         self.placeholders: dict[uuid.UUID, Subject] = {}
+        pending = provisional.pending_ids(ctx)
         for p in persons:
             s = subjects[p.id]
             if not can_view_person(ctx, s):
+                continue
+            if p.id in pending:
+                # an unnamed or unverified provisional person is never exported by default: no INDI,
+                # no placeholder, and their relationships go with them (ADR-0020 §4). Counted only
+                # because this exporter can see them.
+                self.counts["excluded_provisional"] += 1
                 continue
             if s.is_protected:
                 if self.exclude_living:

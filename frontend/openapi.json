@@ -1597,6 +1597,27 @@
       }
      },
      {
+      "name": "provisional_state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ProvisionalState"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Only provisional people in these states: the \"To complete\" view (ADR-0020 \u00a78). Visibility rules are unchanged, so it lists only people the caller may see.",
+       "title": "Provisional State"
+      },
+      "description": "Only provisional people in these states: the \"To complete\" view (ADR-0020 \u00a78). Visibility rules are unchanged, so it lists only people the caller may see."
+     },
+     {
       "name": "cursor",
       "in": "query",
       "required": false,
@@ -3382,6 +3403,124 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/relative-age-orders": {
+   "post": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Record Relative Age",
+    "description": "Family-confirmed \"older / younger than\" between two siblings (ADR-0020 \u00a75). It takes\nprecedence over birth dates when kinship terms depend on age (Tau vs Chacha).",
+    "operationId": "record_relative_age_api_v1_trees__tree_id__relative_age_orders_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RelativeAgeOrderIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RelativeAgeOrderOut"
+        }
+       }
+      }
+     },
+     "200": {
+      "description": "Already recorded",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RelativeAgeOrderOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/relative-age-orders/{record_id}": {
+   "delete": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Delete Relative Age",
+    "description": "Remove a recorded age order (to correct a mistake).",
+    "operationId": "delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete",
+    "parameters": [
+     {
+      "name": "record_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Record Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/relationship-path": {
    "get": {
     "tags": [
@@ -3449,6 +3588,2378 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/RelationshipPathOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/smart-add/terms": {
+   "get": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "List Terms",
+    "description": "Kinship terms Smart Add understands, each as a path of basic edges (ADR-0020).",
+    "operationId": "list_terms_api_v1_trees__tree_id__smart_add_terms_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/SmartAddTermOut"
+         },
+         "title": "Response List Terms Api V1 Trees  Tree Id  Smart Add Terms Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/smart-add/plan": {
+   "post": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "Plan",
+    "description": "Preview: candidates for each step and every record that would be created. Writes nothing.",
+    "operationId": "plan_api_v1_trees__tree_id__people__person_id__smart_add_plan_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SmartAddPlanIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SmartAddPlanOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/smart-add": {
+   "post": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "Commit",
+    "description": "Create the confirmed plan in one transaction; returns an operation id for undo.",
+    "operationId": "commit_api_v1_trees__tree_id__people__person_id__smart_add_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SmartAddCommitIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SmartAddCommitOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/smart-add/{operation_id}/undo": {
+   "post": {
+    "tags": [
+     "smart-add"
+    ],
+    "summary": "Undo",
+    "description": "Undo a Smart Add within 30 minutes, by the same user, if nothing else has changed since.",
+    "operationId": "undo_api_v1_trees__tree_id__smart_add__operation_id__undo_post",
+    "parameters": [
+     {
+      "name": "operation_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Operation Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/vocabularies": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "List Vocabularies",
+    "description": "Extensible vocabularies (ADR-0018). Controlled values are not listed here.",
+    "operationId": "list_vocabularies_api_v1_vocabularies_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/VocabularyOut"
+         },
+         "type": "array",
+         "title": "Response List Vocabularies Api V1 Vocabularies Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/vocabularies/{key}": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Vocabulary Terms",
+    "description": "Global suggestions, searchable by label in any script, alias or spelling. Sends a weak ETag.",
+    "operationId": "vocabulary_terms_api_v1_vocabularies__key__get",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 16,
+       "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$",
+       "default": "en",
+       "title": "Lang"
+      }
+     },
+     {
+      "name": "parent",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 80
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent"
+      }
+     },
+     {
+      "name": "include_retired",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": false,
+       "title": "Include Retired"
+      }
+     },
+     {
+      "name": "reviewed_only",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "description": "only reviewed terms (pravara: only links with a cited source)",
+       "default": false,
+       "title": "Reviewed Only"
+      },
+      "description": "only reviewed terms (pravara: only links with a cited source)"
+     },
+     {
+      "name": "scope",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 80
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "a region or tradition",
+       "title": "Scope"
+      },
+      "description": "a region or tradition"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VocabularyTermsOut"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the ETag)"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabularies/{key}": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Tree Vocabulary Terms",
+    "description": "Global suggestions plus this family's own entries.",
+    "operationId": "tree_vocabulary_terms_api_v1_trees__tree_id__vocabularies__key__get",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 16,
+       "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$",
+       "default": "en",
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VocabularyTermsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabularies/{key}/terms": {
+   "post": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Add Tree Term",
+    "description": "Add the family's own entry (\"Add my own\"); an existing matching entry is returned instead.",
+    "operationId": "add_tree_term_api_v1_trees__tree_id__vocabularies__key__terms_post",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 16,
+       "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$",
+       "default": "en",
+       "title": "Lang"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TreeTermIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TreeTermOut"
+        }
+       }
+      }
+     },
+     "200": {
+      "description": "The label already names an entry",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TreeTermOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabularies/{key}/terms/{code}/offer": {
+   "post": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Offer Tree Term",
+    "description": "Offer one of the family's own entries to the common suggestion lists (tree admin; ADR-0026 \u00a74).\n\nOperators review offers; an accepted entry becomes a shared term through a code-reviewed pack\nchange, and the shared term never names the family.",
+    "operationId": "offer_tree_term_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_post",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/OfferIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Withdraw Offer",
+    "description": "Withdraw a pending offer (tree admin).",
+    "operationId": "withdraw_offer_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_delete",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabulary-offers": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "List Offers",
+    "description": "This family's offered entries and what became of them (tree admin).",
+    "operationId": "list_offers_api_v1_trees__tree_id__vocabulary_offers_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/OfferOut"
+         },
+         "title": "Response List Offers Api V1 Trees  Tree Id  Vocabulary Offers Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/kinship/packs": {
+   "get": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Kinship Packs",
+    "description": "Packs of relationship words a reader may choose (reviewed ones; drafts for reviewers).",
+    "operationId": "kinship_packs_api_v1_kinship_packs_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/KinshipPackOut"
+         },
+         "type": "array",
+         "title": "Response Kinship Packs Api V1 Kinship Packs Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/me/kinship-preference": {
+   "put": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Set Kinship Preference",
+    "description": "Which relationship words this reader sees, in every tree; null follows the tree's default.",
+    "operationId": "set_kinship_preference_api_v1_me_kinship_preference_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/KinshipPreferenceIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/KinshipPreferenceOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/kinship-overrides": {
+   "get": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "List Kinship Overrides",
+    "description": "The family's own words for relationships (\"Bhayo\" for bhabhi).",
+    "operationId": "list_kinship_overrides_api_v1_trees__tree_id__kinship_overrides_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/KinshipOverrideOut"
+         },
+         "title": "Response List Kinship Overrides Api V1 Trees  Tree Id  Kinship Overrides Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Put Kinship Override",
+    "description": "Record the family's word for a relationship, tree-wide or for one branch (family.write;\nunder family review when the tree reviews all changes).",
+    "operationId": "put_kinship_override_api_v1_trees__tree_id__kinship_overrides_put",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/KinshipOverrideIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/KinshipOverrideOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/kinship-overrides/{override_id}": {
+   "delete": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Delete Kinship Override",
+    "operationId": "delete_kinship_override_api_v1_trees__tree_id__kinship_overrides__override_id__delete",
+    "parameters": [
+     {
+      "name": "override_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Override Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/transliterate": {
+   "post": {
+    "tags": [
+     "transliteration"
+    ],
+    "summary": "Transliterate",
+    "operationId": "transliterate_api_v1_transliterate_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TransliterateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TransliterateOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/units": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "List Units",
+    "operationId": "list_units_api_v1_geo_units_get",
+    "parameters": [
+     {
+      "name": "level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/GeoLevel"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Level"
+      }
+     },
+     {
+      "name": "parent",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^\\d{1,20}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent"
+      }
+     },
+     {
+      "name": "parent_level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/GeoLevel"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Parent Level"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 100
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoUnitsPage"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/units/{lgd_code}": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "Get Unit",
+    "operationId": "get_unit_api_v1_geo_units__lgd_code__get",
+    "parameters": [
+     {
+      "name": "lgd_code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^\\d{1,20}$",
+       "title": "Lgd Code"
+      }
+     },
+     {
+      "name": "level",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/GeoLevel",
+       "description": "LGD codes are unique per level only"
+      },
+      "description": "LGD codes are unique per level only"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GeoUnitResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/geo/pincodes/{pin}": {
+   "get": {
+    "tags": [
+     "geography"
+    ],
+    "summary": "Get Pincode",
+    "operationId": "get_pincode_api_v1_geo_pincodes__pin__get",
+    "parameters": [
+     {
+      "name": "pin",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^[1-9]\\d{5}$",
+       "title": "Pin"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PincodeOut"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/review-policy": {
+   "put": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Set Review Policy",
+    "operationId": "set_review_policy_api_v1_trees__tree_id__review_policy_put",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewPolicyIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewPolicyIn"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Create Proposal",
+    "operationId": "create_proposal_api_v1_trees__tree_id__proposals_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProposalIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "List Proposals",
+    "operationId": "list_proposals_api_v1_trees__tree_id__proposals_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "view",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^(to_review|mine|closed|all)$",
+       "default": "to_review",
+       "title": "View"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_ProposalSummary_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}": {
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Get Proposal",
+    "operationId": "get_proposal_api_v1_trees__tree_id__proposals__proposal_id__get",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/submit": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Submit Proposal",
+    "operationId": "submit_proposal_api_v1_trees__tree_id__proposals__proposal_id__submit_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/withdraw": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Withdraw Proposal",
+    "operationId": "withdraw_proposal_api_v1_trees__tree_id__proposals__proposal_id__withdraw_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/approve": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Approve Proposal",
+    "operationId": "approve_proposal_api_v1_trees__tree_id__proposals__proposal_id__approve_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Stale"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/reject": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Reject Proposal",
+    "operationId": "reject_proposal_api_v1_trees__tree_id__proposals__proposal_id__reject_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RejectIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/rebase": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Rebase Proposal",
+    "operationId": "rebase_proposal_api_v1_trees__tree_id__proposals__proposal_id__rebase_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/comments": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Comment",
+    "operationId": "comment_api_v1_trees__tree_id__proposals__proposal_id__comments_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CommentIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/challenges": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Create Challenge",
+    "operationId": "create_challenge_api_v1_trees__tree_id__challenges_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChallengeIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/uphold": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Uphold",
+    "operationId": "uphold_api_v1_trees__tree_id__proposals__proposal_id__uphold_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpholdIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Stale"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/proposals/{proposal_id}/dismiss": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Dismiss",
+    "operationId": "dismiss_api_v1_trees__tree_id__proposals__proposal_id__dismiss_post",
+    "parameters": [
+     {
+      "name": "proposal_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Proposal Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RejectIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ChangeProposalOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/review-state": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Set Review State",
+    "operationId": "set_review_state_api_v1_trees__tree_id__review_state_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewStateIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewStateOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/history": {
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Person History",
+    "operationId": "person_history_api_v1_trees__tree_id__people__person_id__history_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_RevisionOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/revisions/{revision_id}/revert": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Revert",
+    "operationId": "revert_api_v1_trees__tree_id__revisions__revision_id__revert_post",
+    "parameters": [
+     {
+      "name": "revision_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Revision Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RevertOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/inbox": {
+   "get": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Notifications",
+    "operationId": "notifications_api_v1_trees__tree_id__inbox_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 30,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NotificationsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/inbox/read": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Notifications Read",
+    "operationId": "notifications_read_api_v1_trees__tree_id__inbox_read_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/NotificationsReadIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NotificationsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/duplicates/check": {
+   "post": {
+    "tags": [
+     "review"
+    ],
+    "summary": "Check Duplicates",
+    "description": "Is the person about to be added already in the tree? Visible people only; nothing is merged.",
+    "operationId": "check_duplicates_api_v1_trees__tree_id__duplicates_check_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DuplicateCheckIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DuplicateCheckOut"
         }
        }
       }
@@ -6842,6 +9353,414 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "List Traditions",
+    "description": "Entries the reader may see, newest first; ``q`` searches titles and text in any script.",
+    "operationId": "list_traditions_api_v1_trees__tree_id__traditions_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "kind",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/TraditionKind"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Kind"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "branch_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Branch Id"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Create Tradition",
+    "operationId": "create_tradition_api_v1_trees__tree_id__traditions_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TraditionEntryIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Get Tradition",
+    "operationId": "get_tradition_api_v1_trees__tree_id__traditions__entry_id__get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Update Tradition",
+    "description": "Edit an entry. Someone else's entry follows the tree's review policy (409 review_required:\nsend it as a proposed change).",
+    "operationId": "update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TraditionEntryUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Withdraw Tradition",
+    "description": "Withdraw an entry (author or tree admin); its history is kept.",
+    "operationId": "withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}/history": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Tradition History",
+    "operationId": "tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/TraditionRevisionOut"
+         },
+         "title": "Response Tradition History Api V1 Trees  Tree Id  Traditions  Entry Id  History Get"
         }
        }
       }
@@ -12368,6 +15287,69 @@
  },
  "components": {
   "schemas": {
+   "AgeOrderOut": {
+    "properties": {
+     "chain_index": {
+      "type": "integer",
+      "title": "Chain Index"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "relative_to_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Relative To Id"
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "elder",
+       "younger",
+       "unknown"
+      ],
+      "title": "Order"
+     },
+     "basis": {
+      "type": "string",
+      "enum": [
+       "family_confirmed",
+       "birth_dates",
+       "unknown"
+      ],
+      "title": "Basis"
+     },
+     "record_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Record Id"
+     },
+     "dates_disagree": {
+      "type": "boolean",
+      "title": "Dates Disagree",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "chain_index",
+     "person_id",
+     "relative_to_id",
+     "order",
+     "basis"
+    ],
+    "title": "AgeOrderOut",
+    "description": "Whether the person reached by a sibling word in ``chain`` is older or younger than the person\nthat word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 \u00a75)."
+   },
    "AllocationIn": {
     "properties": {
      "share_numerator": {
@@ -12640,6 +15622,10 @@
    },
    "AssertionOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -14581,6 +17567,11 @@
       "title": "Member Count",
       "default": 0
      },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
+      "default": 0
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -14769,6 +17760,11 @@
       "title": "Member Count",
       "default": 0
      },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
+      "default": 0
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -14850,6 +17846,282 @@
     },
     "type": "object",
     "title": "BranchUpdate"
+   },
+   "ChallengeIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 3,
+      "title": "Rationale"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalItemIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Items",
+      "default": []
+     },
+     "source_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "title": "Source Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "rationale"
+    ],
+    "title": "ChallengeIn"
+   },
+   "ChangeProposalOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ProposalKind"
+     },
+     "status": {
+      "$ref": "#/components/schemas/ChangeProposalStatus"
+     },
+     "rationale": {
+      "type": "string",
+      "title": "Rationale"
+     },
+     "proposer": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "person_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Label"
+     },
+     "family_subject": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "target_type": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "target_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target Id"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "submitted_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Submitted At"
+     },
+     "decided_by": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "decided_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decided At"
+     },
+     "decision_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decision Note"
+     },
+     "stale_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Stale Reason"
+     },
+     "supersedes_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Supersedes Id"
+     },
+     "source_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Source Ids",
+      "default": []
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalItemOut"
+      },
+      "type": "array",
+      "title": "Items",
+      "default": []
+     },
+     "comments": {
+      "items": {
+       "$ref": "#/components/schemas/CommentOut"
+      },
+      "type": "array",
+      "title": "Comments",
+      "default": []
+     },
+     "can_decide": {
+      "type": "boolean",
+      "title": "Can Decide",
+      "default": false
+     },
+     "cannot_decide_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Cannot Decide Reason"
+     },
+     "can_withdraw": {
+      "type": "boolean",
+      "title": "Can Withdraw",
+      "default": false
+     },
+     "can_rebase": {
+      "type": "boolean",
+      "title": "Can Rebase",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "status",
+     "rationale",
+     "proposer",
+     "person_id",
+     "created_at",
+     "submitted_at"
+    ],
+    "title": "ChangeProposalOut"
+   },
+   "ChangeProposalStatus": {
+    "type": "string",
+    "enum": [
+     "draft",
+     "awaiting_review",
+     "accepted",
+     "rejected",
+     "withdrawn",
+     "stale"
+    ],
+    "title": "ChangeProposalStatus"
    },
    "ChannelsOut": {
     "properties": {
@@ -15065,7 +18337,8 @@
      "land_parcel",
      "property_interest",
      "property_event",
-     "household"
+     "household",
+     "tradition"
     ],
     "title": "CitationTarget"
    },
@@ -15634,6 +18907,57 @@
     ],
     "title": "CloseAccountIn"
    },
+   "CommentIn": {
+    "properties": {
+     "body": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Body"
+     }
+    },
+    "type": "object",
+    "required": [
+     "body"
+    ],
+    "title": "CommentIn"
+   },
+   "CommentOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "author": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "body": {
+      "type": "string",
+      "title": "Body"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "author",
+     "body",
+     "created_at"
+    ],
+    "title": "CommentOut"
+   },
    "CommitIn": {
     "properties": {
      "decisions": {
@@ -15993,6 +19317,24 @@
     ],
     "title": "DatePrecision"
    },
+   "DecisionIn": {
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "title": "DecisionIn"
+   },
    "DeliveryOut": {
     "properties": {
      "id": {
@@ -16310,7 +19652,8 @@
      "land_parcel",
      "property_event",
      "source",
-     "household"
+     "household",
+     "tradition"
     ],
     "title": "DocumentLinkTarget"
    },
@@ -16733,6 +20076,108 @@
     ],
     "title": "DuplicateCandidate"
    },
+   "DuplicateCheckIn": {
+    "properties": {
+     "names": {
+      "items": {
+       "$ref": "#/components/schemas/DuplicateNameIn"
+      },
+      "type": "array",
+      "maxItems": 5,
+      "minItems": 1,
+      "title": "Names"
+     },
+     "birth_year": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 2200.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Year"
+     },
+     "sex_at_birth": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 20
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sex At Birth"
+     },
+     "parent_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Parent Ids",
+      "default": []
+     },
+     "spouse_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Spouse Ids",
+      "default": []
+     },
+     "birth_place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Birth Place Id"
+     },
+     "exclude_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "title": "Exclude Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "names"
+    ],
+    "title": "DuplicateCheckIn",
+    "description": "The person about to be added, and who they will be linked to (ADR-0021 \u00a78)."
+   },
+   "DuplicateCheckOut": {
+    "properties": {
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/EntryDuplicateMatch"
+      },
+      "type": "array",
+      "title": "Candidates"
+     }
+    },
+    "type": "object",
+    "required": [
+     "candidates"
+    ],
+    "title": "DuplicateCheckOut"
+   },
    "DuplicateMatch": {
     "properties": {
      "person": {
@@ -16762,6 +20207,36 @@
      "reasons"
     ],
     "title": "DuplicateMatch"
+   },
+   "DuplicateNameIn": {
+    "properties": {
+     "given_name": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Given Name"
+     },
+     "surname": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Surname"
+     }
+    },
+    "type": "object",
+    "title": "DuplicateNameIn"
    },
    "EmailIn": {
     "properties": {
@@ -16797,6 +20272,36 @@
     },
     "type": "object",
     "title": "EndMembershipIn"
+   },
+   "EntryDuplicateMatch": {
+    "properties": {
+     "person": {
+      "$ref": "#/components/schemas/PersonSummary"
+     },
+     "score": {
+      "type": "number",
+      "title": "Score"
+     },
+     "likely": {
+      "type": "boolean",
+      "title": "Likely"
+     },
+     "reasons": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Reasons"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person",
+     "score",
+     "likely",
+     "reasons"
+    ],
+    "title": "EntryDuplicateMatch"
    },
    "EraseIn": {
     "properties": {
@@ -17388,6 +20893,10 @@
    },
    "EventOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -18032,6 +21541,30 @@
     ],
     "title": "FamilyOut"
    },
+   "FieldChange": {
+    "properties": {
+     "field": {
+      "type": "string",
+      "title": "Field"
+     },
+     "current": {
+      "title": "Current"
+     },
+     "proposed": {
+      "title": "Proposed"
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "field"
+    ],
+    "title": "FieldChange"
+   },
    "GenealogicalDate": {
     "properties": {
      "calendar": {
@@ -18182,6 +21715,78 @@
     "title": "GenealogicalTime",
     "description": "A time of day with explicit precision; approximate values are never presented as exact."
    },
+   "GeoAlias": {
+    "properties": {
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/GeoAliasKind"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     }
+    },
+    "type": "object",
+    "required": [
+     "name",
+     "kind"
+    ],
+    "title": "GeoAlias"
+   },
+   "GeoAliasKind": {
+    "type": "string",
+    "enum": [
+     "alternative",
+     "historical",
+     "curated"
+    ],
+    "title": "GeoAliasKind"
+   },
+   "GeoLevel": {
+    "type": "string",
+    "enum": [
+     "state",
+     "district",
+     "sub_district",
+     "village",
+     "urban_body"
+    ],
+    "title": "GeoLevel",
+    "description": "Local Government Directory unit levels loaded in R2 (ADR-0019 \u00a71)."
+   },
+   "GeoMatch": {
+    "properties": {
+     "reason": {
+      "type": "string",
+      "enum": [
+       "name",
+       "local_name",
+       "alias"
+      ],
+      "title": "Reason"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     }
+    },
+    "type": "object",
+    "required": [
+     "reason",
+     "text"
+    ],
+    "title": "GeoMatch"
+   },
    "GeoPoint": {
     "properties": {
      "latitude": {
@@ -18208,6 +21813,434 @@
      "precision"
     ],
     "title": "GeoPoint"
+   },
+   "GeoSnapshotInfo": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "activated_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Activated At"
+     },
+     "attribution": {
+      "type": "string",
+      "title": "Attribution"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "attribution"
+    ],
+    "title": "GeoSnapshotInfo"
+   },
+   "GeoUnitBrief": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "lgd_code": {
+      "type": "string",
+      "title": "Lgd Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "lgd_code",
+     "name_en"
+    ],
+    "title": "GeoUnitBrief"
+   },
+   "GeoUnitDetail": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "lgd_code": {
+      "type": "string",
+      "title": "Lgd Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "parent_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "parent_lgd_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Parent Lgd Code"
+     },
+     "state_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Code"
+     },
+     "district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Code"
+     },
+     "sub_district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District Code"
+     },
+     "sub_district_label": {
+      "type": "string",
+      "enum": [
+       "sub_district",
+       "tehsil",
+       "taluka",
+       "mandal",
+       "block",
+       "circle",
+       "subdivision"
+      ],
+      "title": "Sub District Label",
+      "default": "sub_district"
+     },
+     "ancestors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitBrief"
+      },
+      "type": "array",
+      "title": "Ancestors",
+      "default": []
+     },
+     "match": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoMatch"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "current",
+       "retired"
+      ],
+      "title": "Status"
+     },
+     "successors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Successors",
+      "default": []
+     },
+     "aliases": {
+      "items": {
+       "$ref": "#/components/schemas/GeoAlias"
+      },
+      "type": "array",
+      "title": "Aliases",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "lgd_code",
+     "name_en",
+     "status"
+    ],
+    "title": "GeoUnitDetail"
+   },
+   "GeoUnitOut": {
+    "properties": {
+     "level": {
+      "$ref": "#/components/schemas/GeoLevel"
+     },
+     "lgd_code": {
+      "type": "string",
+      "title": "Lgd Code"
+     },
+     "name_en": {
+      "type": "string",
+      "title": "Name En"
+     },
+     "name_local": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Local"
+     },
+     "local_script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Local Script"
+     },
+     "category": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category"
+     },
+     "parent_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "parent_lgd_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Parent Lgd Code"
+     },
+     "state_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Code"
+     },
+     "district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Code"
+     },
+     "sub_district_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District Code"
+     },
+     "sub_district_label": {
+      "type": "string",
+      "enum": [
+       "sub_district",
+       "tehsil",
+       "taluka",
+       "mandal",
+       "block",
+       "circle",
+       "subdivision"
+      ],
+      "title": "Sub District Label",
+      "default": "sub_district"
+     },
+     "ancestors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitBrief"
+      },
+      "type": "array",
+      "title": "Ancestors",
+      "default": []
+     },
+     "match": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoMatch"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "level",
+     "lgd_code",
+     "name_en"
+    ],
+    "title": "GeoUnitOut"
+   },
+   "GeoUnitResponse": {
+    "properties": {
+     "unit": {
+      "$ref": "#/components/schemas/GeoUnitDetail"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/GeoSnapshotInfo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "unit",
+     "snapshot"
+    ],
+    "title": "GeoUnitResponse"
+   },
+   "GeoUnitsPage": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/GeoSnapshotInfo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "snapshot"
+    ],
+    "title": "GeoUnitsPage"
    },
    "GrantCreate": {
     "properties": {
@@ -18552,6 +22585,9 @@
      "family_traditions",
      "language_traditions",
      "recorded_parent_name",
+     "devak",
+     "ancestral_occupation",
+     "family_language",
      "other"
     ],
     "title": "HeritageAttribute"
@@ -18861,6 +22897,11 @@
      "member_count": {
       "type": "integer",
       "title": "Member Count",
+      "default": 0
+     },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
       "default": 0
      },
      "created_at": {
@@ -19177,6 +23218,11 @@
      "member_count": {
       "type": "integer",
       "title": "Member Count",
+      "default": 0
+     },
+     "provisional_member_count": {
+      "type": "integer",
+      "title": "Provisional Member Count",
       "default": 0
      },
      "created_at": {
@@ -20192,6 +24238,380 @@
      "cancelled"
     ],
     "title": "JobStatus"
+   },
+   "KinshipOverrideIn": {
+    "properties": {
+     "pattern": {
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "^[a-z_]+(\\.[a-z_]+){0,5}(:(elder|younger))?$",
+      "title": "Pattern"
+     },
+     "lang": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}$",
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z_]{1,40}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "word": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Word"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "pattern",
+     "lang",
+     "word"
+    ],
+    "title": "KinshipOverrideIn"
+   },
+   "KinshipOverrideOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "pattern": {
+      "type": "string",
+      "title": "Pattern"
+     },
+     "lang": {
+      "type": "string",
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "word": {
+      "type": "string",
+      "title": "Word"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "pattern",
+     "lang",
+     "region",
+     "word",
+     "branch_id",
+     "revision",
+     "updated_at"
+    ],
+    "title": "KinshipOverrideOut"
+   },
+   "KinshipPackOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "lang": {
+      "type": "string",
+      "title": "Lang"
+     },
+     "region": {
+      "type": "string",
+      "title": "Region"
+     },
+     "name": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object",
+      "title": "Name"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "draft",
+       "reviewed"
+      ],
+      "title": "Status"
+     },
+     "in_use": {
+      "type": "boolean",
+      "title": "In Use",
+      "default": false
+     },
+     "reviewer": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewer"
+     },
+     "reviewed_on": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewed On"
+     },
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "licence": {
+      "type": "string",
+      "title": "Licence"
+     },
+     "term_count": {
+      "type": "integer",
+      "title": "Term Count"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "lang",
+     "region",
+     "name",
+     "status",
+     "source",
+     "licence",
+     "term_count"
+    ],
+    "title": "KinshipPackOut"
+   },
+   "KinshipPreferenceIn": {
+    "properties": {
+     "lang": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z_]{1,40}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     }
+    },
+    "type": "object",
+    "title": "KinshipPreferenceIn"
+   },
+   "KinshipPreferenceOut": {
+    "properties": {
+     "lang": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     }
+    },
+    "type": "object",
+    "required": [
+     "lang",
+     "region"
+    ],
+    "title": "KinshipPreferenceOut"
+   },
+   "KinshipTermOut": {
+    "properties": {
+     "pack": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pack"
+     },
+     "lang": {
+      "type": "string",
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "term": {
+      "type": "string",
+      "title": "Term"
+     },
+     "transliteration": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Transliteration"
+     },
+     "alternatives": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Alternatives",
+      "default": []
+     },
+     "basis": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "family_confirmed",
+         "birth_dates",
+         "unknown"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Basis"
+     },
+     "review_status": {
+      "type": "string",
+      "enum": [
+       "reviewed",
+       "unreviewed",
+       "family"
+      ],
+      "title": "Review Status"
+     },
+     "family_word": {
+      "type": "boolean",
+      "title": "Family Word",
+      "default": false
+     },
+     "pack_term": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pack Term"
+     },
+     "description": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Description"
+     }
+    },
+    "type": "object",
+    "required": [
+     "lang",
+     "term",
+     "review_status"
+    ],
+    "title": "KinshipTermOut",
+    "description": "A relationship word for the chain of a ``/relationship-path`` answer (ADR-0026 \u00a76)."
    },
    "LifeEventCategory": {
     "type": "string",
@@ -21245,6 +25665,16 @@
      "confidence": {
       "$ref": "#/components/schemas/Confidence",
       "default": "unknown"
+     },
+     "suggestion": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/NameSuggestionIn"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -21252,6 +25682,10 @@
    },
    "NameOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -21464,6 +25898,24 @@
      "confidence"
     ],
     "title": "NameOut"
+   },
+   "NameSuggestionIn": {
+    "properties": {
+     "method": {
+      "type": "string",
+      "enum": [
+       "lexicon",
+       "rules"
+      ],
+      "title": "Method"
+     }
+    },
+    "type": "object",
+    "required": [
+     "method"
+    ],
+    "title": "NameSuggestionIn",
+    "description": "Marks a name the user accepted from a transliteration suggestion (ADR-0025 \u00a75).\n\nThe server, not the client, records the provenance: origin ``calculation``, its own engine\nversion and the user as the one who confirmed it."
    },
    "NameType": {
     "type": "string",
@@ -21718,6 +26170,117 @@
     ],
     "title": "NotificationChannel"
    },
+   "NotificationKind": {
+    "type": "string",
+    "enum": [
+     "proposal_to_review",
+     "proposal_accepted",
+     "proposal_rejected",
+     "proposal_stale",
+     "challenge_opened",
+     "challenge_upheld",
+     "challenge_dismissed",
+     "proposal_comment",
+     "offer_accepted",
+     "offer_declined"
+    ],
+    "title": "NotificationKind"
+   },
+   "NotificationOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/NotificationKind"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "text": {
+      "type": "string",
+      "title": "Text"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "read": {
+      "type": "boolean",
+      "title": "Read"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "proposal_id",
+     "text",
+     "created_at",
+     "read"
+    ],
+    "title": "NotificationOut"
+   },
+   "NotificationsOut": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/NotificationOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "unread": {
+      "type": "integer",
+      "title": "Unread"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "unread"
+    ],
+    "title": "NotificationsOut"
+   },
+   "NotificationsReadIn": {
+    "properties": {
+     "ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 200,
+      "title": "Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "title": "NotificationsReadIn"
+   },
    "OcrLineOut": {
     "properties": {
      "line_no": {
@@ -21826,6 +26389,133 @@
      "engine"
     ],
     "title": "OcrTextOut"
+   },
+   "OfferIn": {
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "temple": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Temple"
+     }
+    },
+    "type": "object",
+    "title": "OfferIn"
+   },
+   "OfferOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "vocabulary_key": {
+      "type": "string",
+      "title": "Vocabulary Key"
+     },
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "aliases": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Aliases",
+      "default": []
+     },
+     "offer_status": {
+      "$ref": "#/components/schemas/OfferStatus"
+     },
+     "offered_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offered At"
+     },
+     "offer_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offer Note"
+     },
+     "offer_temple": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offer Temple"
+     },
+     "promoted_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Promoted Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "vocabulary_key",
+     "code",
+     "label",
+     "offer_status"
+    ],
+    "title": "OfferOut"
+   },
+   "OfferStatus": {
+    "type": "string",
+    "enum": [
+     "none",
+     "offered",
+     "accepted",
+     "declined"
+    ],
+    "title": "OfferStatus",
+    "description": "A family's own vocabulary entry offered to the common suggestion lists (\u00a74)."
    },
    "Page_AuditEventOut_": {
     "properties": {
@@ -21988,6 +26678,60 @@
      "items"
     ],
     "title": "Page[PlaceOut]"
+   },
+   "Page_ProposalSummary_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalSummary"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[ProposalSummary]"
+   },
+   "Page_RevisionOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/RevisionOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[RevisionOut]"
    },
    "Page_SourceOut_": {
     "properties": {
@@ -23665,6 +28409,27 @@
        }
       ]
      },
+     "is_provisional": {
+      "type": "boolean",
+      "title": "Is Provisional",
+      "default": false
+     },
+     "provisional_state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "needs_details",
+         "unverified",
+         "verified"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provisional State"
+     },
      "gender_identity": {
       "anyOf": [
        {
@@ -24003,6 +28768,27 @@
         "type": "null"
        }
       ]
+     },
+     "is_provisional": {
+      "type": "boolean",
+      "title": "Is Provisional",
+      "default": false
+     },
+     "provisional_state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "needs_details",
+         "unverified",
+         "verified"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provisional State"
      }
     },
     "type": "object",
@@ -24132,6 +28918,56 @@
     "type": "object",
     "title": "PersonUpdate"
    },
+   "PincodeOut": {
+    "properties": {
+     "pincode": {
+      "type": "string",
+      "title": "Pincode"
+     },
+     "offices": {
+      "items": {
+       "$ref": "#/components/schemas/PostOffice"
+      },
+      "type": "array",
+      "title": "Offices"
+     },
+     "states": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "States"
+     },
+     "districts": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Districts"
+     },
+     "sub_districts": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitOut"
+      },
+      "type": "array",
+      "title": "Sub Districts"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/GeoSnapshotInfo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "pincode",
+     "offices",
+     "states",
+     "districts",
+     "sub_districts",
+     "snapshot"
+    ],
+    "title": "PincodeOut",
+    "description": "Post offices for a PIN and the LGD units they suggest. Never a village (\u00a76)."
+   },
    "PlaceIn": {
     "properties": {
      "canonical_name": {
@@ -24221,6 +29057,16 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "locality": {
       "anyOf": [
@@ -24324,6 +29170,62 @@
      "canonical_name"
     ],
     "title": "PlaceIn"
+   },
+   "PlaceLgdNote": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "title": "Kind"
+     },
+     "since": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Since"
+     },
+     "unit": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoUnitOut"
+       },
+       {
+        "$ref": "#/components/schemas/GeoUnitBrief"
+       }
+      ],
+      "title": "Unit"
+     },
+     "previous_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Previous Name"
+     },
+     "successors": {
+      "items": {
+       "$ref": "#/components/schemas/GeoUnitBrief"
+      },
+      "type": "array",
+      "title": "Successors",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "unit"
+    ],
+    "title": "PlaceLgdNote",
+    "description": "The linked unit changed in LGD since it was picked. Informational: the place is unchanged."
    },
    "PlaceName": {
     "properties": {
@@ -24480,6 +29382,37 @@
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "lgd_snapshot_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lgd Snapshot Id"
+     },
+     "lgd_note": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PlaceLgdNote"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "locality": {
       "anyOf": [
@@ -24787,13 +29720,29 @@
      "lgd_code": {
       "anyOf": [
        {
-        "type": "string"
+        "type": "string",
+        "maxLength": 40
        },
        {
         "type": "null"
        }
       ],
       "title": "Lgd Code"
+     },
+     "lgd_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GeoLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "lgd_accept_current": {
+      "type": "boolean",
+      "title": "Lgd Accept Current",
+      "default": false
      },
      "locality": {
       "anyOf": [
@@ -24900,6 +29849,74 @@
     },
     "type": "object",
     "title": "PlaceUpdate"
+   },
+   "PostOffice": {
+    "properties": {
+     "office_name": {
+      "type": "string",
+      "title": "Office Name"
+     },
+     "office_type": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Office Type"
+     },
+     "delivery": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Delivery"
+     },
+     "district_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Name"
+     },
+     "state_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State Name"
+     },
+     "district_lgd_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District Lgd Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "office_name"
+    ],
+    "title": "PostOffice"
    },
    "PreferenceIn": {
     "properties": {
@@ -26194,6 +31211,174 @@
     "type": "object",
     "title": "PropertyUpdate"
    },
+   "ProposalIn": {
+    "properties": {
+     "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Rationale",
+      "default": ""
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ProposalItemIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Items"
+     },
+     "source_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "title": "Source Ids",
+      "default": []
+     },
+     "submit": {
+      "type": "boolean",
+      "title": "Submit",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "ProposalIn"
+   },
+   "ProposalItemIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "op": {
+      "$ref": "#/components/schemas/ProposalOp"
+     },
+     "target_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target Id"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "patch": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Patch",
+      "default": {}
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "op"
+    ],
+    "title": "ProposalItemIn"
+   },
+   "ProposalItemOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "op": {
+      "$ref": "#/components/schemas/ProposalOp"
+     },
+     "target_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Target Id"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "changes": {
+      "items": {
+       "$ref": "#/components/schemas/FieldChange"
+      },
+      "type": "array",
+      "title": "Changes"
+     },
+     "outdated": {
+      "type": "boolean",
+      "title": "Outdated",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "target_type",
+     "op",
+     "target_id",
+     "person_id",
+     "label",
+     "changes"
+    ],
+    "title": "ProposalItemOut"
+   },
+   "ProposalKind": {
+    "type": "string",
+    "enum": [
+     "change",
+     "challenge"
+    ],
+    "title": "ProposalKind"
+   },
+   "ProposalOp": {
+    "type": "string",
+    "enum": [
+     "create",
+     "update",
+     "delete"
+    ],
+    "title": "ProposalOp"
+   },
    "ProposalOut": {
     "properties": {
      "id": {
@@ -26397,6 +31582,110 @@
     ],
     "title": "ProposalStatus"
    },
+   "ProposalSummary": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ProposalKind"
+     },
+     "status": {
+      "$ref": "#/components/schemas/ChangeProposalStatus"
+     },
+     "proposer": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "person_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Label"
+     },
+     "family_subject": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "item_count": {
+      "type": "integer",
+      "title": "Item Count"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "submitted_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Submitted At"
+     },
+     "decided_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decided At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "status",
+     "proposer",
+     "person_id",
+     "item_count",
+     "created_at",
+     "submitted_at",
+     "decided_at"
+    ],
+    "title": "ProposalSummary"
+   },
    "ProvenanceOrigin": {
     "type": "string",
     "enum": [
@@ -26513,6 +31802,15 @@
     "type": "object",
     "title": "ProvidersOut"
    },
+   "ProvisionalState": {
+    "type": "string",
+    "enum": [
+     "needs_details",
+     "unverified",
+     "verified"
+    ],
+    "title": "ProvisionalState"
+   },
    "PublicMode": {
     "type": "string",
     "enum": [
@@ -26596,6 +31894,21 @@
      "display_name"
     ],
     "title": "RegisterIn"
+   },
+   "RejectIn": {
+    "properties": {
+     "note": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "required": [
+     "note"
+    ],
+    "title": "RejectIn"
    },
    "RelatedEventOut": {
     "properties": {
@@ -26849,6 +32162,10 @@
    },
    "RelationshipOut": {
     "properties": {
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState",
+      "default": "unreviewed"
+     },
      "id": {
       "type": "string",
       "format": "uuid",
@@ -27071,6 +32388,32 @@
        }
       ],
       "title": "Explanation"
+     },
+     "age_orders": {
+      "items": {
+       "$ref": "#/components/schemas/AgeOrderOut"
+      },
+      "type": "array",
+      "title": "Age Orders",
+      "default": []
+     },
+     "terms": {
+      "items": {
+       "$ref": "#/components/schemas/KinshipTermOut"
+      },
+      "type": "array",
+      "title": "Terms",
+      "default": []
+     },
+     "age_decision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AgeOrderOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -27224,6 +32567,61 @@
     },
     "type": "object",
     "title": "RelationshipUpdate"
+   },
+   "RelativeAgeOrderIn": {
+    "properties": {
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "relative_to_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Relative To Id"
+     },
+     "order": {
+      "type": "string",
+      "enum": [
+       "elder",
+       "younger"
+      ],
+      "title": "Order"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person_id",
+     "relative_to_id",
+     "order"
+    ],
+    "title": "RelativeAgeOrderIn"
+   },
+   "RelativeAgeOrderOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "elder_person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Elder Person Id"
+     },
+     "younger_person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Younger Person Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "elder_person_id",
+     "younger_person_id"
+    ],
+    "title": "RelativeAgeOrderOut"
    },
    "RelativeIn": {
     "properties": {
@@ -28065,6 +33463,35 @@
     ],
     "title": "ReprocessOut"
    },
+   "RevertOut": {
+    "properties": {
+     "outcome": {
+      "type": "string",
+      "enum": [
+       "applied",
+       "proposed"
+      ],
+      "title": "Outcome"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "outcome"
+    ],
+    "title": "RevertOut"
+   },
    "ReviewIn": {
     "properties": {
      "action": {
@@ -28140,6 +33567,221 @@
     ],
     "title": "ReviewIn"
    },
+   "ReviewPolicy": {
+    "type": "string",
+    "enum": [
+     "off",
+     "structure",
+     "all"
+    ],
+    "title": "ReviewPolicy",
+    "description": "Which direct writes need review by someone with change.review (ADR-0021 \u00a71)."
+   },
+   "ReviewPolicyIn": {
+    "properties": {
+     "review_policy": {
+      "$ref": "#/components/schemas/ReviewPolicy"
+     }
+    },
+    "type": "object",
+    "required": [
+     "review_policy"
+    ],
+    "title": "ReviewPolicyIn"
+   },
+   "ReviewState": {
+    "type": "string",
+    "enum": [
+     "unreviewed",
+     "family_reviewed",
+     "contested"
+    ],
+    "title": "ReviewState",
+    "description": "Family review of a fact. Separate from EvidenceStatus: approval is not evidence (\u00a76)."
+   },
+   "ReviewStateIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "family_reviewed",
+       "unreviewed"
+      ],
+      "title": "State"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "state"
+    ],
+    "title": "ReviewStateIn"
+   },
+   "ReviewStateOut": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState"
+     },
+     "review_state_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Review State At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "review_state"
+    ],
+    "title": "ReviewStateOut"
+   },
+   "ReviewTarget": {
+    "type": "string",
+    "enum": [
+     "person",
+     "name",
+     "event",
+     "relationship",
+     "assertion",
+     "tradition",
+     "kinship_word"
+    ],
+    "title": "ReviewTarget",
+    "description": "Record types that carry revisions and review state (and can be proposed or challenged)."
+   },
+   "RevisionChange": {
+    "properties": {
+     "field": {
+      "type": "string",
+      "title": "Field"
+     },
+     "before": {
+      "title": "Before"
+     },
+     "after": {
+      "title": "After"
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "field"
+    ],
+    "title": "RevisionChange"
+   },
+   "RevisionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "record_type": {
+      "$ref": "#/components/schemas/ReviewTarget"
+     },
+     "record_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Record Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "op": {
+      "$ref": "#/components/schemas/ProposalOp"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "actor": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "reviewer": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/UserRef"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "changes": {
+      "items": {
+       "$ref": "#/components/schemas/RevisionChange"
+      },
+      "type": "array",
+      "title": "Changes"
+     },
+     "revertible": {
+      "type": "boolean",
+      "title": "Revertible",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "record_type",
+     "record_id",
+     "revision",
+     "op",
+     "created_at",
+     "changes"
+    ],
+    "title": "RevisionOut"
+   },
    "Role": {
     "type": "string",
     "enum": [
@@ -28150,7 +33792,8 @@
      "RESEARCHER",
      "VIEWER",
      "DOCUMENT_CUSTODIAN",
-     "PROPERTY_CUSTODIAN"
+     "PROPERTY_CUSTODIAN",
+     "REVIEWER"
     ],
     "title": "Role"
    },
@@ -28391,6 +34034,551 @@
      "kind"
     ],
     "title": "SiblingOut"
+   },
+   "SmartAddCommitIn": {
+    "properties": {
+     "term": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Term"
+     },
+     "choices": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string",
+         "const": "new"
+        },
+        {
+         "type": "string",
+         "format": "uuid"
+        }
+       ]
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Choices",
+      "default": []
+     },
+     "new_person": {
+      "$ref": "#/components/schemas/PersonCreate"
+     },
+     "other_parent_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Other Parent Id"
+     },
+     "provisional_sex_at_birth": {
+      "items": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/SexAtBirth"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Provisional Sex At Birth",
+      "default": []
+     },
+     "relative_age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relative Age"
+     }
+    },
+    "type": "object",
+    "required": [
+     "term",
+     "new_person"
+    ],
+    "title": "SmartAddCommitIn"
+   },
+   "SmartAddCommitOut": {
+    "properties": {
+     "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Operation Id"
+     },
+     "person": {
+      "$ref": "#/components/schemas/PersonSummary"
+     },
+     "created_people": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Created People"
+     },
+     "relationships": {
+      "items": {
+       "$ref": "#/components/schemas/RelationshipOut"
+      },
+      "type": "array",
+      "title": "Relationships"
+     },
+     "relative_age_order_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Relative Age Order Ids",
+      "default": []
+     },
+     "undo_expires_in_seconds": {
+      "type": "integer",
+      "title": "Undo Expires In Seconds"
+     }
+    },
+    "type": "object",
+    "required": [
+     "operation_id",
+     "person",
+     "created_people",
+     "relationships",
+     "undo_expires_in_seconds"
+    ],
+    "title": "SmartAddCommitOut"
+   },
+   "SmartAddHopOut": {
+    "properties": {
+     "relation": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "sibling",
+       "spouse"
+      ],
+      "title": "Relation"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     }
+    },
+    "type": "object",
+    "required": [
+     "relation"
+    ],
+    "title": "SmartAddHopOut"
+   },
+   "SmartAddPlanIn": {
+    "properties": {
+     "term": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Term"
+     },
+     "choices": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string",
+         "const": "new"
+        },
+        {
+         "type": "string",
+         "format": "uuid"
+        }
+       ]
+      },
+      "type": "array",
+      "maxItems": 4,
+      "title": "Choices",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "term"
+    ],
+    "title": "SmartAddPlanIn"
+   },
+   "SmartAddPlanOut": {
+    "properties": {
+     "term": {
+      "type": "string",
+      "title": "Term"
+     },
+     "anchor": {
+      "$ref": "#/components/schemas/PersonSummary"
+     },
+     "steps": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddStepOut"
+      },
+      "type": "array",
+      "title": "Steps"
+     },
+     "complete": {
+      "type": "boolean",
+      "title": "Complete"
+     },
+     "target": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SmartAddTargetOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "preview": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddPreviewItem"
+      },
+      "type": "array",
+      "title": "Preview",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "term",
+     "anchor",
+     "steps",
+     "complete"
+    ],
+    "title": "SmartAddPlanOut"
+   },
+   "SmartAddPreviewItem": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "enum": [
+       "existing",
+       "provisional",
+       "new"
+      ],
+      "title": "Kind"
+     },
+     "person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "relation": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "parent",
+         "child",
+         "sibling",
+         "spouse"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation"
+     },
+     "link": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "parent",
+         "child",
+         "spouse",
+         "shared_parents",
+         "explicit_sibling"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Link"
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind"
+    ],
+    "title": "SmartAddPreviewItem"
+   },
+   "SmartAddStepOut": {
+    "properties": {
+     "index": {
+      "type": "integer",
+      "title": "Index"
+     },
+     "relation": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "sibling",
+       "spouse"
+      ],
+      "title": "Relation"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "from_person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Candidates",
+      "default": []
+     },
+     "hidden_candidates": {
+      "type": "integer",
+      "title": "Hidden Candidates",
+      "default": 0
+     },
+     "allow_new": {
+      "type": "boolean",
+      "title": "Allow New",
+      "default": true
+     },
+     "chosen": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "string",
+        "const": "new"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chosen"
+     }
+    },
+    "type": "object",
+    "required": [
+     "index",
+     "relation"
+    ],
+    "title": "SmartAddStepOut"
+   },
+   "SmartAddTargetOut": {
+    "properties": {
+     "relation": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "sibling",
+       "spouse"
+      ],
+      "title": "Relation"
+     },
+     "sex": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SexAtBirth"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "age": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "elder",
+         "younger"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Age"
+     },
+     "from_person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "link": {
+      "type": "string",
+      "enum": [
+       "parent",
+       "child",
+       "spouse",
+       "shared_parents",
+       "explicit_sibling"
+      ],
+      "title": "Link"
+     },
+     "shared_parents": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Shared Parents",
+      "default": []
+     },
+     "other_parent_options": {
+      "items": {
+       "$ref": "#/components/schemas/PersonSummary"
+      },
+      "type": "array",
+      "title": "Other Parent Options",
+      "default": []
+     },
+     "blocked": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Blocked"
+     }
+    },
+    "type": "object",
+    "required": [
+     "relation",
+     "link"
+    ],
+    "title": "SmartAddTargetOut"
+   },
+   "SmartAddTermOut": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "group": {
+      "type": "string",
+      "title": "Group"
+     },
+     "hops": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddHopOut"
+      },
+      "type": "array",
+      "title": "Hops"
+     },
+     "asks_relative_age": {
+      "type": "boolean",
+      "title": "Asks Relative Age",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "group",
+     "hops"
+    ],
+    "title": "SmartAddTermOut"
    },
    "SourceIn": {
     "properties": {
@@ -29810,6 +35998,182 @@
     ],
     "title": "TokenIn"
    },
+   "TraditionEntryIn": {
+    "properties": {
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Title"
+     },
+     "body": {
+      "type": "string",
+      "maxLength": 55000,
+      "title": "Body",
+      "default": ""
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Z][a-z]{3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel",
+      "default": "TREE_MEMBERS"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionLinkIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Links",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "title"
+    ],
+    "title": "TraditionEntryIn"
+   },
+   "TraditionEntryUpdate": {
+    "properties": {
+     "kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TraditionKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "body": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 55000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Body"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Z][a-z]{3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "links": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/TraditionLinkIn"
+        },
+        "type": "array",
+        "maxItems": 50
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Links"
+     }
+    },
+    "type": "object",
+    "title": "TraditionEntryUpdate"
+   },
    "TraditionIn": {
     "properties": {
      "tradition_type": {
@@ -29897,6 +36261,412 @@
     "title": "TraditionIn",
     "description": "Traditional genealogy record details (Bahi / Panda / temple register; PRS \u00a720)."
    },
+   "TraditionKind": {
+    "type": "string",
+    "enum": [
+     "ritual_guide",
+     "custom",
+     "song",
+     "recipe",
+     "story",
+     "other"
+    ],
+    "title": "TraditionKind"
+   },
+   "TraditionLinkIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/TraditionLinkTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id"
+    ],
+    "title": "TraditionLinkIn"
+   },
+   "TraditionLinkOut": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/TraditionLinkTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "label"
+    ],
+    "title": "TraditionLinkOut"
+   },
+   "TraditionLinkTarget": {
+    "type": "string",
+    "enum": [
+     "person",
+     "event",
+     "place"
+    ],
+    "title": "TraditionLinkTarget"
+   },
+   "TraditionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "excerpt": {
+      "type": "string",
+      "title": "Excerpt"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel"
+     },
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     },
+     "body": {
+      "type": "string",
+      "title": "Body"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionLinkOut"
+      },
+      "type": "array",
+      "title": "Links",
+      "default": []
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "created_by": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created By"
+     },
+     "can_edit": {
+      "type": "boolean",
+      "title": "Can Edit",
+      "default": false
+     },
+     "edit_needs_review": {
+      "type": "boolean",
+      "title": "Edit Needs Review",
+      "default": false
+     },
+     "can_withdraw": {
+      "type": "boolean",
+      "title": "Can Withdraw",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "title",
+     "excerpt",
+     "language",
+     "script",
+     "branch_id",
+     "privacy_level",
+     "author_name",
+     "updated_at",
+     "body",
+     "revision",
+     "review_state",
+     "created_at",
+     "created_by"
+    ],
+    "title": "TraditionOut"
+   },
+   "TraditionRevisionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "op": {
+      "type": "string",
+      "title": "Op"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "actor_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actor Name"
+     },
+     "reviewer_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewer Name"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "changed": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Changed"
+     },
+     "before": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Before"
+     },
+     "after": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "After"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "revision",
+     "op",
+     "created_at",
+     "actor_name",
+     "reviewer_name",
+     "proposal_id",
+     "changed",
+     "before",
+     "after"
+    ],
+    "title": "TraditionRevisionOut"
+   },
+   "TraditionSummaryOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "excerpt": {
+      "type": "string",
+      "title": "Excerpt"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel"
+     },
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "title",
+     "excerpt",
+     "language",
+     "script",
+     "branch_id",
+     "privacy_level",
+     "author_name",
+     "updated_at"
+    ],
+    "title": "TraditionSummaryOut"
+   },
+   "TraditionsOut": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionSummaryOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "TraditionsOut"
+   },
    "TransferOut": {
     "properties": {
      "event": {
@@ -29924,6 +36694,83 @@
      "event"
     ],
     "title": "TransferOut"
+   },
+   "TransliterateIn": {
+    "properties": {
+     "text": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Text"
+     },
+     "target_script": {
+      "type": "string",
+      "enum": [
+       "Deva",
+       "Latn"
+      ],
+      "title": "Target Script"
+     }
+    },
+    "type": "object",
+    "required": [
+     "text",
+     "target_script"
+    ],
+    "title": "TransliterateIn"
+   },
+   "TransliterateOut": {
+    "properties": {
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/TransliterationCandidate"
+      },
+      "type": "array",
+      "title": "Candidates"
+     },
+     "engine": {
+      "type": "string",
+      "title": "Engine"
+     },
+     "version": {
+      "type": "string",
+      "title": "Version"
+     },
+     "lexicon_version": {
+      "type": "string",
+      "title": "Lexicon Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "candidates",
+     "engine",
+     "version",
+     "lexicon_version"
+    ],
+    "title": "TransliterateOut"
+   },
+   "TransliterationCandidate": {
+    "properties": {
+     "text": {
+      "type": "string",
+      "title": "Text"
+     },
+     "method": {
+      "type": "string",
+      "enum": [
+       "lexicon",
+       "rules"
+      ],
+      "title": "Method"
+     }
+    },
+    "type": "object",
+    "required": [
+     "text",
+     "method"
+    ],
+    "title": "TransliterationCandidate"
    },
    "TreeCreate": {
     "properties": {
@@ -29984,6 +36831,32 @@
      "default_person_privacy": {
       "$ref": "#/components/schemas/PrivacyLevel"
      },
+     "review_policy": {
+      "$ref": "#/components/schemas/ReviewPolicy",
+      "default": "off"
+     },
+     "kinship_lang": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Lang"
+     },
+     "kinship_region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Region"
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -30042,6 +36915,47 @@
     ],
     "title": "TreeOut"
    },
+   "TreeTermIn": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Label"
+     },
+     "aliases": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "maxItems": 10,
+      "title": "Aliases",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "label"
+    ],
+    "title": "TreeTermIn"
+   },
+   "TreeTermOut": {
+    "properties": {
+     "term": {
+      "$ref": "#/components/schemas/VocabularyTermOut"
+     },
+     "created": {
+      "type": "boolean",
+      "title": "Created"
+     }
+    },
+    "type": "object",
+    "required": [
+     "term",
+     "created"
+    ],
+    "title": "TreeTermOut"
+   },
    "TreeUpdate": {
     "properties": {
      "name": {
@@ -30088,6 +37002,30 @@
         "type": "null"
        }
       ]
+     },
+     "kinship_lang": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Lang"
+     },
+     "kinship_region": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z_]{1,40}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Region"
      }
     },
     "type": "object",
@@ -30204,6 +37142,29 @@
     ],
     "title": "UpcomingOut"
    },
+   "UpholdIn": {
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "mark_disputed": {
+      "type": "boolean",
+      "title": "Mark Disputed",
+      "default": true
+     }
+    },
+    "type": "object",
+    "title": "UpholdIn"
+   },
    "UserOut": {
     "properties": {
      "id": {
@@ -30222,6 +37183,28 @@
      "preferred_language": {
       "type": "string",
       "title": "Preferred Language"
+     },
+     "kinship_lang": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Lang"
+     },
+     "kinship_region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Region"
      },
      "created_at": {
       "type": "string",
@@ -30253,6 +37236,31 @@
      "created_at"
     ],
     "title": "UserOut"
+   },
+   "UserRef": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "display_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Display Name"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id"
+    ],
+    "title": "UserRef"
    },
    "ValidationError": {
     "properties": {
@@ -30670,6 +37678,188 @@
      "profile_status"
     ],
     "title": "VizPerson"
+   },
+   "VocabularyOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "description": {
+      "type": "string",
+      "title": "Description"
+     },
+     "version": {
+      "type": "integer",
+      "title": "Version"
+     },
+     "source": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source"
+     },
+     "licence": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Licence"
+     },
+     "allows_custom": {
+      "type": "boolean",
+      "title": "Allows Custom"
+     },
+     "term_count": {
+      "type": "integer",
+      "title": "Term Count",
+      "default": 0
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "description",
+     "version",
+     "allows_custom"
+    ],
+    "title": "VocabularyOut"
+   },
+   "VocabularyTermOut": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "labels": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object",
+      "title": "Labels"
+     },
+     "aliases": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Aliases",
+      "default": []
+     },
+     "parent_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Parent Code"
+     },
+     "attributes": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Attributes",
+      "default": {}
+     },
+     "status": {
+      "$ref": "#/components/schemas/VocabularyTermStatus"
+     },
+     "origin": {
+      "type": "string",
+      "enum": [
+       "global",
+       "family"
+      ],
+      "title": "Origin",
+      "default": "global"
+     },
+     "id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Id"
+     },
+     "offer_status": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/OfferStatus"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "promoted_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Promoted Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "label",
+     "labels",
+     "status"
+    ],
+    "title": "VocabularyTermOut"
+   },
+   "VocabularyTermStatus": {
+    "type": "string",
+    "enum": [
+     "draft",
+     "reviewed",
+     "retired"
+    ],
+    "title": "VocabularyTermStatus",
+    "description": "Master-data term lifecycle (ADR-0018). Retired terms stay resolvable for stored references."
+   },
+   "VocabularyTermsOut": {
+    "properties": {
+     "vocabulary": {
+      "$ref": "#/components/schemas/VocabularyOut"
+     },
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/VocabularyTermOut"
+      },
+      "type": "array",
+      "title": "Items"
+     }
+    },
+    "type": "object",
+    "required": [
+     "vocabulary",
+     "items"
+    ],
+    "title": "VocabularyTermsOut"
    }
   }
  }

@@ -870,6 +870,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/relative-age-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Relative Age
+         * @description Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). It takes
+         *     precedence over birth dates when kinship terms depend on age (Tau vs Chacha).
+         */
+        post: operations["record_relative_age_api_v1_trees__tree_id__relative_age_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/relative-age-orders/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Relative Age
+         * @description Remove a recorded age order (to correct a mistake).
+         */
+        delete: operations["delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/relationship-path": {
         parameters: {
             query?: never;
@@ -881,6 +922,673 @@ export interface paths {
         get: operations["relationship_path_api_v1_trees__tree_id__relationship_path_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/smart-add/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Terms
+         * @description Kinship terms Smart Add understands, each as a path of basic edges (ADR-0020).
+         */
+        get: operations["list_terms_api_v1_trees__tree_id__smart_add_terms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/smart-add/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan
+         * @description Preview: candidates for each step and every record that would be created. Writes nothing.
+         */
+        post: operations["plan_api_v1_trees__tree_id__people__person_id__smart_add_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/smart-add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Commit
+         * @description Create the confirmed plan in one transaction; returns an operation id for undo.
+         */
+        post: operations["commit_api_v1_trees__tree_id__people__person_id__smart_add_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/smart-add/{operation_id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo
+         * @description Undo a Smart Add within 30 minutes, by the same user, if nothing else has changed since.
+         */
+        post: operations["undo_api_v1_trees__tree_id__smart_add__operation_id__undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vocabularies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Vocabularies
+         * @description Extensible vocabularies (ADR-0018). Controlled values are not listed here.
+         */
+        get: operations["list_vocabularies_api_v1_vocabularies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vocabularies/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vocabulary Terms
+         * @description Global suggestions, searchable by label in any script, alias or spelling. Sends a weak ETag.
+         */
+        get: operations["vocabulary_terms_api_v1_vocabularies__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/vocabularies/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tree Vocabulary Terms
+         * @description Global suggestions plus this family's own entries.
+         */
+        get: operations["tree_vocabulary_terms_api_v1_trees__tree_id__vocabularies__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/vocabularies/{key}/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Tree Term
+         * @description Add the family's own entry ("Add my own"); an existing matching entry is returned instead.
+         */
+        post: operations["add_tree_term_api_v1_trees__tree_id__vocabularies__key__terms_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/vocabularies/{key}/terms/{code}/offer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Offer Tree Term
+         * @description Offer one of the family's own entries to the common suggestion lists (tree admin; ADR-0026 §4).
+         *
+         *     Operators review offers; an accepted entry becomes a shared term through a code-reviewed pack
+         *     change, and the shared term never names the family.
+         */
+        post: operations["offer_tree_term_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_post"];
+        /**
+         * Withdraw Offer
+         * @description Withdraw a pending offer (tree admin).
+         */
+        delete: operations["withdraw_offer_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/vocabulary-offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Offers
+         * @description This family's offered entries and what became of them (tree admin).
+         */
+        get: operations["list_offers_api_v1_trees__tree_id__vocabulary_offers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kinship/packs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kinship Packs
+         * @description Packs of relationship words a reader may choose (reviewed ones; drafts for reviewers).
+         */
+        get: operations["kinship_packs_api_v1_kinship_packs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/kinship-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Kinship Preference
+         * @description Which relationship words this reader sees, in every tree; null follows the tree's default.
+         */
+        put: operations["set_kinship_preference_api_v1_me_kinship_preference_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/kinship-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Kinship Overrides
+         * @description The family's own words for relationships ("Bhayo" for bhabhi).
+         */
+        get: operations["list_kinship_overrides_api_v1_trees__tree_id__kinship_overrides_get"];
+        /**
+         * Put Kinship Override
+         * @description Record the family's word for a relationship, tree-wide or for one branch (family.write;
+         *     under family review when the tree reviews all changes).
+         */
+        put: operations["put_kinship_override_api_v1_trees__tree_id__kinship_overrides_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/kinship-overrides/{override_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Kinship Override */
+        delete: operations["delete_kinship_override_api_v1_trees__tree_id__kinship_overrides__override_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transliterate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transliterate */
+        post: operations["transliterate_api_v1_transliterate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Units */
+        get: operations["list_units_api_v1_geo_units_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/units/{lgd_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Unit */
+        get: operations["get_unit_api_v1_geo_units__lgd_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/pincodes/{pin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pincode */
+        get: operations["get_pincode_api_v1_geo_pincodes__pin__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/review-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Review Policy */
+        put: operations["set_review_policy_api_v1_trees__tree_id__review_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proposals */
+        get: operations["list_proposals_api_v1_trees__tree_id__proposals_get"];
+        put?: never;
+        /** Create Proposal */
+        post: operations["create_proposal_api_v1_trees__tree_id__proposals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proposal */
+        get: operations["get_proposal_api_v1_trees__tree_id__proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Proposal */
+        post: operations["submit_proposal_api_v1_trees__tree_id__proposals__proposal_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw Proposal */
+        post: operations["withdraw_proposal_api_v1_trees__tree_id__proposals__proposal_id__withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Proposal */
+        post: operations["approve_proposal_api_v1_trees__tree_id__proposals__proposal_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Proposal */
+        post: operations["reject_proposal_api_v1_trees__tree_id__proposals__proposal_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/rebase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rebase Proposal */
+        post: operations["rebase_proposal_api_v1_trees__tree_id__proposals__proposal_id__rebase_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comment */
+        post: operations["comment_api_v1_trees__tree_id__proposals__proposal_id__comments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Challenge */
+        post: operations["create_challenge_api_v1_trees__tree_id__challenges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/uphold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Uphold */
+        post: operations["uphold_api_v1_trees__tree_id__proposals__proposal_id__uphold_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss */
+        post: operations["dismiss_api_v1_trees__tree_id__proposals__proposal_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/review-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Review State */
+        post: operations["set_review_state_api_v1_trees__tree_id__review_state_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Person History */
+        get: operations["person_history_api_v1_trees__tree_id__people__person_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/revisions/{revision_id}/revert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revert */
+        post: operations["revert_api_v1_trees__tree_id__revisions__revision_id__revert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notifications */
+        get: operations["notifications_api_v1_trees__tree_id__inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/inbox/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Notifications Read */
+        post: operations["notifications_read_api_v1_trees__tree_id__inbox_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/duplicates/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Duplicates
+         * @description Is the person about to be added already in the tree? Visible people only; nothing is merged.
+         */
+        post: operations["check_duplicates_api_v1_trees__tree_id__duplicates_check_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1613,6 +2321,70 @@ export interface paths {
         head?: never;
         /** Update Assertion */
         patch: operations["update_assertion_api_v1_trees__tree_id__assertions__assertion_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/traditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Traditions
+         * @description Entries the reader may see, newest first; ``q`` searches titles and text in any script.
+         */
+        get: operations["list_traditions_api_v1_trees__tree_id__traditions_get"];
+        put?: never;
+        /** Create Tradition */
+        post: operations["create_tradition_api_v1_trees__tree_id__traditions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/traditions/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Tradition */
+        get: operations["get_tradition_api_v1_trees__tree_id__traditions__entry_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Withdraw Tradition
+         * @description Withdraw an entry (author or tree admin); its history is kept.
+         */
+        delete: operations["withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Tradition
+         * @description Edit an entry. Someone else's entry follows the tree's review policy (409 review_required:
+         *     send it as a proposed change).
+         */
+        patch: operations["update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/traditions/{entry_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tradition History */
+        get: operations["tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/trees/{tree_id}/branches": {
@@ -2856,6 +3628,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AgeOrderOut
+         * @description Whether the person reached by a sibling word in ``chain`` is older or younger than the person
+         *     that word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 §5).
+         */
+        AgeOrderOut: {
+            /** Chain Index */
+            chain_index: number;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Relative To Id
+             * Format: uuid
+             */
+            relative_to_id: string;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "elder" | "younger" | "unknown";
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "family_confirmed" | "birth_dates" | "unknown";
+            /** Record Id */
+            record_id?: string | null;
+            /**
+             * Dates Disagree
+             * @default false
+             */
+            dates_disagree?: boolean;
+        };
         /** AllocationIn */
         AllocationIn: {
             /**
@@ -2944,6 +3752,8 @@ export interface components {
         };
         /** AssertionOut */
         AssertionOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -3426,6 +4236,11 @@ export interface components {
              */
             member_count?: number;
             /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
+            /**
              * Created At
              * Format: date-time
              */
@@ -3492,6 +4307,11 @@ export interface components {
              */
             member_count?: number;
             /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
+            /**
              * Created At
              * Format: date-time
              */
@@ -3509,6 +4329,101 @@ export interface components {
             parent_branch_id?: string | null;
             descent_rule?: components["schemas"]["DescentRule"] | null;
         };
+        /** ChallengeIn */
+        ChallengeIn: {
+            target_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Rationale */
+            rationale: string;
+            /**
+             * Items
+             * @default []
+             */
+            items?: components["schemas"]["ProposalItemIn"][];
+            /**
+             * Source Ids
+             * @default []
+             */
+            source_ids?: string[];
+        };
+        /** ChangeProposalOut */
+        ChangeProposalOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ProposalKind"];
+            status: components["schemas"]["ChangeProposalStatus"];
+            /** Rationale */
+            rationale: string;
+            proposer: components["schemas"]["UserRef"] | null;
+            /** Person Id */
+            person_id: string | null;
+            /** Person Label */
+            person_label?: string | null;
+            family_subject?: components["schemas"]["ReviewTarget"] | null;
+            target_type?: components["schemas"]["ReviewTarget"] | null;
+            /** Target Id */
+            target_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            decided_by?: components["schemas"]["UserRef"] | null;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Decision Note */
+            decision_note?: string | null;
+            /** Stale Reason */
+            stale_reason?: string | null;
+            /** Supersedes Id */
+            supersedes_id?: string | null;
+            /**
+             * Source Ids
+             * @default []
+             */
+            source_ids?: string[];
+            /**
+             * Items
+             * @default []
+             */
+            items?: components["schemas"]["ProposalItemOut"][];
+            /**
+             * Comments
+             * @default []
+             */
+            comments?: components["schemas"]["CommentOut"][];
+            /**
+             * Can Decide
+             * @default false
+             */
+            can_decide?: boolean;
+            /** Cannot Decide Reason */
+            cannot_decide_reason?: string | null;
+            /**
+             * Can Withdraw
+             * @default false
+             */
+            can_withdraw?: boolean;
+            /**
+             * Can Rebase
+             * @default false
+             */
+            can_rebase?: boolean;
+        };
+        /**
+         * ChangeProposalStatus
+         * @enum {string}
+         */
+        ChangeProposalStatus: "draft" | "awaiting_review" | "accepted" | "rejected" | "withdrawn" | "stale";
         /** ChannelsOut */
         ChannelsOut: {
             /** Email */
@@ -3584,7 +4499,7 @@ export interface components {
          * CitationTarget
          * @enum {string}
          */
-        CitationTarget: "person" | "name_record" | "event" | "relationship" | "assertion" | "astrology_profile" | "property" | "land_parcel" | "property_interest" | "property_event" | "household";
+        CitationTarget: "person" | "name_record" | "event" | "relationship" | "assertion" | "astrology_profile" | "property" | "land_parcel" | "property_interest" | "property_event" | "household" | "tradition";
         /** ClaimIn */
         ClaimIn: {
             /** Message */
@@ -3801,6 +4716,27 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** CommentIn */
+        CommentIn: {
+            /** Body */
+            body: string;
+        };
+        /** CommentOut */
+        CommentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            author: components["schemas"]["UserRef"] | null;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** CommitIn */
         CommitIn: {
             /** Decisions */
@@ -3933,6 +4869,11 @@ export interface components {
          * @enum {string}
          */
         DatePrecision: "exact" | "day_unknown" | "month_unknown" | "year_only" | "circa" | "before" | "after" | "range" | "unknown";
+        /** DecisionIn */
+        DecisionIn: {
+            /** Note */
+            note?: string | null;
+        };
         /** DeliveryOut */
         DeliveryOut: {
             /**
@@ -4033,7 +4974,7 @@ export interface components {
          * DocumentLinkTarget
          * @enum {string}
          */
-        DocumentLinkTarget: "person" | "event" | "relationship" | "place" | "property" | "land_parcel" | "property_event" | "source" | "household";
+        DocumentLinkTarget: "person" | "event" | "relationship" | "place" | "property" | "land_parcel" | "property_event" | "source" | "household" | "tradition";
         /** DocumentOut */
         DocumentOut: {
             /**
@@ -4179,6 +5120,40 @@ export interface components {
             /** Reasons */
             reasons: string[];
         };
+        /**
+         * DuplicateCheckIn
+         * @description The person about to be added, and who they will be linked to (ADR-0021 §8).
+         */
+        DuplicateCheckIn: {
+            /** Names */
+            names: components["schemas"]["DuplicateNameIn"][];
+            /** Birth Year */
+            birth_year?: number | null;
+            /** Sex At Birth */
+            sex_at_birth?: string | null;
+            /**
+             * Parent Ids
+             * @default []
+             */
+            parent_ids?: string[];
+            /**
+             * Spouse Ids
+             * @default []
+             */
+            spouse_ids?: string[];
+            /** Birth Place Id */
+            birth_place_id?: string | null;
+            /**
+             * Exclude Ids
+             * @default []
+             */
+            exclude_ids?: string[];
+        };
+        /** DuplicateCheckOut */
+        DuplicateCheckOut: {
+            /** Candidates */
+            candidates: components["schemas"]["EntryDuplicateMatch"][];
+        };
         /** DuplicateMatch */
         DuplicateMatch: {
             person: components["schemas"]["PersonSummary"];
@@ -4188,6 +5163,13 @@ export interface components {
             outcome: string;
             /** Reasons */
             reasons: string[];
+        };
+        /** DuplicateNameIn */
+        DuplicateNameIn: {
+            /** Given Name */
+            given_name?: string | null;
+            /** Surname */
+            surname?: string | null;
         };
         /** EmailIn */
         EmailIn: {
@@ -4205,6 +5187,16 @@ export interface components {
              * @default false
              */
             delete?: boolean;
+        };
+        /** EntryDuplicateMatch */
+        EntryDuplicateMatch: {
+            person: components["schemas"]["PersonSummary"];
+            /** Score */
+            score: number;
+            /** Likely */
+            likely: boolean;
+            /** Reasons */
+            reasons: string[];
         };
         /** EraseIn */
         EraseIn: {
@@ -4378,6 +5370,8 @@ export interface components {
         };
         /** EventOut */
         EventOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -4521,6 +5515,20 @@ export interface components {
             /** Siblings */
             siblings: components["schemas"]["SiblingOut"][];
         };
+        /** FieldChange */
+        FieldChange: {
+            /** Field */
+            field: string;
+            /** Current */
+            current?: unknown;
+            /** Proposed */
+            proposed?: unknown;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+        };
         /** GenealogicalDate */
         GenealogicalDate: {
             /** @default gregorian */
@@ -4561,6 +5569,35 @@ export interface components {
             /** Original Text */
             original_text?: string | null;
         };
+        /** GeoAlias */
+        GeoAlias: {
+            /** Name */
+            name: string;
+            kind: components["schemas"]["GeoAliasKind"];
+            /** Script */
+            script?: string | null;
+        };
+        /**
+         * GeoAliasKind
+         * @enum {string}
+         */
+        GeoAliasKind: "alternative" | "historical" | "curated";
+        /**
+         * GeoLevel
+         * @description Local Government Directory unit levels loaded in R2 (ADR-0019 §1).
+         * @enum {string}
+         */
+        GeoLevel: "state" | "district" | "sub_district" | "village" | "urban_body";
+        /** GeoMatch */
+        GeoMatch: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "name" | "local_name" | "alias";
+            /** Text */
+            text: string;
+        };
         /** GeoPoint */
         GeoPoint: {
             /** Latitude */
@@ -4573,6 +5610,125 @@ export interface components {
              * @default false
              */
             coarsened?: boolean;
+        };
+        /** GeoSnapshotInfo */
+        GeoSnapshotInfo: {
+            /** Id */
+            id: string;
+            /** Activated At */
+            activated_at?: string | null;
+            /** Attribution */
+            attribution: string;
+        };
+        /** GeoUnitBrief */
+        GeoUnitBrief: {
+            level: components["schemas"]["GeoLevel"];
+            /** Lgd Code */
+            lgd_code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+        };
+        /** GeoUnitDetail */
+        GeoUnitDetail: {
+            level: components["schemas"]["GeoLevel"];
+            /** Lgd Code */
+            lgd_code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+            /** Category */
+            category?: string | null;
+            parent_level?: components["schemas"]["GeoLevel"] | null;
+            /** Parent Lgd Code */
+            parent_lgd_code?: string | null;
+            /** State Code */
+            state_code?: string | null;
+            /** District Code */
+            district_code?: string | null;
+            /** Sub District Code */
+            sub_district_code?: string | null;
+            /**
+             * Sub District Label
+             * @default sub_district
+             * @enum {string}
+             */
+            sub_district_label?: "sub_district" | "tehsil" | "taluka" | "mandal" | "block" | "circle" | "subdivision";
+            /**
+             * Ancestors
+             * @default []
+             */
+            ancestors?: components["schemas"]["GeoUnitBrief"][];
+            match?: components["schemas"]["GeoMatch"] | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "current" | "retired";
+            /**
+             * Successors
+             * @default []
+             */
+            successors?: components["schemas"]["GeoUnitOut"][];
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: components["schemas"]["GeoAlias"][];
+        };
+        /** GeoUnitOut */
+        GeoUnitOut: {
+            level: components["schemas"]["GeoLevel"];
+            /** Lgd Code */
+            lgd_code: string;
+            /** Name En */
+            name_en: string;
+            /** Name Local */
+            name_local?: string | null;
+            /** Local Script */
+            local_script?: string | null;
+            /** Category */
+            category?: string | null;
+            parent_level?: components["schemas"]["GeoLevel"] | null;
+            /** Parent Lgd Code */
+            parent_lgd_code?: string | null;
+            /** State Code */
+            state_code?: string | null;
+            /** District Code */
+            district_code?: string | null;
+            /** Sub District Code */
+            sub_district_code?: string | null;
+            /**
+             * Sub District Label
+             * @default sub_district
+             * @enum {string}
+             */
+            sub_district_label?: "sub_district" | "tehsil" | "taluka" | "mandal" | "block" | "circle" | "subdivision";
+            /**
+             * Ancestors
+             * @default []
+             */
+            ancestors?: components["schemas"]["GeoUnitBrief"][];
+            match?: components["schemas"]["GeoMatch"] | null;
+        };
+        /** GeoUnitResponse */
+        GeoUnitResponse: {
+            unit: components["schemas"]["GeoUnitDetail"];
+            snapshot: components["schemas"]["GeoSnapshotInfo"];
+        };
+        /** GeoUnitsPage */
+        GeoUnitsPage: {
+            /** Items */
+            items: components["schemas"]["GeoUnitOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            snapshot: components["schemas"]["GeoSnapshotInfo"];
         };
         /** GrantCreate */
         GrantCreate: {
@@ -4726,7 +5882,7 @@ export interface components {
          * HeritageAttribute
          * @enum {string}
          */
-        HeritageAttribute: "gotra" | "pravara" | "kula_or_vamsha" | "community" | "jati_or_subgroup" | "religion" | "ancestral_village" | "ancestral_house_name" | "tharavad_or_equivalent" | "kuladevata" | "kuladevi" | "temple" | "family_traditions" | "language_traditions" | "recorded_parent_name" | "other";
+        HeritageAttribute: "gotra" | "pravara" | "kula_or_vamsha" | "community" | "jati_or_subgroup" | "religion" | "ancestral_village" | "ancestral_house_name" | "tharavad_or_equivalent" | "kuladevata" | "kuladevi" | "temple" | "family_traditions" | "language_traditions" | "recorded_parent_name" | "devak" | "ancestral_occupation" | "family_language" | "other";
         /** HeritageAttributeView */
         HeritageAttributeView: {
             /** Attribute */
@@ -4847,6 +6003,11 @@ export interface components {
              */
             member_count?: number;
             /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
+            /**
              * Created At
              * Format: date-time
              */
@@ -4949,6 +6110,11 @@ export interface components {
              * @default 0
              */
             member_count?: number;
+            /**
+             * Provisional Member Count
+             * @default 0
+             */
+            provisional_member_count?: number;
             /**
              * Created At
              * Format: date-time
@@ -5259,6 +6425,128 @@ export interface components {
          * @enum {string}
          */
         JobStatus: "pending" | "running" | "ready" | "committed" | "completed" | "failed" | "cancelled";
+        /** KinshipOverrideIn */
+        KinshipOverrideIn: {
+            /** Pattern */
+            pattern: string;
+            /** Lang */
+            lang: string;
+            /** Region */
+            region?: string | null;
+            /** Word */
+            word: string;
+            /** Branch Id */
+            branch_id?: string | null;
+        };
+        /** KinshipOverrideOut */
+        KinshipOverrideOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Pattern */
+            pattern: string;
+            /** Lang */
+            lang: string;
+            /** Region */
+            region: string | null;
+            /** Word */
+            word: string;
+            /** Branch Id */
+            branch_id: string | null;
+            /** Revision */
+            revision: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** KinshipPackOut */
+        KinshipPackOut: {
+            /** Key */
+            key: string;
+            /** Lang */
+            lang: string;
+            /** Region */
+            region: string;
+            /** Name */
+            name: {
+                [key: string]: string;
+            };
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "reviewed";
+            /**
+             * In Use
+             * @default false
+             */
+            in_use?: boolean;
+            /** Reviewer */
+            reviewer?: string | null;
+            /** Reviewed On */
+            reviewed_on?: string | null;
+            /** Source */
+            source: string;
+            /** Licence */
+            licence: string;
+            /** Term Count */
+            term_count: number;
+        };
+        /** KinshipPreferenceIn */
+        KinshipPreferenceIn: {
+            /** Lang */
+            lang?: string | null;
+            /** Region */
+            region?: string | null;
+        };
+        /** KinshipPreferenceOut */
+        KinshipPreferenceOut: {
+            /** Lang */
+            lang: string | null;
+            /** Region */
+            region: string | null;
+        };
+        /**
+         * KinshipTermOut
+         * @description A relationship word for the chain of a ``/relationship-path`` answer (ADR-0026 §6).
+         */
+        KinshipTermOut: {
+            /** Pack */
+            pack?: string | null;
+            /** Lang */
+            lang: string;
+            /** Region */
+            region?: string | null;
+            /** Term */
+            term: string;
+            /** Transliteration */
+            transliteration?: string | null;
+            /**
+             * Alternatives
+             * @default []
+             */
+            alternatives?: string[];
+            /** Basis */
+            basis?: ("family_confirmed" | "birth_dates" | "unknown") | null;
+            /**
+             * Review Status
+             * @enum {string}
+             */
+            review_status: "reviewed" | "unreviewed" | "family";
+            /**
+             * Family Word
+             * @default false
+             */
+            family_word?: boolean;
+            /** Pack Term */
+            pack_term?: string | null;
+            /** Description */
+            description?: string | null;
+        };
         /**
          * LifeEventCategory
          * @description Fine-grained life-event vocabulary layered on the structural ``EventType`` (ADR-0015).
@@ -5652,9 +6940,12 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"];
             /** @default unknown */
             confidence?: components["schemas"]["Confidence"];
+            suggestion?: components["schemas"]["NameSuggestionIn"] | null;
         };
         /** NameOut */
         NameOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -5701,6 +6992,20 @@ export interface components {
              * @default
              */
             display?: string;
+        };
+        /**
+         * NameSuggestionIn
+         * @description Marks a name the user accepted from a transliteration suggestion (ADR-0025 §5).
+         *
+         *     The server, not the client, records the provenance: origin ``calculation``, its own engine
+         *     version and the user as the one who confirmed it.
+         */
+        NameSuggestionIn: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "lexicon" | "rules";
         };
         /**
          * NameType
@@ -5765,6 +7070,48 @@ export interface components {
          * @enum {string}
          */
         NotificationChannel: "email" | "sms" | "whatsapp";
+        /**
+         * NotificationKind
+         * @enum {string}
+         */
+        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined";
+        /** NotificationOut */
+        NotificationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["NotificationKind"];
+            /** Proposal Id */
+            proposal_id: string | null;
+            /** Text */
+            text: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Read */
+            read: boolean;
+        };
+        /** NotificationsOut */
+        NotificationsOut: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread */
+            unread: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** NotificationsReadIn */
+        NotificationsReadIn: {
+            /**
+             * Ids
+             * @default []
+             */
+            ids?: string[];
+        };
         /** OcrLineOut */
         OcrLineOut: {
             /** Line No */
@@ -5806,6 +7153,47 @@ export interface components {
              */
             note?: string;
         };
+        /** OfferIn */
+        OfferIn: {
+            /** Note */
+            note?: string | null;
+            /** Temple */
+            temple?: string | null;
+        };
+        /** OfferOut */
+        OfferOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Vocabulary Key */
+            vocabulary_key: string;
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+            offer_status: components["schemas"]["OfferStatus"];
+            /** Offered At */
+            offered_at?: string | null;
+            /** Offer Note */
+            offer_note?: string | null;
+            /** Offer Temple */
+            offer_temple?: string | null;
+            /** Promoted Code */
+            promoted_code?: string | null;
+        };
+        /**
+         * OfferStatus
+         * @description A family's own vocabulary entry offered to the common suggestion lists (§4).
+         * @enum {string}
+         */
+        OfferStatus: "none" | "offered" | "accepted" | "declined";
         /** Page[AuditEventOut] */
         Page_AuditEventOut_: {
             /** Items */
@@ -5845,6 +7233,20 @@ export interface components {
         Page_PlaceOut_: {
             /** Items */
             items: components["schemas"]["PlaceOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[ProposalSummary] */
+        Page_ProposalSummary_: {
+            /** Items */
+            items: components["schemas"]["ProposalSummary"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[RevisionOut] */
+        Page_RevisionOut_: {
+            /** Items */
+            items: components["schemas"]["RevisionOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -6262,6 +7664,13 @@ export interface components {
              */
             is_protected?: boolean;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Is Provisional
+             * @default false
+             */
+            is_provisional?: boolean;
+            /** Provisional State */
+            provisional_state?: ("needs_details" | "unverified" | "verified") | null;
             /** Gender Identity */
             gender_identity?: string | null;
             /** Primary Language */
@@ -6373,6 +7782,13 @@ export interface components {
              */
             is_protected?: boolean;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /**
+             * Is Provisional
+             * @default false
+             */
+            is_provisional?: boolean;
+            /** Provisional State */
+            provisional_state?: ("needs_details" | "unverified" | "verified") | null;
         };
         /** PersonUpdate */
         PersonUpdate: {
@@ -6394,6 +7810,23 @@ export interface components {
             contact_info?: string | null;
             /** Residential Address */
             residential_address?: string | null;
+        };
+        /**
+         * PincodeOut
+         * @description Post offices for a PIN and the LGD units they suggest. Never a village (§6).
+         */
+        PincodeOut: {
+            /** Pincode */
+            pincode: string;
+            /** Offices */
+            offices: components["schemas"]["PostOffice"][];
+            /** States */
+            states: components["schemas"]["GeoUnitOut"][];
+            /** Districts */
+            districts: components["schemas"]["GeoUnitOut"][];
+            /** Sub Districts */
+            sub_districts: components["schemas"]["GeoUnitOut"][];
+            snapshot: components["schemas"]["GeoSnapshotInfo"];
         };
         /** PlaceIn */
         PlaceIn: {
@@ -6421,6 +7854,7 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -6437,6 +7871,25 @@ export interface components {
             /** @default unknown */
             geo_confidence?: components["schemas"]["Confidence"];
             coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /**
+         * PlaceLgdNote
+         * @description The linked unit changed in LGD since it was picked. Informational: the place is unchanged.
+         */
+        PlaceLgdNote: {
+            /** Kind */
+            kind: string;
+            /** Since */
+            since?: string | null;
+            /** Unit */
+            unit: components["schemas"]["GeoUnitOut"] | components["schemas"]["GeoUnitBrief"];
+            /** Previous Name */
+            previous_name?: string | null;
+            /**
+             * Successors
+             * @default []
+             */
+            successors?: components["schemas"]["GeoUnitBrief"][];
         };
         /** PlaceName */
         PlaceName: {
@@ -6479,6 +7932,10 @@ export interface components {
             geocoding_source: string | null;
             /** Lgd Code */
             lgd_code: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
+            /** Lgd Snapshot Id */
+            lgd_snapshot_id?: string | null;
+            lgd_note?: components["schemas"]["PlaceLgdNote"] | null;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -6545,6 +8002,12 @@ export interface components {
             geocoding_source?: string | null;
             /** Lgd Code */
             lgd_code?: string | null;
+            lgd_level?: components["schemas"]["GeoLevel"] | null;
+            /**
+             * Lgd Accept Current
+             * @default false
+             */
+            lgd_accept_current?: boolean;
             /** Locality */
             locality?: string | null;
             /** District */
@@ -6560,6 +8023,21 @@ export interface components {
             location_precision?: components["schemas"]["LocationPrecision"] | null;
             geo_confidence?: components["schemas"]["Confidence"] | null;
             coordinate_privacy?: components["schemas"]["PrivacyLevel"] | null;
+        };
+        /** PostOffice */
+        PostOffice: {
+            /** Office Name */
+            office_name: string;
+            /** Office Type */
+            office_type?: string | null;
+            /** Delivery */
+            delivery?: boolean | null;
+            /** District Name */
+            district_name?: string | null;
+            /** State Name */
+            state_name?: string | null;
+            /** District Lgd Code */
+            district_lgd_code?: string | null;
         };
         /** PreferenceIn */
         PreferenceIn: {
@@ -7032,6 +8510,75 @@ export interface components {
             current_status?: string | null;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
         };
+        /** ProposalIn */
+        ProposalIn: {
+            /**
+             * Rationale
+             * @default
+             */
+            rationale?: string;
+            /** Items */
+            items: components["schemas"]["ProposalItemIn"][];
+            /**
+             * Source Ids
+             * @default []
+             */
+            source_ids?: string[];
+            /**
+             * Submit
+             * @default true
+             */
+            submit?: boolean;
+        };
+        /** ProposalItemIn */
+        ProposalItemIn: {
+            target_type: components["schemas"]["ReviewTarget"];
+            op: components["schemas"]["ProposalOp"];
+            /** Target Id */
+            target_id?: string | null;
+            /** Person Id */
+            person_id?: string | null;
+            /**
+             * Patch
+             * @default {}
+             */
+            patch?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ProposalItemOut */
+        ProposalItemOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            target_type: components["schemas"]["ReviewTarget"];
+            op: components["schemas"]["ProposalOp"];
+            /** Target Id */
+            target_id: string | null;
+            /** Person Id */
+            person_id: string | null;
+            /** Label */
+            label: string;
+            /** Changes */
+            changes: components["schemas"]["FieldChange"][];
+            /**
+             * Outdated
+             * @default false
+             */
+            outdated?: boolean;
+        };
+        /**
+         * ProposalKind
+         * @enum {string}
+         */
+        ProposalKind: "change" | "challenge";
+        /**
+         * ProposalOp
+         * @enum {string}
+         */
+        ProposalOp: "create" | "update" | "delete";
         /** ProposalOut */
         ProposalOut: {
             /**
@@ -7097,6 +8644,33 @@ export interface components {
          * @enum {string}
          */
         ProposalStatus: "pending" | "accepted" | "edited" | "rejected";
+        /** ProposalSummary */
+        ProposalSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ProposalKind"];
+            status: components["schemas"]["ChangeProposalStatus"];
+            proposer: components["schemas"]["UserRef"] | null;
+            /** Person Id */
+            person_id: string | null;
+            /** Person Label */
+            person_label?: string | null;
+            family_subject?: components["schemas"]["ReviewTarget"] | null;
+            /** Item Count */
+            item_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+        };
         /**
          * ProvenanceOrigin
          * @enum {string}
@@ -7129,6 +8703,11 @@ export interface components {
             google?: boolean;
         };
         /**
+         * ProvisionalState
+         * @enum {string}
+         */
+        ProvisionalState: "needs_details" | "unverified" | "verified";
+        /**
          * PublicMode
          * @enum {string}
          */
@@ -7160,6 +8739,11 @@ export interface components {
             preferred_language?: string;
             /** Next */
             next?: string | null;
+        };
+        /** RejectIn */
+        RejectIn: {
+            /** Note */
+            note: string;
         };
         /** RelatedEventOut */
         RelatedEventOut: {
@@ -7227,6 +8811,8 @@ export interface components {
         };
         /** RelationshipOut */
         RelationshipOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -7304,6 +8890,17 @@ export interface components {
             lineages?: components["schemas"]["Lineage"][];
             /** Explanation */
             explanation?: string | null;
+            /**
+             * Age Orders
+             * @default []
+             */
+            age_orders?: components["schemas"]["AgeOrderOut"][];
+            /**
+             * Terms
+             * @default []
+             */
+            terms?: components["schemas"]["KinshipTermOut"][];
+            age_decision?: components["schemas"]["AgeOrderOut"] | null;
         };
         /**
          * RelationshipType
@@ -7333,6 +8930,42 @@ export interface components {
             notes?: string | null;
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             confidence?: components["schemas"]["Confidence"] | null;
+        };
+        /** RelativeAgeOrderIn */
+        RelativeAgeOrderIn: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /**
+             * Relative To Id
+             * Format: uuid
+             */
+            relative_to_id: string;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "elder" | "younger";
+        };
+        /** RelativeAgeOrderOut */
+        RelativeAgeOrderOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Elder Person Id
+             * Format: uuid
+             */
+            elder_person_id: string;
+            /**
+             * Younger Person Id
+             * Format: uuid
+             */
+            younger_person_id: string;
         };
         /**
          * RelativeIn
@@ -7608,6 +9241,16 @@ export interface components {
             /** Pending Proposals */
             pending_proposals: number;
         };
+        /** RevertOut */
+        RevertOut: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "applied" | "proposed";
+            /** Proposal Id */
+            proposal_id?: string | null;
+        };
         /** ReviewIn */
         ReviewIn: {
             /**
@@ -7627,10 +9270,105 @@ export interface components {
             target_parcel_id?: string | null;
         };
         /**
+         * ReviewPolicy
+         * @description Which direct writes need review by someone with change.review (ADR-0021 §1).
+         * @enum {string}
+         */
+        ReviewPolicy: "off" | "structure" | "all";
+        /** ReviewPolicyIn */
+        ReviewPolicyIn: {
+            review_policy: components["schemas"]["ReviewPolicy"];
+        };
+        /**
+         * ReviewState
+         * @description Family review of a fact. Separate from EvidenceStatus: approval is not evidence (§6).
+         * @enum {string}
+         */
+        ReviewState: "unreviewed" | "family_reviewed" | "contested";
+        /** ReviewStateIn */
+        ReviewStateIn: {
+            target_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "family_reviewed" | "unreviewed";
+        };
+        /** ReviewStateOut */
+        ReviewStateOut: {
+            target_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            review_state: components["schemas"]["ReviewState"];
+            /** Review State At */
+            review_state_at?: string | null;
+        };
+        /**
+         * ReviewTarget
+         * @description Record types that carry revisions and review state (and can be proposed or challenged).
+         * @enum {string}
+         */
+        ReviewTarget: "person" | "name" | "event" | "relationship" | "assertion" | "tradition" | "kinship_word";
+        /** RevisionChange */
+        RevisionChange: {
+            /** Field */
+            field: string;
+            /** Before */
+            before?: unknown;
+            /** After */
+            after?: unknown;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+        };
+        /** RevisionOut */
+        RevisionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            record_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Record Id
+             * Format: uuid
+             */
+            record_id: string;
+            /** Revision */
+            revision: number;
+            op: components["schemas"]["ProposalOp"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            actor?: components["schemas"]["UserRef"] | null;
+            reviewer?: components["schemas"]["UserRef"] | null;
+            /** Proposal Id */
+            proposal_id?: string | null;
+            /** Changes */
+            changes: components["schemas"]["RevisionChange"][];
+            /**
+             * Revertible
+             * @default false
+             */
+            revertible?: boolean;
+        };
+        /**
          * Role
          * @enum {string}
          */
-        Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN";
+        Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN" | "REVIEWER";
         /**
          * ScanStatus
          * @enum {string}
@@ -7713,6 +9451,172 @@ export interface components {
             evidence_status?: components["schemas"]["EvidenceStatus"] | null;
             /** Kind */
             kind: string;
+        };
+        /** SmartAddCommitIn */
+        SmartAddCommitIn: {
+            /** Term */
+            term: string;
+            /**
+             * Choices
+             * @default []
+             */
+            choices?: ("new" | string)[];
+            new_person: components["schemas"]["PersonCreate"];
+            /** Other Parent Id */
+            other_parent_id?: string | null;
+            /**
+             * Provisional Sex At Birth
+             * @default []
+             */
+            provisional_sex_at_birth?: (components["schemas"]["SexAtBirth"] | null)[];
+            /** Relative Age */
+            relative_age?: ("elder" | "younger") | null;
+        };
+        /** SmartAddCommitOut */
+        SmartAddCommitOut: {
+            /**
+             * Operation Id
+             * Format: uuid
+             */
+            operation_id: string;
+            person: components["schemas"]["PersonSummary"];
+            /** Created People */
+            created_people: components["schemas"]["PersonSummary"][];
+            /** Relationships */
+            relationships: components["schemas"]["RelationshipOut"][];
+            /**
+             * Relative Age Order Ids
+             * @default []
+             */
+            relative_age_order_ids?: string[];
+            /** Undo Expires In Seconds */
+            undo_expires_in_seconds: number;
+        };
+        /** SmartAddHopOut */
+        SmartAddHopOut: {
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "parent" | "child" | "sibling" | "spouse";
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+        };
+        /** SmartAddPlanIn */
+        SmartAddPlanIn: {
+            /** Term */
+            term: string;
+            /**
+             * Choices
+             * @default []
+             */
+            choices?: ("new" | string)[];
+        };
+        /** SmartAddPlanOut */
+        SmartAddPlanOut: {
+            /** Term */
+            term: string;
+            anchor: components["schemas"]["PersonSummary"];
+            /** Steps */
+            steps: components["schemas"]["SmartAddStepOut"][];
+            /** Complete */
+            complete: boolean;
+            target?: components["schemas"]["SmartAddTargetOut"] | null;
+            /**
+             * Preview
+             * @default []
+             */
+            preview?: components["schemas"]["SmartAddPreviewItem"][];
+        };
+        /** SmartAddPreviewItem */
+        SmartAddPreviewItem: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "existing" | "provisional" | "new";
+            person?: components["schemas"]["PersonSummary"] | null;
+            /** Relation */
+            relation?: ("parent" | "child" | "sibling" | "spouse") | null;
+            /** Link */
+            link?: ("parent" | "child" | "spouse" | "shared_parents" | "explicit_sibling") | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+        };
+        /** SmartAddStepOut */
+        SmartAddStepOut: {
+            /** Index */
+            index: number;
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "parent" | "child" | "sibling" | "spouse";
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+            from_person?: components["schemas"]["PersonSummary"] | null;
+            /**
+             * Candidates
+             * @default []
+             */
+            candidates?: components["schemas"]["PersonSummary"][];
+            /**
+             * Hidden Candidates
+             * @default 0
+             */
+            hidden_candidates?: number;
+            /**
+             * Allow New
+             * @default true
+             */
+            allow_new?: boolean;
+            /** Chosen */
+            chosen?: components["schemas"]["PersonSummary"] | "new" | null;
+        };
+        /** SmartAddTargetOut */
+        SmartAddTargetOut: {
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "parent" | "child" | "sibling" | "spouse";
+            sex?: components["schemas"]["SexAtBirth"] | null;
+            /** Age */
+            age?: ("elder" | "younger") | null;
+            from_person?: components["schemas"]["PersonSummary"] | null;
+            /**
+             * Link
+             * @enum {string}
+             */
+            link: "parent" | "child" | "spouse" | "shared_parents" | "explicit_sibling";
+            /**
+             * Shared Parents
+             * @default []
+             */
+            shared_parents?: components["schemas"]["PersonSummary"][];
+            /**
+             * Other Parent Options
+             * @default []
+             */
+            other_parent_options?: components["schemas"]["PersonSummary"][];
+            /** Blocked */
+            blocked?: string | null;
+        };
+        /** SmartAddTermOut */
+        SmartAddTermOut: {
+            /** Code */
+            code: string;
+            /** Group */
+            group: string;
+            /** Hops */
+            hops: components["schemas"]["SmartAddHopOut"][];
+            /**
+             * Asks Relative Age
+             * @default false
+             */
+            asks_relative_age?: boolean;
         };
         /** SourceIn */
         SourceIn: {
@@ -8132,6 +10036,47 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** TraditionEntryIn */
+        TraditionEntryIn: {
+            kind: components["schemas"]["TraditionKind"];
+            /** Title */
+            title: string;
+            /**
+             * Body
+             * @default
+             */
+            body?: string;
+            /** Language */
+            language?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** @default TREE_MEMBERS */
+            privacy_level?: components["schemas"]["PrivacyLevel"];
+            /**
+             * Links
+             * @default []
+             */
+            links?: components["schemas"]["TraditionLinkIn"][];
+        };
+        /** TraditionEntryUpdate */
+        TraditionEntryUpdate: {
+            kind?: components["schemas"]["TraditionKind"] | null;
+            /** Title */
+            title?: string | null;
+            /** Body */
+            body?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /** Links */
+            links?: components["schemas"]["TraditionLinkIn"][] | null;
+        };
         /**
          * TraditionIn
          * @description Traditional genealogy record details (Bahi / Panda / temple register; PRS §20).
@@ -8152,6 +10097,162 @@ export interface components {
             /** Verification Status */
             verification_status?: string | null;
         };
+        /**
+         * TraditionKind
+         * @enum {string}
+         */
+        TraditionKind: "ritual_guide" | "custom" | "song" | "recipe" | "story" | "other";
+        /** TraditionLinkIn */
+        TraditionLinkIn: {
+            target_type: components["schemas"]["TraditionLinkTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /** TraditionLinkOut */
+        TraditionLinkOut: {
+            target_type: components["schemas"]["TraditionLinkTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Label */
+            label: string;
+        };
+        /**
+         * TraditionLinkTarget
+         * @enum {string}
+         */
+        TraditionLinkTarget: "person" | "event" | "place";
+        /** TraditionOut */
+        TraditionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["TraditionKind"];
+            /** Title */
+            title: string;
+            /** Excerpt */
+            excerpt: string;
+            /** Language */
+            language: string | null;
+            /** Script */
+            script: string | null;
+            /** Branch Id */
+            branch_id: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /** Author Name */
+            author_name: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Body */
+            body: string;
+            /**
+             * Links
+             * @default []
+             */
+            links?: components["schemas"]["TraditionLinkOut"][];
+            /** Revision */
+            revision: number;
+            review_state: components["schemas"]["ReviewState"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit?: boolean;
+            /**
+             * Edit Needs Review
+             * @default false
+             */
+            edit_needs_review?: boolean;
+            /**
+             * Can Withdraw
+             * @default false
+             */
+            can_withdraw?: boolean;
+        };
+        /** TraditionRevisionOut */
+        TraditionRevisionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Revision */
+            revision: number;
+            /** Op */
+            op: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Actor Name */
+            actor_name: string | null;
+            /** Reviewer Name */
+            reviewer_name: string | null;
+            /** Proposal Id */
+            proposal_id: string | null;
+            /** Changed */
+            changed: string[];
+            /** Before */
+            before: {
+                [key: string]: unknown;
+            };
+            /** After */
+            after: {
+                [key: string]: unknown;
+            };
+        };
+        /** TraditionSummaryOut */
+        TraditionSummaryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["TraditionKind"];
+            /** Title */
+            title: string;
+            /** Excerpt */
+            excerpt: string;
+            /** Language */
+            language: string | null;
+            /** Script */
+            script: string | null;
+            /** Branch Id */
+            branch_id: string | null;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /** Author Name */
+            author_name: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** TraditionsOut */
+        TraditionsOut: {
+            /** Items */
+            items: components["schemas"]["TraditionSummaryOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** TransferOut */
         TransferOut: {
             event: components["schemas"]["PropertyEventOut"];
@@ -8165,6 +10266,37 @@ export interface components {
              * @default []
              */
             to_holders?: components["schemas"]["HolderOut"][];
+        };
+        /** TransliterateIn */
+        TransliterateIn: {
+            /** Text */
+            text: string;
+            /**
+             * Target Script
+             * @enum {string}
+             */
+            target_script: "Deva" | "Latn";
+        };
+        /** TransliterateOut */
+        TransliterateOut: {
+            /** Candidates */
+            candidates: components["schemas"]["TransliterationCandidate"][];
+            /** Engine */
+            engine: string;
+            /** Version */
+            version: string;
+            /** Lexicon Version */
+            lexicon_version: string;
+        };
+        /** TransliterationCandidate */
+        TransliterationCandidate: {
+            /** Text */
+            text: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "lexicon" | "rules";
         };
         /** TreeCreate */
         TreeCreate: {
@@ -8188,6 +10320,12 @@ export interface components {
             slug: string;
             public_mode: components["schemas"]["PublicMode"];
             default_person_privacy: components["schemas"]["PrivacyLevel"];
+            /** @default off */
+            review_policy?: components["schemas"]["ReviewPolicy"];
+            /** Kinship Lang */
+            kinship_lang?: string | null;
+            /** Kinship Region */
+            kinship_region?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -8208,6 +10346,22 @@ export interface components {
             /** My Linked Person Id */
             my_linked_person_id?: string | null;
         };
+        /** TreeTermIn */
+        TreeTermIn: {
+            /** Label */
+            label: string;
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+        };
+        /** TreeTermOut */
+        TreeTermOut: {
+            term: components["schemas"]["VocabularyTermOut"];
+            /** Created */
+            created: boolean;
+        };
         /** TreeUpdate */
         TreeUpdate: {
             /** Name */
@@ -8216,6 +10370,10 @@ export interface components {
             description?: string | null;
             public_mode?: components["schemas"]["PublicMode"] | null;
             default_person_privacy?: components["schemas"]["PrivacyLevel"] | null;
+            /** Kinship Lang */
+            kinship_lang?: string | null;
+            /** Kinship Region */
+            kinship_region?: string | null;
         };
         /** UnionOut */
         UnionOut: {
@@ -8253,6 +10411,16 @@ export interface components {
             /** Reminder Id */
             reminder_id?: string | null;
         };
+        /** UpholdIn */
+        UpholdIn: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Mark Disputed
+             * @default true
+             */
+            mark_disputed?: boolean;
+        };
         /** UserOut */
         UserOut: {
             /**
@@ -8266,6 +10434,10 @@ export interface components {
             display_name: string;
             /** Preferred Language */
             preferred_language: string;
+            /** Kinship Lang */
+            kinship_lang?: string | null;
+            /** Kinship Region */
+            kinship_region?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -8286,6 +10458,16 @@ export interface components {
              * @default false
              */
             must_change_password?: boolean;
+        };
+        /** UserRef */
+        UserRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -8404,6 +10586,75 @@ export interface components {
              */
             event_count?: number;
             completeness?: components["schemas"]["Completeness"] | null;
+        };
+        /** VocabularyOut */
+        VocabularyOut: {
+            /** Key */
+            key: string;
+            /** Description */
+            description: string;
+            /** Version */
+            version: number;
+            /** Source */
+            source?: string | null;
+            /** Licence */
+            licence?: string | null;
+            /** Allows Custom */
+            allows_custom: boolean;
+            /**
+             * Term Count
+             * @default 0
+             */
+            term_count?: number;
+        };
+        /** VocabularyTermOut */
+        VocabularyTermOut: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases?: string[];
+            /** Parent Code */
+            parent_code?: string | null;
+            /**
+             * Attributes
+             * @default {}
+             */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            status: components["schemas"]["VocabularyTermStatus"];
+            /**
+             * Origin
+             * @default global
+             * @enum {string}
+             */
+            origin?: "global" | "family";
+            /** Id */
+            id?: string | null;
+            offer_status?: components["schemas"]["OfferStatus"] | null;
+            /** Promoted Code */
+            promoted_code?: string | null;
+        };
+        /**
+         * VocabularyTermStatus
+         * @description Master-data term lifecycle (ADR-0018). Retired terms stay resolvable for stored references.
+         * @enum {string}
+         */
+        VocabularyTermStatus: "draft" | "reviewed" | "retired";
+        /** VocabularyTermsOut */
+        VocabularyTermsOut: {
+            vocabulary: components["schemas"]["VocabularyOut"];
+            /** Items */
+            items: components["schemas"]["VocabularyTermOut"][];
         };
     };
     responses: never;
@@ -9504,6 +11755,8 @@ export interface operations {
             query?: {
                 q?: string | null;
                 status?: components["schemas"]["ProfileStatus"] | null;
+                /** @description Only provisional people in these states: the "To complete" view (ADR-0020 §8). Visibility rules are unchanged, so it lists only people the caller may see. */
+                provisional_state?: components["schemas"]["ProvisionalState"][] | null;
                 cursor?: string | null;
                 limit?: number;
             };
@@ -10498,6 +12751,82 @@ export interface operations {
             };
         };
     };
+    record_relative_age_api_v1_trees__tree_id__relative_age_orders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelativeAgeOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Already recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelativeAgeOrderOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelativeAgeOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_relative_age_api_v1_trees__tree_id__relative_age_orders__record_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     relationship_path_api_v1_trees__tree_id__relationship_path_get: {
         parameters: {
             query: {
@@ -10521,6 +12850,1366 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RelationshipPathOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_terms_api_v1_trees__tree_id__smart_add_terms_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartAddTermOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plan_api_v1_trees__tree_id__people__person_id__smart_add_plan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmartAddPlanIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartAddPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    commit_api_v1_trees__tree_id__people__person_id__smart_add_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmartAddCommitIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmartAddCommitOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_api_v1_trees__tree_id__smart_add__operation_id__undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operation_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_vocabularies_api_v1_vocabularies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyOut"][];
+                };
+            };
+        };
+    };
+    vocabulary_terms_api_v1_vocabularies__key__get: {
+        parameters: {
+            query?: {
+                q?: string;
+                lang?: string;
+                parent?: string | null;
+                include_retired?: boolean;
+                /** @description only reviewed terms (pravara: only links with a cited source) */
+                reviewed_only?: boolean;
+                /** @description a region or tradition */
+                scope?: string | null;
+            };
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyTermsOut"];
+                };
+            };
+            /** @description Not modified (If-None-Match matched the ETag) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tree_vocabulary_terms_api_v1_trees__tree_id__vocabularies__key__get: {
+        parameters: {
+            query?: {
+                q?: string;
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                key: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyTermsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_tree_term_api_v1_trees__tree_id__vocabularies__key__terms_post: {
+        parameters: {
+            query?: {
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                key: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TreeTermIn"];
+            };
+        };
+        responses: {
+            /** @description The label already names an entry */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeTermOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeTermOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_tree_term_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+                code: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_offer_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+                code: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_offers_api_v1_trees__tree_id__vocabulary_offers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kinship_packs_api_v1_kinship_packs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KinshipPackOut"][];
+                };
+            };
+        };
+    };
+    set_kinship_preference_api_v1_me_kinship_preference_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KinshipPreferenceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KinshipPreferenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_kinship_overrides_api_v1_trees__tree_id__kinship_overrides_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KinshipOverrideOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_kinship_override_api_v1_trees__tree_id__kinship_overrides_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KinshipOverrideIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KinshipOverrideOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_kinship_override_api_v1_trees__tree_id__kinship_overrides__override_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                override_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transliterate_api_v1_transliterate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransliterateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransliterateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_units_api_v1_geo_units_get: {
+        parameters: {
+            query?: {
+                level?: components["schemas"]["GeoLevel"] | null;
+                parent?: string | null;
+                parent_level?: components["schemas"]["GeoLevel"] | null;
+                q?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoUnitsPage"];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_unit_api_v1_geo_units__lgd_code__get: {
+        parameters: {
+            query: {
+                /** @description LGD codes are unique per level only */
+                level: components["schemas"]["GeoLevel"];
+            };
+            header?: never;
+            path: {
+                lgd_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoUnitResponse"];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pincode_api_v1_geo_pincodes__pin__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PincodeOut"];
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_review_policy_api_v1_trees__tree_id__review_policy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewPolicyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPolicyIn"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proposals_api_v1_trees__tree_id__proposals_get: {
+        parameters: {
+            query?: {
+                view?: string;
+                person_id?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ProposalSummary_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_proposal_api_v1_trees__tree_id__proposals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_proposal_api_v1_trees__tree_id__proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_proposal_api_v1_trees__tree_id__proposals__proposal_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_proposal_api_v1_trees__tree_id__proposals__proposal_id__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_proposal_api_v1_trees__tree_id__proposals__proposal_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Stale */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_proposal_api_v1_trees__tree_id__proposals__proposal_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rebase_proposal_api_v1_trees__tree_id__proposals__proposal_id__rebase_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comment_api_v1_trees__tree_id__proposals__proposal_id__comments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_challenge_api_v1_trees__tree_id__challenges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    uphold_api_v1_trees__tree_id__proposals__proposal_id__uphold_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpholdIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Stale */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_api_v1_trees__tree_id__proposals__proposal_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_review_state_api_v1_trees__tree_id__review_state_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    person_history_api_v1_trees__tree_id__people__person_id__history_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RevisionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revert_api_v1_trees__tree_id__revisions__revision_id__revert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevertOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notifications_api_v1_trees__tree_id__inbox_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notifications_read_api_v1_trees__tree_id__inbox_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationsReadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_duplicates_api_v1_trees__tree_id__duplicates_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateCheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DuplicateCheckOut"];
                 };
             };
             /** @description Validation Error */
@@ -12357,6 +16046,211 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssertionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_traditions_api_v1_trees__tree_id__traditions_get: {
+        parameters: {
+            query?: {
+                kind?: components["schemas"]["TraditionKind"] | null;
+                person_id?: string | null;
+                branch_id?: string | null;
+                q?: string;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_tradition_api_v1_trees__tree_id__traditions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraditionEntryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tradition_api_v1_trees__tree_id__traditions__entry_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraditionEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraditionRevisionOut"][];
                 };
             };
             /** @description Validation Error */

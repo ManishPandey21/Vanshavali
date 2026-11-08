@@ -28,6 +28,7 @@ GROUPS = {
         "event_participant",
         "place",
         "merge_record",
+        "relative_age_order",
     ],
     "Heritage & family structure": [
         "assertion",
@@ -35,6 +36,17 @@ GROUPS = {
         "branch_membership",
         "household",
         "household_membership",
+    ],
+    "Master data": ["vocabulary", "vocabulary_term", "tree_vocabulary_term"],
+    "Cultural depth (ADR-0026)": ["kinship_override", "tradition_entry", "tradition_link"],
+    "Geography reference (LGD, India Post)": ["geo_snapshot", "geo_unit", "geo_unit_alias", "pincode_office"],
+    "Review and history (ADR-0021)": [
+        "change_proposal",
+        "change_proposal_item",
+        "proposal_citation",
+        "proposal_comment",
+        "record_revision",
+        "user_notification",
     ],
     "Evidence": ["source", "citation"],
     "Documents & extraction": [
@@ -117,12 +129,13 @@ def main() -> int:
                     f"| `{col.name}` | {typ} | {'yes' if col.nullable else 'no'} | {'; '.join(notes)} |"
                 )
             extras = []
-            for c in t.constraints:
+            # sorted, so the generated file only changes when the schema does
+            for c in sorted(t.constraints, key=lambda c: str(c.name or "")):
                 if isinstance(c, UniqueConstraint) and len(c.columns) > 1:
                     extras.append(f"UNIQUE ({', '.join(col.name for col in c.columns)})")
                 elif isinstance(c, CheckConstraint) and "IN (" not in str(c.sqltext):
                     extras.append(f"CHECK {c.sqltext}")
-            for ix in t.indexes:
+            for ix in sorted(t.indexes, key=lambda ix: str(ix.name)):
                 extras.append(
                     f"INDEX {ix.name} ({', '.join(col.name for col in ix.columns)})"
                     + (" UNIQUE" if ix.unique else "")

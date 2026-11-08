@@ -84,6 +84,22 @@ def _database() -> Iterator[None]:
     _owner_engine.dispose()
 
 
+# A fixed instant in the middle of a minute and of an hour, so rate-limit windows never roll over
+# during a test (the limiter's fixed windows follow the clock; see app/core/ratelimit.py).
+PINNED_NOW = 1_800_000_030.0
+
+
+@pytest.fixture(autouse=True)
+def _pinned_rate_limit_clock() -> Iterator[None]:
+    """Every test sees one fixed rate-limit window and fresh counters, whatever the wall clock."""
+    limiter = get_limiter()
+    limiter.reset()
+    original = limiter.clock
+    limiter.clock = lambda: PINNED_NOW
+    yield
+    limiter.clock = original
+
+
 @pytest.fixture(autouse=True)
 def _clean_tables() -> Iterator[None]:
     yield

@@ -1,0 +1,263 @@
+{
+  "key": "language",
+  "version": 1,
+  "description": "English and the 22 languages of the Eighth Schedule (ISO 639 codes, usual script).",
+  "source": "Department of Official Language, Govt of India: languages in the Eighth Schedule; ISO 639 / ISO 15924 codes. Native-speaker review of the labels pending.",
+  "licence": "Public facts",
+  "allows_custom": false,
+  "terms": [
+    {
+      "code": "en",
+      "labels": {
+        "en": "English",
+        "hi": "अंग्रेज़ी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Latn"
+      }
+    },
+    {
+      "code": "as",
+      "labels": {
+        "en": "Assamese",
+        "hi": "असमिया"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Beng"
+      }
+    },
+    {
+      "code": "bn",
+      "labels": {
+        "en": "Bengali",
+        "hi": "बांग्ला"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Beng"
+      }
+    },
+    {
+      "code": "brx",
+      "labels": {
+        "en": "Bodo",
+        "hi": "बोडो"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "doi",
+      "labels": {
+        "en": "Dogri",
+        "hi": "डोगरी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "gu",
+      "labels": {
+        "en": "Gujarati",
+        "hi": "गुजराती"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Gujr"
+      }
+    },
+    {
+      "code": "hi",
+      "labels": {
+        "en": "Hindi",
+        "hi": "हिन्दी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "kn",
+      "labels": {
+        "en": "Kannada",
+        "hi": "कन्नड़"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Knda"
+      }
+    },
+    {
+      "code": "ks",
+      "labels": {
+        "en": "Kashmiri",
+        "hi": "कश्मीरी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Arab"
+      }
+    },
+    {
+      "code": "kok",
+      "labels": {
+        "en": "Konkani",
+        "hi": "कोंकणी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "mai",
+      "labels": {
+        "en": "Maithili",
+        "hi": "मैथिली"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "ml",
+      "labels": {
+        "en": "Malayalam",
+        "hi": "मलयालम"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Mlym"
+      }
+    },
+    {
+      "code": "mni",
+      "labels": {
+        "en": "Manipuri (Meitei)",
+        "hi": "मणिपुरी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Mtei"
+      }
+    },
+    {
+      "code": "mr",
+      "labels": {
+        "en": "Marathi",
+        "hi": "मराठी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "ne",
+      "labels": {
+        "en": "Nepali",
+        "hi": "नेपाली"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "or",
+      "labels": {
+        "en": "Odia",
+        "hi": "ओड़िया"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Orya"
+      }
+    },
+    {
+      "code": "pa",
+      "labels": {
+        "en": "Punjabi",
+        "hi": "पंजाबी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Guru"
+      }
+    },
+    {
+      "code": "sa",
+      "labels": {
+        "en": "Sanskrit",
+        "hi": "संस्कृत"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Deva"
+      }
+    },
+    {
+      "code": "sat",
+      "labels": {
+        "en": "Santali",
+        "hi": "संथाली"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Olck"
+      }
+    },
+    {
+      "code": "sd",
+      "labels": {
+        "en": "Sindhi",
+        "hi": "सिंधी"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Arab"
+      }
+    },
+    {
+      "code": "ta",
+      "labels": {
+        "en": "Tamil",
+        "hi": "तमिल"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Taml"
+      }
+    },
+    {
+      "code": "te",
+      "labels": {
+        "en": "Telugu",
+        "hi": "तेलुगु"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Telu"
+      }
+    },
+    {
+      "code": "ur",
+      "labels": {
+        "en": "Urdu",
+        "hi": "उर्दू"
+      },
+      "aliases": [],
+      "attributes": {
+        "script": "Arab"
+      }
+    }
+  ]
+}

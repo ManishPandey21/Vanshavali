@@ -1,0 +1,381 @@
+{
+  "key": "kinship-hi-north",
+  "lang": "hi",
+  "region": "north",
+  "name": {
+    "en": "Hindi (North India)",
+    "hi": "हिन्दी (उत्तर भारत)"
+  },
+  "status": "draft",
+  "in_use": true,
+  "reviewer": null,
+  "reviewed_on": null,
+  "source": "Common North Indian Hindi kinship words, carried over unchanged from the words the app has shown since R1 (ADR-0020). Awaiting native-Hindi review (#34).",
+  "licence": "CC0-1.0 (project data)",
+  "words": {
+    "father": "पिता",
+    "mother": "माता",
+    "parent": "माता-पिता",
+    "son": "बेटा",
+    "daughter": "बेटी",
+    "child": "संतान",
+    "brother": "भाई",
+    "sister": "बहन",
+    "sibling": "भाई-बहन",
+    "husband": "पति",
+    "wife": "पत्नी",
+    "spouse": "जीवनसाथी"
+  },
+  "aged_words": {
+    "brother": {
+      "elder": "बड़े भाई",
+      "younger": "छोटे भाई"
+    },
+    "sister": {
+      "elder": "बड़ी बहन",
+      "younger": "छोटी बहन"
+    },
+    "sibling": {
+      "elder": "बड़े भाई-बहन",
+      "younger": "छोटे भाई-बहन"
+    }
+  },
+  "joiner": "{acc} के {word}",
+  "joiner_feminine": "{acc} की {word}",
+  "feminine_words": [
+    "mother",
+    "daughter",
+    "sister",
+    "wife"
+  ],
+  "terms": {
+    "father": {
+      "term": "पिता",
+      "transliteration": "pita"
+    },
+    "mother": {
+      "term": "माता",
+      "transliteration": "mata"
+    },
+    "son": {
+      "term": "बेटा",
+      "transliteration": "beta"
+    },
+    "daughter": {
+      "term": "बेटी",
+      "transliteration": "beti"
+    },
+    "brother": {
+      "term": "भाई",
+      "transliteration": "bhai",
+      "age": {
+        "index": 0,
+        "elder": {
+          "term": "भैया",
+          "transliteration": "bhaiya"
+        },
+        "younger": {
+          "term": "भाई",
+          "transliteration": "bhai"
+        }
+      }
+    },
+    "sister": {
+      "term": "बहन",
+      "transliteration": "bahan",
+      "age": {
+        "index": 0,
+        "elder": {
+          "term": "दीदी",
+          "transliteration": "didi"
+        },
+        "younger": {
+          "term": "बहन",
+          "transliteration": "bahan"
+        }
+      }
+    },
+    "husband": {
+      "term": "पति",
+      "transliteration": "pati"
+    },
+    "wife": {
+      "term": "पत्नी",
+      "transliteration": "patni"
+    },
+    "father.father": {
+      "term": "दादा",
+      "transliteration": "dada"
+    },
+    "father.mother": {
+      "term": "दादी",
+      "transliteration": "dadi"
+    },
+    "mother.father": {
+      "term": "नाना",
+      "transliteration": "nana"
+    },
+    "mother.mother": {
+      "term": "नानी",
+      "transliteration": "nani"
+    },
+    "father.father.father": {
+      "term": "परदादा",
+      "transliteration": "pardada"
+    },
+    "father.father.mother": {
+      "term": "परदादी",
+      "transliteration": "pardadi"
+    },
+    "mother.father.father": {
+      "term": "परनाना",
+      "transliteration": "parnana"
+    },
+    "mother.father.mother": {
+      "term": "परनानी",
+      "transliteration": "parnani"
+    },
+    "father.brother": {
+      "term": "चाचा / ताऊ",
+      "transliteration": "chacha / tau",
+      "age": {
+        "index": 1,
+        "elder": {
+          "term": "ताऊ",
+          "transliteration": "tau"
+        },
+        "younger": {
+          "term": "चाचा",
+          "transliteration": "chacha"
+        }
+      }
+    },
+    "father.sister": {
+      "term": "बुआ",
+      "transliteration": "bua"
+    },
+    "mother.brother": {
+      "term": "मामा",
+      "transliteration": "mama"
+    },
+    "mother.sister": {
+      "term": "मौसी",
+      "transliteration": "mausi"
+    },
+    "father.brother.wife": {
+      "term": "चाची / ताई",
+      "transliteration": "chachi / tai",
+      "age": {
+        "index": 1,
+        "elder": {
+          "term": "ताई",
+          "transliteration": "tai"
+        },
+        "younger": {
+          "term": "चाची",
+          "transliteration": "chachi"
+        }
+      }
+    },
+    "father.sister.husband": {
+      "term": "फूफा",
+      "transliteration": "phupha"
+    },
+    "mother.brother.wife": {
+      "term": "मामी",
+      "transliteration": "mami"
+    },
+    "mother.sister.husband": {
+      "term": "मौसा",
+      "transliteration": "mausa"
+    },
+    "father.brother.son": {
+      "term": "चचेरा भाई",
+      "transliteration": "chachera bhai"
+    },
+    "father.brother.daughter": {
+      "term": "चचेरी बहन",
+      "transliteration": "chacheri bahan"
+    },
+    "father.sister.son": {
+      "term": "फुफेरा भाई",
+      "transliteration": "phuphera bhai"
+    },
+    "father.sister.daughter": {
+      "term": "फुफेरी बहन",
+      "transliteration": "phupheri bahan"
+    },
+    "mother.brother.son": {
+      "term": "ममेरा भाई",
+      "transliteration": "mamera bhai"
+    },
+    "mother.brother.daughter": {
+      "term": "ममेरी बहन",
+      "transliteration": "mameri bahan"
+    },
+    "mother.sister.son": {
+      "term": "मौसेरा भाई",
+      "transliteration": "mausera bhai"
+    },
+    "mother.sister.daughter": {
+      "term": "मौसेरी बहन",
+      "transliteration": "mauseri bahan"
+    },
+    "brother.son": {
+      "term": "भतीजा",
+      "transliteration": "bhatija"
+    },
+    "brother.daughter": {
+      "term": "भतीजी",
+      "transliteration": "bhatiji"
+    },
+    "sister.son": {
+      "term": "भांजा",
+      "transliteration": "bhanja"
+    },
+    "sister.daughter": {
+      "term": "भांजी",
+      "transliteration": "bhanji"
+    },
+    "brother.wife": {
+      "term": "भाभी",
+      "transliteration": "bhabhi"
+    },
+    "sister.husband": {
+      "term": "जीजा",
+      "transliteration": "jija",
+      "age": {
+        "index": 0,
+        "elder": {
+          "term": "जीजा",
+          "transliteration": "jija"
+        },
+        "younger": {
+          "term": "बहनोई",
+          "transliteration": "bahnoi"
+        }
+      }
+    },
+    "son.son": {
+      "term": "पोता",
+      "transliteration": "pota"
+    },
+    "son.daughter": {
+      "term": "पोती",
+      "transliteration": "poti"
+    },
+    "daughter.son": {
+      "term": "नाती",
+      "transliteration": "nati"
+    },
+    "daughter.daughter": {
+      "term": "नातिन",
+      "transliteration": "natin"
+    },
+    "son.wife": {
+      "term": "बहू",
+      "transliteration": "bahu"
+    },
+    "daughter.husband": {
+      "term": "दामाद",
+      "transliteration": "damad"
+    },
+    "wife.father": {
+      "term": "ससुर",
+      "transliteration": "sasur"
+    },
+    "wife.mother": {
+      "term": "सास",
+      "transliteration": "saas"
+    },
+    "husband.father": {
+      "term": "ससुर",
+      "transliteration": "sasur"
+    },
+    "husband.mother": {
+      "term": "सास",
+      "transliteration": "saas"
+    },
+    "wife.brother": {
+      "term": "साला / भाई साहब",
+      "transliteration": "sala / bhai sahab",
+      "age": {
+        "index": 1,
+        "elder": {
+          "term": "भाई साहब",
+          "transliteration": "bhai sahab"
+        },
+        "younger": {
+          "term": "साला",
+          "transliteration": "sala"
+        }
+      }
+    },
+    "wife.sister": {
+      "term": "साली",
+      "transliteration": "sali"
+    },
+    "husband.brother": {
+      "term": "देवर / जेठ",
+      "transliteration": "devar / jeth",
+      "age": {
+        "index": 1,
+        "elder": {
+          "term": "जेठ",
+          "transliteration": "jeth"
+        },
+        "younger": {
+          "term": "देवर",
+          "transliteration": "devar"
+        }
+      }
+    },
+    "husband.sister": {
+      "term": "ननद",
+      "transliteration": "nanad"
+    },
+    "wife.sister.husband": {
+      "term": "साढ़ू",
+      "transliteration": "saadhu"
+    },
+    "wife.brother.wife": {
+      "term": "सलहज",
+      "transliteration": "salhaj"
+    },
+    "husband.brother.wife": {
+      "term": "देवरानी / जेठानी",
+      "transliteration": "devrani / jethani",
+      "age": {
+        "index": 1,
+        "elder": {
+          "term": "जेठानी",
+          "transliteration": "jethani"
+        },
+        "younger": {
+          "term": "देवरानी",
+          "transliteration": "devrani"
+        }
+      }
+    },
+    "husband.sister.husband": {
+      "term": "ननदोई",
+      "transliteration": "nandoi"
+    },
+    "son.wife.father": {
+      "term": "समधी",
+      "transliteration": "samdhi"
+    },
+    "son.wife.mother": {
+      "term": "समधन",
+      "transliteration": "samdhan"
+    },
+    "daughter.husband.father": {
+      "term": "समधी",
+      "transliteration": "samdhi"
+    },
+    "daughter.husband.mother": {
+      "term": "समधन",
+      "transliteration": "samdhan"
+    }
+  }
+}

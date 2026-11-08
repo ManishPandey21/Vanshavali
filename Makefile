@@ -11,8 +11,9 @@ backend-test:
 	cd backend && uv run pytest -q
 
 migrate:
-	cd backend && uv run alembic upgrade head
+	cd backend && uv run alembic upgrade head && uv run python -m app.cli.masterdata load
 
+# Dev/test only. Needs VSH_DEMO_PASSWORD and VSH_SUPERADMIN_PASSWORD (docs/operations/dev-accounts.md).
 seed:
 	cd backend && uv run python -m app.cli.seed_demo
 

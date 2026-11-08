@@ -1,3 +1,4 @@
+import { ReviewPage } from "./pages/tree/ReviewPage";
 import { Suspense, lazy, useEffect, type ReactNode } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ import { PeoplePage } from "./pages/tree/PeoplePage";
 import { AddPersonPage } from "./pages/tree/AddPersonPage";
 import { PersonProfilePage } from "./pages/tree/person/PersonProfilePage";
 import { TreeViewerPage } from "./pages/tree/TreeViewerPage";
+import { TraditionDetailPage, TraditionsPage } from "./pages/tree/TraditionsPage";
 import { RelationshipPage } from "./pages/tree/RelationshipPage";
 import { BranchDetailPage, BranchesPage } from "./pages/tree/BranchesPages";
 import { HouseholdsPage, JointFamilyPage } from "./pages/tree/HouseholdsPages";
@@ -127,10 +129,14 @@ export default function App() {
             <Route path="branches" element={<BranchesPage />} />
             <Route path="branches/:branchId" element={<BranchDetailPage />} />
             <Route path="households" element={<HouseholdsPage />} />
+            <Route path="traditions" element={<TraditionsPage />} />
+            <Route path="traditions/:entryId" element={<TraditionDetailPage />} />
             <Route path="places" element={<PlacesPage />} />
             <Route path="sources" element={<SourcesPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="duplicates" element={<DuplicatesPage />} />
+            <Route path="review" element={<ReviewPage />} />
+            <Route path="review/:proposalId" element={<ReviewPage />} />
             <Route path="documents" element={<Lazy><DocumentsPage /></Lazy>} />
             <Route path="documents/:documentId" element={<Lazy><DocumentDetailPage /></Lazy>} />
             <Route path="property" element={<Lazy><PropertyListPage /></Lazy>} />

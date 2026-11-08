@@ -7,7 +7,7 @@ import { useFamily, usePerson, useRelationshipPath } from "../../api/hooks/peopl
 import { usePersonPhotos } from "../../api/hooks/lifeevents";
 import { useTreeCtx } from "../../lib/tree-context";
 import { hasPerm, Perm } from "../../lib/permissions";
-import { describeChain, regionalKinshipTerm } from "../../lib/kinship";
+import { describeChain } from "../../lib/kinship";
 import { formatDate } from "../../lib/dates";
 import { AddRelativeDialog, type RelationKind } from "../../pages/tree/person/AddRelativeDialog";
 import { PersonBadges } from "../person/badges";
@@ -89,7 +89,10 @@ export function TreePersonPanel({
   if (me && me === p.id) relation = t("treeView.panel.thisIsYou");
   else if (path.data?.found) {
     const chain = path.data.chain ?? [];
-    const term = regionalKinshipTerm(chain, i18n.language) || (i18n.language.startsWith("hi") ? describeChain(chain, i18n.language) : path.data.label);
+    // the reader's word comes from the server's reviewed packs and the family's own words
+    // (ADR-0026 §6), as on the relationship page; otherwise the literal reading or the label
+    const regional = path.data.terms?.[0]?.term ?? null;
+    const term = regional || (i18n.language.startsWith("hi") ? describeChain(chain, i18n.language) : path.data.label);
     if (term) relation = t("treeView.panel.yourRelation", { relation: term });
   }
   const age = p.profile_status === "living" ? ageFrom(p.birth?.date as Record<string, unknown> | undefined) : null;

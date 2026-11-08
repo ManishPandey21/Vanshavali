@@ -232,6 +232,34 @@
   }
 }
 
+/* ---------------------------------------------------------------- landing: Devanagari typography
+ * Scoped to the landing page root (.heritage). Measured in Chromium before this change: Hindi
+ * accent words and Sanskrit quotations were drawn as a synthetic slant of Noto Serif Devanagari
+ * (Devanagari has no true italic), and Hindi headings sat on a 1.08 line-height that crowds matras
+ * and conjuncts. Turning off style synthesis keeps Latin italics (Playfair and EB Garamond ship
+ * real italic faces) while Devanagari glyphs stay upright. Unlayered, so these win over utilities.
+ */
+.heritage {
+  font-synthesis-style: none;
+}
+.heritage:lang(hi) :is(h1, h2, h3) {
+  line-height: 1.32;
+}
+.heritage:lang(hi) p:not(.font-heritage),
+.heritage:lang(hi) li,
+.heritage:lang(hi) dd {
+  line-height: 1.8;
+}
+
+/* Paper grain for the landing page's quiet sections: an inline SVG noise tile (CSP allows data:
+ * images), 3–4 % ink, so it reads as texture rather than pattern and never lowers text contrast. */
+.paper-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .14 0 0 0 0 .11 0 0 0 .055 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.paper-grain-dark {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .97 0 0 0 0 .94 0 0 0 0 .89 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /*
  * Family view (components/tree/FamilyView.tsx): nested lists drawn as a family tree. Each <li> hangs
  * from a bar over its brothers and sisters; a nested <ul> drops from the centre of its parent block.

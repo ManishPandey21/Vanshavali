@@ -28,6 +28,7 @@ const posts = (f: ReturnType<typeof routed>) => f.mock.calls.filter(([, init]) =
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  window.sessionStorage.clear();
 });
 
 describe("WhatsApp invite message", () => {
@@ -116,6 +117,49 @@ describe("WelcomePage", () => {
     // only living relatives are offered an invite
     expect(screen.getByRole("button", { name: "Create a private link for Ravi Iyer" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Lalitha/ })).not.toBeInTheDocument();
+  });
+
+  it("carries the family sketched on the landing page into the tree, adding the grandfather as the father's father", async () => {
+    window.sessionStorage.setItem("vsh.treeDraft", JSON.stringify({ self: "Asha Iyer", father: "Ravi", mother: "Lalitha Rao", grandfather: "Venkat" }));
+    const fetchMock = routed((url, init) => {
+      if (init?.method === "POST" && url.endsWith("/people/p-Ravi/relatives")) {
+        return jsonResponse({ person: { id: "p-gf", display_name: "Venkat Iyer", profile_status: "deceased" }, relationships: [] }, 201);
+      }
+      return handler(url, init);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithProviders(<WelcomePage />, { tree: null });
+    await userEvent.click(await screen.findByRole("button", { name: "I understand, continue" }));
+    expect(screen.getByLabelText(/Tree name/)).toHaveValue("The Iyer family");
+    await userEvent.click(screen.getByRole("button", { name: "Create my private tree" }));
+    await screen.findByRole("checkbox", { name: FAMILY_TEXT });
+
+    expect(screen.getByText(/We kept the names you typed/)).toBeInTheDocument();
+    const father = screen.getByRole("group", { name: "Father" });
+    expect(within(father).getByLabelText("Given name")).toHaveValue("Ravi");
+    expect(within(father).getByLabelText(/Surname/)).toHaveValue("Iyer");
+    expect(within(screen.getByRole("group", { name: "Mother" })).getByLabelText(/Surname/)).toHaveValue("Rao");
+    const gf = screen.getByRole("group", { name: /Grandfather/ });
+    expect(within(gf).getByLabelText("Given name")).toHaveValue("Venkat");
+    expect(within(gf).getByLabelText("Living or passed away?")).toHaveValue("deceased");
+
+    // nothing typed on the landing page is sent before the family-data confirmation
+    expect(posts(fetchMock).map((p) => p.url)).toEqual(["/api/v1/trees"]);
+    await userEvent.click(screen.getByRole("checkbox", { name: FAMILY_TEXT }));
+    await userEvent.click(screen.getByRole("button", { name: "Save and continue" }));
+    expect(await screen.findByRole("heading", { name: "Invite relatives" })).toBeInTheDocument();
+    const calls = posts(fetchMock);
+    expect(calls.map((c) => c.url)).toEqual([
+      "/api/v1/trees",
+      "/api/v1/trees/t1/attestation",
+      "/api/v1/trees/t1/people",
+      "/api/v1/trees/t1/people/p-self/relatives",
+      "/api/v1/trees/t1/people/p-self/relatives",
+      "/api/v1/trees/t1/people/p-Ravi/relatives",
+    ]);
+    expect(calls[5]!.body).toMatchObject({ relation: "parent", new_person: { profile_status: "deceased", sex_at_birth: "male", names: [{ given_name: "Venkat", surname: "Iyer" }] } });
+    // the sketch is erased once it is saved
+    expect(window.sessionStorage.getItem("vsh.treeDraft")).toBeNull();
   });
 });
 
@@ -221,4 +265,5 @@ describe("ClaimInvitePage: this isn't me / remove me", () => {
     expect(posts(fetchMock)[0]!.body).toEqual({ confirm_is_me: true, message: "Please take me out" });
     expect((await screen.findAllByText(/Your profile is now hidden from everyone except the tree admins/)).length).toBeGreaterThan(0);
   });
+
 });

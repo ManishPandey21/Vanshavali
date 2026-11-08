@@ -1,9 +1,11 @@
+import { ChallengeButton, ReviewBadge } from "../../../components/review/ReviewParts";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit3, Plus, Star, Trash2 } from "lucide-react";
 import type { NameOut, PersonOut, ProfileStatus, SexAtBirth, VitalSummary } from "../../../api/types";
 import { useAddName, useDeleteName, useUpdateName, useUpdatePerson } from "../../../api/hooks/people";
 import { useTreeCtx } from "../../../lib/tree-context";
+import { PersonTraditions } from "../TraditionsPage";
 import { nameText } from "../../../lib/names";
 import { DateText, TimeText } from "../../../components/dates/DateText";
 import { EvidenceBadge, RedactionNotice } from "../../../components/person/badges";
@@ -100,8 +102,62 @@ export function OverviewTab({ person }: { person: PersonOut }) {
         {person.birth?.event_id && <p className="mt-2 text-xs text-ink-muted">{t("person.editVitalsInTimeline")}</p>}
       </section>
       <NamesSection person={person} />
+      <SurnameTimeline person={person} />
+      <div className="lg:col-span-2">
+        <PersonTraditions personId={person.id} />
+      </div>
       {editing && <EditDetailsDialog person={person} onClose={() => setEditing(false)} />}
     </div>
+  );
+}
+
+const rangeYear = (r: unknown, key: "from" | "to"): number | null => {
+  const d = r && typeof r === "object" ? (r as Record<string, unknown>)[key] : null;
+  const y = d && typeof d === "object" ? (d as { year?: number | null }).year : null;
+  return typeof y === "number" ? y : null;
+};
+
+/**
+ * Former surnames over time ("Sharma until 1950, then Upadhyay"), from historical names with the
+ * years they were used (ADR-0026 §2). Nothing is inferred: only recorded names and years.
+ */
+function SurnameTimeline({ person }: { person: PersonOut }) {
+  const { t } = useTranslation();
+  const former = (person.names ?? [])
+    .filter((n) => n.type === "historical" && (n.surname || n.full_name_as_recorded))
+    .sort((a, b) => (rangeYear(a.date_range, "from") ?? rangeYear(a.date_range, "to") ?? 0) - (rangeYear(b.date_range, "from") ?? rangeYear(b.date_range, "to") ?? 0));
+  if (!former.length) return null;
+  const current = (person.names ?? []).find((n) => n.is_preferred);
+  return (
+    <section className="card p-4" aria-labelledby="ov-surnames">
+      <h2 id="ov-surnames" className="font-display text-lg font-semibold">
+        {t("names.surnameTimeline")}
+      </h2>
+      <ol className="mt-2 space-y-2 border-l-2 border-haldi-300 pl-4">
+        {former.map((n) => {
+          const from = rangeYear(n.date_range, "from");
+          const to = rangeYear(n.date_range, "to");
+          return (
+            <li key={n.id} className="text-sm">
+              <span className="font-medium" lang={n.language ?? undefined}>
+                {n.surname || n.full_name_as_recorded}
+              </span>{" "}
+              <span className="text-ink-muted">
+                {from && to ? t("names.yearsFromTo", { from, to }) : to ? t("names.yearsUntil", { to }) : from ? t("names.yearsFrom", { from }) : t("names.yearsUnknown")}
+              </span>
+            </li>
+          );
+        })}
+        {current?.surname && (
+          <li className="text-sm">
+            <span className="font-medium" lang={current.language ?? undefined}>
+              {current.surname}
+            </span>{" "}
+            <span className="text-ink-muted">{t("names.now")}</span>
+          </li>
+        )}
+      </ol>
+    </section>
   );
 }
 
@@ -142,12 +198,16 @@ function NamesSection({ person }: { person: PersonOut }) {
                   </Badge>
                 )}
                 <EvidenceBadge status={n.evidence_status} />
+                <ReviewBadge state={n.review_state} />
               </div>
               {n.full_name_as_recorded && n.full_name_as_recorded !== nameText(n) && (
                 <p className="mt-1 text-xs text-ink-muted" lang={n.language ?? undefined}>
                   {t("names.asRecorded")}: “{n.full_name_as_recorded}”
                 </p>
               )}
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <ChallengeButton treeId={treeId} targetType="name" targetId={n.id} label={nameText(n)} />
             </div>
             {person.can_edit && (
               <div className="flex shrink-0 gap-1">
@@ -197,6 +257,7 @@ function toDraft(n: NameOut): NameDraft {
     language: n.language,
     script: n.script,
     romanized_value: n.romanized_value ?? "",
+    date_range: (n.date_range as NameDraft["date_range"]) ?? null,
     is_preferred: n.is_preferred,
     evidence_status: n.evidence_status,
     confidence: n.confidence,
@@ -212,7 +273,13 @@ function NameDialog({ personId, name, onClose }: { personId: string; name: NameO
     name ? toDraft(name) : { type: "transliteration", language: "hi", script: "Deva", given_name: "", surname: "", is_preferred: false, evidence_status: "USER_ASSERTION" },
   );
   const [err, setErr] = useState<string | null>(null);
+  // names accepted from a transliteration suggestion (ADR-0025), saved with this one
+  const [extra, setExtra] = useState<NameDraft[]>([]);
   const mutation = name ? update : add;
+  const saveExtra = async () => {
+    for (const n of extra) await add.mutateAsync(cleanName(n));
+    onClose();
+  };
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!nameHasContent(draft)) {
@@ -224,8 +291,8 @@ function NameDialog({ personId, name, onClose }: { personId: string; name: NameO
       // PATCH: send every editable part so cleared fields become null.
       const body: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(draft)) body[k] = typeof v === "string" ? v.trim() || null : v;
-      update.mutate({ id: name.id, body }, { onSuccess: onClose });
-    } else add.mutate(cleanName(draft), { onSuccess: onClose });
+      update.mutate({ id: name.id, body }, { onSuccess: () => void saveExtra() });
+    } else add.mutate(cleanName(draft), { onSuccess: () => void saveExtra() });
   };
   return (
     <Dialog
@@ -245,7 +312,17 @@ function NameDialog({ personId, name, onClose }: { personId: string; name: NameO
       }
     >
       <form id="name-form" onSubmit={submit} noValidate className="space-y-3">
-        <NameFields index={0} value={draft} onChange={setDraft} error={err} />
+        <NameFields index={0} value={draft} onChange={setDraft} error={err} onAddName={(n) => setExtra((xs) => [...xs, n])} />
+        {extra.length > 0 && (
+          <p className="text-xs text-ink-muted">
+            {t("translit.addedNote")}{" "}
+            {extra.map((n) => (
+              <span key={`${n.given_name}|${n.surname}`} lang={n.language ?? undefined} className="mr-2 font-medium text-ink">
+                {[n.given_name, n.surname].filter(Boolean).join(" ")}
+              </span>
+            ))}
+          </p>
+        )}
         <ErrorAlert error={mutation.error} />
       </form>
     </Dialog>

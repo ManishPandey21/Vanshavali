@@ -11,6 +11,7 @@ from app.models.base import (
     Base,
     EvidenceMixin,
     ProvenanceMixin,
+    ReviewMixin,
     TreeScopedMixin,
     enum_column,
     tree_fk,
@@ -19,7 +20,7 @@ from app.models.base import (
 from app.models.enums import AssertionSubject, PrivacyLevel, ValueStatus
 
 
-class Assertion(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, Base):
+class Assertion(TreeScopedMixin, EvidenceMixin, ProvenanceMixin, ReviewMixin, Base):
     """A claim about a person or branch attribute (heritage and other facts; ADR-0003).
 
     Several assertions per (subject, attribute) may coexist; at most one is preferred. Values are

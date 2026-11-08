@@ -4,13 +4,21 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
+import re
+import socketserver
+import threading
 import uuid
+from collections.abc import Iterator
+from email import policy as email_policy
+from email.message import EmailMessage
+from email.parser import BytesParser
+from typing import ClassVar
 
 import pytest
 from sqlalchemy import select, update
 
 from app.core import mailer
-from app.core.config import Settings
+from app.core.config import Settings, get_settings
 from app.core.db import get_sessionmaker
 from app.core.security import token_hash
 from app.models import AuditEvent, AuthToken, AuthTokenPurpose, User
@@ -489,3 +497,92 @@ def test_smtp_backend_uses_starttls(monkeypatch):
     monkeypatch.setattr(mailer.smtplib, "SMTP", FakeSMTP)
     mailer.deliver({"to": "a@example.com", "subject": "s", "text": "t", "html": "<p>t</p>"})
     assert sent == {"host": "smtp.example", "port": 587, "tls": True, "user": "u", "to": "a@example.com"}
+
+
+# ------------------------------------------------------------------ real SMTP transport, end to end
+
+
+class _SmtpSink(socketserver.StreamRequestHandler):
+    """The smallest SMTP server smtplib will talk to (EHLO, MAIL, RCPT, DATA, QUIT); stores messages."""
+
+    received: ClassVar[list[EmailMessage]] = []
+
+    def _reply(self, line: str) -> None:
+        self.wfile.write(f"{line}\r\n".encode())
+
+    def handle(self) -> None:
+        self._reply("220 sink ESMTP")
+        while line := self.rfile.readline():
+            verb = line.decode(errors="replace").strip().split(" ", 1)[0].upper()
+            if verb == "EHLO":
+                self._reply("250-sink")
+                self._reply("250 8BITMIME")
+            elif verb == "DATA":
+                self._reply("354 end with .")
+                data = bytearray()
+                while (chunk := self.rfile.readline()) not in (b".\r\n", b""):
+                    data += chunk[1:] if chunk.startswith(b"..") else chunk
+                msg = BytesParser(policy=email_policy.default).parsebytes(bytes(data))
+                assert isinstance(msg, EmailMessage)
+                self.received.append(msg)
+                self._reply("250 queued")
+            elif verb == "QUIT":
+                self._reply("221 bye")
+                return
+            else:  # MAIL, RCPT, RSET, NOOP
+                self._reply("250 ok")
+
+
+@pytest.fixture
+def smtp_sink(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[EmailMessage]]:
+    _SmtpSink.received = []
+    server = socketserver.ThreadingTCPServer(("127.0.0.1", 0), _SmtpSink)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    s = get_settings()
+    monkeypatch.setattr(s, "mail_backend", "smtp")
+    monkeypatch.setattr(s, "smtp_host", "127.0.0.1")
+    monkeypatch.setattr(s, "smtp_port", server.server_address[1])
+    monkeypatch.setattr(s, "smtp_starttls", False)  # STARTTLS itself: test_smtp_backend_uses_starttls
+    monkeypatch.setattr(s, "smtp_user", None)
+    try:
+        yield _SmtpSink.received
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_signup_confirmation_email_over_smtp_then_verify_and_login(make_client, smtp_sink):
+    """Sign-up -> confirmation email delivered over a real SMTP session -> link -> login.
+
+    No seeded or pre-verified account: the address is new, and nothing signs in before the token
+    from the delivered message is redeemed.
+    """
+    email = _email("smtp")
+    c = make_client()
+    r = c.post(
+        "/auth/register",
+        json={"email": email, "password": PW, "display_name": "Asha", "preferred_language": "hi"},
+    )
+    assert r.status_code == 202, r.text
+    assert c.get("/auth/me").status_code == 401
+    refused = make_client().post("/auth/login", json={"email": email, "password": PW})
+    assert refused.status_code == 403 and refused.json()["error"]["code"] == "email_not_verified"
+
+    assert len(smtp_sink) == 1
+    msg = smtp_sink[0]
+    assert msg["To"] == email and msg["Subject"] == "वंशावली के लिए अपना ईमेल पुष्टि करें"
+    text = msg.get_body(preferencelist=("plain",))
+    html = msg.get_body(preferencelist=("html",))
+    assert text is not None and html is not None
+    match = re.search(r"/verify-email/([A-Za-z0-9_-]{20,})", text.get_content())
+    assert match, "no verification link in the delivered email"
+    assert match.group(1) in html.get_content()
+
+    r = make_client().post("/auth/verify-email", json={"token": match.group(1)})
+    assert r.status_code == 200 and r.json()["email_verified"] is True
+
+    fresh = make_client()
+    r = fresh.post("/auth/login", json={"email": email, "password": PW})
+    assert r.status_code == 200, r.text
+    me = fresh.get("/auth/me").json()
+    assert me["email"] == email and me["email_verified"] is True

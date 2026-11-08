@@ -6,6 +6,7 @@ import type { Lineage, PersonSummary } from "../../api/types";
 import { useGraph, usePerson } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
 import { recentPeople } from "../../lib/recent";
+import { useFamilyApex } from "../../lib/apex";
 import { PersonPicker } from "../../components/pickers";
 import { TreeChart } from "../../components/tree/TreeChart";
 import { FamilyView } from "../../components/tree/FamilyView";
@@ -22,9 +23,13 @@ export function TreeViewerPage() {
   const { t } = useTranslation();
   const { treeId, tree } = useTreeCtx();
   const navigate = useNavigate();
-  const fallbackRoot = personId ?? tree.my_linked_person_id ?? recentPeople(treeId)[0] ?? "";
+  const remembered = personId ?? tree.my_linked_person_id ?? recentPeople(treeId)[0] ?? "";
+  // With nobody to start from, open on the family elder rather than an empty search box.
+  const apex = useFamilyApex(treeId, tree.my_linked_person_id);
+  const fallbackRoot = remembered || apex.apexId || "";
   const root = usePerson(treeId, fallbackRoot || undefined);
 
+  if (!remembered && apex.isLoading) return <Spinner />;
   if (!fallbackRoot) {
     return (
       <div>
@@ -37,15 +42,31 @@ export function TreeViewerPage() {
   }
   if (root.isLoading) return <Spinner />;
   if (root.error || !root.data) return <ErrorAlert error={root.error} />;
-  return <TreeViewer key={root.data.id} rootId={root.data.id} rootName={root.data.display_name} />;
+  return (
+    <TreeViewer
+      key={root.data.id}
+      rootId={root.data.id}
+      rootName={root.data.display_name}
+      defaultDirection={remembered ? "ancestors" : "descendants"}
+    />
+  );
 }
 
-function TreeViewer({ rootId, rootName }: { rootId: string; rootName: string }) {
+function TreeViewer({
+  rootId,
+  rootName,
+  defaultDirection,
+}: {
+  rootId: string;
+  rootName: string;
+  defaultDirection: "ancestors" | "descendants";
+}) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const direction = params.get("dir") === "descendants" ? "descendants" : "ancestors";
+  const dirParam = params.get("dir");
+  const direction = dirParam === "descendants" || dirParam === "ancestors" ? dirParam : defaultDirection;
   const viewParam = params.get("view");
   const view = viewParam === "list" ? "list" : viewParam === "family" ? "family" : "chart";
   const location = useLocation();

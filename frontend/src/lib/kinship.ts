@@ -1,11 +1,9 @@
 /**
- * Regional kinship terms for relationship chains returned by `/relationship-path`.
+ * Rendering helpers for `/relationship-path` answers.
  *
- * The API returns a neutral English `label` (e.g. "uncle") plus a `chain` of kinship words
- * (e.g. ["father", "brother"]). Indian languages distinguish relatives the English label merges
- * (father's brother = चाचा/ताऊ vs mother's brother = मामा), so we map common chains to Hindi terms.
- * Where the Hindi term depends on relative age (चाचा younger / ताऊ elder), both are shown: the
- * API does not know birth order and we never guess it.
+ * The relationship words themselves (चाचा / ताऊ, मामा…) come from the API's `terms`, chosen from
+ * reviewed regional packs on the server (ADR-0026 §6); their test matrix runs there for every pack.
+ * This file only reads a chain literally in the UI language ("father's brother", "पिता के भाई").
  */
 
 export type KinWord =
@@ -22,69 +20,15 @@ export type KinWord =
   | "wife"
   | "spouse";
 
-const HI_TERMS: Record<string, string> = {
-  father: "पिता",
-  mother: "माता",
-  son: "बेटा",
-  daughter: "बेटी",
-  brother: "भाई",
-  sister: "बहन",
-  husband: "पति",
-  wife: "पत्नी",
-
-  "father,father": "दादा",
-  "father,mother": "दादी",
-  "mother,father": "नाना",
-  "mother,mother": "नानी",
-  "father,father,father": "परदादा",
-  "father,father,mother": "परदादी",
-  "mother,father,father": "परनाना",
-  "mother,father,mother": "परनानी",
-
-  "father,brother": "चाचा / ताऊ",
-  "father,sister": "बुआ",
-  "mother,brother": "मामा",
-  "mother,sister": "मौसी",
-  "father,brother,wife": "चाची / ताई",
-  "father,sister,husband": "फूफा",
-  "mother,brother,wife": "मामी",
-  "mother,sister,husband": "मौसा",
-
-  "father,brother,son": "चचेरा भाई",
-  "father,brother,daughter": "चचेरी बहन",
-  "father,sister,son": "फुफेरा भाई",
-  "father,sister,daughter": "फुफेरी बहन",
-  "mother,brother,son": "ममेरा भाई",
-  "mother,brother,daughter": "ममेरी बहन",
-  "mother,sister,son": "मौसेरा भाई",
-  "mother,sister,daughter": "मौसेरी बहन",
-
-  "brother,son": "भतीजा",
-  "brother,daughter": "भतीजी",
-  "sister,son": "भांजा",
-  "sister,daughter": "भांजी",
-  "brother,wife": "भाभी",
-  "sister,husband": "जीजा",
-
-  "son,son": "पोता",
-  "son,daughter": "पोती",
-  "daughter,son": "नाती",
-  "daughter,daughter": "नातिन",
-  "son,wife": "बहू",
-  "daughter,husband": "दामाद",
-
-  "wife,father": "ससुर",
-  "wife,mother": "सास",
-  "husband,father": "ससुर",
-  "husband,mother": "सास",
-  "wife,brother": "साला",
-  "wife,sister": "साली",
-  "husband,brother": "देवर / जेठ",
-  "husband,sister": "ननद",
-  "wife,sister,husband": "साढ़ू",
-  "wife,brother,wife": "सलहज",
-  "husband,brother,wife": "देवरानी / जेठानी",
-};
+export interface AgeOrder {
+  chain_index: number;
+  person_id: string;
+  relative_to_id: string;
+  order: "elder" | "younger" | "unknown";
+  basis: "family_confirmed" | "birth_dates" | "unknown";
+  record_id?: string | null;
+  dates_disagree?: boolean;
+}
 
 const HI_WORDS: Record<string, string> = {
   father: "पिता",
@@ -101,25 +45,36 @@ const HI_WORDS: Record<string, string> = {
   spouse: "जीवनसाथी",
 };
 
-/** Hindi kinship term for a chain, or null when there is no well-known term (caller falls back). */
-export function hindiKinshipTerm(chain: readonly string[]): string | null {
-  if (!chain.length) return null;
-  return HI_TERMS[chain.join(",")] ?? null;
-}
+const FEMININE = new Set(["mother", "daughter", "sister", "wife"]);
 
-/** Regional term for the UI language (Hindi only for now); null for English, where the API label is used. */
-export function regionalKinshipTerm(chain: readonly string[], lang: string): string | null {
-  if (lang.startsWith("hi")) return hindiKinshipTerm(chain);
-  return null;
-}
+const HI_AGED: Record<string, Record<"elder" | "younger", string>> = {
+  brother: { elder: "बड़े भाई", younger: "छोटे भाई" },
+  sister: { elder: "बड़ी बहन", younger: "छोटी बहन" },
+  sibling: { elder: "बड़े भाई-बहन", younger: "छोटे भाई-बहन" },
+};
 
-/** "father's brother" / "पिता के भाई" — a literal reading of the chain, always available. */
-export function describeChain(chain: readonly string[], lang: string): string {
+/**
+ * "father's brother" / "पिता के भाई" — a literal reading of the chain, always available. With age
+ * orders it says "father's elder brother" / "पिता के बड़े भाई" where the order is known.
+ */
+export function describeChain(chain: readonly string[], lang: string, ageOrders: readonly AgeOrder[] = []): string {
   if (!chain.length) return "";
+  const known = (i: number) => {
+    const a = ageOrders.find((x) => x.chain_index === i);
+    return a && a.order !== "unknown" ? a.order : null;
+  };
   if (lang.startsWith("hi")) {
-    const words = chain.map((w) => HI_WORDS[w] ?? w.replace(/_/g, " "));
-    return words.reduce((acc, w, i) => (i === 0 ? w : `${acc} के ${w}`), "");
+    const words = chain.map((w, i) => {
+      const age = known(i);
+      return (age && HI_AGED[w]?.[age]) || HI_WORDS[w] || w.replace(/_/g, " ");
+    });
+    // "भाई की पत्नी" but "पत्नी के भाई": the postposition agrees with the noun that follows
+    return words.reduce((acc, w, i) => (i === 0 ? w : `${acc} ${FEMININE.has(chain[i]) ? "की" : "के"} ${w}`), "");
   }
-  const words = chain.map((w) => w.replace(/_/g, " "));
+  const words = chain.map((w, i) => {
+    const age = known(i);
+    const word = w.replace(/_/g, " ");
+    return age && w in HI_AGED ? `${age} ${word}` : word;
+  });
   return words.reduce((acc, w, i) => (i === 0 ? w : `${acc}'s ${w}`), "");
 }

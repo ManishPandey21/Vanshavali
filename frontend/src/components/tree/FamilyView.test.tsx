@@ -122,6 +122,39 @@ describe("person panel", () => {
   });
 });
 
+describe("person panel relationship word", () => {
+  it("uses the server's word for the reader (ADR-0026 §6), not a local table", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        attested(async (url) => {
+          const u = String(url);
+          if (u.includes("/relationship-path"))
+            return jsonResponse({
+              from_id: "anand",
+              to_id: "arjun",
+              found: true,
+              label: "uncle",
+              chain: ["father", "brother"],
+              path: [],
+              common_ancestor_ids: [],
+              lineages: [],
+              explanation: null,
+              terms: [{ lang: "hi", term: "ताऊ जी", review_status: "draft", family_word: true }],
+            });
+          if (u.includes("/family")) return jsonResponse(family({ person: person("arjun", "Arjun Iyer", "male", 1960), parents: [], unions: [], siblings: [] }));
+          if (u.includes("/photos")) return jsonResponse([]);
+          return jsonResponse({ ...person("arjun", "Arjun Iyer", "male", 1960), birth: null, death: null, names: [], can_edit: true });
+        }),
+      ),
+    );
+    renderWithProviders(<TreePersonPanel personId="arjun" isFocus={false} onSelect={() => {}} onCentre={() => {}} onClose={() => {}} />, {
+      tree: makeTree({ my_linked_person_id: "anand" }),
+    });
+    expect(await screen.findByText("Your ताऊ जी")).toBeInTheDocument();
+  });
+});
+
 describe("helpers", () => {
   it("names relatives by role and sex", () => {
     expect(roleKey("parent", "female")).toBe("treeView.role.mother");

@@ -1,0 +1,8 @@
+Synthetic test data in the published LGD layout - NOT real LGD data
+S.No.,State Code,State Name (In English),District Code,District Name (In English),Sub-District Code,Sub-District Name (In English),Village Code,Village Version,Village Name (In English),Village Name (In Local language),Village Status,Census 2001 Code,Census 2011 Code
+1,9,Uttar Pradesh,9901,Allahabad,99001,Phulpur,9900001,1,Rampur,रामपुर,Inhabitant,,
+2,9,Uttar Pradesh,9901,Allahabad,99001,Phulpur,9900002,1,Rampura,रामपुरा,Inhabitant,,
+3,9,Uttar Pradesh,9901,Allahabad,99001,Phulpur,9900003,1,Bhagwatpur,भगवतपुर,Inhabitant,,
+4,9,Uttar Pradesh,9901,Allahabad,99002,Soraon,9900004,1,Sikandra,सिकंदरा,Inhabitant,,
+5,9,Uttar Pradesh,9901,Allahabad,99002,Soraon,9900006,1,Mau Aima,मऊ आइमा,Inhabitant,,
+6,9,Uttar Pradesh,9902,Pratapgarh,99003,Patti,9900005,1,Rampur,रामपुर,Inhabitant,,

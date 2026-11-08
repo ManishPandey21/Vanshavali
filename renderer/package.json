@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "bundle": "node scripts/bundle.mjs",
     "render": "node scripts/render.mjs",
-    "test": "node scripts/smoke.mjs",
+    "test": "node --test scripts/browser.test.mjs scripts/procs.test.mjs && node scripts/smoke.mjs",
     "studio": "remotion studio src/index.ts"
   },
   "dependencies": {

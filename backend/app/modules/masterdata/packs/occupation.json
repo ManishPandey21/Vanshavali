@@ -1,0 +1,210 @@
+{
+  "key": "occupation",
+  "version": 1,
+  "description": "Occupation suggestions. Free text is always allowed.",
+  "source": "Plan catalogue (docs/architecture/india-master-data-and-smart-forms-plan.md).",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": [
+    {
+      "code": "agriculture",
+      "labels": {
+        "en": "Agriculture",
+        "hi": "कृषि"
+      },
+      "aliases": [
+        "Farming",
+        "Farmer",
+        "Kisan",
+        "Kheti"
+      ]
+    },
+    {
+      "code": "business",
+      "labels": {
+        "en": "Business",
+        "hi": "व्यापार"
+      },
+      "aliases": [
+        "Trade",
+        "Merchant",
+        "Vyapar",
+        "Shopkeeper"
+      ]
+    },
+    {
+      "code": "government_service",
+      "labels": {
+        "en": "Government service",
+        "hi": "सरकारी सेवा"
+      },
+      "aliases": [
+        "Govt service",
+        "Sarkari naukri",
+        "Civil service"
+      ]
+    },
+    {
+      "code": "private_employment",
+      "labels": {
+        "en": "Private employment",
+        "hi": "निजी नौकरी"
+      },
+      "aliases": [
+        "Private job",
+        "Service"
+      ]
+    },
+    {
+      "code": "homemaking",
+      "labels": {
+        "en": "Homemaking",
+        "hi": "गृहिणी / गृहस्थी"
+      },
+      "aliases": [
+        "Homemaker",
+        "Housewife",
+        "Grihini"
+      ]
+    },
+    {
+      "code": "student",
+      "labels": {
+        "en": "Student",
+        "hi": "विद्यार्थी"
+      },
+      "aliases": [
+        "Chhatra"
+      ]
+    },
+    {
+      "code": "retired",
+      "labels": {
+        "en": "Retired",
+        "hi": "सेवानिवृत्त"
+      },
+      "aliases": [
+        "Pensioner"
+      ]
+    },
+    {
+      "code": "teaching",
+      "labels": {
+        "en": "Teaching",
+        "hi": "अध्यापन"
+      },
+      "aliases": [
+        "Teacher",
+        "Professor",
+        "Shikshak"
+      ]
+    },
+    {
+      "code": "medicine",
+      "labels": {
+        "en": "Medicine",
+        "hi": "चिकित्सा"
+      },
+      "aliases": [
+        "Doctor",
+        "Vaidya",
+        "Nurse"
+      ]
+    },
+    {
+      "code": "engineering",
+      "labels": {
+        "en": "Engineering",
+        "hi": "अभियांत्रिकी"
+      },
+      "aliases": [
+        "Engineer"
+      ]
+    },
+    {
+      "code": "law",
+      "labels": {
+        "en": "Law",
+        "hi": "वकालत"
+      },
+      "aliases": [
+        "Lawyer",
+        "Advocate",
+        "Vakil",
+        "Judge"
+      ]
+    },
+    {
+      "code": "armed_forces",
+      "labels": {
+        "en": "Armed forces",
+        "hi": "सेना"
+      },
+      "aliases": [
+        "Army",
+        "Military",
+        "Fauji",
+        "Navy",
+        "Air Force"
+      ]
+    },
+    {
+      "code": "priesthood",
+      "labels": {
+        "en": "Priesthood",
+        "hi": "पुरोहित"
+      },
+      "aliases": [
+        "Priest",
+        "Pujari",
+        "Purohit",
+        "Pandit"
+      ]
+    },
+    {
+      "code": "artisan",
+      "labels": {
+        "en": "Artisan / craft",
+        "hi": "कारीगरी"
+      },
+      "aliases": [
+        "Craftsman",
+        "Karigar",
+        "Weaver"
+      ]
+    },
+    {
+      "code": "labour",
+      "labels": {
+        "en": "Labour",
+        "hi": "मज़दूरी"
+      },
+      "aliases": [
+        "Labourer",
+        "Mazdoor"
+      ]
+    },
+    {
+      "code": "self_employed",
+      "labels": {
+        "en": "Self-employed",
+        "hi": "स्वरोज़गार"
+      },
+      "aliases": [
+        "Freelance"
+      ]
+    },
+    {
+      "code": "arts",
+      "labels": {
+        "en": "Arts and music",
+        "hi": "कला और संगीत"
+      },
+      "aliases": [
+        "Artist",
+        "Musician",
+        "Writer"
+      ]
+    }
+  ]
+}

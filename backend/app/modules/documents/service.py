@@ -132,6 +132,10 @@ def check_link_target(ctx: TreeContext, target_type: DocumentLinkTarget, target_
         get_source(ctx, target_id)
     elif target_type == DocumentLinkTarget.HOUSEHOLD:
         lookup.get_in_tree(ctx, Household, target_id, "Household")
+    elif target_type == DocumentLinkTarget.TRADITION:
+        from app.modules.traditions.service import get_entry
+
+        get_entry(ctx, target_id)
     else:  # property, land parcel, property event
         if not (ctx.has(Permission.PROPERTY_READ) or ctx.has(Permission.PROPERTY_WRITE)):
             raise NotFound("Link target not found")

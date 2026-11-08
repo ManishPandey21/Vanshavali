@@ -19,6 +19,10 @@ import { Badge } from "../../components/ui/Badge";
 import { GeoFields, geoBody, geoDraftFrom, geoErrors } from "../../components/geo/GeoFields";
 import { MapPreview } from "../../components/geo/MapPreview";
 import { formatCoords } from "../../lib/geo";
+import { PlaceCascade } from "../../components/geo/PlaceCascade";
+import { LgdNote } from "../../components/geo/LgdNote";
+import { placeFieldsFor } from "../../lib/lgd";
+import type { GeoLevel } from "../../api/types";
 
 export const PLACE_TYPES: PlaceType[] = ["village", "town", "city", "tehsil", "district", "state", "country", "temple", "shrine", "ancestral_house", "property", "land_parcel", "neighbourhood", "other"];
 
@@ -103,7 +107,12 @@ export function PlacesPage() {
             ) : (
               <p className="mt-1 text-xs text-ink-muted">{t("geo.notGeotagged")}</p>
             )}
-            {p.lgd_code && <p className="mt-1 text-xs text-ink-muted">LGD: {p.lgd_code}</p>}
+            {p.lgd_code && (
+              <p className="mt-1 text-xs text-ink-muted">
+                {p.lgd_level ? t("lgd.linkedShort", { level: t(`lgd.level.${p.lgd_level}`), code: p.lgd_code }) : `LGD: ${p.lgd_code}`}
+              </p>
+            )}
+            <LgdNote treeId={treeId} place={p} canWrite={canWrite} onChoose={() => setEditing(p)} />
             {canWrite && (
               <Button size="sm" variant="ghost" className="mt-2" onClick={() => setEditing(p)}>
                 {t("common.edit")}
@@ -183,6 +192,8 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
   const [type, setType] = useState<PlaceType>(place?.place_type ?? "village");
   const [parent, setParent] = useState(place?.parent_place_id ?? "");
   const [lgd, setLgd] = useState(place?.lgd_code ?? "");
+  // set when the code was picked from the directory (ADR-0019); a typed code stays free text
+  const [lgdLevel, setLgdLevel] = useState<GeoLevel | null>(place?.lgd_level ?? null);
   const [local, setLocal] = useState<NameDraft[]>((place?.local_names ?? []).map(toNameDraft));
   const [historical, setHistorical] = useState<NameDraft[]>((place?.historical_names ?? []).map(toNameDraft));
   const [submitted, setSubmitted] = useState(false);
@@ -198,6 +209,7 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
       place_type: type,
       parent_place_id: parent || null,
       lgd_code: lgd.trim() || null,
+      lgd_level: lgd.trim() ? lgdLevel : null,
       local_names: local.filter((n) => n.name.trim()).map(fromNameDraft),
       historical_names: historical.filter((n) => n.name.trim()).map(fromNameDraft),
     };
@@ -280,6 +292,28 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
       }
     >
       <form id="place-form" onSubmit={submit} className="space-y-3" noValidate>
+        <details className="group" open={!place || place.lgd_note?.kind === "retired"}>
+          <summary className="cursor-pointer text-sm font-semibold text-kumkum-800">{t("lgd.find")}</summary>
+          <div className="mt-2">
+            <PlaceCascade
+              onPick={(u) => {
+                const f = placeFieldsFor(u);
+                if (!place || !name.trim()) setName(f.canonical_name);
+                setType(f.place_type);
+                setLgd(f.lgd_code);
+                setLgdLevel(f.lgd_level);
+                setGeo({ ...geo, district: f.district ?? geo.district, state: f.state ?? geo.state, country: f.country });
+                if (f.local_names.length && !local.some((n) => n.name.trim() === f.local_names[0].name))
+                  setLocal([...local, { name: f.local_names[0].name, language: f.local_names[0].language ?? "", script: f.local_names[0].script ?? "", from: emptyDate(), to: emptyDate(), note: "" }]);
+              }}
+              onNotListed={({ state, district }) => {
+                setLgd("");
+                setLgdLevel(null);
+                setGeo({ ...geo, district: district?.name_en ?? geo.district, state: state?.name_en ?? geo.state, country: state ? "India" : geo.country });
+              }}
+            />
+          </div>
+        </details>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("places.canonicalName")} required error={submitted && !name.trim() ? t("common.required") : null}>
             {(p) => <TextInput {...p} value={name} onChange={(e) => setName(e.target.value)} />}
@@ -309,9 +343,37 @@ function PlaceDialog({ place, onClose }: { place: PlaceOut | null; onClose: () =
               </Select>
             )}
           </Field>
-          <Field label={t("places.lgd")} hint={t("places.lgdHint")}>
-            {(p) => <TextInput {...p} value={lgd} onChange={(e) => setLgd(e.target.value)} />}
-          </Field>
+          {lgdLevel && lgd ? (
+            <div>
+              <p className="label">{t("places.lgd")}</p>
+              <p className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="rounded-full border border-leaf-700/30 bg-leaf-50 px-2 py-0.5 text-leaf-700">{t("lgd.linkedShort", { level: t(`lgd.level.${lgdLevel}`), code: lgd })}</span>
+                <button
+                  type="button"
+                  className="text-kumkum-800 underline"
+                  onClick={() => {
+                    setLgd("");
+                    setLgdLevel(null);
+                  }}
+                >
+                  {t("pickers.unlink")}
+                </button>
+              </p>
+            </div>
+          ) : (
+            <Field label={t("places.lgd")} hint={t("places.lgdHint")}>
+              {(p) => (
+                <TextInput
+                  {...p}
+                  value={lgd}
+                  onChange={(e) => {
+                    setLgd(e.target.value);
+                    setLgdLevel(null);
+                  }}
+                />
+              )}
+            </Field>
+          )}
         </div>
         <GeoFields value={geo} onChange={setGeo} showErrors={submitted} canPrivacy={can(Perm.PRIVACY_MANAGE)} coarsened={!!place?.coordinates_coarsened} />
         {renderNames(local, setLocal, false, t("places.localNames"))}
