@@ -222,3 +222,20 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   geocoder. They are rate-limited per user, and only request paths are logged, never the query.
 - **Nothing is rewritten.** A quarterly update never changes a family's record; it shows a note the
   user may act on. The ancestral-village suggestion is offered, never filled.
+
+## 12. Change proposals, revision history and family review (ADR-0021)
+
+- **Revision history holds values, so it is treated like the facts.** It is read through the same
+  field-group redaction as the person (a viewer who may only see a birth year sees "birth date
+  changed", not the dates). It is left out of archives and GEDCOM, and erasing a person erases
+  their history. The audit log keeps recording field names only, never values.
+- **Proposals and comments are tree data.** Only the proposer and those who may review every
+  target see them, with values redacted for the reader. An erasure removes the erased person's
+  values from open proposals and makes those proposals stale.
+- **Notifications carry no personal data.** They store ids only; their text is built when read,
+  with the reader's current permissions, and nothing is sent outside the app.
+- **Family review is not evidence.** `review_state` (unreviewed, family-reviewed, contested) is
+  separate from evidence status, so a family's approval never stands in for a document.
+- **Duplicate checks never reveal hidden people.** Only people the user can already see are
+  compared and shown.
+

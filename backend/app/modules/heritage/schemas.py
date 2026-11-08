@@ -13,6 +13,7 @@ from app.models.enums import (
     EvidenceStatus,
     HeritageAttribute,
     PrivacyLevel,
+    ReviewState,
     ValueStatus,
 )
 from app.modules.genealogy.schemas import ProvenanceOut
@@ -55,6 +56,7 @@ class AssertionUpdate(ApiModel):
 
 
 class AssertionOut(ApiModel):
+    review_state: ReviewState = ReviewState.UNREVIEWED  # family review (ADR-0021 §6)
     id: uuid.UUID
     subject_type: AssertionSubject
     person_id: uuid.UUID | None

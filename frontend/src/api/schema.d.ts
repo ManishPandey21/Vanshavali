@@ -1156,6 +1156,316 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/review-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Review Policy */
+        put: operations["set_review_policy_api_v1_trees__tree_id__review_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proposals */
+        get: operations["list_proposals_api_v1_trees__tree_id__proposals_get"];
+        put?: never;
+        /** Create Proposal */
+        post: operations["create_proposal_api_v1_trees__tree_id__proposals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proposal */
+        get: operations["get_proposal_api_v1_trees__tree_id__proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Proposal */
+        post: operations["submit_proposal_api_v1_trees__tree_id__proposals__proposal_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw Proposal */
+        post: operations["withdraw_proposal_api_v1_trees__tree_id__proposals__proposal_id__withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Proposal */
+        post: operations["approve_proposal_api_v1_trees__tree_id__proposals__proposal_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Proposal */
+        post: operations["reject_proposal_api_v1_trees__tree_id__proposals__proposal_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/rebase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rebase Proposal */
+        post: operations["rebase_proposal_api_v1_trees__tree_id__proposals__proposal_id__rebase_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comment */
+        post: operations["comment_api_v1_trees__tree_id__proposals__proposal_id__comments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Challenge */
+        post: operations["create_challenge_api_v1_trees__tree_id__challenges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/uphold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Uphold */
+        post: operations["uphold_api_v1_trees__tree_id__proposals__proposal_id__uphold_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/proposals/{proposal_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss */
+        post: operations["dismiss_api_v1_trees__tree_id__proposals__proposal_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/review-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Review State */
+        post: operations["set_review_state_api_v1_trees__tree_id__review_state_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Person History */
+        get: operations["person_history_api_v1_trees__tree_id__people__person_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/revisions/{revision_id}/revert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revert */
+        post: operations["revert_api_v1_trees__tree_id__revisions__revision_id__revert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notifications */
+        get: operations["notifications_api_v1_trees__tree_id__inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/inbox/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Notifications Read */
+        post: operations["notifications_read_api_v1_trees__tree_id__inbox_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/duplicates/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Duplicates
+         * @description Is the person about to be added already in the tree? Visible people only; nothing is merged.
+         */
+        post: operations["check_duplicates_api_v1_trees__tree_id__duplicates_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/life-events": {
         parameters: {
             query?: never;
@@ -3249,6 +3559,8 @@ export interface components {
         };
         /** AssertionOut */
         AssertionOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -3824,6 +4136,100 @@ export interface components {
             parent_branch_id?: string | null;
             descent_rule?: components["schemas"]["DescentRule"] | null;
         };
+        /** ChallengeIn */
+        ChallengeIn: {
+            target_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Rationale */
+            rationale: string;
+            /**
+             * Items
+             * @default []
+             */
+            items?: components["schemas"]["ProposalItemIn"][];
+            /**
+             * Source Ids
+             * @default []
+             */
+            source_ids?: string[];
+        };
+        /** ChangeProposalOut */
+        ChangeProposalOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ProposalKind"];
+            status: components["schemas"]["ChangeProposalStatus"];
+            /** Rationale */
+            rationale: string;
+            proposer: components["schemas"]["UserRef"] | null;
+            /** Person Id */
+            person_id: string | null;
+            /** Person Label */
+            person_label?: string | null;
+            target_type?: components["schemas"]["ReviewTarget"] | null;
+            /** Target Id */
+            target_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            decided_by?: components["schemas"]["UserRef"] | null;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Decision Note */
+            decision_note?: string | null;
+            /** Stale Reason */
+            stale_reason?: string | null;
+            /** Supersedes Id */
+            supersedes_id?: string | null;
+            /**
+             * Source Ids
+             * @default []
+             */
+            source_ids?: string[];
+            /**
+             * Items
+             * @default []
+             */
+            items?: components["schemas"]["ProposalItemOut"][];
+            /**
+             * Comments
+             * @default []
+             */
+            comments?: components["schemas"]["CommentOut"][];
+            /**
+             * Can Decide
+             * @default false
+             */
+            can_decide?: boolean;
+            /** Cannot Decide Reason */
+            cannot_decide_reason?: string | null;
+            /**
+             * Can Withdraw
+             * @default false
+             */
+            can_withdraw?: boolean;
+            /**
+             * Can Rebase
+             * @default false
+             */
+            can_rebase?: boolean;
+        };
+        /**
+         * ChangeProposalStatus
+         * @enum {string}
+         */
+        ChangeProposalStatus: "draft" | "awaiting_review" | "accepted" | "rejected" | "withdrawn" | "stale";
         /** ChannelsOut */
         ChannelsOut: {
             /** Email */
@@ -4116,6 +4522,27 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** CommentIn */
+        CommentIn: {
+            /** Body */
+            body: string;
+        };
+        /** CommentOut */
+        CommentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            author: components["schemas"]["UserRef"] | null;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** CommitIn */
         CommitIn: {
             /** Decisions */
@@ -4248,6 +4675,11 @@ export interface components {
          * @enum {string}
          */
         DatePrecision: "exact" | "day_unknown" | "month_unknown" | "year_only" | "circa" | "before" | "after" | "range" | "unknown";
+        /** DecisionIn */
+        DecisionIn: {
+            /** Note */
+            note?: string | null;
+        };
         /** DeliveryOut */
         DeliveryOut: {
             /**
@@ -4494,6 +4926,40 @@ export interface components {
             /** Reasons */
             reasons: string[];
         };
+        /**
+         * DuplicateCheckIn
+         * @description The person about to be added, and who they will be linked to (ADR-0021 §8).
+         */
+        DuplicateCheckIn: {
+            /** Names */
+            names: components["schemas"]["DuplicateNameIn"][];
+            /** Birth Year */
+            birth_year?: number | null;
+            /** Sex At Birth */
+            sex_at_birth?: string | null;
+            /**
+             * Parent Ids
+             * @default []
+             */
+            parent_ids?: string[];
+            /**
+             * Spouse Ids
+             * @default []
+             */
+            spouse_ids?: string[];
+            /** Birth Place Id */
+            birth_place_id?: string | null;
+            /**
+             * Exclude Ids
+             * @default []
+             */
+            exclude_ids?: string[];
+        };
+        /** DuplicateCheckOut */
+        DuplicateCheckOut: {
+            /** Candidates */
+            candidates: components["schemas"]["EntryDuplicateMatch"][];
+        };
         /** DuplicateMatch */
         DuplicateMatch: {
             person: components["schemas"]["PersonSummary"];
@@ -4503,6 +4969,13 @@ export interface components {
             outcome: string;
             /** Reasons */
             reasons: string[];
+        };
+        /** DuplicateNameIn */
+        DuplicateNameIn: {
+            /** Given Name */
+            given_name?: string | null;
+            /** Surname */
+            surname?: string | null;
         };
         /** EmailIn */
         EmailIn: {
@@ -4520,6 +4993,16 @@ export interface components {
              * @default false
              */
             delete?: boolean;
+        };
+        /** EntryDuplicateMatch */
+        EntryDuplicateMatch: {
+            person: components["schemas"]["PersonSummary"];
+            /** Score */
+            score: number;
+            /** Likely */
+            likely: boolean;
+            /** Reasons */
+            reasons: string[];
         };
         /** EraseIn */
         EraseIn: {
@@ -4693,6 +5176,8 @@ export interface components {
         };
         /** EventOut */
         EventOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -4835,6 +5320,20 @@ export interface components {
             other_children: components["schemas"]["RelatedPerson"][];
             /** Siblings */
             siblings: components["schemas"]["SiblingOut"][];
+        };
+        /** FieldChange */
+        FieldChange: {
+            /** Field */
+            field: string;
+            /** Current */
+            current?: unknown;
+            /** Proposed */
+            proposed?: unknown;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
         };
         /** GenealogicalDate */
         GenealogicalDate: {
@@ -6129,6 +6628,8 @@ export interface components {
         };
         /** NameOut */
         NameOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -6253,6 +6754,48 @@ export interface components {
          * @enum {string}
          */
         NotificationChannel: "email" | "sms" | "whatsapp";
+        /**
+         * NotificationKind
+         * @enum {string}
+         */
+        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment";
+        /** NotificationOut */
+        NotificationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["NotificationKind"];
+            /** Proposal Id */
+            proposal_id: string | null;
+            /** Text */
+            text: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Read */
+            read: boolean;
+        };
+        /** NotificationsOut */
+        NotificationsOut: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread */
+            unread: number;
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** NotificationsReadIn */
+        NotificationsReadIn: {
+            /**
+             * Ids
+             * @default []
+             */
+            ids?: string[];
+        };
         /** OcrLineOut */
         OcrLineOut: {
             /** Line No */
@@ -6333,6 +6876,20 @@ export interface components {
         Page_PlaceOut_: {
             /** Items */
             items: components["schemas"]["PlaceOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[ProposalSummary] */
+        Page_ProposalSummary_: {
+            /** Items */
+            items: components["schemas"]["ProposalSummary"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[RevisionOut] */
+        Page_RevisionOut_: {
+            /** Items */
+            items: components["schemas"]["RevisionOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -7596,6 +8153,75 @@ export interface components {
             current_status?: string | null;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
         };
+        /** ProposalIn */
+        ProposalIn: {
+            /**
+             * Rationale
+             * @default
+             */
+            rationale?: string;
+            /** Items */
+            items: components["schemas"]["ProposalItemIn"][];
+            /**
+             * Source Ids
+             * @default []
+             */
+            source_ids?: string[];
+            /**
+             * Submit
+             * @default true
+             */
+            submit?: boolean;
+        };
+        /** ProposalItemIn */
+        ProposalItemIn: {
+            target_type: components["schemas"]["ReviewTarget"];
+            op: components["schemas"]["ProposalOp"];
+            /** Target Id */
+            target_id?: string | null;
+            /** Person Id */
+            person_id?: string | null;
+            /**
+             * Patch
+             * @default {}
+             */
+            patch?: {
+                [key: string]: unknown;
+            };
+        };
+        /** ProposalItemOut */
+        ProposalItemOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            target_type: components["schemas"]["ReviewTarget"];
+            op: components["schemas"]["ProposalOp"];
+            /** Target Id */
+            target_id: string | null;
+            /** Person Id */
+            person_id: string | null;
+            /** Label */
+            label: string;
+            /** Changes */
+            changes: components["schemas"]["FieldChange"][];
+            /**
+             * Outdated
+             * @default false
+             */
+            outdated?: boolean;
+        };
+        /**
+         * ProposalKind
+         * @enum {string}
+         */
+        ProposalKind: "change" | "challenge";
+        /**
+         * ProposalOp
+         * @enum {string}
+         */
+        ProposalOp: "create" | "update" | "delete";
         /** ProposalOut */
         ProposalOut: {
             /**
@@ -7661,6 +8287,32 @@ export interface components {
          * @enum {string}
          */
         ProposalStatus: "pending" | "accepted" | "edited" | "rejected";
+        /** ProposalSummary */
+        ProposalSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ProposalKind"];
+            status: components["schemas"]["ChangeProposalStatus"];
+            proposer: components["schemas"]["UserRef"] | null;
+            /** Person Id */
+            person_id: string | null;
+            /** Person Label */
+            person_label?: string | null;
+            /** Item Count */
+            item_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+        };
         /**
          * ProvenanceOrigin
          * @enum {string}
@@ -7730,6 +8382,11 @@ export interface components {
             /** Next */
             next?: string | null;
         };
+        /** RejectIn */
+        RejectIn: {
+            /** Note */
+            note: string;
+        };
         /** RelatedEventOut */
         RelatedEventOut: {
             /**
@@ -7796,6 +8453,8 @@ export interface components {
         };
         /** RelationshipOut */
         RelationshipOut: {
+            /** @default unreviewed */
+            review_state?: components["schemas"]["ReviewState"];
             /**
              * Id
              * Format: uuid
@@ -8218,6 +8877,16 @@ export interface components {
             /** Pending Proposals */
             pending_proposals: number;
         };
+        /** RevertOut */
+        RevertOut: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "applied" | "proposed";
+            /** Proposal Id */
+            proposal_id?: string | null;
+        };
         /** ReviewIn */
         ReviewIn: {
             /**
@@ -8237,10 +8906,105 @@ export interface components {
             target_parcel_id?: string | null;
         };
         /**
+         * ReviewPolicy
+         * @description Which direct writes need review by someone with change.review (ADR-0021 §1).
+         * @enum {string}
+         */
+        ReviewPolicy: "off" | "structure" | "all";
+        /** ReviewPolicyIn */
+        ReviewPolicyIn: {
+            review_policy: components["schemas"]["ReviewPolicy"];
+        };
+        /**
+         * ReviewState
+         * @description Family review of a fact. Separate from EvidenceStatus: approval is not evidence (§6).
+         * @enum {string}
+         */
+        ReviewState: "unreviewed" | "family_reviewed" | "contested";
+        /** ReviewStateIn */
+        ReviewStateIn: {
+            target_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "family_reviewed" | "unreviewed";
+        };
+        /** ReviewStateOut */
+        ReviewStateOut: {
+            target_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            review_state: components["schemas"]["ReviewState"];
+            /** Review State At */
+            review_state_at?: string | null;
+        };
+        /**
+         * ReviewTarget
+         * @description Record types that carry revisions and review state (and can be proposed or challenged).
+         * @enum {string}
+         */
+        ReviewTarget: "person" | "name" | "event" | "relationship" | "assertion";
+        /** RevisionChange */
+        RevisionChange: {
+            /** Field */
+            field: string;
+            /** Before */
+            before?: unknown;
+            /** After */
+            after?: unknown;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+        };
+        /** RevisionOut */
+        RevisionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            record_type: components["schemas"]["ReviewTarget"];
+            /**
+             * Record Id
+             * Format: uuid
+             */
+            record_id: string;
+            /** Revision */
+            revision: number;
+            op: components["schemas"]["ProposalOp"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            actor?: components["schemas"]["UserRef"] | null;
+            reviewer?: components["schemas"]["UserRef"] | null;
+            /** Proposal Id */
+            proposal_id?: string | null;
+            /** Changes */
+            changes: components["schemas"]["RevisionChange"][];
+            /**
+             * Revertible
+             * @default false
+             */
+            revertible?: boolean;
+        };
+        /**
          * Role
          * @enum {string}
          */
-        Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN";
+        Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN" | "REVIEWER";
         /**
          * ScanStatus
          * @enum {string}
@@ -8995,6 +9759,8 @@ export interface components {
             slug: string;
             public_mode: components["schemas"]["PublicMode"];
             default_person_privacy: components["schemas"]["PrivacyLevel"];
+            /** @default off */
+            review_policy?: components["schemas"]["ReviewPolicy"];
             /**
              * Created At
              * Format: date-time
@@ -9076,6 +9842,16 @@ export interface components {
             /** Reminder Id */
             reminder_id?: string | null;
         };
+        /** UpholdIn */
+        UpholdIn: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Mark Disputed
+             * @default true
+             */
+            mark_disputed?: boolean;
+        };
         /** UserOut */
         UserOut: {
             /**
@@ -9109,6 +9885,16 @@ export interface components {
              * @default false
              */
             must_change_password?: boolean;
+        };
+        /** UserRef */
+        UserRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -11917,6 +12703,675 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_review_policy_api_v1_trees__tree_id__review_policy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewPolicyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPolicyIn"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proposals_api_v1_trees__tree_id__proposals_get: {
+        parameters: {
+            query?: {
+                view?: string;
+                person_id?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ProposalSummary_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_proposal_api_v1_trees__tree_id__proposals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_proposal_api_v1_trees__tree_id__proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_proposal_api_v1_trees__tree_id__proposals__proposal_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_proposal_api_v1_trees__tree_id__proposals__proposal_id__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_proposal_api_v1_trees__tree_id__proposals__proposal_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Stale */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_proposal_api_v1_trees__tree_id__proposals__proposal_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rebase_proposal_api_v1_trees__tree_id__proposals__proposal_id__rebase_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comment_api_v1_trees__tree_id__proposals__proposal_id__comments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_challenge_api_v1_trees__tree_id__challenges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    uphold_api_v1_trees__tree_id__proposals__proposal_id__uphold_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpholdIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Stale */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_api_v1_trees__tree_id__proposals__proposal_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeProposalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_review_state_api_v1_trees__tree_id__review_state_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewStateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    person_history_api_v1_trees__tree_id__people__person_id__history_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RevisionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revert_api_v1_trees__tree_id__revisions__revision_id__revert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevertOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notifications_api_v1_trees__tree_id__inbox_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notifications_read_api_v1_trees__tree_id__inbox_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationsReadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_duplicates_api_v1_trees__tree_id__duplicates_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateCheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DuplicateCheckOut"];
+                };
             };
             /** @description Validation Error */
             422: {

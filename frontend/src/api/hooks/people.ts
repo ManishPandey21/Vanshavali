@@ -1,5 +1,6 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../client";
+import { orPropose } from "../../lib/reviewBus";
 import type {
   EventIn,
   EventOut,
@@ -88,7 +89,10 @@ export function useCreatePerson(treeId: string) {
 export function useUpdatePerson(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (body: PersonUpdate) => api.patch<PersonOut>(`/trees/${treeId}/people/${personId}`, body),
+    mutationFn: (body: PersonUpdate) =>
+      orPropose({ target_type: "person", op: "update", target_id: personId, patch: body as Record<string, unknown> }, () =>
+        api.patch<PersonOut>(`/trees/${treeId}/people/${personId}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -104,7 +108,8 @@ export function useSetPrivacy(treeId: string, personId: string) {
 export function useDeletePerson(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (personId: string) => api.del<Message>(`/trees/${treeId}/people/${personId}`),
+    mutationFn: (personId: string) =>
+      orPropose({ target_type: "person", op: "delete", target_id: personId }, () => api.del<Message>(`/trees/${treeId}/people/${personId}`)),
     onSuccess: invalidate,
   });
 }
@@ -147,7 +152,9 @@ export function useUpdateName(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: NameUpdate }) =>
-      api.patch<NameOut>(`/trees/${treeId}/people/${personId}/names/${id}`, body),
+      orPropose({ target_type: "name", op: "update", target_id: id, patch: body as Record<string, unknown> }, () =>
+        api.patch<NameOut>(`/trees/${treeId}/people/${personId}/names/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -155,7 +162,8 @@ export function useUpdateName(treeId: string, personId: string) {
 export function useDeleteName(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/people/${personId}/names/${id}`),
+    mutationFn: (id: string) =>
+      orPropose({ target_type: "name", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/people/${personId}/names/${id}`)),
     onSuccess: invalidate,
   });
 }
@@ -181,7 +189,9 @@ export function useUpdateEvent(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: EventUpdate }) =>
-      api.patch<EventOut>(`/trees/${treeId}/events/${id}`, body),
+      orPropose({ target_type: "event", op: "update", target_id: id, patch: body as Record<string, unknown> }, () =>
+        api.patch<EventOut>(`/trees/${treeId}/events/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -189,7 +199,7 @@ export function useUpdateEvent(treeId: string) {
 export function useDeleteEvent(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/events/${id}`),
+    mutationFn: (id: string) => orPropose({ target_type: "event", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/events/${id}`)),
     onSuccess: invalidate,
   });
 }
@@ -256,7 +266,8 @@ export function useAddRelative(treeId: string, personId: string) {
 export function useDeleteRelationship(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/relationships/${id}`),
+    mutationFn: (id: string) =>
+      orPropose({ target_type: "relationship", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/relationships/${id}`)),
     onSuccess: invalidate,
   });
 }
@@ -265,7 +276,9 @@ export function useUpdateRelationship(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      api.patch<RelationshipOut>(`/trees/${treeId}/relationships/${id}`, body),
+      orPropose({ target_type: "relationship", op: "update", target_id: id, patch: body }, () =>
+        api.patch<RelationshipOut>(`/trees/${treeId}/relationships/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }

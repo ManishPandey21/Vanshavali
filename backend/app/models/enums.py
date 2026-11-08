@@ -14,6 +14,7 @@ class Role(StrEnum):
     VIEWER = "VIEWER"
     DOCUMENT_CUSTODIAN = "DOCUMENT_CUSTODIAN"
     PROPERTY_CUSTODIAN = "PROPERTY_CUSTODIAN"
+    REVIEWER = "REVIEWER"  # reviews proposed changes (ADR-0021); writes nothing by itself
 
 
 class PrivacyLevel(StrEnum):
@@ -688,3 +689,61 @@ class GeoAliasKind(StrEnum):
     ALTERNATIVE = "alternative"  # published by LGD
     HISTORICAL = "historical"  # a former LGD name, recorded when a rename is imported
     CURATED = "curated"  # added by code review (app/modules/geo/aliases.json)
+
+
+# ---- change proposals and family review (ADR-0021)
+class ReviewPolicy(StrEnum):
+    """Which direct writes need review by someone with change.review (ADR-0021 §1)."""
+
+    OFF = "off"
+    STRUCTURE = "structure"  # relationships and heritage claims
+    ALL = "all"  # plus people's names, vitals and other facts
+
+
+class ReviewState(StrEnum):
+    """Family review of a fact. Separate from EvidenceStatus: approval is not evidence (§6)."""
+
+    UNREVIEWED = "unreviewed"
+    FAMILY_REVIEWED = "family_reviewed"
+    CONTESTED = "contested"
+
+
+class ProposalKind(StrEnum):
+    CHANGE = "change"
+    CHALLENGE = "challenge"
+
+
+class ChangeProposalStatus(StrEnum):
+    DRAFT = "draft"
+    AWAITING_REVIEW = "awaiting_review"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"
+    STALE = "stale"
+
+
+class ProposalOp(StrEnum):
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+
+
+class ReviewTarget(StrEnum):
+    """Record types that carry revisions and review state (and can be proposed or challenged)."""
+
+    PERSON = "person"
+    NAME = "name"
+    EVENT = "event"
+    RELATIONSHIP = "relationship"
+    ASSERTION = "assertion"
+
+
+class NotificationKind(StrEnum):
+    PROPOSAL_TO_REVIEW = "proposal_to_review"
+    PROPOSAL_ACCEPTED = "proposal_accepted"
+    PROPOSAL_REJECTED = "proposal_rejected"
+    PROPOSAL_STALE = "proposal_stale"
+    CHALLENGE_OPENED = "challenge_opened"
+    CHALLENGE_UPHELD = "challenge_upheld"
+    CHALLENGE_DISMISSED = "challenge_dismissed"
+    PROPOSAL_COMMENT = "proposal_comment"

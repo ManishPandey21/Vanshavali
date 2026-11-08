@@ -1,3 +1,4 @@
+import { ReviewPage } from "./pages/tree/ReviewPage";
 import { Suspense, lazy, useEffect, type ReactNode } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -131,6 +132,8 @@ export default function App() {
             <Route path="sources" element={<SourcesPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="duplicates" element={<DuplicatesPage />} />
+            <Route path="review" element={<ReviewPage />} />
+            <Route path="review/:proposalId" element={<ReviewPage />} />
             <Route path="documents" element={<Lazy><DocumentsPage /></Lazy>} />
             <Route path="documents/:documentId" element={<Lazy><DocumentDetailPage /></Lazy>} />
             <Route path="property" element={<Lazy><PropertyListPage /></Lazy>} />

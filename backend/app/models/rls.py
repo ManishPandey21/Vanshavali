@@ -25,6 +25,8 @@ RLS_TABLES: tuple[str, ...] = (
     "assertion",
     "astrology_profile",
     "branch_membership",
+    "change_proposal",
+    "change_proposal_item",
     "chart_preset",
     "citation",
     "consent_record",
@@ -56,12 +58,16 @@ RLS_TABLES: tuple[str, ...] = (
     "property_event",
     "property_event_parcel",
     "property_interest",
+    "proposal_citation",
+    "proposal_comment",
+    "record_revision",
     "relationship",
     "relative_age_order",
     "render_artifact",
     "render_job",
     "source",
     "tree_vocabulary_term",
+    "user_notification",
 )
 
 POLICY_NAME = "tree_isolation"

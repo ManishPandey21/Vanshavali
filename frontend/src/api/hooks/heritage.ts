@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../client";
+import { orPropose } from "../../lib/reviewBus";
 import type {
   AssertionIn,
   AssertionOut,
@@ -52,7 +53,9 @@ export function useUpdateAssertion(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: AssertionUpdate }) =>
-      api.patch<AssertionOut>(`/trees/${treeId}/assertions/${id}`, body),
+      orPropose({ target_type: "assertion", op: "update", target_id: id, patch: body as Record<string, unknown> }, () =>
+        api.patch<AssertionOut>(`/trees/${treeId}/assertions/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -60,7 +63,8 @@ export function useUpdateAssertion(treeId: string) {
 export function useDeleteAssertion(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/assertions/${id}`),
+    mutationFn: (id: string) =>
+      orPropose({ target_type: "assertion", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/assertions/${id}`)),
     onSuccess: invalidate,
   });
 }

@@ -28,6 +28,7 @@ from app.modules.property.router import router as property_router
 from app.modules.public.router import router as public_router
 from app.modules.render.router import files_router as render_files_router
 from app.modules.render.router import router as render_router
+from app.modules.review.router import router as review_router
 from app.modules.search.router import router as search_router
 from app.modules.smartadd.router import router as smartadd_router
 from app.modules.translit.router import router as translit_router
@@ -42,6 +43,7 @@ api_router.include_router(smartadd_router)
 api_router.include_router(masterdata_router)
 api_router.include_router(translit_router)
 api_router.include_router(geo_router)
+api_router.include_router(review_router)
 api_router.include_router(lifeevents_router)
 api_router.include_router(reminders_router)
 api_router.include_router(notifications_user_router)

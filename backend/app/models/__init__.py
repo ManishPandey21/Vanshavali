@@ -37,6 +37,14 @@ from app.models.notifications import (
 )
 from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClaim, ProfileClaimInvite
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
+from app.models.review import (
+    ChangeProposal,
+    ChangeProposalItem,
+    ProposalCitation,
+    ProposalComment,
+    RecordRevision,
+    UserNotification,
+)
 from app.models.tree import AccessGrant, Tree, TreeInvitation, TreeMembership
 from app.models.visualization import ChartPreset, RenderArtifact, RenderJob
 
@@ -51,6 +59,8 @@ __all__ = [
     "AuthTokenPurpose",
     "Base",
     "BranchMembership",
+    "ChangeProposal",
+    "ChangeProposalItem",
     "ChartPreset",
     "Citation",
     "ConsentRecord",
@@ -89,6 +99,9 @@ __all__ = [
     "PropertyEvent",
     "PropertyEventParcel",
     "PropertyInterest",
+    "ProposalCitation",
+    "ProposalComment",
+    "RecordRevision",
     "Relationship",
     "RelativeAgeOrder",
     "RenderArtifact",
@@ -99,7 +112,13 @@ __all__ = [
     "TreeMembership",
     "TreeVocabularyTerm",
     "User",
+    "UserNotification",
     "UserSession",
     "Vocabulary",
     "VocabularyTerm",
 ]
+
+# revisions and history for every write path (ADR-0021 §3): one flush hook on every session
+from app.modules.review import revisions as _revisions  # noqa: E402
+
+_revisions.install()

@@ -25,6 +25,7 @@ from app.models.enums import (
     ProfileStatus,
     ProvenanceOrigin,
     RelationshipType,
+    ReviewState,
     SexAtBirth,
 )
 from app.modules.geo.schemas import PlaceLgdNote
@@ -232,6 +233,8 @@ class NameUpdate(ApiModel):
 
 
 class NameOut(ApiModel):
+    # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
+    review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID
     type: NameType
     given_name: str | None
@@ -350,6 +353,8 @@ class ParticipantOut(ApiModel):
 
 
 class EventOut(ApiModel):
+    # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
+    review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID
     type: EventType
     subtype: str | None
@@ -509,6 +514,8 @@ class RelationshipUpdate(ApiModel):
 
 
 class RelationshipOut(ApiModel):
+    # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
+    review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID
     person_a_id: uuid.UUID
     person_b_id: uuid.UUID

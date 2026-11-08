@@ -206,6 +206,19 @@ Decision: ADR-0019 (implementation notes there). Migration `8e4a1f6c2b37`: `geo_
 | Ancestral-village suggestion: optional family branch on the person form; the branch's ancestral village is offered for the birth place, never filled | VERIFIED | Vitest `PlaceCascade.test.tsx`, Playwright `lgd-places.spec.ts` | |
 | Acceptance benchmark (§10) on pilot hardware with the national files | PARTIAL | `python -m app.cli.geo_benchmark` (synthetic, 6.5 lakh villages) | Build container: children p95 5.9 ms, search p95 79/88 ms, largest state 14 s, 382 MB, all within target (`docs/operations/performance.md`). Pilot-hardware run with real files still to do |
 
+## R3 — Change proposals, family review and duplicates at entry (Nov 2026)
+
+Decision: ADR-0021 (implementation notes there). Migration `4d7c2a9e1b58`: `revision` and `review_state` on person, name_record, event, relationship and assertion; `tree.review_policy`; `change_proposal`, `change_proposal_item`, `proposal_citation`, `proposal_comment`, `record_revision`, `user_notification` with row-level security.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Revisions and value history for every write path (one flush hook); review state resets on change; erasure removes history | VERIFIED | `test_proposals.py` (history, merge path, erasure, redaction) | History is redacted per reader; never exported |
+| Review policy (off / structure / all), `change.review` permission, REVIEWER role; 409 `review_required` | VERIFIED | `test_proposals.py` (policy, own work, managers only, reviewer cannot write) | Defaults to off: no change for existing trees |
+| Proposals: create, submit, approve (revision-bound, row locks, all-or-nothing), reject, withdraw, rebase, comments; no self-approval; hidden fields block deciding; branch scope | VERIFIED | `test_proposals.py` | Applied as the proposer |
+| Challenges (mark nothing until upheld; contested + DISPUTED; capped), review-state confirm, revert (direct or proposed), in-app notifications at `/inbox` | VERIFIED | `test_proposals.py`, `test_routes_unique.py` | No email or WhatsApp for these in R3 |
+| Duplicates at entry (`/duplicates/check`): names across scripts, birth year, parents, spouse, LGD village; visible people only | VERIFIED | `test_duplicates_entry.py` (5) | |
+| UI: propose dialog on `review_required`, Review page, notification bell, History tab with revert, badges and Challenge on names, pending-changes notice, review policy in settings, duplicate panel in Add person / Add relative / Smart Add; en/hi | VERIFIED | Vitest `ReviewParts.test.tsx` (9), Playwright `family-review.spec.ts` (2, 390 px, axe) | Smart Add plans that link two existing people are refused under a policy; proposing them from Smart Add is a follow-up. Hindi strings await the native review (#34) |
+
 ## R1 — Age-aware kinship terms (Nov 2026)
 
 Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.

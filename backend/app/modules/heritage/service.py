@@ -36,6 +36,7 @@ from app.modules.heritage.schemas import (
     HeritageAttributeView,
     HeritageProfileOut,
 )
+from app.modules.review import policy as review_policy
 
 ATTRIBUTE_GROUP = {
     HeritageAttribute.JATI_OR_SUBGROUP.value: FieldGroup.JATI,
@@ -190,6 +191,7 @@ def update_assertion(ctx: TreeContext, assertion_id: uuid.UUID, body: AssertionU
         ctx.require(Permission.ASSERTION_WRITE, person_id=a.person_id)
     else:
         ctx.require(Permission.FAMILY_WRITE)
+    review_policy.require_direct(ctx, "structure", [a.person_id], [a])
     researcher_only = ctx.roles <= {Role.RESEARCHER}
     if researcher_only and (a.created_by != ctx.user_id or body.is_preferred):
         from app.core.errors import Forbidden
@@ -232,6 +234,7 @@ def delete_assertion(ctx: TreeContext, assertion_id: uuid.UUID) -> None:
             raise Forbidden("You can only remove assertions you proposed")
     else:
         ctx.require(Permission.FAMILY_WRITE)
+    review_policy.require_direct(ctx, "structure", [a.person_id], [a])
     ctx.db.delete(a)
     audit.log(
         ctx,

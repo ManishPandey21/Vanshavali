@@ -242,7 +242,7 @@ seen and confirmed.
 Apply the ADR-0018 classification to every form (Unknown / Not applicable / Add my own only where
 valid), native Hindi review of new strings, and the elder-friendly UX review in §5.
 
-### Phase F: Family-verified ancestry (change proposals and review) — ADR-0021
+### Phase F: Family-verified ancestry (change proposals and review) — [ADR-0021](adr/0021-change-proposals-family-review.md)
 
 - `change_proposal` (tree-scoped): proposer, target, **base revision** of each target record,
   diff, rationale, sources, status (`draft → awaiting_review → accepted / rejected / contested /
@@ -304,7 +304,7 @@ valid), native Hindi review of new strings, and the elder-friendly UX review in 
 - Speech-to-text self-hosted by default; external provider only per-tree informed opt-in (Q7/Q17);
   transcript → `extraction_proposal`s.
 
-### Phase J: Duplicate detection inside Smart Add
+### Phase J: Duplicate detection inside Smart Add — [ADR-0021](adr/0021-change-proposals-family-review.md) §8
 
 Duplicate check in the wizard's resolve step, match reasons including LGD village and parents, and a
 "possible duplicate" badge.
@@ -367,6 +367,11 @@ implemented (see `IMPLEMENTATION_STATUS.md`), as are provisional people's privac
 exclusion, headline counts and the "To complete" view (5 Nov), and name transliteration
 suggestions (ADR-0025, 6 Nov). Still open in R1: the native-Hindi review itself (the pack is
 regenerated, including the name lexicon; issue #34).
+
+**R3 progress (7 Nov 2026):** change proposals bound to revisions, reviewers, challenges, family
+review state, value history with revert, in-app notifications and duplicates at entry are
+implemented (ADR-0021; see `IMPLEMENTATION_STATUS.md`). Still open: proposing a Smart Add plan
+that links two existing people from Smart Add itself.
 
 **Public-launch gate:** Q13 (lawful basis for living relatives who have not claimed their profile)
 must be signed off by counsel before any public launch, regardless of which releases have shipped.

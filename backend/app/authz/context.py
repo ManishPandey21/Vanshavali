@@ -165,6 +165,7 @@ def load_tree_context(
     if membership is None:
         raise NotFound("Tree not found")
     bind_tree(db, tree.id)  # row-level security: this session now only sees this tree's rows
+    db.info["actor_id"] = user.id  # who made the change, for revision history (ADR-0021 §3)
     roles = frozenset(Role(r) for r in membership.roles)
     return TreeContext(
         db=db,

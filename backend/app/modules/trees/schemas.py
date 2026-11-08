@@ -7,7 +7,7 @@ from typing import Any
 from pydantic import EmailStr, Field
 
 from app.api.schemas import ApiModel
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode, Role
+from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode, ReviewPolicy, Role
 
 
 class TreeCreate(ApiModel):
@@ -29,6 +29,8 @@ class TreeOut(ApiModel):
     slug: str
     public_mode: PublicMode
     default_person_privacy: PrivacyLevel
+    # which changes need family review (ADR-0021 §1)
+    review_policy: ReviewPolicy = ReviewPolicy.OFF
     created_at: dt.datetime
     my_roles: list[Role] = []
     my_permissions: list[str] = []

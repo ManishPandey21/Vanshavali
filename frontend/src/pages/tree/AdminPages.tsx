@@ -1,8 +1,9 @@
+import { useSetReviewPolicy } from "../../api/hooks/review";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Check, Copy, Globe2, Trash2, UserPlus, X } from "lucide-react";
-import type { InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, Role } from "../../api/types";
+import type { InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, ReviewPolicy, Role } from "../../api/types";
 import { PersonPicker } from "../../components/pickers";
 import {
   useAudit,
@@ -29,7 +30,7 @@ import { EmptyState, ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../c
 import { Checkbox, Field, Select, TextArea, TextInput } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
 
-export const ROLES: Role[] = ["OWNER", "FAMILY_ADMIN", "BRANCH_ADMIN", "CONTRIBUTOR", "RESEARCHER", "VIEWER", "DOCUMENT_CUSTODIAN", "PROPERTY_CUSTODIAN"];
+export const ROLES: Role[] = ["OWNER", "FAMILY_ADMIN", "BRANCH_ADMIN", "CONTRIBUTOR", "REVIEWER", "RESEARCHER", "VIEWER", "DOCUMENT_CUSTODIAN", "PROPERTY_CUSTODIAN"];
 
 function RolePicker({ value, onChange, legend }: { value: Role[]; onChange: (r: Role[]) => void; legend: string }) {
   const { t } = useTranslation();
@@ -470,6 +471,7 @@ export function SettingsPage() {
           {t("common.save")}
         </Button>
       </form>
+      <ReviewPolicyCard />
       <ConfirmDialog
         open={confirmPublic}
         onClose={() => setConfirmPublic(false)}
@@ -614,5 +616,40 @@ export function RestorePeoplePage() {
       )}
       <LiveRegion message={restore.isSuccess ? t("restore.restored") : ""} />
     </div>
+  );
+}
+
+
+/** Which changes need family review (ADR-0021 §1). Off by default: nothing changes until chosen. */
+function ReviewPolicyCard() {
+  const { t } = useTranslation();
+  const { treeId, tree } = useTreeCtx();
+  const set = useSetReviewPolicy(treeId);
+  const [policy, setPolicy] = useState<ReviewPolicy>(tree.review_policy ?? "off");
+  const [saved, setSaved] = useState("");
+  return (
+    <section className="card mt-4 space-y-3 p-5" aria-labelledby="review-policy-title">
+      <h2 id="review-policy-title" className="font-display text-lg font-semibold">
+        {t("review.policyTitle")}
+      </h2>
+      <p className="text-sm text-ink-muted">{t("review.policyIntro")}</p>
+      <fieldset className="space-y-2 text-sm">
+        <legend className="sr-only">{t("review.policyTitle")}</legend>
+        {(["off", "structure", "all"] as ReviewPolicy[]).map((p) => (
+          <label key={p} className="flex items-start gap-2">
+            <input type="radio" name="review_policy" className="mt-1 accent-kumkum-700" checked={policy === p} onChange={() => setPolicy(p)} />
+            <span>
+              <span className="font-medium">{t(`review.policy.${p}`)}</span>
+              <span className="block text-xs text-ink-muted">{t(`review.policyHint.${p}`)}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+      <ErrorAlert error={set.error} />
+      <LiveRegion message={saved} />
+      <Button loading={set.isPending} onClick={() => set.mutate(policy, { onSuccess: () => setSaved(t("common.saved")) })}>
+        {t("review.policySave")}
+      </Button>
+    </section>
   );
 }
