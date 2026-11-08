@@ -32,61 +32,6 @@
     "rateLimited": "Too many attempts. Please wait a minute and try again.",
     "validation": "Please check the highlighted fields"
   },
-  "lgd": {
-    "ancestral": {
-      "dismiss": "Dismiss",
-      "offer": "Ancestral village of {{branch}}",
-      "use": "Use {{place}}"
-    },
-    "attribution": "Source: Local Government Directory, Government of India; India Post (data of {{snapshot}}). Government Open Data Licence – India.",
-    "change": "Change {{level}} ({{name}})",
-    "find": "Find in the Local Government Directory",
-    "hint": "Pick the state, district and village, or search. You can still edit the name afterwards: your family's spelling is kept.",
-    "level": {
-      "district": "District",
-      "state": "State or union territory",
-      "sub_district": "Sub-district",
-      "urban_body": "Town (urban local body)",
-      "village": "Village",
-      "villageOrTown": "Village or town"
-    },
-    "linkedShort": "LGD {{level}} {{code}}",
-    "matchAlias": "also known as {{name}}",
-    "noResults": "No match in the directory",
-    "note": {
-      "choose": "Choose the current village or town",
-      "renamed": "LGD now lists this {{level}} as {{name}} (since {{since}}).",
-      "retired": "LGD no longer lists this {{level}} (since {{since}}).",
-      "successors": "It now lists: {{names}}.",
-      "unchanged": "Your record stays as it is until you update it.",
-      "under": "LGD now lists this {{level}} under {{path}} (since {{since}}).",
-      "update": "Update to LGD's current listing"
-    },
-    "notListed": "My village is not listed",
-    "notListedDone": "Not listed: the district and state are kept as text, without an LGD code.",
-    "pin": "PIN code",
-    "pinHint": "Optional. A PIN code suggests the district; it never picks the village.",
-    "pinNoDistrict": "This PIN's district is not matched in the directory; choose it above.",
-    "pinOffices": "PIN {{pin}}: {{offices}}",
-    "pinUnknown": "No post office with this PIN code in the directory.",
-    "searchAll": "Search all villages and towns",
-    "searchAllHint": "Type at least three letters, in English or Hindi, or choose a state first.",
-    "searchAllPlaceholder": "e.g. Rampur, रामपुर",
-    "searchAllScoped": "Searching within {{place}}.",
-    "subDistrict": {
-      "sub_district": "Sub-district",
-      "tehsil": "Tehsil",
-      "taluka": "Taluka",
-      "mandal": "Mandal",
-      "block": "Block",
-      "circle": "Circle",
-      "subdivision": "Sub-division"
-    },
-    "title": "Local Government Directory",
-    "typeToFilter": "Type to filter…",
-    "useDistrict": "Use {{district}}, {{state}}",
-    "useUnit": "Use {{name}} ({{level}})"
-  },
   "nav": {
     "audit": "Audit log",
     "branches": "Branches",
@@ -111,7 +56,6 @@
     "people": "People",
     "places": "Places",
     "relationship": "How are we related?",
-    "review": "Review",
     "search": "Search",
     "settings": "Tree settings",
     "skipToContent": "Skip to main content",
@@ -127,6 +71,7 @@
     "events": "Life events",
     "timeline": "Family timeline",
     "reminders": "Reminders",
+    "review": "Review",
     "traditions": "Traditions"
   },
   "auth": {
@@ -238,125 +183,6 @@
       "submit": "Close my account permanently"
     }
   },
-  "review": {
-    "requiredNotice": "Your family reviews changes like this one. We opened a form to send it for review instead.",
-    "state": {
-      "family_reviewed": "Family-confirmed",
-      "contested": "Challenged"
-    },
-    "challengeLabel": "Challenge: {{what}}",
-    "challengeTitle": "Challenge this fact",
-    "challengeHint": "Say why you think it is wrong. Nothing changes until a reviewer looks at it.",
-    "sendChallenge": "Send challenge",
-    "challengeSent": "Your challenge was sent. A reviewer will look at it.",
-    "challengeReason": "Why it may be wrong",
-    "proposeTitle": "Send this change for review",
-    "proposeHint": "Your family reviews changes like this before they are made. Nothing changes until a reviewer approves it.",
-    "openProposal": "Open the proposal",
-    "sendForReview": "Send for review",
-    "sent": "Sent for review. You will be told when it is decided.",
-    "op": {
-      "create": "Add",
-      "update": "Change",
-      "delete": "Remove"
-    },
-    "target": {
-      "person": "person",
-      "name": "name",
-      "event": "event or vital record",
-      "relationship": "relationship",
-      "assertion": "heritage detail",
-      "tradition": "family tradition",
-      "kinship_word": "family word for a relationship"
-    },
-    "rationale": "Why this change is right",
-    "rationaleHint": "For example: \"Grandfather's school certificate gives 1932\".",
-    "notifications": "Notifications",
-    "notificationsUnread_one": "Notifications, {{count}} unread",
-    "notificationsUnread_other": "Notifications, {{count}} unread",
-    "markAllRead": "Mark all read",
-    "noNotifications": "Nothing new.",
-    "dupTitle": "Already in the tree?",
-    "dupUse": "Use this person",
-    "dupSomeoneElse": "This is someone else",
-    "title": "Review",
-    "subtitle": "Proposed changes and challenges in this family tree",
-    "view": {
-      "to_review": "To review",
-      "mine": "Mine",
-      "closed": "Closed"
-    },
-    "empty": {
-      "to_review": "Nothing is waiting for your review.",
-      "mine": "You have not proposed any changes.",
-      "closed": "No decided proposals yet."
-    },
-    "challengeAbout": "Challenge about {{person}}",
-    "someone": "someone in the tree",
-    "changesTo_one": "{{count}} change to {{person}}",
-    "changesTo_other": "{{count}} changes to {{person}}",
-    "formerMember": "A former member",
-    "status": {
-      "draft": "Draft",
-      "awaiting_review": "Awaiting review",
-      "accepted": "Accepted",
-      "rejected": "Not accepted",
-      "withdrawn": "Withdrawn",
-      "stale": "Out of date"
-    },
-    "by": "Proposed by {{name}}",
-    "openPerson": "Open this person's profile",
-    "staleNotice": "Out of date:",
-    "decisionNote": "Note from {{name}}:",
-    "correction": "Proposed correction",
-    "changes": "Changes",
-    "outdated": "Changed since proposed",
-    "field": {
-      "label": "Field"
-    },
-    "now": "Now",
-    "proposed": "Proposed",
-    "hiddenField": "Hidden from you",
-    "decide": "Your decision",
-    "note": "Note",
-    "noteHint": "Required when you do not accept.",
-    "uphold": "Uphold challenge",
-    "approve": "Approve",
-    "dismiss": "Dismiss challenge",
-    "reject": "Do not accept",
-    "rebase": "Propose again against today's record",
-    "withdraw": "Withdraw",
-    "becameStale": "The record changed after this was proposed. Nothing was applied; the proposer can propose it again.",
-    "comments": "Comments",
-    "addComment": "Add a comment",
-    "postComment": "Post comment",
-    "historyEmpty": "No changes recorded yet.",
-    "reverted": "The earlier values are back.",
-    "revertProposed": "Sent for review: the earlier values come back once a reviewer approves.",
-    "system": "An import or merge",
-    "reviewedBy": "reviewed by {{name}}",
-    "revert": "Revert",
-    "pendingForPerson_one": "{{count}} change to this person awaits review.",
-    "pendingForPerson_other": "{{count}} changes to this person await review.",
-    "see": "See",
-    "policyTitle": "Family review",
-    "policyIntro": "Choose which changes by contributors need a reviewer's approval. Owners, family admins and reviewers always write directly. Every change is kept in each person's history.",
-    "policy": {
-      "off": "No review",
-      "structure": "Review relationships and heritage",
-      "all": "Review all changes"
-    },
-    "policyHint": {
-      "off": "Changes are made at once (the default).",
-      "structure": "Changes to relationships and heritage details (gotra, kul and others) wait for a reviewer.",
-      "all": "Also names, dates and other facts. Adding new people never waits."
-    },
-    "policySave": "Save review setting",
-    "familySubject": {
-      "tradition": "a family tradition",
-      "kinship_word": "the family's relationship words"
-    }
-  },
   "trees": {
     "create": "New family tree",
     "createSubtitle": "A tree is private: only people you invite can see it.",
@@ -458,8 +284,6 @@
       "birthDetails": "Birth details",
       "birthPlace": "Place of birth",
       "birthTime": "Time of birth",
-      "branch": "Family branch",
-      "branchHint": "Optional. Adds the person to this branch.",
       "deathDate": "Date of death",
       "deathDetails": "Death details",
       "deathPlace": "Place of death",
@@ -467,7 +291,9 @@
       "eventPlace": "Place",
       "livingNotice": "For living people and people of unknown status, full birth date, birth time, address and contact are visible to tree admins only by default.",
       "names": "Names",
-      "namesHint": "Add every form of the name you know — birth name, married name, the name in Devanagari or Tamil, aliases. Mark one as preferred."
+      "namesHint": "Add every form of the name you know — birth name, married name, the name in Devanagari or Tamil, aliases. Mark one as preferred.",
+      "branch": "Family branch",
+      "branchHint": "Optional. Adds the person to this branch."
     },
     "genderIdentity": "Gender identity",
     "genderIdentityHint": "Optional, self-described. Private to the person by default.",
@@ -1015,7 +841,7 @@
     "genUp_one": "{{count}} generation up",
     "genUp_other": "{{count}} generations up",
     "hiddenNodeLabel": "Private person, generation {{generation}}",
-    "keyboardHelp": "Keyboard: Tab to the chart, arrow keys move between people, Enter opens a profile, Space collapses or expands a branch, Home returns to the start. Drag to pan; Ctrl + scroll or the buttons to zoom.",
+    "keyboardHelp": "Keyboard: Tab to the chart, arrow keys move between people, Enter opens a profile, Space collapses or expands a branch, Home returns to the start. Click a person to see their details beside the chart. Drag to pan; Ctrl + scroll or the buttons to zoom.",
     "statusLegend": "Side bar on each person: solid = living, broken = deceased, outline = not known. Lifespan and status are also in the List view.",
     "legend": "Solid lines: biological · dashed: adoptive/legal · dotted: step/foster · double line: couple",
     "list": "List",
@@ -1040,6 +866,56 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "partnerNode": "(spouse / partner)",
+    "peopleShown_one": "{{count}} person shown",
+    "peopleShown_other": "{{count}} people shown",
+    "family": {
+      "tab": "Family",
+      "label": "Immediate family of {{name}}",
+      "focusMark": "centre of this view",
+      "addFather": "Add father",
+      "addMother": "Add mother",
+      "addSpouse": "Add spouse",
+      "addChild": "Add child",
+      "addSibling": "Add brother or sister",
+      "add": {
+        "parent": "Parent",
+        "spouse": "Spouse",
+        "child": "Child",
+        "sibling": "Brother or sister"
+      },
+      "hint": "Click anyone to see them in the panel; “Centre here” moves the family view to them. Brothers and sisters are shown eldest first."
+    },
+    "panel": {
+      "thisIsYou": "This is you",
+      "yourRelation": "Your {{relation}}",
+      "born": "Born {{date}}",
+      "died": "Died {{date}}",
+      "age_one": "age {{count}}",
+      "age_other": "age {{count}}",
+      "profile": "Profile",
+      "centre": "Centre here",
+      "add": "Add relative",
+      "related": "How related?",
+      "immediateFamily": "Immediate family",
+      "noFamily": "No relatives recorded yet.",
+      "photos_one": "Photos ({{count}})",
+      "photos_other": "Photos ({{count}})",
+      "allPhotos": "All photos"
+    },
+    "role": {
+      "father": "Father",
+      "mother": "Mother",
+      "parent": "Parent",
+      "husband": "Husband",
+      "wife": "Wife",
+      "spouse": "Spouse",
+      "son": "Son",
+      "daughter": "Daughter",
+      "child": "Child",
+      "brother": "Brother",
+      "sister": "Sister",
+      "sibling": "Sibling"
+    },
     "you": "You",
     "youLabel": "This is you"
   },
@@ -1196,8 +1072,8 @@
       "OWNER": "Owner",
       "PROPERTY_CUSTODIAN": "Property custodian",
       "RESEARCHER": "Researcher",
-      "REVIEWER": "Reviewer",
-      "VIEWER": "Viewer"
+      "VIEWER": "Viewer",
+      "REVIEWER": "Reviewer"
     },
     "roleHint": {
       "BRANCH_ADMIN": "Manages people and members of one branch",
@@ -1207,8 +1083,8 @@
       "OWNER": "Full control, including deletion",
       "PROPERTY_CUSTODIAN": "Manages ancestral property records",
       "RESEARCHER": "Adds sources and proposes facts",
-      "REVIEWER": "Reviews changes others propose and challenges to facts; edits nothing by itself.",
-      "VIEWER": "Read-only"
+      "VIEWER": "Read-only",
+      "REVIEWER": "Reviews changes others propose and challenges to facts; edits nothing by itself."
     },
     "evidence": {
       "CORROBORATED": "Corroborated",
@@ -3115,6 +2991,180 @@
       "name": "Save current view as",
       "shareWithTree": "Share with the tree",
       "save": "Save view"
+    }
+  },
+  "lgd": {
+    "ancestral": {
+      "dismiss": "Dismiss",
+      "offer": "Ancestral village of {{branch}}",
+      "use": "Use {{place}}"
+    },
+    "attribution": "Source: Local Government Directory, Government of India; India Post (data of {{snapshot}}). Government Open Data Licence – India.",
+    "change": "Change {{level}} ({{name}})",
+    "find": "Find in the Local Government Directory",
+    "hint": "Pick the state, district and village, or search. You can still edit the name afterwards: your family's spelling is kept.",
+    "level": {
+      "district": "District",
+      "state": "State or union territory",
+      "sub_district": "Sub-district",
+      "urban_body": "Town (urban local body)",
+      "village": "Village",
+      "villageOrTown": "Village or town"
+    },
+    "linkedShort": "LGD {{level}} {{code}}",
+    "matchAlias": "also known as {{name}}",
+    "noResults": "No match in the directory",
+    "note": {
+      "choose": "Choose the current village or town",
+      "renamed": "LGD now lists this {{level}} as {{name}} (since {{since}}).",
+      "retired": "LGD no longer lists this {{level}} (since {{since}}).",
+      "successors": "It now lists: {{names}}.",
+      "unchanged": "Your record stays as it is until you update it.",
+      "under": "LGD now lists this {{level}} under {{path}} (since {{since}}).",
+      "update": "Update to LGD's current listing"
+    },
+    "notListed": "My village is not listed",
+    "notListedDone": "Not listed: the district and state are kept as text, without an LGD code.",
+    "pin": "PIN code",
+    "pinHint": "Optional. A PIN code suggests the district; it never picks the village.",
+    "pinNoDistrict": "This PIN's district is not matched in the directory; choose it above.",
+    "pinOffices": "PIN {{pin}}: {{offices}}",
+    "pinUnknown": "No post office with this PIN code in the directory.",
+    "searchAll": "Search all villages and towns",
+    "searchAllHint": "Type at least three letters, in English or Hindi, or choose a state first.",
+    "searchAllPlaceholder": "e.g. Rampur, रामपुर",
+    "searchAllScoped": "Searching within {{place}}.",
+    "subDistrict": {
+      "sub_district": "Sub-district",
+      "tehsil": "Tehsil",
+      "taluka": "Taluka",
+      "mandal": "Mandal",
+      "block": "Block",
+      "circle": "Circle",
+      "subdivision": "Sub-division"
+    },
+    "title": "Local Government Directory",
+    "typeToFilter": "Type to filter…",
+    "useDistrict": "Use {{district}}, {{state}}",
+    "useUnit": "Use {{name}} ({{level}})"
+  },
+  "review": {
+    "requiredNotice": "Your family reviews changes like this one. We opened a form to send it for review instead.",
+    "state": {
+      "family_reviewed": "Family-confirmed",
+      "contested": "Challenged"
+    },
+    "challengeLabel": "Challenge: {{what}}",
+    "challengeTitle": "Challenge this fact",
+    "challengeHint": "Say why you think it is wrong. Nothing changes until a reviewer looks at it.",
+    "sendChallenge": "Send challenge",
+    "challengeSent": "Your challenge was sent. A reviewer will look at it.",
+    "challengeReason": "Why it may be wrong",
+    "proposeTitle": "Send this change for review",
+    "proposeHint": "Your family reviews changes like this before they are made. Nothing changes until a reviewer approves it.",
+    "openProposal": "Open the proposal",
+    "sendForReview": "Send for review",
+    "sent": "Sent for review. You will be told when it is decided.",
+    "op": {
+      "create": "Add",
+      "update": "Change",
+      "delete": "Remove"
+    },
+    "target": {
+      "person": "person",
+      "name": "name",
+      "event": "event or vital record",
+      "relationship": "relationship",
+      "assertion": "heritage detail",
+      "tradition": "family tradition",
+      "kinship_word": "family word for a relationship"
+    },
+    "rationale": "Why this change is right",
+    "rationaleHint": "For example: \"Grandfather's school certificate gives 1932\".",
+    "notifications": "Notifications",
+    "notificationsUnread_one": "Notifications, {{count}} unread",
+    "notificationsUnread_other": "Notifications, {{count}} unread",
+    "markAllRead": "Mark all read",
+    "noNotifications": "Nothing new.",
+    "dupTitle": "Already in the tree?",
+    "dupUse": "Use this person",
+    "dupSomeoneElse": "This is someone else",
+    "title": "Review",
+    "subtitle": "Proposed changes and challenges in this family tree",
+    "view": {
+      "to_review": "To review",
+      "mine": "Mine",
+      "closed": "Closed"
+    },
+    "empty": {
+      "to_review": "Nothing is waiting for your review.",
+      "mine": "You have not proposed any changes.",
+      "closed": "No decided proposals yet."
+    },
+    "challengeAbout": "Challenge about {{person}}",
+    "someone": "someone in the tree",
+    "changesTo_one": "{{count}} change to {{person}}",
+    "changesTo_other": "{{count}} changes to {{person}}",
+    "formerMember": "A former member",
+    "status": {
+      "draft": "Draft",
+      "awaiting_review": "Awaiting review",
+      "accepted": "Accepted",
+      "rejected": "Not accepted",
+      "withdrawn": "Withdrawn",
+      "stale": "Out of date"
+    },
+    "by": "Proposed by {{name}}",
+    "openPerson": "Open this person's profile",
+    "staleNotice": "Out of date:",
+    "decisionNote": "Note from {{name}}:",
+    "correction": "Proposed correction",
+    "changes": "Changes",
+    "outdated": "Changed since proposed",
+    "field": {
+      "label": "Field"
+    },
+    "now": "Now",
+    "proposed": "Proposed",
+    "hiddenField": "Hidden from you",
+    "decide": "Your decision",
+    "note": "Note",
+    "noteHint": "Required when you do not accept.",
+    "uphold": "Uphold challenge",
+    "approve": "Approve",
+    "dismiss": "Dismiss challenge",
+    "reject": "Do not accept",
+    "rebase": "Propose again against today's record",
+    "withdraw": "Withdraw",
+    "becameStale": "The record changed after this was proposed. Nothing was applied; the proposer can propose it again.",
+    "comments": "Comments",
+    "addComment": "Add a comment",
+    "postComment": "Post comment",
+    "historyEmpty": "No changes recorded yet.",
+    "reverted": "The earlier values are back.",
+    "revertProposed": "Sent for review: the earlier values come back once a reviewer approves.",
+    "system": "An import or merge",
+    "reviewedBy": "reviewed by {{name}}",
+    "revert": "Revert",
+    "pendingForPerson_one": "{{count}} change to this person awaits review.",
+    "pendingForPerson_other": "{{count}} changes to this person await review.",
+    "see": "See",
+    "policyTitle": "Family review",
+    "policyIntro": "Choose which changes by contributors need a reviewer's approval. Owners, family admins and reviewers always write directly. Every change is kept in each person's history.",
+    "policy": {
+      "off": "No review",
+      "structure": "Review relationships and heritage",
+      "all": "Review all changes"
+    },
+    "policyHint": {
+      "off": "Changes are made at once (the default).",
+      "structure": "Changes to relationships and heritage details (gotra, kul and others) wait for a reviewer.",
+      "all": "Also names, dates and other facts. Adding new people never waits."
+    },
+    "policySave": "Save review setting",
+    "familySubject": {
+      "tradition": "a family tradition",
+      "kinship_word": "the family's relationship words"
     }
   },
   "home": {
