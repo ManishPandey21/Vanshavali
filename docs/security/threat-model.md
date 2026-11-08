@@ -111,6 +111,18 @@ the attacker's account. The impact is limited to the victim acting in the attack
 SameSite=Lax cookies apply.
 
 ## 5. Residual risks and deferred controls
+- **Selective sharing of records (audit of 8 Nov 2026; fix proposed in ADR-0027, not yet
+  implemented).** Confirmed on `main` with probes against the test stack:
+  - `CUSTOM` documents are readable and downloadable by every `OWNER`/`FAMILY_ADMIN` without a grant,
+    and `PRIVATE_SELF` documents by the tree owner; there is no "only me" for a record.
+  - `access_grant` is keyed by `user_id`: removing a member leaves their grants in place, and
+    re-inviting the same person **revives** them. Until ADR-0027 §3 lands, delete a removed
+    member's grants by hand (`GET`/`DELETE /trees/{id}/grants`) before re-inviting them.
+  - `FAMILY_BRANCH` on a document admits no branch member (documents carry no branch).
+  - `GET /trees/{id}/grants` lists every grant to any privacy manager, revealing that restricted
+    records exist and who holds them.
+  - Tagging a protected living person on a document does not tighten the document's privacy.
+  - Viewing a non-vault document always allows downloading the original.
 - **Heritage visualization milestone (Oct 2026).** The SMS (Twilio) and WhatsApp (Twilio, Meta
   Cloud API) adapters are written against the providers' public APIs but have **not been exercised
   against the live services**; they stay disabled until credentials, DLT registration and template
