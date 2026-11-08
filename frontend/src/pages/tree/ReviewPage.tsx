@@ -42,7 +42,7 @@ export function ReviewPage() {
             <li key={p.id} className="py-3">
               <Link to={`/t/${treeId}/review/${p.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded hover:bg-parchment">
                 <span>
-                  <span className="font-medium">{p.kind === "challenge" ? t("review.challengeAbout", { person: p.person_label ?? t("review.someone") }) : t("review.changesTo", { count: p.item_count, person: p.person_label ?? t("review.someone") })}</span>
+                  <span className="font-medium">{p.kind === "challenge" ? t("review.challengeAbout", { person: p.person_label ?? (p.family_subject ? t(`review.familySubject.${p.family_subject}`) : t("review.someone")) }) : t("review.changesTo", { count: p.item_count, person: p.person_label ?? (p.family_subject ? t(`review.familySubject.${p.family_subject}`) : t("review.someone")) })}</span>
                   <span className="block text-xs text-ink-muted">
                     {p.proposer?.display_name ?? t("review.formerMember")} · {new Date(p.submitted_at ?? p.created_at).toLocaleDateString()}
                   </span>
@@ -82,7 +82,7 @@ function ProposalDetail({ id }: { id: string }) {
             {t("review.title")}
           </Link>
         }
-        title={challenge ? t("review.challengeAbout", { person: p.person_label ?? t("review.someone") }) : t("review.changesTo", { count: items.length, person: p.person_label ?? t("review.someone") })}
+        title={challenge ? t("review.challengeAbout", { person: p.person_label ?? (p.family_subject ? t(`review.familySubject.${p.family_subject}`) : t("review.someone")) }) : t("review.changesTo", { count: items.length, person: p.person_label ?? (p.family_subject ? t(`review.familySubject.${p.family_subject}`) : t("review.someone")) })}
         subtitle={t("review.by", { name: p.proposer?.display_name ?? t("review.formerMember") })}
         actions={<Badge tone={statusTone(p.status)}>{t(`review.status.${p.status}`)}</Badge>}
       />

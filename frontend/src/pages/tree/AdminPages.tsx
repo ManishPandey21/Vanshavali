@@ -1,3 +1,5 @@
+import { TreeKinshipCard } from "../../components/culture/KinshipSettings";
+import { OffersCard } from "../../components/culture/OffersCard";
 import { useSetReviewPolicy } from "../../api/hooks/review";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -472,6 +474,8 @@ export function SettingsPage() {
         </Button>
       </form>
       <ReviewPolicyCard />
+      <TreeKinshipCard />
+      <OffersCard />
       <ConfirmDialog
         open={confirmPublic}
         onClose={() => setConfirmPublic(false)}

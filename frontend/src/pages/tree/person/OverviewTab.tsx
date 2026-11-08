@@ -5,6 +5,7 @@ import { Edit3, Plus, Star, Trash2 } from "lucide-react";
 import type { NameOut, PersonOut, ProfileStatus, SexAtBirth, VitalSummary } from "../../../api/types";
 import { useAddName, useDeleteName, useUpdateName, useUpdatePerson } from "../../../api/hooks/people";
 import { useTreeCtx } from "../../../lib/tree-context";
+import { PersonTraditions } from "../TraditionsPage";
 import { nameText } from "../../../lib/names";
 import { DateText, TimeText } from "../../../components/dates/DateText";
 import { EvidenceBadge, RedactionNotice } from "../../../components/person/badges";
@@ -101,8 +102,62 @@ export function OverviewTab({ person }: { person: PersonOut }) {
         {person.birth?.event_id && <p className="mt-2 text-xs text-ink-muted">{t("person.editVitalsInTimeline")}</p>}
       </section>
       <NamesSection person={person} />
+      <SurnameTimeline person={person} />
+      <div className="lg:col-span-2">
+        <PersonTraditions personId={person.id} />
+      </div>
       {editing && <EditDetailsDialog person={person} onClose={() => setEditing(false)} />}
     </div>
+  );
+}
+
+const rangeYear = (r: unknown, key: "from" | "to"): number | null => {
+  const d = r && typeof r === "object" ? (r as Record<string, unknown>)[key] : null;
+  const y = d && typeof d === "object" ? (d as { year?: number | null }).year : null;
+  return typeof y === "number" ? y : null;
+};
+
+/**
+ * Former surnames over time ("Sharma until 1950, then Upadhyay"), from historical names with the
+ * years they were used (ADR-0026 §2). Nothing is inferred: only recorded names and years.
+ */
+function SurnameTimeline({ person }: { person: PersonOut }) {
+  const { t } = useTranslation();
+  const former = (person.names ?? [])
+    .filter((n) => n.type === "historical" && (n.surname || n.full_name_as_recorded))
+    .sort((a, b) => (rangeYear(a.date_range, "from") ?? rangeYear(a.date_range, "to") ?? 0) - (rangeYear(b.date_range, "from") ?? rangeYear(b.date_range, "to") ?? 0));
+  if (!former.length) return null;
+  const current = (person.names ?? []).find((n) => n.is_preferred);
+  return (
+    <section className="card p-4" aria-labelledby="ov-surnames">
+      <h2 id="ov-surnames" className="font-display text-lg font-semibold">
+        {t("names.surnameTimeline")}
+      </h2>
+      <ol className="mt-2 space-y-2 border-l-2 border-haldi-300 pl-4">
+        {former.map((n) => {
+          const from = rangeYear(n.date_range, "from");
+          const to = rangeYear(n.date_range, "to");
+          return (
+            <li key={n.id} className="text-sm">
+              <span className="font-medium" lang={n.language ?? undefined}>
+                {n.surname || n.full_name_as_recorded}
+              </span>{" "}
+              <span className="text-ink-muted">
+                {from && to ? t("names.yearsFromTo", { from, to }) : to ? t("names.yearsUntil", { to }) : from ? t("names.yearsFrom", { from }) : t("names.yearsUnknown")}
+              </span>
+            </li>
+          );
+        })}
+        {current?.surname && (
+          <li className="text-sm">
+            <span className="font-medium" lang={current.language ?? undefined}>
+              {current.surname}
+            </span>{" "}
+            <span className="text-ink-muted">{t("names.now")}</span>
+          </li>
+        )}
+      </ol>
+    </section>
   );
 }
 
@@ -202,6 +257,7 @@ function toDraft(n: NameOut): NameDraft {
     language: n.language,
     script: n.script,
     romanized_value: n.romanized_value ?? "",
+    date_range: (n.date_range as NameDraft["date_range"]) ?? null,
     is_preferred: n.is_preferred,
     evidence_status: n.evidence_status,
     confidence: n.confidence,

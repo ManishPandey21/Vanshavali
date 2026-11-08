@@ -126,7 +126,8 @@
     "visualizations": "Charts & maps",
     "events": "Life events",
     "timeline": "Family timeline",
-    "reminders": "Reminders"
+    "reminders": "Reminders",
+    "traditions": "Traditions"
   },
   "auth": {
     "createAccount": "Create account",
@@ -264,7 +265,9 @@
       "name": "name",
       "event": "event or vital record",
       "relationship": "relationship",
-      "assertion": "heritage detail"
+      "assertion": "heritage detail",
+      "tradition": "family tradition",
+      "kinship_word": "family word for a relationship"
     },
     "rationale": "Why this change is right",
     "rationaleHint": "For example: \"Grandfather's school certificate gives 1932\".",
@@ -348,7 +351,11 @@
       "structure": "Changes to relationships and heritage details (gotra, kul and others) wait for a reviewer.",
       "all": "Also names, dates and other facts. Adding new people never waits."
     },
-    "policySave": "Save review setting"
+    "policySave": "Save review setting",
+    "familySubject": {
+      "tradition": "a family tradition",
+      "kinship_word": "the family's relationship words"
+    }
   },
   "trees": {
     "create": "New family tree",
@@ -530,7 +537,15 @@
     "honorificSuffix": "Honorific (after)",
     "matronymic": "Matronymic",
     "patronymic": "Patronymic / father's name",
-    "villagePrefix": "Village prefix"
+    "villagePrefix": "Village prefix",
+    "usedFrom": "Used from (year)",
+    "usedUntil": "Used until (year)",
+    "surnameTimeline": "Surnames over time",
+    "yearsFromTo": "{{from}}–{{to}}",
+    "yearsUntil": "until {{to}}",
+    "yearsFrom": "from {{from}}",
+    "yearsUnknown": "years not recorded",
+    "now": "now"
   },
   "date": {
     "calendar": "Calendar",
@@ -769,7 +784,13 @@
     "title": "Heritage profile",
     "value": "Value",
     "valueRequired": "Enter a value, or set the status to unknown / withheld.",
-    "valueStatus": "Status"
+    "valueStatus": "Status",
+    "temple": "Temple (optional)",
+    "templeHint": "The temple where the family worships this deity. Pick a place, or type a temple's name to add it as a place of type temple. The deity and the temple are separate facts.",
+    "pravaraSuggestions": "Pravara suggestions for this gotra",
+    "pravaraDiffer": "Often associated with this gotra; traditions differ. Pick one only if it is what your family says, or type your own.",
+    "pravaraNoneReviewed": "No reviewed pravara links for this gotra yet. Search the list or type your family's pravara.",
+    "pravaraNoGotra": "Record the gotra from the list first to see pravaras often associated with it. Every pravara stays searchable."
   },
   "households": {
     "addMember": "Add a member",
@@ -1307,7 +1328,10 @@
       "recorded_parent_name": "Parent's name as recorded",
       "religion": "Religion",
       "temple": "Family temple",
-      "tharavad_or_equivalent": "Tharavad / ancestral house"
+      "tharavad_or_equivalent": "Tharavad / ancestral house",
+      "devak": "Devak",
+      "ancestral_occupation": "Ancestral occupation",
+      "family_language": "Family language"
     },
     "valueStatus": {
       "known": "Known",
@@ -1663,6 +1687,14 @@
       "succeeded": "Ready",
       "failed": "Failed",
       "cancelled": "Cancelled"
+    },
+    "traditionKind": {
+      "ritual_guide": "Ritual guide",
+      "custom": "Custom",
+      "song": "Song",
+      "recipe": "Recipe",
+      "story": "Story",
+      "other": "Other"
     }
   },
   "documents": {
@@ -3418,5 +3450,150 @@
     "hint": "Your spelling stays as you typed it. Adding saves this as a separate name.",
     "addedNote": "Will be saved as another name:",
     "suggestedConfirmed": "Spelling suggested, confirmed by you"
+  },
+  "kinship": {
+    "familyWord": "Your family's word",
+    "packWord": "Usual word",
+    "unreviewed": "not yet reviewed",
+    "preferenceTitle": "Relationship words",
+    "preferenceIntro": "Choose the words you read for relationships (चाचा, ताऊ, मामा…). This is separate from the app's language. Packs not yet reviewed by a native speaker say so.",
+    "wordsIn": "Relationship words in",
+    "followTree": "The family's default",
+    "english": "English",
+    "treeTitle": "Relationship words in this family",
+    "treeDefault": "Default relationship words",
+    "treeDefaultHint": "What members read unless they choose their own words.",
+    "followUi": "Each reader's app language",
+    "familyWords": "Your family's own words",
+    "familyWordsIntro": "Record a word your family uses instead of the usual one (for example Bhauji for bhabhi). It is shown first, with the usual word beside it. A word never changes anyone's record.",
+    "noFamilyWords": "No family words recorded.",
+    "oneBranch": "One branch",
+    "removeWord": "Remove the family word {{word}}",
+    "addWord": "Add a family word",
+    "relationship": "Relationship, step by step from the person",
+    "step": "Step {{n}}",
+    "noStep": "(none)",
+    "reads": "Reads",
+    "ageOnly": "Only when the relative is",
+    "anyAge": "Any age",
+    "elder": "elder",
+    "younger": "younger",
+    "language": "Language",
+    "lang": {
+      "hi": "Hindi"
+    },
+    "word": "Your family's word",
+    "branch": "Used in",
+    "wholeTree": "The whole family",
+    "saveWord": "Save word",
+    "of": "{{acc}}'s {{word}}",
+    "ofFeminine": "{{acc}}'s {{word}}"
+  },
+  "offers": {
+    "title": "Your family's own list entries",
+    "intro": "Entries your family added (a kuladevata, a devak…) are visible only in this tree. You may offer one to everyone's suggestions. Reviewers check it first, and the shared entry never names your family.",
+    "vocab": {
+      "kuladevata": "Kuladevata",
+      "kuladevi": "Kuladevi",
+      "devak": "Devak",
+      "gotra": "Gotra",
+      "kula": "Kula / vamsha"
+    },
+    "status": {
+      "none": "Not offered",
+      "offered": "Offered, awaiting review",
+      "accepted": "Added to everyone's suggestions",
+      "declined": "Not added"
+    },
+    "offer": "Offer to everyone",
+    "withdraw": "Withdraw offer",
+    "dialogTitle": "Offer “{{label}}” to everyone",
+    "dialogIntro": "Reviewers may merge it with similar entries. Only the name, its other spellings and what you write below are shared; your family is never named.",
+    "temple": "Well-known temple (optional)",
+    "templeHint": "For example, Jejuri for Khandoba.",
+    "note": "Note for the reviewers (optional)",
+    "noteHint": "Do not include names of family members.",
+    "send": "Send offer"
+  },
+  "traditions": {
+    "title": "Family traditions",
+    "subtitle": "Ritual guides, customs, songs, recipes and stories your family keeps.",
+    "add": "Add a tradition",
+    "addTitle": "Add a family tradition",
+    "editTitle": "Edit tradition",
+    "proposeEdit": "Propose a change",
+    "search": "Search titles and text",
+    "kind": "Kind",
+    "allKinds": "All kinds",
+    "kinds": {
+      "ritual_guide": "Ritual guide",
+      "custom": "Custom",
+      "song": "Song",
+      "recipe": "Recipe",
+      "story": "Story",
+      "other": "Other"
+    },
+    "empty": "No traditions recorded yet",
+    "noMatch": "No traditions match",
+    "emptyHint": "Write down how your family does things: a puja, a wedding custom, a song, Dadi's recipe.",
+    "by": "Written by {{name}}",
+    "forPerson": "Family traditions",
+    "back": "All traditions",
+    "noText": "No text yet.",
+    "links": "Mentions",
+    "history": "History",
+    "withdraw": "Withdraw",
+    "withdrawTitle": "Withdraw this tradition?",
+    "withdrawBody": "It will no longer be shown. Its history is kept.",
+    "sources": "Sources",
+    "op": {
+      "create": "Written",
+      "update": "Changed",
+      "delete": "Removed"
+    },
+    "field": {
+      "title": "title",
+      "body": "text",
+      "kind": "kind",
+      "language": "language",
+      "privacy_level": "who can read it",
+      "branch_id": "branch",
+      "withdrawn_at": "withdrawn",
+      "script": "script"
+    },
+    "language": "Language",
+    "languageUnset": "Not set",
+    "languages": {
+      "hi": "Hindi",
+      "en": "English",
+      "mr": "Marathi",
+      "bn": "Bengali",
+      "gu": "Gujarati",
+      "pa": "Punjabi",
+      "ta": "Tamil",
+      "te": "Telugu",
+      "kn": "Kannada",
+      "ml": "Malayalam",
+      "or": "Odia",
+      "ur": "Urdu",
+      "sa": "Sanskrit",
+      "bho": "Bhojpuri",
+      "mai": "Maithili",
+      "awa": "Awadhi"
+    },
+    "titleLabel": "Title",
+    "titleRequired": "Give it a title.",
+    "tooLong": "The text is too long (at most 50,000 characters).",
+    "body": "Text",
+    "bodyHint": "Plain text. Leave a blank line between paragraphs, start a line with - for a list, and wrap words in ** for bold.",
+    "people": "People it mentions",
+    "linkPerson": "Add a person",
+    "unlink": "Remove {{name}}",
+    "peopleHint": "Mentioning someone never changes who can read this entry.",
+    "branch": "Branch",
+    "noBranch": "The whole family",
+    "rationaleRequired": "Say why this change is right.",
+    "reviewNotice": "Your family reviews changes to entries other people wrote. This change is sent for review.",
+    "sent": "Sent for review. The change appears once a reviewer approves it."
   }
 }

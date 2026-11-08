@@ -2,14 +2,15 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeftRight, ChevronRight } from "lucide-react";
-import type { Lineage, PersonSummary } from "../../api/types";
+import type { KinshipTermOut, Lineage, PersonSummary } from "../../api/types";
 import { usePerson, useRecordAgeOrder, useRelationshipPath } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
-import { ageQuestionFor, describeChain, resolveKinship, type AgeOrder } from "../../lib/kinship";
+import { describeChain, type AgeOrder } from "../../lib/kinship";
 import { Perm } from "../../lib/permissions";
 import { PersonPicker } from "../../components/pickers";
 import { ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 import { LineageToggle } from "./person/FamilyTab";
 
 export function RelationshipPage() {
@@ -21,7 +22,7 @@ export function RelationshipPage() {
   const from = usePerson(treeId, fromId || undefined);
   const to = usePerson(treeId, toId || undefined);
   const [lineage, setLineage] = useState<Lineage[]>([]);
-  const path = useRelationshipPath(treeId, fromId, toId, lineage);
+  const path = useRelationshipPath(treeId, fromId, toId, lineage, i18n.language.startsWith("hi") ? "hi" : "en");
 
   const setPerson = (k: "from" | "to", p: PersonSummary | null) => {
     const next = new URLSearchParams(params);
@@ -38,11 +39,15 @@ export function RelationshipPage() {
 
   const r = path.data;
   const ageOrders = (r?.age_orders ?? []) as AgeOrder[];
-  const kin = r?.found ? resolveKinship(r.chain ?? [], ageOrders, i18n.language) : null;
-  const regional = kin?.term ?? null;
+  // the reader's relationship word, chosen by the server from reviewed regional packs and the
+  // family's own words (ADR-0026 §6); none means the English label and the literal reading
+  const term = r?.found ? (r.terms?.[0] ?? null) : null;
+  const regional = term?.term ?? null;
   const chainText = r?.found ? describeChain(r.chain ?? [], i18n.language, ageOrders) : "";
-  // the question that would decide Tau vs Chacha (asked in every language, answered once)
-  const question = r?.found ? ageQuestionFor(r.chain ?? [], ageOrders) : null;
+  // the age that decides Tau vs Chacha, in any language: asked once while it is unknown
+  const decision = r?.found ? (r.age_decision ?? null) : null;
+  const question = decision && decision.order === "unknown" ? { personId: decision.person_id, relativeToId: decision.relative_to_id } : null;
+  const basis = decision && decision.order !== "unknown" ? decision.basis : null;
   // The API label is English-only; in Hindi, lead with the regional term or the literal chain.
   const isHindi = i18n.language.startsWith("hi");
   const pathPeople = r?.path ?? [];
@@ -77,7 +82,7 @@ export function RelationshipPage() {
               <h2 id="rel-result" className="mt-1 font-display text-3xl font-bold text-kumkum-900">
                 {regional || (isHindi && chainText) ? (
                   <>
-                    <span lang="hi">{regional || chainText}</span>
+                    <span lang={term?.lang ?? "hi"}>{regional || chainText}</span>
                     <span className="ml-2 text-lg font-normal text-ink-muted" lang="en">
                       ({r.label})
                     </span>
@@ -86,15 +91,16 @@ export function RelationshipPage() {
                   r.label
                 )}
               </h2>
+              {term && <TermNotes term={term} />}
               {chainText && (
                 <p className="mt-2 text-sm">
                   <span className="font-medium">{t("relationship.chain")}:</span> {chainText}
                 </p>
               )}
               {r.explanation && <p className="mt-1 text-xs text-ink-muted">{r.explanation}</p>}
-              {kin?.basis === "family_confirmed" && <p className="mt-1 text-xs text-ink-muted">{t("relationship.basis.family_confirmed")}</p>}
-              {kin?.basis === "birth_dates" && <p className="mt-1 text-xs text-ink-muted">{t("relationship.basis.birth_dates")}</p>}
-              {kin?.dates_disagree && <p className="mt-1 text-xs text-ink-muted">{t("relationship.datesDisagree")}</p>}
+              {basis === "family_confirmed" && <p className="mt-1 text-xs text-ink-muted">{t("relationship.basis.family_confirmed")}</p>}
+              {basis === "birth_dates" && <p className="mt-1 text-xs text-ink-muted">{t("relationship.basis.birth_dates")}</p>}
+              {decision?.dates_disagree && <p className="mt-1 text-xs text-ink-muted">{t("relationship.datesDisagree")}</p>}
               {question && (
                 <AgeQuestion personId={question.personId} relativeToId={question.relativeToId} canAnswer={can(Perm.RELATIONSHIP_WRITE)} />
               )}
@@ -119,6 +125,27 @@ export function RelationshipPage() {
           )}
         </section>
       )}
+    </div>
+  );
+}
+
+/** Where the word came from: the family's own word, a pack word not yet reviewed, a transliteration. */
+function TermNotes({ term }: { term: KinshipTermOut }) {
+  const { t } = useTranslation();
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+      {term.transliteration && (
+        <span className="text-ink-muted" lang="en">
+          {term.transliteration}
+        </span>
+      )}
+      {term.family_word && <Badge tone="green">{t("kinship.familyWord")}</Badge>}
+      {term.family_word && term.pack_term && (
+        <span className="text-ink-muted">
+          {t("kinship.packWord")}: <span lang={term.lang}>{term.pack_term}</span>
+        </span>
+      )}
+      {term.review_status === "unreviewed" && <Badge tone="saffron">{t("kinship.unreviewed")}</Badge>}
     </div>
   );
 }
