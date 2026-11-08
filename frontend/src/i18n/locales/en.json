@@ -2702,6 +2702,19 @@
           "body": "Owners, family admins and contributors can download the tree as a standard GEDCOM file, or the whole family archive, at any time."
         }
       }
+    },
+    "sample": {
+      "modeLabel": "Family tree view",
+      "watch": "Watch it grow",
+      "explore": "Explore it yourself",
+      "viewingAs": "Sample family · exploring as {{name}}",
+      "panelLabel": "About the person you chose",
+      "prompt": "Tap or press Enter on anyone to see who they are to {{name}}. Drag to look around; the buttons zoom.",
+      "relationTo": "To {{name}}:",
+      "self": "This is {{name}}: you, in this sample.",
+      "selfNote": "On your own profile you see every detail you have added.",
+      "livingNote": "Living. Their birth date, phone number and address are visible only to tree admins, and to {{name}} once their claim to the profile is approved.",
+      "privateNote": "Every name here is fictional. One relative keeps their profile private, so the tree shows a placeholder, never a name."
     }
   },
   "geo": {
