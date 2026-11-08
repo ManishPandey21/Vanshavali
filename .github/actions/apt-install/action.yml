@@ -1,0 +1,31 @@
+name: apt-install
+description: >-
+  Install Ubuntu packages without hanging on a slow mirror: reuse cached .deb files for the same
+  runner image, otherwise download with bounded, retried attempts and a fallback mirror.
+inputs:
+  packages:
+    description: Space-separated package names
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: key
+      shell: bash
+      run: |
+        # one cache per runner image and package list; ImageVersion changes weekly, which also
+        # keeps the cached packages current
+        pkgs=$(echo "${{ inputs.packages }}" | tr -s ' ' '\n' | sort | tr '\n' ' ')
+        echo "key=apt-debs-${ImageOS:-local}-${ImageVersion:-0}-$(echo "$pkgs" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+        echo "dir=${RUNNER_TEMP:-/tmp}/apt-debs" >> "$GITHUB_OUTPUT"
+    - id: restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.key.outputs.dir }}
+        key: ${{ steps.key.outputs.key }}
+    - shell: bash
+      run: '"${{ github.action_path }}/apt-install.sh" "${{ steps.key.outputs.dir }}" ${{ inputs.packages }}'
+    - if: steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.key.outputs.dir }}
+        key: ${{ steps.key.outputs.key }}
