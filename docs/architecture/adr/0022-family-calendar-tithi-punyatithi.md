@@ -1,6 +1,8 @@
 # ADR-0022: Indian family calendar: tithi dates, Punyatithi reminders, family calendar and ICS feed
 
-- Status: Proposed · Date: 2026-11-08 · Release: R5 (first ADR of R5)
+- Status: Accepted · Date: 2026-11-08 (accepted as proposed) · Release: R5 (first ADR of R5)
+- Still open after acceptance: who signs off the licence review (§1), and who enters the golden
+  tables and from which panchangs (§9). Lunar reminders stay off until both are done (§8).
 - Relates to: ADR-0016 (reminders: opt-in, visible dates only, re-check at send time),
   ADR-0015 (life events), ADR-0006 (privacy, field groups), ADR-0021 (provenance of calculated
   values, review), ADR-0025 (a calculated suggestion is confirmed, never applied), Q6, Q16
