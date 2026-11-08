@@ -41,6 +41,13 @@
     }
   },
   "joiner": "{acc} के {word}",
+  "joiner_feminine": "{acc} की {word}",
+  "feminine_words": [
+    "mother",
+    "daughter",
+    "sister",
+    "wife"
+  ],
   "terms": {
     "father": {
       "term": "पिता",

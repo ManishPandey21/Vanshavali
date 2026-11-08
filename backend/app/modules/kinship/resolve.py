@@ -79,5 +79,7 @@ def describe(pack: dict[str, Any], chain: Sequence[str], ages: Sequence[Age] = (
         order = known.get(i)
         aged = pack.get("aged_words", {}).get(w, {})
         word = (aged.get(order) if order else None) or pack["words"].get(w) or w.replace("_", " ")
-        out = word if i == 0 else pack["joiner"].format(acc=out, word=word)
+        # Hindi: "भाई की पत्नी" but "पत्नी के भाई": the joiner agrees with the noun that follows
+        joiner = pack.get("joiner_feminine") if w in pack.get("feminine_words", ()) else None
+        out = word if i == 0 else (joiner or pack["joiner"]).format(acc=out, word=word)
     return out

@@ -64,8 +64,12 @@ def validate(pack: dict[str, Any], name: str = "pack") -> None:
         raise KinshipPackError(f"{name}: a reviewed pack names its reviewer and review date")
     if not {"en", "hi"} <= set(pack["name"]):
         raise KinshipPackError(f"{name}: name needs en and hi")
-    if "{acc}" not in pack["joiner"] or "{word}" not in pack["joiner"]:
-        raise KinshipPackError(f"{name}: joiner needs {{acc}} and {{word}}")
+    for key in ("joiner", "joiner_feminine"):
+        j = pack.get(key)
+        if j is not None and ("{acc}" not in j or "{word}" not in j):
+            raise KinshipPackError(f"{name}: {key} needs {{acc}} and {{word}}")
+    if not set(pack.get("feminine_words", [])) <= CHAIN_WORDS:
+        raise KinshipPackError(f"{name}: unknown feminine word")
     for w in pack["words"]:
         if w not in CHAIN_WORDS:
             raise KinshipPackError(f"{name}: unknown chain word {w}")

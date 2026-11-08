@@ -134,6 +134,8 @@ def test_age_of_another_word_or_irrelevant_ages_never_decide():
 def test_describe_chain_literally():
     pack = _pack()
     assert describe(pack, ["mother", "brother"]) == "माता के भाई"
+    assert describe(pack, ["brother", "wife"]) == "भाई की पत्नी"
+    assert describe(pack, ["father", "sister"]) == "पिता की बहन"
     assert describe(pack, ["father", "brother"], [_age(1, "younger")]) == "पिता के छोटे भाई"
     assert describe(pack, ["father", "brother"], [_age(1, "unknown")]) == "पिता के भाई"
 
