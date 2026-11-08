@@ -192,6 +192,7 @@ function treePages(s: Seed): [string, string][] {
     ...PROFILE_TABS.map((tab): [string, string] => [`profile · ${tab}`, `${t}/people/${s.ramesh}?tab=${tab}`]),
     ["tree viewer · chart", `${t}/tree/${s.ramesh}`],
     ["tree viewer · list", `${t}/tree/${s.ramesh}?view=list`],
+    ["tree viewer · family", `${t}/tree/${s.ramesh}?view=family`],
     ["tree viewer · descendants list", `${t}/tree/${s.suresh}?view=list&dir=descendants`],
     ["relationship calculator", `${t}/relationship?from=${s.aarav}&to=${s.suresh}`],
     // heritage visualization milestone (ADR-0015/0016/0017)

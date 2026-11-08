@@ -259,3 +259,77 @@
 .paper-grain-dark {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .97 0 0 0 0 .94 0 0 0 0 .89 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+/*
+ * Family view (components/tree/FamilyView.tsx): nested lists drawn as a family tree. Each <li> hangs
+ * from a bar over its brothers and sisters; a nested <ul> drops from the centre of its parent block.
+ */
+@layer components {
+  .family-tree ul {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 1.75rem;
+  }
+  .family-tree li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.75rem 0.5rem 0;
+  }
+  .family-tree li::before,
+  .family-tree li::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 50%;
+    width: 50%;
+    height: 1.75rem;
+    border-top: 2px solid #9c8667;
+  }
+  .family-tree li::after {
+    right: auto;
+    left: 50%;
+    border-left: 2px solid #9c8667;
+  }
+  .family-tree li:only-child::before {
+    display: none;
+  }
+  .family-tree li:only-child::after {
+    border-top: 0;
+  }
+  .family-tree li:first-child::before,
+  .family-tree li:last-child::after {
+    border-top: 0;
+  }
+  .family-tree li:last-child::before {
+    border-right: 2px solid #9c8667;
+    border-top-right-radius: 6px;
+  }
+  .family-tree li:first-child:not(:only-child)::after {
+    border-top-left-radius: 6px;
+  }
+  .family-tree li:last-child:not(:only-child)::after {
+    border-left: 0;
+  }
+  .family-tree ul ul::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 1.75rem;
+    border-left: 2px solid #9c8667;
+  }
+  /* the top level hangs from nothing */
+  .family-tree > ul {
+    padding-top: 0;
+  }
+  .family-tree > ul > li {
+    padding-top: 0;
+  }
+  .family-tree > ul > li::before,
+  .family-tree > ul > li::after {
+    display: none;
+  }
+}
