@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { hindiKinshipTerm } from "../../lib/kinship";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { layoutGraph } from "../../lib/treeLayout";
 import { SAMPLE_PEOPLE, VIEWER_ID, sampleGraph } from "./sampleFamily";
 
@@ -33,9 +34,15 @@ describe("landing sample family", () => {
     expect(layout.rootId).toBe("sample-suresh");
   });
 
-  it("names everyone's relation to Aarav with a known Hindi kinship term", () => {
-    for (const p of SAMPLE_PEOPLE.filter((x) => x.id !== VIEWER_ID)) expect(hindiKinshipTerm(p.kin), p.en).not.toBeNull();
-    expect(hindiKinshipTerm(SAMPLE_PEOPLE.find((p) => p.id === "sample-suresh")!.kin)).toBe("दादा");
+  it("names everyone's relation to Aarav with the server's Hindi word for that chain", () => {
+    // the static sample must say what the app itself would say (ADR-0026 §6 packs)
+    const pack = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), "../backend/app/modules/kinship/packs/kinship-hi-north.json"), "utf8"),
+    ) as { terms: Record<string, { term: string }> };
+    for (const p of SAMPLE_PEOPLE.filter((x) => x.id !== VIEWER_ID)) {
+      expect(p.term, p.en).toBe(pack.terms[p.kin.join(".")]?.term);
+    }
+    expect(SAMPLE_PEOPLE.find((p) => p.id === "sample-suresh")!.term).toBe("दादा");
   });
 
   it("uses Devanagari names on the Hindi page", () => {

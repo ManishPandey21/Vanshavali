@@ -32,3 +32,25 @@ test("signed-out visitors land on the heritage page and can begin a tree from it
   await page.getByRole("link", { name: /Go to my family trees/ }).first().click();
   await expect(page.getByRole("heading", { name: "Your family trees" })).toBeVisible();
 });
+
+test("visitors can explore the fictional sample family in the real tree chart, with no API calls", async ({ page }) => {
+  const api: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname.startsWith("/api/v1/")) api.push(new URL(r.url()).pathname);
+  });
+  await page.goto("/");
+  const modes = page.getByRole("group", { name: "Family tree view" });
+  await modes.getByRole("button", { name: "Explore it yourself" }).click();
+  await expect(page.getByText("Sample family · exploring as Aarav Sharma")).toBeVisible();
+  await page.getByText("Suresh Sharma", { exact: true }).first().click();
+  const panel = page.getByRole("region", { name: "About the person you chose" });
+  await expect(panel).toContainText("Suresh Sharma");
+  await expect(panel).toContainText("दादा");
+  // the living get no birth dates in a member's view
+  await page.getByText("Mahesh Sharma", { exact: true }).first().click();
+  await expect(panel).toContainText("चाचा / ताऊ");
+  await expect(panel).toContainText("visible only to tree admins");
+  // static sample: only "who is signed in" ever reaches the API
+  expect(api.filter((p) => !p.endsWith("/auth/me"))).toEqual([]);
+});
+

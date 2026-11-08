@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Hand, Lock, ShieldCheck, Sparkles } from "lucide-react";
 import { TreeChart } from "../../components/tree/TreeChart";
-import { describeChain, hindiKinshipTerm } from "../../lib/kinship";
+import { describeChain } from "../../lib/kinship";
 import { lifespan } from "../../lib/dates";
 import { GrowingTree } from "./GrowingTree";
 import { SAMPLE_PEOPLE, VIEWER_ID, sampleGraph } from "./sampleFamily";
@@ -111,7 +111,7 @@ function PersonPanel({ personId, viewerName }: { personId: string; viewerName: s
   const name = hindi ? p.hi : p.en;
   const other = hindi ? p.en : p.hi;
   const isViewer = p.id === VIEWER_ID;
-  const term = hindiKinshipTerm(p.kin);
+  const term = p.term ?? null;
   const reading = describeChain(p.kin, lang);
   const years = lifespan(
     {

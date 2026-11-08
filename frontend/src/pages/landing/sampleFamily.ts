@@ -24,6 +24,12 @@ export interface SamplePerson {
   minor?: boolean;
   /** Kinship chain from Aarav to this person, in the words lib/kinship understands. */
   kin: string[];
+  /**
+   * The Hindi relationship word for that chain. The app takes these words from the server's
+   * reviewed packs (ADR-0026 §6); this static, request-free sample copies them from
+   * backend/app/modules/kinship/packs/kinship-hi-north.json (a test keeps the two in step).
+   */
+  term?: string;
   /** A one-line story for relatives who have passed away (never for the living). */
   story?: { en: string; hi: string };
 }
@@ -37,7 +43,7 @@ export const SAMPLE_PEOPLE: SamplePerson[] = [
     status: "deceased",
     born: { year: 1938 },
     died: { year: 2011 },
-    kin: ["father", "father"],
+    kin: ["father", "father"], term: "दादा",
     story: {
       en: "Kept the family bahi of births and marriages for fifty years.",
       hi: "पचास वर्षों तक परिवार की जन्म और विवाह की बही संभाली।",
@@ -51,19 +57,19 @@ export const SAMPLE_PEOPLE: SamplePerson[] = [
     status: "deceased",
     born: { year: 1942, circa: true },
     died: { year: 2019 },
-    kin: ["father", "mother"],
+    kin: ["father", "mother"], term: "दादी",
     story: {
       en: "Remembered every recipe, and every relative's birthday.",
       hi: "हर व्यंजन और हर संबंधी का जन्मदिन उन्हें याद रहता था।",
     },
   },
-  { id: "sample-ramesh", en: "Ramesh Sharma", hi: "रमेश शर्मा", sex: "male", status: "living", kin: ["father"] },
-  { id: "sample-sunita", en: "Sunita Sharma", hi: "सुनीता शर्मा", sex: "female", status: "living", kin: ["mother"] },
-  { id: "sample-mahesh", en: "Mahesh Sharma", hi: "महेश शर्मा", sex: "male", status: "living", kin: ["father", "brother"] },
-  { id: "sample-geeta", en: "Geeta Sharma", hi: "गीता शर्मा", sex: "female", status: "living", kin: ["father", "brother", "wife"] },
+  { id: "sample-ramesh", en: "Ramesh Sharma", hi: "रमेश शर्मा", sex: "male", status: "living", kin: ["father"], term: "पिता" },
+  { id: "sample-sunita", en: "Sunita Sharma", hi: "सुनीता शर्मा", sex: "female", status: "living", kin: ["mother"], term: "माता" },
+  { id: "sample-mahesh", en: "Mahesh Sharma", hi: "महेश शर्मा", sex: "male", status: "living", kin: ["father", "brother"], term: "चाचा / ताऊ" },
+  { id: "sample-geeta", en: "Geeta Sharma", hi: "गीता शर्मा", sex: "female", status: "living", kin: ["father", "brother", "wife"], term: "चाची / ताई" },
   { id: VIEWER_ID, en: "Aarav Sharma", hi: "आरव शर्मा", sex: "male", status: "living", born: { year: 1998 }, kin: [] },
-  { id: "sample-anaya", en: "Anaya Sharma", hi: "अनया शर्मा", sex: "female", status: "living", minor: true, kin: ["sister"] },
-  { id: "sample-kabir", en: "Kabir Sharma", hi: "कबीर शर्मा", sex: "male", status: "living", minor: true, kin: ["father", "brother", "son"] },
+  { id: "sample-anaya", en: "Anaya Sharma", hi: "अनया शर्मा", sex: "female", status: "living", minor: true, kin: ["sister"], term: "बहन" },
+  { id: "sample-kabir", en: "Kabir Sharma", hi: "कबीर शर्मा", sex: "male", status: "living", minor: true, kin: ["father", "brother", "son"], term: "चचेरा भाई" },
 ];
 
 const PRIVATE_ID = "sample-private";
