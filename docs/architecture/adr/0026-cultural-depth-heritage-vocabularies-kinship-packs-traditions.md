@@ -1,6 +1,6 @@
 # ADR-0026: Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions
 
-- Status: Accepted · Date: 2026-11-08 (accepted as proposed, including the four open points) · Release: R4
+- Status: Accepted · Date: 2026-11-08 (accepted as proposed, including the four open points) · Release: R4 · Implemented (see the implementation notes)
 - Relates to: ADR-0018 (master-data vocabularies; this ADR completes its phase-A transition),
   ADR-0020 (kinship terms, age order), ADR-0003 (heritage as claims, no inference), ADR-0006
   (privacy, field groups), ADR-0021 (review, revisions), ADR-0004 (documents), Q4, Q14
@@ -274,3 +274,56 @@ This applies to kuladevata, kuladevi, devak, gotra and kula entries a family add
   entries that name only deceased people.
 - **Surname history as names.** Proposal: historical names with a period (no new attribute).
   Alternative: a separate `surname_history` attribute.
+
+## Implementation notes (8 Nov 2026)
+Built as decided. These points refine the ADR where the code needed it:
+
+1. **Kinship packs are code-reviewed JSON, not vocabulary rows.** §6 named a `kinship_term`
+   vocabulary. Packs instead live in `backend/app/modules/kinship/packs/*.json` and are read by the
+   engine, like the transliteration lexicon (ADR-0025). A pack needs words per chain pattern, age
+   rules, speaker forms and a joiner for literal readings, which a flat term row cannot hold. Each
+   pack is validated on load and by `test_kinship_packs.py`; the golden matrix moved there from
+   `kinship.test.ts`. `kinship.ts` now only reads a chain literally in the UI language.
+2. **The Hindi (North) pack is `draft` and `in_use`.** It carries exactly the words the app has
+   shown since R1. Hiding it until the native-Hindi review (#34) would take words away from
+   families, so it stays visible with every word labelled "not yet reviewed". Any other draft pack
+   is visible only to reviewers, who are system administrators for now.
+3. **Which word, and the age question.** `/relationship-path` returns `terms` (the reader's own
+   choice, then the tree default, then the UI language, which the page now sends as `lang`) and
+   `age_decision`: the age order an age-dependent word depends on, in every language. English
+   readers are still asked "older or younger?" once, and still see the basis.
+4. **Family words** are keyed by chain pattern, optionally narrowed to `:elder` or `:younger`. A
+   branch word applies when the *from* person is a member of that branch, and wins over a
+   tree-wide word. Under the `all` review policy a member without review rights gets `409
+   review_required` and proposes the word instead (`kinship_word` proposals).
+5. **Pravara.** Each pack term is one gotra link (`parent` = the gotra). `attributes` holds the
+   rishis, `source`, `reviewer` and `tradition`. The loader refuses a `reviewed` link without a
+   source and a reviewer, and any link to an unknown gotra. All 14 shipped links are `draft` with
+   no source, so nothing is suggested from a gotra yet. No source was invented to fill the list.
+6. **Heritage attributes needed no schema change**: `assertion.attribute` is validated by the API.
+   A value picked from a list must come from the attribute's own vocabulary (family language from
+   `language`, ancestral occupation from `occupation`, and so on). Family language and ancestral
+   occupation are multi-valued.
+7. **Temples.** A kuladevata or kuladevi claim's `place_id` must be a place of type `temple`
+   (`422 place_not_temple`). In the editor, a temple typed by name becomes such a place.
+8. **Offers.** Besides the ADR's columns, `offer_temple` keeps the optional temple name. A pending
+   offer can be withdrawn (`DELETE …/offer`). The decision reaches whoever offered it as an in-app
+   notification (`offer_accepted`, `offer_declined`, with `user_notification.subject_id`); its
+   label is shown only inside that entry's own tree.
+9. **Traditions.**
+   - `PRIVATE_SELF` means the author only; `CUSTOM` is treated like `PRIVATE_TREE_ADMINS`
+     (admins and the author), because traditions have no per-entry grants yet; `FAMILY_BRANCH`
+     needs the entry's branch.
+   - Links are replaced as a whole on edit, but a link the editor cannot see is kept.
+   - `tradition` and `kinship_word` became review targets: revision history, proposals and
+     revert reuse ADR-0021. A tradition proposal has no person, so anyone with `change.review`
+     may decide it (a branch admin too). Narrowing that to the entry's branch is a follow-up.
+   - Withdrawal sets `withdrawn_at`; the history is kept. Erasing a person removes their links.
+10. **Static lists retired.** `gotras.ts` and `kulas.ts` are deleted and SmartSelect has no static
+    fallback. `nakshatras` and `rashis` are fixed astronomical lists of the astrology tab, not
+    extensible vocabularies, so they moved to `src/lib/astrology/`. The script picker on names is
+    a closed list of input scripts and was left as it is. Existing pack terms stay `draft` until
+    review #34.
+11. **API names.** Tradition schemas are named `TraditionEntryIn` and `TraditionEntryUpdate`,
+    because `TraditionIn` (traditional registers on sources) already exists.
+
