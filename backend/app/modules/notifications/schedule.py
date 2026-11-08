@@ -108,6 +108,8 @@ def anchor_for(
         raise NotSchedulable("no_lunar_date", "This event has no tithi date")
     if recurrence != ReminderRecurrence.ANNUAL:
         raise NotSchedulable("lunar_annual_only", "A tithi reminder repeats every year")
+    if not convention:
+        raise NotSchedulable("convention_required", "Choose the calendar convention the family follows")
     if not conventions.offered(convention):
         raise NotSchedulable(
             "lunar_not_available",

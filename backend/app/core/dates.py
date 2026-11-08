@@ -9,6 +9,7 @@ from __future__ import annotations
 import calendar as _cal
 import datetime as dt
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -58,6 +59,18 @@ class TimeSource(StrEnum):
 _YEAR_OFFSETS = {DateCalendar.VIKRAM_SAMVAT: -57, DateCalendar.SHAKA: 78}
 
 
+class DateDerivation(BaseModel):
+    """How a Gregorian date was computed from the tithi, when a person accepted the suggestion
+    (ADR-0022 §2): the provenance of a calculated value, never set without that acceptance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: Literal["lunar"] = "lunar"
+    convention: str = Field(max_length=40)
+    city: str = Field(max_length=60)
+    engine_version: str = Field(max_length=80)
+
+
 class GenealogicalDate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -72,6 +85,7 @@ class GenealogicalDate(BaseModel):
     original_text: str | None = Field(default=None, max_length=500)
     # a tithi date as the family gives it (ADR-0022 §2); never derived from the Gregorian fields
     lunar: LunarDate | None = None
+    derived: DateDerivation | None = None
     redacted: bool = False
 
     @model_validator(mode="after")

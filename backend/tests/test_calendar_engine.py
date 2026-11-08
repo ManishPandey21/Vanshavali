@@ -56,6 +56,20 @@ def test_a_lunar_date_stands_on_its_own_and_is_dropped_when_the_date_is_redacted
     assert "Vikram Samvat 2045" in full.display()
     # a redacted (year-only) date never carries the tithi: it would reveal the day
     assert full.year_only().lunar is None
+    # an accepted conversion says where it came from, and that note is redacted with the day
+    derived = GenealogicalDate.model_validate(
+        full.model_dump()
+        | {
+            "derived": {
+                "source": "lunar",
+                "convention": "purnimanta",
+                "city": "varanasi",
+                "engine_version": "x",
+            }
+        }
+    )
+    assert derived.derived is not None and derived.derived.city == "varanasi"
+    assert derived.year_only().derived is None
     for bad in (
         {"masa": "chaitra", "paksha": "shukla", "tithi": 16, "month_convention": "amanta"},
         {"masa": "sawan", "paksha": "shukla", "tithi": 1, "month_convention": "amanta"},
