@@ -260,7 +260,7 @@ valid), native Hindi review of new strings, and the elder-friendly UX review in 
 - Challenge a fact → contested proposal. Per-person version history from the audit log, with revert.
 - In-app notification centre.
 
-### Phase G: Gotra/Pravara/Kuladevata and family traditions
+### Phase G: Gotra/Pravara/Kuladevata and family traditions — [ADR-0026](adr/0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md)
 
 - Heritage attributes `devak`, `ancestral_occupation`, `surname_history` (or historical
   `name_record`s with a period), multi-valued `family_language`.
