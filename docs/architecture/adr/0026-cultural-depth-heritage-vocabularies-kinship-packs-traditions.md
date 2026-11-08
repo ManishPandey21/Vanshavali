@@ -1,6 +1,6 @@
 # ADR-0026: Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions
 
-- Status: Proposed · Date: 2026-11-08 · Release: R4
+- Status: Accepted · Date: 2026-11-08 (accepted as proposed, including the four open points) · Release: R4
 - Relates to: ADR-0018 (master-data vocabularies; this ADR completes its phase-A transition),
   ADR-0020 (kinship terms, age order), ADR-0003 (heritage as claims, no inference), ADR-0006
   (privacy, field groups), ADR-0021 (review, revisions), ADR-0004 (documents), Q4, Q14

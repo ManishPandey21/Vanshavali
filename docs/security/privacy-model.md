@@ -239,3 +239,16 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Duplicate checks never reveal hidden people.** Only people the user can already see are
   compared and shown.
 
+## 13. Heritage depth, kinship words and family traditions (ADR-0026)
+
+- **Offers are explicit.** A family's own entry (a family deity, devak or gotra) is shared with
+  the common suggestion lists only when a tree admin offers it, and the shared term never names
+  the family. Promotion happens by code review and never changes a family's stored values.
+- **No inference.** A gotra never fills in a pravara, community, region or religion; a kinship
+  word never sets anyone's sex or age. Caste, jati and religion still have no suggestion lists.
+- **Traditions have their own privacy level**, are never shown on public trees in R4, and are
+  exported only as far as the exporter may see them. People linked to an entry are shown only to
+  members who may see them.
+- **Family words stay in the family.** A tree's own kinship words are visible only inside that
+  tree.
+
