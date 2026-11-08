@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Baby, EyeOff, Flower2, HeartPulse, HelpCircle, Lock, ShieldCheck, UserX } from "lucide-react";
+import { Baby, CircleDashed, EyeOff, Flower2, HeartPulse, HelpCircle, Lock, ShieldCheck, UserX } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { EvidenceStatus, GenealogicalDate, PersonSummary, PrivacyLevel, RelationshipType } from "../../api/types";
 import { Badge, type Tone } from "../ui/Badge";
@@ -41,6 +41,16 @@ export function PersonBadges({ person, showPrivacy = false }: { person: PersonSu
       {person.is_protected && (
         <Badge tone="blue" icon={<ShieldCheck className="size-3" aria-hidden />} title={t("person.badge.protectedHint")}>
           {t("person.badge.protected")}
+        </Badge>
+      )}
+      {person.is_provisional && person.provisional_state === "needs_details" && (
+        <Badge tone="saffron" icon={<CircleDashed className="size-3" aria-hidden />} title={t("person.badge.provisionalHint")}>
+          {t("person.badge.provisional")}
+        </Badge>
+      )}
+      {person.is_provisional && person.provisional_state === "unverified" && (
+        <Badge tone="saffron" icon={<CircleDashed className="size-3" aria-hidden />} title={t("person.badge.unverifiedHint")}>
+          {t("person.badge.unverified")}
         </Badge>
       )}
       {showPrivacy && person.privacy_level && <PrivacyBadge level={person.privacy_level} />}

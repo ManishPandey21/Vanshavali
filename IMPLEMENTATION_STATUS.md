@@ -149,3 +149,82 @@ seven new tree-scoped tables).
 | Remotion renderer (`renderer/`): FanChart, PedigreeChart, FamilyTree, LifespanTimeline, EventTimeline; themes, title card, branding, audio slots | VERIFIED | `renderer` `npm test` (real renders: 5 posters + 2 MP4s, ffprobe duration check) | CI job `renderer`. Remotion licence to confirm before production |
 | Render jobs and artifacts (payload as requester, encrypted, separate queue/worker, poster + MP4, progress, quotas, timeouts, signed downloads) | VERIFIED | `test_render_jobs.py` (9, incl. a real Remotion render through the API with `VSH_TEST_REMOTION=1`) | Render worker image `deploy/render-worker/Dockerfile` not built in the sandbox (no Docker daemon); compose profile `render` |
 
+
+## R1 — Smart Add Relative (Nov 2026)
+
+Plan: [docs/architecture/india-master-data-and-smart-forms-plan.md](docs/architecture/india-master-data-and-smart-forms-plan.md) (R1, phases C/D). Decision: ADR-0020. One migration (`3b7e1c9d2a40`, with downgrade; RLS on `relative_age_order`).
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Kinship-term catalogue (51 terms as paths of basic edges, incl. the full North-Indian diagram) | VERIFIED | `test_smart_add.py::test_terms_catalogue` | Controlled values; en/hi labels in the locale files |
+| Plan → confirmed commit → undo API (no writes before confirmation; visible candidates only; hidden relatives counted; duplicate parents refused; cycles and the two-parent cap enforced; undo by the same user within 30 min) | VERIFIED | `test_smart_add.py` (16) | |
+| Provisional people (`person.is_provisional` = origin, kept; `provisional_state` needs_details / unverified / verified from names and relationship evidence) | VERIFIED | `test_smart_add.py::test_mama_with_unknown_mother_creates_a_provisional_parent`, `test_provisional_people.py::test_name_completes_details_evidence_verifies` | A name completes details, never verifies |
+| Provisional privacy: `CUSTOM` + creator view grant; concealed (no placeholder or count) from everyone else while pending; never on public pages | VERIFIED | `test_provisional_people.py` (visibility, IDOR, cross-tree, concealment, public, undo) | |
+| Headline counts exclude pending provisional people for everyone; `provisional_member_count` and the fan chart's "to complete" figure only for those who may see them (#32) | VERIFIED | `test_provisional_views.py` (counts per role, fan-chart summary), Playwright `to-complete.spec.ts` | |
+| "To complete" view: `provisional_state` filter on the people list, per-person "what's missing" with a direct link (#33) | VERIFIED | `test_provisional_views.py` (per role, transitions, pagination, search, cross-tree, non-member), Vitest `PeoplePage.test.tsx` (2), Playwright `to-complete.spec.ts` (390 px, axe) | Ordinary people with missing details are not listed yet |
+| Default GEDCOM/archive exports leave out pending provisional people and their relationships | VERIFIED | `test_provisional_people.py::test_default_exports_leave_out_pending_provisional_people`, `::test_an_exporter_who_cannot_see_them_learns_nothing` | Opt-in export of provisional people: deferred (ADR-0020 §7) |
+| Sex at birth never pre-selected from a term; candidates not dropped for their recorded sex | VERIFIED | `test_smart_add_sex_at_birth.py` (3), Vitest `SmartAddDialog.test.tsx`, Playwright `smart-add.spec.ts` | |
+| Recorded age order (`relative_age_order`; Tau/Chacha, Jeth/Devar, Bhai Sahab/Saala, optional for Brother/Sister; contradictions refused) | VERIFIED | `test_smart_add.py::test_tau_records_age_order_and_contradiction_is_refused` | Not yet used to pick terms in the calculator (Phase C) |
+| Relationship calculator resolves explicit sibling edges (virtual shared parent, never returned) | VERIFIED | `test_smart_add.py::test_explicit_sibling_from_the_classic_dialog_resolves_uncle_and_cousin` | Also fixes siblings added through the existing dialog |
+| Smart Add wizard (choose → resolve steps → details → preview → confirm → undo; en/hi; phone layout) | VERIFIED | Vitest `SmartAddDialog.test.tsx` (3), `badges.test.tsx` (3), Playwright `smart-add.spec.ts` (2, 390 px viewport) | Transliteration suggestion and master-data vocabularies: next R1 increments. Native Hindi review of the new strings outstanding |
+
+## R1 — Master data service, minimal (Nov 2026)
+
+Decision: ADR-0018 (classification of every dropdown: controlled values vs extensible vocabularies). One migration (`5c2d8e1f7a90`, with downgrade; RLS on `tree_vocabulary_term`).
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Classification of every dropdown (controlled vs vocabulary; where Unknown / Not applicable / Add my own apply) | VERIFIED (document) | ADR-0018 §2 | Community, jati and religion deliberately get no vocabulary |
+| Vocabulary tables, JSON packs (gotra, kula, kuladevata, kuladevi, occupation, honorific, language: 7 vocabularies, 71 terms, en+hi), idempotent loader that retires instead of deleting | VERIFIED | `test_masterdata.py` (pack validation, malformed packs, idempotency, retire) | `python -m app.cli.masterdata load` runs in the pilot migrate service, e2e reset, CI and `make migrate`. Native-speaker review of labels pending |
+| API: global vocabularies (signed in), tree vocabularies (global + family entries), "Add my own" with de-duplication across scripts and spellings | VERIFIED | `test_masterdata.py` (search in any script, authz, closed lists, RLS isolation, flag off) | In-memory search per vocabulary (< 100 terms); geography (phase B) needs DB search |
+| Stored references: heritage `value_json = {vocabulary, code}` with the label as typed; checked against global or this tree's entries | VERIFIED | `test_masterdata.py::test_heritage_value_references_a_real_entry` | Occupation and honorific stay free text (suggestions only) |
+| `SmartSelect` (ARIA combobox, suggestions in any script, "Add as your family's own", falls back to a plain field when the service is off or unreachable) in heritage (gotra, kula, kuladevata, kuladevi), occupation and honorific | VERIFIED | Vitest `SmartSelect.test.tsx` (4), Playwright `master-data.spec.ts` (with axe) | Static `src/data/masterData` lists remain only as fallbacks; nakshatra/rashi stay controlled (`astrology/vocab.py`) |
+| Rollback flag `VSH_MASTERDATA_ENABLED` | VERIFIED | `test_masterdata.py::test_disabled_flag_answers_404`, Vitest fallback test | |
+
+## R1 — Name transliteration suggestions (Nov 2026)
+
+Decision: ADR-0025. No migration: an accepted suggestion is a `name_record` of type `transliteration` with provenance.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Engine: reviewed lexicon (340 common North-Indian given names and surnames) first, Hindi rules on `indic-transliteration` second (no final halant, long final a/i, schwa deletion, "Aa" for initial आ); ≤ 3 labelled candidates; deterministic | VERIFIED | `test_translit.py` (lexicon, rules, no-suggestion cases, determinism, lexicon integrity) | Devanagari ⇄ Latin, Hindi only (v1). The lexicon is pending native-Hindi review (`p5-name-lexicon.csv`) |
+| `POST /transliterate`: signed-in, ≤ 200 characters, rate-limited per user, text never logged or stored | VERIFIED | `test_translit.py` (sign-in, validation, rate limit, no logging) | |
+| Accepted suggestion = separate, non-preferred `transliteration` name; provenance `calculation` + engine version + confirmed by the user, stamped by the server | VERIFIED | `test_translit.py` (provenance, refused disguises, person create, cross-tree, viewer 403) | Exported as GEDCOM `TRAN` (ADR-0008, unchanged) |
+| Suggestion UI in the person form, the name editor and Smart Add | VERIFIED | Vitest `TransliterationSuggestion.test.tsx` (3), `SmartAddDialog.test.tsx`, Playwright `transliteration.spec.ts` (390 px, axe) | |
+| Hindi review pack regenerated; now includes the master-data labels and the name lexicon | DONE (pack) | `ops/i18n/hindi_review_pack.py` | The review itself is a human task: no sign-off yet |
+
+## R2 — Indian geography reference data and place cascades (Nov 2026)
+
+Decision: ADR-0019 (implementation notes there). Migration `8e4a1f6c2b37`: `geo_snapshot`, versioned `geo_unit`, `geo_unit_alias`, `pincode_office`, `place.lgd_level`, `place.lgd_snapshot_id`; the app role may only read the four reference tables.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Importer `python -m app.cli.geo`: header-tolerant LGD and India Post CSV layouts, SHA-256, plain-text validation (NFC, control/bidi refused, length), unknown parents and repeats refused, staged snapshots, change report (CSV + summary), successors for merges/splits, `activate` (large-change guard, audit), rollback, `discard`, `status` | VERIFIED | `test_geo.py` (importer tests), `test_app_role.py`, `test_migrations.py` | Real LGD files not yet imported: downloads need a captcha form and data.gov.in is not reachable from the build environment. The CI fixture is SYNTHETIC (`backend/tests/fixtures/geo`, labelled) |
+| `GET /geo/units`, `/geo/units/{code}?level=`, `/geo/pincodes/{pin}`: signed-in, 240/min per user, ETag on the active snapshot, `VSH_GEO_ENABLED` → 404; search exact > prefix > trigram over English, local-script names and aliases with match reason; PIN suggests district/state, never a village | VERIFIED | `test_geo.py` (API tests) | |
+| Tree places: a picked code is checked against the active snapshot and stamped by the server; LGD changes only add a note (renamed, moved, district renamed, retired with successors); `lgd_accept_current` re-links on the user's choice; archive README credits GODL-India | VERIFIED | `test_geo.py` (place and archive tests) | |
+| `PlaceCascade` (State > District > Tehsil/Taluka/Mandal… > Village/Town, all-India search, PIN suggestion, "My village is not listed", attribution) in the Places editor and in `PlacePicker` (vital, event, heritage and property places); LGD note on place cards; en/hi | VERIFIED | Vitest `PlaceCascade.test.tsx` (11), Playwright `lgd-places.spec.ts` (2, 390 px, axe) | Hindi strings await the native review (#34) |
+| Ancestral-village suggestion: optional family branch on the person form; the branch's ancestral village is offered for the birth place, never filled | VERIFIED | Vitest `PlaceCascade.test.tsx`, Playwright `lgd-places.spec.ts` | |
+| Acceptance benchmark (§10) on pilot hardware with the national files | PARTIAL | `python -m app.cli.geo_benchmark` (synthetic, 6.5 lakh villages) | Build container: children p95 5.9 ms, search p95 79/88 ms, largest state 14 s, 382 MB, all within target (`docs/operations/performance.md`). Pilot-hardware run with real files still to do |
+
+## R3 — Change proposals, family review and duplicates at entry (Nov 2026)
+
+Decision: ADR-0021 (implementation notes there). Migration `4d7c2a9e1b58`: `revision` and `review_state` on person, name_record, event, relationship and assertion; `tree.review_policy`; `change_proposal`, `change_proposal_item`, `proposal_citation`, `proposal_comment`, `record_revision`, `user_notification` with row-level security.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| Revisions and value history for every write path (one flush hook); review state resets on change; erasure removes history | VERIFIED | `test_proposals.py` (history, merge path, erasure, redaction) | History is redacted per reader; never exported |
+| Review policy (off / structure / all), `change.review` permission, REVIEWER role; 409 `review_required` | VERIFIED | `test_proposals.py` (policy, own work, managers only, reviewer cannot write) | Defaults to off: no change for existing trees |
+| Proposals: create, submit, approve (revision-bound, row locks, all-or-nothing), reject, withdraw, rebase, comments; no self-approval; hidden fields block deciding; branch scope | VERIFIED | `test_proposals.py` | Applied as the proposer |
+| Challenges (mark nothing until upheld; contested + DISPUTED; capped), review-state confirm, revert (direct or proposed), in-app notifications at `/inbox` | VERIFIED | `test_proposals.py`, `test_routes_unique.py` | No email or WhatsApp for these in R3 |
+| Duplicates at entry (`/duplicates/check`): names across scripts, birth year, parents, spouse, LGD village; visible people only | VERIFIED | `test_duplicates_entry.py` (5) | |
+| UI: propose dialog on `review_required`, Review page, notification bell, History tab with revert, badges and Challenge on names, pending-changes notice, review policy in settings, duplicate panel in Add person / Add relative / Smart Add; en/hi | VERIFIED | Vitest `ReviewParts.test.tsx` (9), Playwright `family-review.spec.ts` (2, 390 px, axe) | Smart Add plans that link two existing people are refused under a policy; proposing them from Smart Add is a follow-up. Hindi strings await the native review (#34) |
+
+## R1 — Age-aware kinship terms (Nov 2026)
+
+Decision: ADR-0020 amendment. No migration: this uses `relative_age_order` from R1 increment 1.
+
+| Module | Status | Tests | Notes |
+|---|---|---|---|
+| `age_orders` on `/relationship-path`: per sibling word, the right pair (uncle vs father, brother-in-law vs husband), family-confirmed > birth dates > unknown; conflicting, overlapping or open-ended dates give unknown; viewer-visible dates only; hidden pairs omitted | VERIFIED | `test_age_order.py` (9) | |
+| Record / delete age order between siblings (`/relative-age-orders`) | VERIFIED | `test_age_order.py::test_record_endpoint_rules`, `…family_confirmed_order_wins…` | Smart Add shares the same rules |
+| Hindi age-dependent terms (Tau/Chacha, Tai/Chachi, Jeth/Devar, Jethani/Devrani, Bhai Sahab/Saala, Bhaiya/Bhai, Didi/Behen, Jija/Behnoi) plus Samdhi/Samdhan and Nandoi; "father's elder brother" in English; basis shown in every language; "older or younger?" question for editors | VERIFIED | Vitest `kinship.test.ts` (matrix), `RelationshipPage.test.tsx` (3), Playwright `age-kinship.spec.ts` (with axe) | Regional packs (Marathi, Tamil…) and family-preferred words come later (Q14) |

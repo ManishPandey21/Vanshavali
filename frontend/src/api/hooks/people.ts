@@ -1,5 +1,6 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../client";
+import { orPropose } from "../../lib/reviewBus";
 import type {
   EventIn,
   EventOut,
@@ -17,6 +18,7 @@ import type {
   PersonSummary,
   PersonUpdate,
   PlaceIn,
+  PlaceUpdate,
   PlaceOut,
   PrivacyUpdate,
   ProfileStatus,
@@ -28,7 +30,8 @@ import type {
 
 export const peopleKeys = {
   tree: (t: string) => ["tree", t] as const,
-  list: (t: string, q: string, status?: string) => ["tree", t, "people", q, status ?? ""] as const,
+  list: (t: string, q: string, status?: string, states?: readonly string[]) =>
+    ["tree", t, "people", q, status ?? "", (states ?? []).join(",")] as const,
   person: (t: string, id: string) => ["tree", t, "person", id] as const,
   family: (t: string, id: string, lineage: string) => ["tree", t, "person", id, "family", lineage] as const,
   events: (t: string, id: string) => ["tree", t, "person", id, "events"] as const,
@@ -45,11 +48,22 @@ function useInvalidateTree(treeId: string) {
   return () => qc.invalidateQueries({ queryKey: peopleKeys.tree(treeId) });
 }
 
-export function usePeople(treeId: string, q: string, status?: ProfileStatus) {
+/** The provisional states the "To complete" view lists (ADR-0020 §8). */
+export const TO_COMPLETE_STATES = ["needs_details", "unverified"] as const;
+
+/**
+ * People in the tree. ``provisionalStates`` narrows the list to provisional people in those states
+ * (the "To complete" view); the server still lists only people the caller may see.
+ */
+export function usePeople(treeId: string, q: string, status?: ProfileStatus, provisionalStates?: readonly string[]) {
   return useInfiniteQuery({
-    queryKey: peopleKeys.list(treeId, q, status),
+    queryKey: peopleKeys.list(treeId, q, status, provisionalStates),
     queryFn: ({ pageParam, signal }) =>
-      api.get<Page<PersonSummary>>(`/trees/${treeId}/people`, { q, status, cursor: pageParam, limit: 50 }, signal),
+      api.get<Page<PersonSummary>>(
+        `/trees/${treeId}/people`,
+        { q, status, provisional_state: provisionalStates ? [...provisionalStates] : undefined, cursor: pageParam, limit: 50 },
+        signal,
+      ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.next_cursor ?? undefined,
     placeholderData: keepPreviousData,
@@ -75,7 +89,10 @@ export function useCreatePerson(treeId: string) {
 export function useUpdatePerson(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (body: PersonUpdate) => api.patch<PersonOut>(`/trees/${treeId}/people/${personId}`, body),
+    mutationFn: (body: PersonUpdate) =>
+      orPropose({ target_type: "person", op: "update", target_id: personId, patch: body as Record<string, unknown> }, () =>
+        api.patch<PersonOut>(`/trees/${treeId}/people/${personId}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -91,7 +108,8 @@ export function useSetPrivacy(treeId: string, personId: string) {
 export function useDeletePerson(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (personId: string) => api.del<Message>(`/trees/${treeId}/people/${personId}`),
+    mutationFn: (personId: string) =>
+      orPropose({ target_type: "person", op: "delete", target_id: personId }, () => api.del<Message>(`/trees/${treeId}/people/${personId}`)),
     onSuccess: invalidate,
   });
 }
@@ -134,7 +152,9 @@ export function useUpdateName(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: NameUpdate }) =>
-      api.patch<NameOut>(`/trees/${treeId}/people/${personId}/names/${id}`, body),
+      orPropose({ target_type: "name", op: "update", target_id: id, patch: body as Record<string, unknown> }, () =>
+        api.patch<NameOut>(`/trees/${treeId}/people/${personId}/names/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -142,7 +162,8 @@ export function useUpdateName(treeId: string, personId: string) {
 export function useDeleteName(treeId: string, personId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/people/${personId}/names/${id}`),
+    mutationFn: (id: string) =>
+      orPropose({ target_type: "name", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/people/${personId}/names/${id}`)),
     onSuccess: invalidate,
   });
 }
@@ -168,7 +189,9 @@ export function useUpdateEvent(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: EventUpdate }) =>
-      api.patch<EventOut>(`/trees/${treeId}/events/${id}`, body),
+      orPropose({ target_type: "event", op: "update", target_id: id, patch: body as Record<string, unknown> }, () =>
+        api.patch<EventOut>(`/trees/${treeId}/events/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -176,7 +199,7 @@ export function useUpdateEvent(treeId: string) {
 export function useDeleteEvent(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/events/${id}`),
+    mutationFn: (id: string) => orPropose({ target_type: "event", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/events/${id}`)),
     onSuccess: invalidate,
   });
 }
@@ -218,7 +241,7 @@ export function useCreatePlace(treeId: string) {
 export function useUpdatePlace(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: Partial<PlaceIn> }) =>
+    mutationFn: ({ id, body }: { id: string; body: PlaceUpdate }) =>
       api.patch<PlaceOut>(`/trees/${treeId}/places/${id}`, body),
     onSuccess: invalidate,
   });
@@ -243,7 +266,8 @@ export function useAddRelative(treeId: string, personId: string) {
 export function useDeleteRelationship(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
-    mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/relationships/${id}`),
+    mutationFn: (id: string) =>
+      orPropose({ target_type: "relationship", op: "delete", target_id: id }, () => api.del<Message>(`/trees/${treeId}/relationships/${id}`)),
     onSuccess: invalidate,
   });
 }
@@ -252,7 +276,9 @@ export function useUpdateRelationship(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      api.patch<RelationshipOut>(`/trees/${treeId}/relationships/${id}`, body),
+      orPropose({ target_type: "relationship", op: "update", target_id: id, patch: body }, () =>
+        api.patch<RelationshipOut>(`/trees/${treeId}/relationships/${id}`, body),
+      ),
     onSuccess: invalidate,
   });
 }
@@ -272,10 +298,21 @@ export function useGraph(
   });
 }
 
-export function useRelationshipPath(treeId: string, from: string, to: string, lineage: Lineage[]) {
+export function useRelationshipPath(treeId: string, from: string, to: string, lineage: Lineage[], lang = "en") {
   return useQuery({
-    queryKey: peopleKeys.path(treeId, from, to, lineage.join(",")),
-    queryFn: () => api.get<RelationshipPathOut>(`/trees/${treeId}/relationship-path`, { from, to, lineage }),
+    queryKey: [...peopleKeys.path(treeId, from, to, lineage.join(",")), lang],
+    // the UI language is the last fallback for relationship words (ADR-0026 §6)
+    queryFn: () => api.get<RelationshipPathOut>(`/trees/${treeId}/relationship-path`, { from, to, lineage, lang }),
     enabled: !!from && !!to,
+  });
+}
+
+/** Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). */
+export function useRecordAgeOrder(treeId: string) {
+  const invalidate = useInvalidateTree(treeId);
+  return useMutation({
+    mutationFn: (body: { person_id: string; relative_to_id: string; order: "elder" | "younger" }) =>
+      api.post<{ id: string; elder_person_id: string; younger_person_id: string }>(`/trees/${treeId}/relative-age-orders`, body),
+    onSuccess: invalidate,
   });
 }

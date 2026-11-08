@@ -1,3 +1,4 @@
+import { DuplicatePanel, duplicateCheckFor } from "../../../components/review/ReviewParts";
 import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { GenealogicalDate, PersonSummary, RelationshipType, RelativeIn, UnionOut } from "../../../api/types";
@@ -181,6 +182,18 @@ export function AddRelativeDialog({
         ) : (
           <FamilyConsentGate treeId={treeId}>
             <PersonForm treeId={treeId} draft={draft} onChange={setDraft} showErrors={submitted} compact treeDefaultPrivacy={tree.default_person_privacy} />
+            <DuplicatePanel
+              treeId={treeId}
+              check={duplicateCheckFor(draft, {
+                parentIds: relation === "child" ? [anchor.id] : [],
+                spouseIds: relation === "spouse" ? [anchor.id] : [],
+                excludeIds: [anchor.id],
+              })}
+              onUse={(p) => {
+                setExisting({ id: p.id, display_name: p.display_name } as PersonSummary);
+                setMode("existing");
+              }}
+            />
           </FamilyConsentGate>
         )}
         {err && (

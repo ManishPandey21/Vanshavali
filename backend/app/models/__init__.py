@@ -4,6 +4,7 @@ from app.models import rls as _rls
 from app.models.astrology import AstrologyProfile
 from app.models.audit import AuditEvent
 from app.models.base import Base
+from app.models.culture import KinshipOverride, TraditionEntry, TraditionLink
 from app.models.documents import (
     Document,
     DocumentDerivative,
@@ -14,10 +15,21 @@ from app.models.documents import (
 )
 from app.models.evidence import Citation, Source
 from app.models.family import BranchMembership, FamilyBranch, Household, HouseholdMembership
-from app.models.genealogy import Event, EventParticipant, MergeRecord, NameRecord, Person, Place, Relationship
+from app.models.genealogy import (
+    Event,
+    EventParticipant,
+    MergeRecord,
+    NameRecord,
+    Person,
+    Place,
+    Relationship,
+    RelativeAgeOrder,
+)
+from app.models.geo import GeoSnapshot, GeoUnit, GeoUnitAlias, PincodeOffice
 from app.models.heritage import Assertion
 from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
+from app.models.masterdata import TreeVocabularyTerm, Vocabulary, VocabularyTerm
 from app.models.notifications import (
     EventReminder,
     NotificationContact,
@@ -26,6 +38,14 @@ from app.models.notifications import (
 )
 from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClaim, ProfileClaimInvite
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
+from app.models.review import (
+    ChangeProposal,
+    ChangeProposalItem,
+    ProposalCitation,
+    ProposalComment,
+    RecordRevision,
+    UserNotification,
+)
 from app.models.tree import AccessGrant, Tree, TreeInvitation, TreeMembership
 from app.models.visualization import ChartPreset, RenderArtifact, RenderJob
 
@@ -40,6 +60,8 @@ __all__ = [
     "AuthTokenPurpose",
     "Base",
     "BranchMembership",
+    "ChangeProposal",
+    "ChangeProposalItem",
     "ChartPreset",
     "Citation",
     "ConsentRecord",
@@ -57,9 +79,13 @@ __all__ = [
     "FamilyBranch",
     "FamilyDataAttestation",
     "GedcomExtension",
+    "GeoSnapshot",
+    "GeoUnit",
+    "GeoUnitAlias",
     "Household",
     "HouseholdMembership",
     "ImportJob",
+    "KinshipOverride",
     "LandParcel",
     "MergeRecord",
     "NameRecord",
@@ -67,6 +93,7 @@ __all__ = [
     "NotificationDelivery",
     "NotificationPreference",
     "Person",
+    "PincodeOffice",
     "Place",
     "ProfileClaim",
     "ProfileClaimInvite",
@@ -74,13 +101,28 @@ __all__ = [
     "PropertyEvent",
     "PropertyEventParcel",
     "PropertyInterest",
+    "ProposalCitation",
+    "ProposalComment",
+    "RecordRevision",
     "Relationship",
+    "RelativeAgeOrder",
     "RenderArtifact",
     "RenderJob",
     "Source",
+    "TraditionEntry",
+    "TraditionLink",
     "Tree",
     "TreeInvitation",
     "TreeMembership",
+    "TreeVocabularyTerm",
     "User",
+    "UserNotification",
     "UserSession",
+    "Vocabulary",
+    "VocabularyTerm",
 ]
+
+# revisions and history for every write path (ADR-0021 §3): one flush hook on every session
+from app.modules.review import revisions as _revisions  # noqa: E402
+
+_revisions.install()

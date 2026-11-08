@@ -60,14 +60,18 @@ jobs:
           uv run alembic check
           uv run alembic downgrade base
           uv run alembic upgrade head
-      - name: Seed demo data on a migrated database
+      - name: Load master data and seed demo data on a migrated database
         env:
           PGPASSWORD: vanshavali
           VSH_DATABASE_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/vsh_seed
         run: |
           psql -h localhost -U vanshavali -d postgres -c "CREATE DATABASE vsh_seed"
           uv run alembic upgrade head
+          uv run python -m app.cli.masterdata load
+          uv run python -m app.cli.masterdata load --dry-run
+          export VSH_DEMO_PASSWORD="$(openssl rand -base64 24)" VSH_SUPERADMIN_PASSWORD="$(openssl rand -base64 24)"
           uv run python -m app.cli.seed_demo
+          uv run python -m app.cli.seed_demo  # idempotent: a second run changes nothing
 
   frontend:
     runs-on: ubuntu-24.04
@@ -91,6 +95,7 @@ jobs:
   # (posters) plus two MP4s, then the backend's end-to-end render test against that bundle.
   renderer:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30  # a hung render must fail, not hold a runner for six hours
     services:
       postgres:
         image: postgres:16

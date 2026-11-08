@@ -4,6 +4,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query, status
+from fastapi.responses import JSONResponse
 from pydantic import Field
 from sqlalchemy import select
 
@@ -13,7 +14,8 @@ from app.authz.privacy import can_view_person, load_subjects
 from app.core.textnorm import search_key
 from app.models import Person, Place
 from app.models.enums import EventType, Lineage, ProfileStatus
-from app.modules.genealogy import engine, geo, lookup, service
+from app.modules.genealogy import ageorder, engine, geo, lookup, provisional, service
+from app.modules.genealogy.provisional import ProvisionalState
 from app.modules.genealogy.schemas import (
     EventIn,
     EventOut,
@@ -35,10 +37,14 @@ from app.modules.genealogy.schemas import (
     RelationshipOut,
     RelationshipPathOut,
     RelationshipUpdate,
+    RelativeAgeOrderIn,
+    RelativeAgeOrderOut,
     RelativeIn,
     RelativeOut,
 )
 from app.modules.genealogy.serialize import Serializer, name_out, relationship_out
+from app.modules.geo import service as geo_service
+from app.modules.geo.schemas import PlaceLgdNote
 
 router = APIRouter(prefix="/trees/{tree_id}", tags=["genealogy"])
 
@@ -58,10 +64,19 @@ def list_people(
     ctx: TreeCtx,
     q: str | None = Query(default=None, max_length=200),
     status_: ProfileStatus | None = Query(default=None, alias="status"),
+    provisional_state: list[ProvisionalState] | None = Query(
+        default=None,
+        description='Only provisional people in these states: the "To complete" view (ADR-0020 §8). '
+        "Visibility rules are unchanged, so it lists only people the caller may see.",
+    ),
     cursor: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),
 ) -> Page[PersonSummary]:
     offset = decode_cursor(cursor)
+    only: set[uuid.UUID] | None = None
+    if provisional_state:
+        wanted = {str(s) for s in provisional_state}
+        only = {pid for pid, st in provisional.states(ctx).items() if st.value in wanted}
     if q:
         from app.modules.search.service import match_names
 
@@ -76,6 +91,8 @@ def list_people(
         }
         if status_:
             persons = {k: v for k, v in persons.items() if v.profile_status == status_}
+        if only is not None:
+            persons = {k: v for k, v in persons.items() if k in only}
         subjects = load_subjects(ctx, persons.values())
         ranked = [subjects[i] for i in order if i in subjects and can_view_person(ctx, subjects[i])]
         page = ranked[offset : offset + limit]
@@ -84,6 +101,8 @@ def list_people(
         stmt = select(Person).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_(None))
         if status_:
             stmt = stmt.where(Person.profile_status == status_)
+        if only is not None:
+            stmt = stmt.where(Person.id.in_(list(only) or [uuid.UUID(int=0)]))
         stmt = stmt.order_by(Person.preferred_display_name, Person.id)
         visible: list = []
         seen_visible, scan, chunk, exhausted = 0, 0, max(limit * 3, 100), False
@@ -262,6 +281,9 @@ def _place_out(ctx, p: Place) -> PlaceOut:  # type: ignore[no-untyped-def]
         "longitude": coords.longitude if coords else None,
         "coordinates_coarsened": bool(coords and coords.coarsened),
     }
+    note = geo_service.place_notes(ctx.db, [p]).get(p.id)
+    if note is not None:
+        update["lgd_note"] = PlaceLgdNote.model_validate(note)
     if coords is not None:
         update["location_precision"] = coords.precision
         if coords.coarsened:
@@ -363,11 +385,49 @@ def descendants(
     return engine.graph(ctx, person_id, "descendants", depth, set(lineage) if lineage else None)
 
 
+@router.post(
+    "/relative-age-orders",
+    response_model=RelativeAgeOrderOut,
+    status_code=status.HTTP_201_CREATED,
+    responses={200: {"model": RelativeAgeOrderOut, "description": "Already recorded"}},
+)
+def record_relative_age(body: RelativeAgeOrderIn, ctx: TreeCtx) -> RelativeAgeOrderOut | JSONResponse:
+    """Family-confirmed "older / younger than" between two siblings (ADR-0020 §5). It takes
+    precedence over birth dates when kinship terms depend on age (Tau vs Chacha)."""
+    row, created = ageorder.record_for_siblings(ctx, body.person_id, body.relative_to_id, body.order)
+    out = RelativeAgeOrderOut(
+        id=row.id, elder_person_id=row.elder_person_id, younger_person_id=row.younger_person_id
+    )
+    if created:
+        return out
+    return JSONResponse(out.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@router.delete("/relative-age-orders/{record_id}", response_model=Message)
+def delete_relative_age(record_id: uuid.UUID, ctx: TreeCtx) -> Message:
+    """Remove a recorded age order (to correct a mistake)."""
+    ageorder.delete(ctx, record_id)
+    return Message(message="Age order removed")
+
+
 @router.get("/relationship-path", response_model=RelationshipPathOut)
 def relationship_path(
     ctx: TreeCtx,
     from_id: uuid.UUID = Query(alias="from"),
     to_id: uuid.UUID = Query(alias="to"),
     lineage: LineageQuery = None,
+    lang: str | None = Query(
+        default=None, pattern=r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$", description="the reader's UI language"
+    ),
 ) -> RelationshipPathOut:
-    return engine.relationship_path(ctx, from_id, to_id, set(lineage) if lineage else None)
+    from app.modules.kinship.service import deciding_age, terms_for
+
+    out = engine.relationship_path(ctx, from_id, to_id, set(lineage) if lineage else None)
+    if out.found:
+        out = out.model_copy(
+            update={
+                "terms": terms_for(ctx, from_id, out.chain, out.age_orders, lang),
+                "age_decision": deciding_age(out.chain, out.age_orders),
+            }
+        )
+    return out

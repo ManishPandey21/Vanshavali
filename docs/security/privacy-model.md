@@ -148,3 +148,107 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   Delivery history is kept with the tree (deleted with it). An automatic retention period for
   render artifacts and delivery history is DEFERRED (proposed: 90 days / 1 year).
 
+
+## 8. Smart Add Relative (ADR-0020)
+
+- **No one is created without being seen.** The plan endpoint writes nothing; the user picks a
+  recorded relative or explicitly chooses "add as unknown for now" at each step, sees every record
+  in a preview, and confirms. An unconfirmed plan leaves no trace.
+- **Provisional people** carry no name and no data except what the user enters. Sex at birth is
+  "Not recorded" unless the user records it; a kinship term never fills it in. They count as people
+  for attestation (ADR-0011): the family-data statement is required before Smart Add can create
+  anyone. Their status is protected (unknown, so possibly living).
+- **Only the creator and tree admins see a provisional person.** They are created at `CUSTOM`
+  privacy with a view grant for the creator (ADR-0020 §7), so the creator can complete the record and
+  only tree admins can widen access. While pending (unnamed, or with any relationship lacking
+  supporting evidence) they are concealed from everyone else: no anonymous placeholder, count, graph
+  node, relationship-path hop, candidate entry or public page reveals that they exist.
+- **Completing is not verifying.** A name completes the profile's details; `is_provisional` stays as
+  the record of how the person was created, and verification comes only from the relationships'
+  existing evidence status.
+- **Exports leave out pending provisional people** (GEDCOM and archive, whoever exports), together
+  with the relationships that touch them; no placeholder or family link is left pointing at them. The
+  archive manifest counts them only for an exporter who could see them.
+- **Headline counts and the "To complete" view** (ADR-0020 §8). Branch and household member counts
+  and the fan chart's "known" figure never include pending provisional people, for anyone. The
+  administrative `provisional_member_count`, the chart's "to complete" figure and the "To complete"
+  people view count or list only those the viewer may see (creator, tree admins, grants); for anyone
+  else they are 0 or empty.
+- **Hidden relatives stay hidden.** Candidate lists contain only people the user may see; a hidden
+  parent is reported as a count, never identified, and prevents creating a duplicate parent.
+- **Kinship terms are not stored and do not set identity.** "Mama" becomes edges; gender identity is
+  never set, and sex at birth is only what the client sends. Candidate lists never drop a relative
+  because of their recorded sex at birth.
+- **Age order** ("older than") is family knowledge about two people, private to the tree (RLS), and
+  deleted with either person. When the calculator orders two people by birth dates it uses only the
+  dates the viewer may see (year-only for living people, for most viewers), and never compares a
+  person hidden from the viewer.
+- **Undo** soft-deletes (restorable) the people an operation created and removes its relationships
+  and age-order records; it is limited to the same user for 30 minutes.
+
+## 9. Master data vocabularies (ADR-0018)
+
+- **Suggestions, never facts.** A vocabulary only helps typing. The value stored is what the person
+  chose or typed; nothing is filled in, inferred or checked against someone's surname, place or
+  relatives.
+- **No lists for sensitive identity.** Community, jati and religion have no vocabulary, so the app
+  never presents caste or religious categories to choose from (Q4).
+- **A family's own entries are family data.** They are private to the tree (RLS), visible to its
+  members only, deleted with the tree, and never copied into the global catalogue by the app. The
+  audit log records that an entry was added, not what it says.
+- **Global reference data holds no personal data.** Packs are versioned files in the repository,
+  loaded by an operator command.
+
+## 10. Name transliteration suggestions (ADR-0025)
+
+- **The typed name is never changed.** A suggestion in the other script is shown, never applied;
+  accepting it adds a separate name, which is never the preferred one and never counts as evidence.
+- **Names stay on our servers.** Suggestions are computed locally. The text is not logged or stored,
+  and no third-party transliteration service is used.
+- **No learning across families.** The engine never learns from names other families enter; its name
+  list changes only through code review.
+- **No inference.** A name's script or spelling never sets sex, gender, community, region or anything
+  else about a person.
+
+## 11. Indian geography reference data (ADR-0019)
+
+- **No personal data in the reference tables.** LGD units, aliases and PIN offices are national open
+  data (GODL-India, attributed under the cascade, on the About page and in the family archive). They
+  hold nothing about any family, and a family's own spelling never enters them.
+- **Linking adds nothing about a person.** A village name stays where it was (the place, and the
+  person's `BIRTH_PLACE_DETAIL` field group, redacted for protected people as before). LGD gives no
+  coordinates, and PIN office coordinates are not imported.
+- **Searches stay private.** Place searches go only to our own server, never to a third-party
+  geocoder. They are rate-limited per user, and only request paths are logged, never the query.
+- **Nothing is rewritten.** A quarterly update never changes a family's record; it shows a note the
+  user may act on. The ancestral-village suggestion is offered, never filled.
+
+## 12. Change proposals, revision history and family review (ADR-0021)
+
+- **Revision history holds values, so it is treated like the facts.** It is read through the same
+  field-group redaction as the person (a viewer who may only see a birth year sees "birth date
+  changed", not the dates). It is left out of archives and GEDCOM, and erasing a person erases
+  their history. The audit log keeps recording field names only, never values.
+- **Proposals and comments are tree data.** Only the proposer and those who may review every
+  target see them, with values redacted for the reader. An erasure removes the erased person's
+  values from open proposals and makes those proposals stale.
+- **Notifications carry no personal data.** They store ids only; their text is built when read,
+  with the reader's current permissions, and nothing is sent outside the app.
+- **Family review is not evidence.** `review_state` (unreviewed, family-reviewed, contested) is
+  separate from evidence status, so a family's approval never stands in for a document.
+- **Duplicate checks never reveal hidden people.** Only people the user can already see are
+  compared and shown.
+
+## 13. Heritage depth, kinship words and family traditions (ADR-0026)
+
+- **Offers are explicit.** A family's own entry (a family deity, devak or gotra) is shared with
+  the common suggestion lists only when a tree admin offers it, and the shared term never names
+  the family. Promotion happens by code review and never changes a family's stored values.
+- **No inference.** A gotra never fills in a pravara, community, region or religion; a kinship
+  word never sets anyone's sex or age. Caste, jati and religion still have no suggestion lists.
+- **Traditions have their own privacy level**, are never shown on public trees in R4, and are
+  exported only as far as the exporter may see them. People linked to an entry are shown only to
+  members who may see them.
+- **Family words stay in the family.** A tree's own kinship words are visible only inside that
+  tree.
+

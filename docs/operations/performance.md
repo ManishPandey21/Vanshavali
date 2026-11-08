@@ -415,3 +415,36 @@ Generator lag p99 ≤ 15 ms and no dropped arrivals, so these are server numbers
   - 4 backend replicas need about 3 GB at peak, ClamAV about 1 GB and the OS 1 GB, so choose a
     **16 GB** VM for 4 replicas; 8 GB fits 2 replicas.
   - A pilot of tens of families is far below 40 req/s.
+
+## Geography reference data (ADR-0019 §10): synthetic national scale, 7 Nov 2026
+
+Measured with `uv run python -m app.cli.geo_benchmark --villages 650000 --queries 300`. The data is
+**synthetic**, in national proportions: 36 states, 780 districts, 7,020 sub-districts and 6.5 lakh
+villages, with the largest state holding 16.5%, as Uttar Pradesh does. It was imported through the
+real importer, and the queries ran through the real service code. Machine: the build container (4
+vCPU, 15 GB, local PostgreSQL 16), not the pilot VM, so these numbers are indicative. The acceptance
+run on pilot hardware with the national LGD files is still open.
+
+| Measure | Result | ADR target |
+|---|---|---|
+| Cascade children (villages of a sub-district), p95 | 5.9 ms (p50 3.3) | < 50 ms |
+| Village search, all India, p95 | 78.7 ms (p50 15.1) | < 150 ms |
+| Village search within a state, p95 | 87.9 ms (p50 26.1) | < 150 ms |
+| Import of the largest state (≈1.07 lakh villages) | 13.9 s (all states 85 s) | < 5 min |
+| Footprint, 6.6 lakh rows with all indexes | 382 MB | 300–500 MB (estimate) |
+
+Three fixes came from measuring:
+1. **Cascade children** took 50 ms at p95. The queries filter on the ancestor columns, but only the
+   direct-parent columns were indexed, so every query scanned the whole table. Fix: a partial index
+   (current rows) on each ancestor column `(state_code | district_code | sub_district_code, level,
+   name_en)`.
+2. **Search** took 152–180 ms at p95, and the candidate query was **unordered**. It took any 200
+   matching rows, so in dense data an exact match could be crowded out; `test_geo.py` now has a
+   regression test that fails on the old code. Fix: exact and prefix matches come first, through
+   btree `text_pattern_ops` indexes, ordered with exact matches on top. A trigram query ordered by
+   similarity runs only when that step leaves the page short.
+3. **Trigram tail.** At the default 0.3 threshold, a long name sharing a common suffix ("-nagar")
+   matched about 4% of all villages. The fuzzy step now uses 0.4, which still catches
+   Phoolpur/Phulpur at 0.42. Keys are also compared only with the column of their script: the typed
+   key with its own script's names, and its transliterations with the other script's names.
+

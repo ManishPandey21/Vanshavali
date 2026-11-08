@@ -45,6 +45,7 @@ export type EventType = S["EventType"];
 
 export type PlaceOut = S["PlaceOut"];
 export type PlaceIn = S["PlaceIn"];
+export type PlaceUpdate = S["PlaceUpdate"];
 export type PlaceName = S["PlaceName"];
 export type PlaceType = S["PlaceType"];
 
@@ -236,3 +237,68 @@ export type RenderJobOut = S["RenderJobOut"];
 export type RenderSettings = S["RenderSettings"];
 export type RenderDownloadOut = S["RenderDownloadOut"];
 export type RenderStatus = S["RenderStatus"];
+
+// Smart Add Relative (ADR-0020)
+export type SmartAddTerm = S["SmartAddTermOut"];
+export type SmartAddPlanIn = S["SmartAddPlanIn"];
+export type SmartAddPlan = S["SmartAddPlanOut"];
+export type SmartAddStep = S["SmartAddStepOut"];
+export type SmartAddTarget = S["SmartAddTargetOut"];
+export type SmartAddPreviewItem = S["SmartAddPreviewItem"];
+export type SmartAddCommitIn = S["SmartAddCommitIn"];
+export type SmartAddCommitOut = S["SmartAddCommitOut"];
+
+// Master data vocabularies (ADR-0018)
+export type VocabularyOut = S["VocabularyOut"];
+export type VocabularyTerm = S["VocabularyTermOut"];
+export type VocabularyTerms = S["VocabularyTermsOut"];
+export type TreeTermIn = S["TreeTermIn"];
+export type TreeTermOut = S["TreeTermOut"];
+
+// name transliteration suggestions (ADR-0025)
+export type TransliterateOut = S["TransliterateOut"];
+export type TransliterationCandidate = S["TransliterationCandidate"];
+
+// Indian geography reference data (ADR-0019)
+export type GeoLevel = S["GeoLevel"];
+export type GeoUnitOut = S["GeoUnitOut"];
+export type GeoUnitBrief = S["GeoUnitBrief"];
+export type GeoUnitsPage = S["GeoUnitsPage"];
+export type GeoUnitResponse = S["GeoUnitResponse"];
+export type PincodeOut = S["PincodeOut"];
+export type PlaceLgdNote = S["PlaceLgdNote"];
+
+// change proposals, family review and duplicates at entry (ADR-0021)
+export type ReviewPolicy = S["ReviewPolicy"];
+export type ReviewState = S["ReviewState"];
+export type ReviewTarget = S["ReviewTarget"];
+export type ProposalOp = S["ProposalOp"];
+export type ProposalIn = S["ProposalIn"];
+export type ProposalItemIn = S["ProposalItemIn"];
+export type ChangeProposalOut = S["ChangeProposalOut"];
+export type ProposalSummary = S["ProposalSummary"];
+export type ChallengeIn = S["ChallengeIn"];
+export type RevisionOut = S["RevisionOut"];
+export type RevertOut = S["RevertOut"];
+export type NotificationsOut = S["NotificationsOut"];
+export type DuplicateCheckIn = S["DuplicateCheckIn"];
+export type DuplicateCheckOut = S["DuplicateCheckOut"];
+
+// ADR-0026: cultural depth
+export type OfferIn = S["OfferIn"];
+export type OfferOut = S["OfferOut"];
+export type OfferStatus = S["OfferStatus"];
+export type KinshipTermOut = S["KinshipTermOut"];
+export type KinshipPackOut = S["KinshipPackOut"];
+export type KinshipPreferenceIn = S["KinshipPreferenceIn"];
+export type KinshipOverrideIn = S["KinshipOverrideIn"];
+export type KinshipOverrideOut = S["KinshipOverrideOut"];
+export type TraditionKind = S["TraditionKind"];
+export type TraditionEntryIn = S["TraditionEntryIn"];
+export type TraditionEntryUpdate = S["TraditionEntryUpdate"];
+export type TraditionOut = S["TraditionOut"];
+export type TraditionSummaryOut = S["TraditionSummaryOut"];
+export type TraditionsOut = S["TraditionsOut"];
+export type TraditionLinkIn = S["TraditionLinkIn"];
+export type TraditionLinkOut = S["TraditionLinkOut"];
+export type TraditionRevisionOut = S["TraditionRevisionOut"];

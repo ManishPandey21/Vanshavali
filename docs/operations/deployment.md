@@ -5,10 +5,45 @@
 cp .env.example .env   # fill in the keys
 docker compose up --build
 # app: http://localhost:8080   API docs: http://localhost:8000/api/v1/docs   MinIO console: :9001
-docker compose run --rm backend python -m app.cli.seed_demo   # optional demo family
+# optional demo family + dev accounts (export VSH_DEMO_PASSWORD and VSH_SUPERADMIN_PASSWORD first)
+docker compose run --rm -e VSH_DEMO_PASSWORD -e VSH_SUPERADMIN_PASSWORD backend python -m app.cli.seed_demo
 ```
-Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), migrate (a one-off
-`alembic upgrade head` as the schema owner, then `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
+Seeded accounts and their rules: `docs/operations/dev-accounts.md` (refused outside development/test).
+
+**Email.** By default the local stack uses the `console` mailer: backend and worker logs show each
+message, with its link in development, and nothing is sent. Compose passes the mail settings from
+`.env` to the backend and worker.
+
+To catch real messages locally, use the bundled **Mailpit** (profile `mail`). It accepts every
+message, delivers none, and shows them at http://localhost:8025 (published on loopback only). Set
+in `.env`:
+
+```bash
+COMPOSE_PROFILES=mail
+VSH_MAIL_BACKEND=smtp
+VSH_SMTP_HOST=mailpit
+VSH_SMTP_PORT=1025
+VSH_SMTP_STARTTLS=false
+```
+Then run `docker compose up -d`, sign up at http://localhost:8080, and open the confirmation email in
+Mailpit.
+
+To deliver through a real provider instead:
+
+```bash
+VSH_MAIL_BACKEND=smtp
+VSH_MAIL_FROM=Vanshavali <no-reply@your-domain.example>
+VSH_SMTP_HOST=smtp.your-provider.example
+VSH_SMTP_PORT=587
+VSH_SMTP_USER=...
+VSH_SMTP_PASSWORD='...'      # single-quote it if it contains $
+VSH_SMTP_STARTTLS=true
+```
+After changing these, recreate the containers (`docker compose up -d backend worker`) and check with
+`docker compose run --rm backend python -m app.cli.mail_check --send-to you@example.org`.
+`host.docker.internal` also resolves inside the backend and worker, for a catcher on the host.
+Services: postgres, redis, minio (+ bucket init with versioning), clamav (clamd), mailpit (opt-in, profile `mail`), migrate (a one-off
+`alembic upgrade head` as the schema owner, then `app.cli.masterdata load` (master-data vocabulary packs, ADR-0018; idempotent) and `app.cli.ensure_app_role`), backend (FastAPI), worker (RQ: scanning, previews, OCR, extraction), and
 frontend (nginx serving the SPA and proxying `/api`).
 
 ## Production shape

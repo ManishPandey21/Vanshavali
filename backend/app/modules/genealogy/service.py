@@ -35,14 +35,17 @@ from app.models.enums import (
     SYMMETRIC_TYPES,
     EventType,
     EvidenceStatus,
+    GeoLevel,
     LifeEventCategory,
     LocationPrecision,
     ParticipantRole,
     PrivacyLevel,
     ProfileStatus,
+    ProvenanceOrigin,
     RelationshipType,
 )
 from app.modules.genealogy import lookup
+from app.modules.genealogy import provisional as provisional_people
 from app.modules.genealogy.schemas import (
     EventIn,
     EventUpdate,
@@ -59,6 +62,8 @@ from app.modules.genealogy.schemas import (
     VitalIn,
 )
 from app.modules.genealogy.serialize import name_display
+from app.modules.geo import service as geo_service
+from app.modules.review import policy as review_policy
 
 
 # ---------------------------------------------------------------- places
@@ -92,6 +97,9 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
             if body.latitude is not None
             else LocationPrecision.UNKNOWN.value
         )
+    data["lgd_snapshot_id"] = (
+        geo_service.link_snapshot(ctx.db, body.lgd_level, body.lgd_code) if body.lgd_level else None
+    )
     place = Place(tree_id=ctx.tree_id, created_by=ctx.user_id, **data)
     place.parent_place_id = body.parent_place_id
     place.search_text = _place_search(place)
@@ -99,6 +107,30 @@ def create_place(ctx: TreeContext, body: PlaceIn) -> Place:
     ctx.db.flush()
     audit.log(ctx, "place.created", target_type="place", target_id=place.id)
     return place
+
+
+def _apply_lgd_link(ctx: TreeContext, place: Place, changes: dict[str, Any]) -> None:
+    """ADR-0019 §4: a code picked from the cascade is checked and stamped with the active snapshot.
+
+    Re-sending the same pick keeps the snapshot it was linked under (so a later LGD change keeps
+    its note); ``lgd_accept_current`` re-links on purpose. A code typed without ``lgd_level`` is
+    free text and unlinks.
+    """
+    accept = bool(changes.pop("lgd_accept_current", False))
+    if "lgd_code" not in changes and "lgd_level" not in changes and not accept:
+        return
+    code = changes.get("lgd_code", place.lgd_code)
+    level = changes.get("lgd_level", place.lgd_level if "lgd_code" not in changes else None)
+    if not level:
+        changes["lgd_level"] = None
+        changes["lgd_snapshot_id"] = None
+        return
+    level = GeoLevel(level)
+    same = level == place.lgd_level and code == place.lgd_code and place.lgd_snapshot_id
+    if same and not accept:
+        return
+    changes["lgd_level"] = level
+    changes["lgd_snapshot_id"] = geo_service.link_snapshot(ctx.db, level, code)
 
 
 def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Place:
@@ -131,6 +163,7 @@ def update_place(ctx: TreeContext, place_id: uuid.UUID, body: PlaceUpdate) -> Pl
             )
             seen += 1
         changes["parent_place_id"] = pid
+    _apply_lgd_link(ctx, place, changes)
     # never overwrite a historical name: canonical renames are appended to history automatically
     if "canonical_name" in changes and changes["canonical_name"] != place.canonical_name:
         hist = list(changes.get("historical_names", place.historical_names) or [])
@@ -192,9 +225,18 @@ def _apply_name_keys(n: NameRecord) -> None:
 
 
 def _new_name(ctx: TreeContext, person_id: uuid.UUID, body: NameIn) -> NameRecord:
-    data = body.model_dump(mode="json", exclude={"date_range"})
+    data = body.model_dump(mode="json", exclude={"date_range", "suggestion"})
     n = NameRecord(tree_id=ctx.tree_id, person_id=person_id, created_by=ctx.user_id, **data)
     n.date_range = {k: date_to_json(v) for k, v in (body.date_range or {}).items()} or None
+    if body.suggestion is not None:
+        # accepted from a transliteration suggestion (ADR-0025 §5): calculated, then confirmed by
+        # this user. The engine id is the server's, never the client's.
+        from app.modules.translit import engine as translit
+
+        n.prov_origin = ProvenanceOrigin.CALCULATION
+        n.prov_algorithm = f"{translit.ENGINE} {translit.VERSION} ({body.suggestion.method})"[:120]
+        n.prov_confirmed_by = ctx.user_id
+        n.prov_confirmed_at = dt.datetime.now(dt.UTC)
     _apply_name_keys(n)
     return n
 
@@ -219,8 +261,19 @@ def add_name(ctx: TreeContext, person_id: uuid.UUID, body: NameIn) -> NameRecord
     n = _new_name(ctx, person.id, body)
     ctx.db.add(n)
     ctx.db.flush()
-    if body.is_preferred:
+    has_preferred = ctx.db.scalar(
+        select(NameRecord.id).where(
+            NameRecord.tree_id == ctx.tree_id,
+            NameRecord.person_id == person.id,
+            NameRecord.id != n.id,
+            NameRecord.is_preferred.is_(True),
+        )
+    )
+    if body.is_preferred or has_preferred is None:
         _set_preferred_name(ctx, person, n)
+    # A name completes the profile's details but verifies nothing: ``is_provisional`` records how the
+    # person was created and stays set (ADR-0020 §4).
+    provisional_people.forget(ctx)
     audit.log(ctx, "person.name_added", target_type="person", target_id=person.id)
     return n
 
@@ -231,6 +284,7 @@ def update_name(ctx: TreeContext, person_id: uuid.UUID, name_id: uuid.UUID, body
     n = lookup.get_name(ctx, name_id)
     if n.person_id != person.id:
         raise NotFound("Name not found")
+    review_policy.require_direct(ctx, "all", [person.id], [n])
     changes = body.model_dump(mode="json", exclude_unset=True)
     preferred = changes.pop("is_preferred", None)
     for k, v in changes.items():
@@ -251,6 +305,7 @@ def delete_name(ctx: TreeContext, person_id: uuid.UUID, name_id: uuid.UUID) -> N
     n = lookup.get_name(ctx, name_id)
     if n.person_id != person.id:
         raise NotFound("Name not found")
+    review_policy.require_direct(ctx, "all", [person.id], [n])
     remaining = ctx.db.scalar(
         select(func.count())
         .select_from(NameRecord)
@@ -457,6 +512,7 @@ def get_event_checked(ctx: TreeContext, event_id: uuid.UUID) -> tuple[Event, uui
 def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Event:
     e, principal = get_event_checked(ctx, event_id)
     ctx.require(Permission.PERSON_WRITE, person_id=principal)
+    review_policy.require_direct(ctx, "all", [principal], [e])
     fields = set(body.model_fields_set)
     core = fields & (_CORE_FIELDS | {"origin_place_id"})
     _apply_event_core(ctx, e, body, core)
@@ -477,6 +533,7 @@ def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Ev
 def delete_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
     e, principal = get_event_checked(ctx, event_id)
     ctx.require(Permission.PERSON_WRITE, person_id=principal)
+    review_policy.require_direct(ctx, "all", [principal], [e])
     ctx.db.execute(
         sa_delete(EventParticipant).where(
             EventParticipant.tree_id == ctx.tree_id, EventParticipant.event_id == e.id
@@ -487,7 +544,9 @@ def delete_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
 
 
 # ---------------------------------------------------------------- persons
-def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
+def create_person(ctx: TreeContext, body: PersonCreate, *, provisional: bool = False) -> Person:
+    """Create a person. ``provisional`` (Smart Add "unknown for now", ADR-0020 §4): no name, CUSTOM
+    privacy (tree admins + a view grant for the creator) and the permanent ``is_provisional`` origin."""
     ctx.require(Permission.PERSON_WRITE)
     from app.modules.consent.attestation import require_attestation
 
@@ -500,23 +559,28 @@ def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
         gender_identity=body.gender_identity,
         primary_language=body.primary_language,
         scripts_used=body.scripts_used,
-        privacy_level=body.privacy_level or ctx.tree.default_person_privacy,
+        privacy_level=PrivacyLevel.CUSTOM
+        if provisional
+        else (body.privacy_level or ctx.tree.default_person_privacy),
         occupation=body.occupation,
         notes=body.notes,
         contact_info=body.contact_info,
         residential_address=body.residential_address,
+        is_provisional=provisional,
         created_by=ctx.user_id,
     )
     ctx.db.add(person)
     ctx.db.flush()
-    names = [_new_name(ctx, person.id, n) for n in body.names]
+    review_policy.remember_new_person(ctx, person.id)  # links to a new person are additions (§1)
+    names = [] if provisional else [_new_name(ctx, person.id, n) for n in body.names]
     for n in names:
         ctx.db.add(n)
     ctx.db.flush()
-    preferred = next((n for n in names if n.is_preferred), names[0])
-    preferred.is_preferred = True
-    if not body.preferred_display_name:
-        person.preferred_display_name = name_display(preferred)[:300] or "Unnamed"
+    if names:
+        preferred = next((n for n in names if n.is_preferred), names[0])
+        preferred.is_preferred = True
+        if not body.preferred_display_name:
+            person.preferred_display_name = name_display(preferred)[:300] or "Unnamed"
     if not person.scripts_used:
         person.scripts_used = sorted({n.script for n in names if n.script})
     if body.birth:
@@ -536,6 +600,8 @@ def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
     ctx.db.flush()
     if ctx.branch_scope is not None and ctx._branch_people is not None:
         ctx._branch_people.add(person.id)
+    if provisional:
+        provisional_people.share_with_creator(ctx, person)
     audit.log(ctx, "person.created", target_type="person", target_id=person.id)
     return person
 
@@ -543,6 +609,7 @@ def create_person(ctx: TreeContext, body: PersonCreate) -> Person:
 def update_person(ctx: TreeContext, person_id: uuid.UUID, body: PersonUpdate) -> Person:
     person = lookup.get_person(ctx, person_id)
     ctx.require(Permission.PERSON_WRITE, person_id=person.id)
+    review_policy.require_direct(ctx, "all", [person.id], [person])
     changes = body.model_dump(exclude_unset=True)
     if "profile_status" in changes and changes["profile_status"] != person.profile_status:
         audit.log(
@@ -603,6 +670,7 @@ def set_privacy(ctx: TreeContext, subject: Subject, body: PrivacyUpdate) -> Pers
 def delete_person(ctx: TreeContext, person_id: uuid.UUID) -> None:
     person = lookup.get_person(ctx, person_id)
     ctx.require(Permission.PERSON_WRITE, person_id=person.id)
+    review_policy.require_direct(ctx, "all", [person.id], [person])
     person.deleted_at = dt.datetime.now(dt.UTC)
     person.updated_by = ctx.user_id
     audit.log(ctx, "person.deleted", target_type="person", target_id=person.id)
@@ -678,6 +746,9 @@ def create_relationship(ctx: TreeContext, body: RelationshipIn, **provenance: An
     lookup.get_person(ctx, a)
     lookup.get_person(ctx, b)
     _require_rel_write(ctx, a, b)
+    if not (review_policy.is_new_person(ctx, a) or review_policy.is_new_person(ctx, b)):
+        # linking two people who were already in the tree is a change, not an addition (§1)
+        review_policy.require_direct(ctx, "structure", [a, b], [])
     t = body.type
     if t in PARENT_TYPES:
         if is_ancestor(ctx, b, a) or a == b:
@@ -733,6 +804,7 @@ def create_relationship(ctx: TreeContext, body: RelationshipIn, **provenance: An
             ctx.db.flush()
     except IntegrityError:
         raise Conflict("This relationship already exists", code="duplicate_relationship")
+    provisional_people.forget(ctx)
     audit.log(
         ctx, "relationship.added", target_type="relationship", target_id=rel.id, details={"type": t.value}
     )
@@ -744,6 +816,7 @@ def update_relationship(ctx: TreeContext, rel_id: uuid.UUID, body: RelationshipU
     lookup.get_person(ctx, rel.person_a_id)
     lookup.get_person(ctx, rel.person_b_id)
     _require_rel_write(ctx, rel.person_a_id, rel.person_b_id)
+    review_policy.require_direct(ctx, "structure", [rel.person_a_id, rel.person_b_id], [rel])
     fields = body.model_fields_set
     if "type" in fields and body.type is not None and body.type != rel.type:
         old_parent = rel.type in PARENT_TYPES
@@ -768,6 +841,7 @@ def update_relationship(ctx: TreeContext, rel_id: uuid.UUID, body: RelationshipU
             v = date_to_json(v)
         setattr(rel, f, v)
     rel.updated_by = ctx.user_id
+    provisional_people.forget(ctx)
     audit.log(
         ctx,
         "relationship.changed",
@@ -783,12 +857,14 @@ def delete_relationship(ctx: TreeContext, rel_id: uuid.UUID) -> None:
     lookup.get_person(ctx, rel.person_a_id)
     lookup.get_person(ctx, rel.person_b_id)
     _require_rel_write(ctx, rel.person_a_id, rel.person_b_id)
+    review_policy.require_direct(ctx, "structure", [rel.person_a_id, rel.person_b_id], [rel])
     # detach children linked to this union rather than deleting their parentage
     for child_edge in ctx.db.scalars(
         select(Relationship).where(Relationship.tree_id == ctx.tree_id, Relationship.union_id == rel.id)
     ):
         child_edge.union_id = None
     ctx.db.delete(rel)
+    provisional_people.forget(ctx)
     audit.log(
         ctx,
         "relationship.removed",
@@ -916,6 +992,55 @@ def relationships_of(ctx: TreeContext, person_id: uuid.UUID) -> list[Relationshi
 
 
 def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
+    """Erase, without copying the erased values into revision history, and remove that history.
+
+    The erasure is flushed while the revision hook is off, then every revision row that belongs to
+    the person (their own record, names, claims, vitals and relationships) is deleted (ADR-0021 §3).
+    """
+    from app.models import RecordRevision
+    from app.modules.review import revisions
+
+    ev_ids = set(
+        ctx.db.scalars(
+            select(EventParticipant.event_id).where(
+                EventParticipant.tree_id == ctx.tree_id, EventParticipant.person_id == person_id
+            )
+        )
+    )
+    record_ids = set(ev_ids)
+    record_ids |= set(
+        ctx.db.scalars(
+            select(NameRecord.id).where(NameRecord.tree_id == ctx.tree_id, NameRecord.person_id == person_id)
+        )
+    )
+    record_ids |= set(
+        ctx.db.scalars(
+            select(Relationship.id).where(
+                Relationship.tree_id == ctx.tree_id,
+                or_(Relationship.person_a_id == person_id, Relationship.person_b_id == person_id),
+            )
+        )
+    )
+    from app.models import Assertion
+    from app.modules.review import service as review_service
+
+    record_ids |= set(
+        ctx.db.scalars(
+            select(Assertion.id).where(Assertion.tree_id == ctx.tree_id, Assertion.person_id == person_id)
+        )
+    )
+    with revisions.suppressed(ctx.db):
+        person = _erase_person(ctx, person_id, reason)
+        ctx.db.flush()
+    review_service.on_person_erased(ctx, person_id, record_ids)
+    conds = [RecordRevision.person_id == person_id, RecordRevision.person_b_id == person_id]
+    if ev_ids:
+        conds.append(RecordRevision.record_id.in_(ev_ids))
+    ctx.db.execute(sa_delete(RecordRevision).where(RecordRevision.tree_id == ctx.tree_id, or_(*conds)))
+    return person
+
+
+def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
     """Privacy erasure (PRS §54): remove personal data but keep a placeholder so the tree's shape holds.
 
     Names, events, heritage/astrology claims, notes and contact data are deleted; relationships are
@@ -966,8 +1091,15 @@ def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
         )
     )
     # SEC-11: every other person-referencing store that can hold personal data
-    from app.models import DocumentLink, ExtractionProposal, GedcomExtension, Relationship, TreeMembership
-    from app.models.enums import DocumentLinkTarget
+    from app.models import (
+        DocumentLink,
+        ExtractionProposal,
+        GedcomExtension,
+        Relationship,
+        TraditionLink,
+        TreeMembership,
+    )
+    from app.models.enums import DocumentLinkTarget, TraditionLinkTarget
 
     db.execute(
         sa_delete(GedcomExtension).where(
@@ -984,6 +1116,14 @@ def erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person:
             DocumentLink.tree_id == ctx.tree_id,
             DocumentLink.target_type == DocumentLinkTarget.PERSON,
             DocumentLink.target_id == person.id,
+        )
+    )
+    # a tradition keeps its text; only its link to the erased person goes (ADR-0026 §7)
+    db.execute(
+        sa_delete(TraditionLink).where(
+            TraditionLink.tree_id == ctx.tree_id,
+            TraditionLink.target_type == TraditionLinkTarget.PERSON,
+            TraditionLink.target_id == person.id,
         )
     )
     for rel in db.scalars(

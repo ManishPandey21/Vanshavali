@@ -23,10 +23,21 @@ erDiagram
   PERSON ||--o{ RELATIONSHIP : "person_a (parent / partner)"
   PERSON ||--o{ RELATIONSHIP : "person_b (child / partner)"
   RELATIONSHIP |o--o{ RELATIONSHIP : "union_id (child's parents' union)"
+  PERSON ||--o{ RELATIVE_AGE_ORDER : "elder / younger (family-confirmed)"
+  TREE ||--o{ TREE_VOCABULARY_TERM : "family's own entries"
+  ASSERTION }o--o| VOCABULARY_TERM : "value_json names an entry (label kept)"
   PERSON ||--o{ EVENT_PARTICIPANT : participates
   EVENT ||--o{ EVENT_PARTICIPANT : has
   EVENT }o--o| PLACE : "occurs at / migrated from"
   PLACE }o--o| PLACE : "within (village → tehsil → district → state → country)"
+  PLACE }o--o| GEO_UNIT : "lgd_level + lgd_code, picked in snapshot lgd_snapshot_id (never rewritten)"
+  GEO_SNAPSHOT ||--o{ GEO_UNIT : "versioned rows: first_snapshot … last_snapshot"
+  GEO_UNIT ||--o{ GEO_UNIT_ALIAS : "former / alternative names"
+  PINCODE_OFFICE }o--o| GEO_UNIT : "suggests district (matched by name)"
+  CHANGE_PROPOSAL ||--o{ CHANGE_PROPOSAL_ITEM : "items bound to base revisions"
+  CHANGE_PROPOSAL_ITEM }o--o| PERSON : "changes a fact of (name, vital, claim, relationship)"
+  PERSON ||--o{ RECORD_REVISION : "history: changed fields, before/after, actor, reviewer"
+  APP_USER ||--o{ USER_NOTIFICATION : "ids only; text built when read"
 
   PERSON ||--o{ ASSERTION : "heritage claims (gotra, pravara, kula…)"
   FAMILY_BRANCH ||--o{ ASSERTION : "branch heritage"
@@ -99,7 +110,17 @@ graph LR
 | No self edges, no duplicate edges. Symmetric pairs are stored ordered. | DB `CHECK` / `UNIQUE`, service normalisation |
 | No one can become their own ancestor | Recursive-CTE check before insert (`genealogy.service.is_ancestor`) |
 | At most two non-disputed biological parents. More claims must be recorded as `DISPUTED`. | Service (409 `too_many_biological_parents`) |
-| Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents. | `genealogy.engine.family` |
+| Siblings (full, half, step, adoptive) are *derived*. An explicit `sibling` edge exists only for unknown parents; the relationship calculator treats such a pair as sharing a virtual parent that is never returned. | `genealogy.engine.family`, `engine._LazyGraph` (ADR-0020) |
+| A name in another script that the user accepted from a suggestion is its own `name_record` (type `transliteration`, never preferred, provenance `calculation` confirmed by the user); the typed name is never changed. | `name_record`, `translit.engine` (ADR-0025) |
+| Kinship terms (Mama, Tau, Bhabhi…) are never stored. Smart Add turns a term into basic edges, after a preview the user confirms. | `smartadd.terms`, `smartadd.service` (ADR-0020) |
+| Under a tree's review policy, contributors propose changes instead of writing them; adding new people stays direct. A proposal applies only if every record it was based on is still at the same revision (otherwise it is stale and nothing is applied); nobody approves their own proposal. Family review (`review_state`) is separate from evidence and resets when the fact changes. Every write keeps a value history, redacted per reader and erased with the person. | `change_proposal`, `record_revision`, `*.revision`, `*.review_state`, `review.revisions` hook (ADR-0021) |
+| Indian places can link to a Local Government Directory unit (global, read-only reference data, versioned by snapshot). A link records the unit's level, code and the snapshot it was picked from; a later snapshot that renames, moves or retires the unit only adds a note. The family's own spelling, district and state stay on their place. | `place.lgd_level`, `place.lgd_snapshot_id`, `geo_unit`, `geo.service.place_notes` (ADR-0019) |
+| Suggestion lists (gotra, kula, kuladevata, occupation, honorific, language) are master data; system values (roles, relationship types, statuses…) stay controlled enums. A chosen value keeps its label and names its entry. | `vocabulary`, `vocabulary_term`, `tree_vocabulary_term` (ADR-0018) |
+| A pravara is linked to a gotra only by a reviewed, sourced link; it is suggested from the recorded gotra, never filled in, and no gotra is inferred from it. A family's own list entry reaches the common lists only by an admin's offer and a code-reviewed pack change, never naming the family. | `vocabulary_term.parent_code`, `tree_vocabulary_term.offer_*`, `masterdata.loader`, `masterdata.curation` (ADR-0026) |
+| Relationship words are chosen from the recorded chain, age order and the viewer's own profile, and never set anything; a family's own word comes first. Packs are shown when reviewed (or already in use, labelled). | `kinship.resolve`, `kinship_override` (ADR-0026) |
+| A family tradition has its own privacy level whatever it mentions, is never public, and keeps its history; editing someone else's entry follows the review policy. | `tradition_entry`, `tradition_link`, `traditions.service` (ADR-0026) |
+| "Older / younger than" between two relatives is family knowledge, recorded once per ordered pair; the opposite order is refused. It decides age-dependent terms (Tau/Chacha) over birth dates; dates decide only when unambiguous and visible to the viewer. | `relative_age_order`, `genealogy.ageorder` (ADR-0020) |
+| A person added "as unknown for now" is `is_provisional` (their origin, kept for good); created only on the user's explicit choice. Whether they still *need details* (no name) or are *verified* (every relationship has supporting evidence) is derived, never stored. Until verified, only the creator and tree admins can see them and exports leave them out. | `person.is_provisional`, `genealogy.provisional` (ADR-0020 §4, §7) |
 | Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |
 | Incomplete dates keep their precision: nothing is padded, calendars are preserved, sort ranges are derived | `core/dates.GenealogicalDate` |
 | Approximate birth times are never exact. Exact requires a document-grade source. | `core/dates.GenealogicalTime` validator |

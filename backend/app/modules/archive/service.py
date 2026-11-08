@@ -47,7 +47,7 @@ from app.models.enums import AssertionSubject, JobStatus, StorageClass
 from app.modules.documents import access as doc_access
 from app.modules.evidence import service as evidence
 from app.modules.gedcom import service as gedcom
-from app.modules.genealogy import lookup
+from app.modules.genealogy import lookup, provisional
 from app.modules.genealogy.serialize import Serializer, relationship_out
 from app.modules.heritage import service as heritage
 
@@ -82,6 +82,10 @@ def build_archive(
         select(Person).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_(None))
     ).all()
     subjects = lookup.visible_subjects(ctx, [p.id for p in persons])
+    # same rule as the GEDCOM: unnamed or unverified provisional people are not exported (ADR-0020 §4)
+    pending = provisional.pending_ids(ctx)
+    counts["excluded_provisional"] = sum(1 for k in subjects if k in pending)  # only ones this user sees
+    subjects = {k: v for k, v in subjects.items() if k not in pending}
     if exclude_living:
         subjects = {k: v for k, v in subjects.items() if not v.is_protected}
     ser = Serializer(ctx)
@@ -150,6 +154,9 @@ def build_archive(
                 "members": members,
             }
         )
+    from app.modules.traditions.service import export_entries
+
+    traditions_out = export_entries(ctx, visible_ids)
     files["genealogy/canonical-data.json"] = _json(
         {
             "format": "vanshavali-canonical",
@@ -159,6 +166,8 @@ def build_archive(
             "places": places,
             "branches": branches,
             "households": households,
+            # ADR-0026 §7: entries the exporter may read; GEDCOM has no place for them
+            "traditions": traditions_out,
             "sources": [
                 {
                     "id": str(s.id),
@@ -176,7 +185,13 @@ def build_archive(
             ],
         }
     )
-    counts.update(people=len(people_out), relationships=len(rels), sources=len(sources), places=len(places))
+    counts.update(
+        people=len(people_out),
+        relationships=len(rels),
+        sources=len(sources),
+        places=len(places),
+        traditions=len(traditions_out),
+    )
 
     # --- property (only for people allowed to read property records)
     if ctx.has(Permission.PROPERTY_READ):
@@ -246,6 +261,22 @@ def build_archive(
         )
     files["source-index.csv"] = buf.getvalue().encode()
 
+    # GODL-India attribution for place codes picked from the Local Government Directory (ADR-0019 §9)
+    lgd_snapshots = sorted(
+        x
+        for x in ctx.db.scalars(
+            select(Place.lgd_snapshot_id)
+            .where(Place.tree_id == ctx.tree_id, Place.lgd_snapshot_id.is_not(None))
+            .distinct()
+        )
+        if x
+    )
+    lgd_note = (
+        "Place codes: Source: Local Government Directory, Government of India; India Post. Used under\n"
+        f"the Government Open Data Licence – India (GODL-India). Snapshots: {', '.join(lgd_snapshots)}.\n\n"
+        if lgd_snapshots
+        else ""
+    )
     files["README.txt"] = (
         "Vanshavali family archive\n\n"
         f"Tree: {ctx.tree.name}\nGenerated: {dt.datetime.now(dt.UTC).isoformat()}\n\n"
@@ -254,7 +285,8 @@ def build_archive(
         "property/properties.json      property register, interests and timelines (not a legal title opinion)\n"
         "documents/                    original files you were permitted to export, plus index.json\n"
         "checksums.sha256              verify with: sha256sum -c checksums.sha256\n\n"
-        "This export reflects what the exporting user was allowed to see. It may contain personal data:\n"
+        + lgd_note
+        + "This export reflects what the exporting user was allowed to see. It may contain personal data:\n"
         "store it securely.\n"
     ).encode()
 

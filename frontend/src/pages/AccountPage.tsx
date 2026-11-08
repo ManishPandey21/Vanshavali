@@ -12,6 +12,7 @@ import { ErrorAlert, LiveRegion, PageHeader, Spinner } from "../components/ui/fe
 import { Field, TextInput } from "../components/ui/form";
 import { Badge } from "../components/ui/Badge";
 import { LanguageSwitcher } from "../components/layout/LanguageSwitcher";
+import { KinshipPreferenceCard } from "../components/culture/KinshipSettings";
 
 type SessionOut = components["schemas"]["SessionOut"];
 
@@ -67,6 +68,7 @@ export function AccountPage() {
         <ErrorAlert error={update.error} />
         <LiveRegion message={update.isSuccess ? t("common.saved") : ""} />
       </section>
+      <KinshipPreferenceCard />
 
       <MfaSection mfaEnabled={!!me.data.mfa_enabled} />
 

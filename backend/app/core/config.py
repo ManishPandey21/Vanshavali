@@ -138,6 +138,10 @@ class Settings(BaseSettings):
 
     # OCR
     ocr_enabled: bool = True
+    # Master-data vocabularies (ADR-0018); false = endpoints answer 404 and the UI falls back to text
+    masterdata_enabled: bool = True
+    # Indian geography reference data (ADR-0019); false = /geo answers 404, places stay free text
+    geo_enabled: bool = True
     tesseract_cmd: str = "tesseract"
     tesseract_languages: str = "eng+hin"
 

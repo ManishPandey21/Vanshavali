@@ -28,6 +28,7 @@ from app.models import (
     PropertyInterest,
     Relationship,
     Source,
+    TraditionEntry,
 )
 from app.models.enums import CitationTarget, ParticipantRole, SourceType
 from app.modules.evidence.schemas import CitationIn, SourceIn, SourceUpdate
@@ -45,6 +46,7 @@ _TARGET_MODELS = {
     CitationTarget.PROPERTY_INTEREST: PropertyInterest,
     CitationTarget.PROPERTY_EVENT: PropertyEvent,
     CitationTarget.HOUSEHOLD: Household,
+    CitationTarget.TRADITION: TraditionEntry,
 }
 
 _PROPERTY_TARGETS = {
@@ -157,6 +159,11 @@ def ensure_document_source(
 
 
 def _check_target_visible(ctx: TreeContext, target_type: CitationTarget, target_id: uuid.UUID) -> None:
+    if target_type == CitationTarget.TRADITION:
+        from app.modules.traditions.service import get_entry
+
+        get_entry(ctx, target_id)  # the entry's own privacy level
+        return
     model = _TARGET_MODELS[target_type]
     obj: Any = lookup.get_in_tree(ctx, model, target_id, "Citation target")
     person_id: uuid.UUID | None = None
@@ -232,6 +239,7 @@ _TARGET_WRITE = {
     CitationTarget.PROPERTY_INTEREST: Permission.PROPERTY_WRITE,
     CitationTarget.PROPERTY_EVENT: Permission.PROPERTY_WRITE,
     CitationTarget.HOUSEHOLD: Permission.FAMILY_WRITE,
+    CitationTarget.TRADITION: Permission.FAMILY_WRITE,
     CitationTarget.ASSERTION: Permission.ASSERTION_WRITE,
     CitationTarget.ASTROLOGY_PROFILE: Permission.ASTROLOGY_WRITE,
 }

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
 
@@ -14,6 +14,7 @@ from app.models.enums import (
     EventSignificance,
     EventType,
     EvidenceStatus,
+    GeoLevel,
     LifeEventCategory,
     Lineage,
     LocationPrecision,
@@ -24,8 +25,11 @@ from app.models.enums import (
     ProfileStatus,
     ProvenanceOrigin,
     RelationshipType,
+    ReviewState,
     SexAtBirth,
 )
+from app.modules.geo.schemas import PlaceLgdNote
+from app.modules.kinship.schemas import KinshipTermOut
 
 
 class ProvenanceOut(ApiModel):
@@ -72,6 +76,9 @@ class PlaceIn(ApiModel):
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = Field(default=None, max_length=120)
     lgd_code: str | None = Field(default=None, max_length=40)
+    # set when the code was picked from the LGD cascade (ADR-0019 §4); the server then checks the
+    # code and records the snapshot. Without it, lgd_code is free text as before.
+    lgd_level: GeoLevel | None = None
     locality: str | None = Field(default=None, max_length=200)
     district: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
@@ -102,7 +109,10 @@ class PlaceUpdate(ApiModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     geocoding_source: str | None = None
-    lgd_code: str | None = None
+    lgd_code: str | None = Field(default=None, max_length=40)
+    lgd_level: GeoLevel | None = None
+    # the user accepts the unit as LGD lists it now: re-link to the active snapshot (clears the note)
+    lgd_accept_current: bool = False
     locality: str | None = Field(default=None, max_length=200)
     district: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
@@ -125,6 +135,10 @@ class PlaceOut(ApiModel):
     longitude: float | None
     geocoding_source: str | None
     lgd_code: str | None
+    lgd_level: GeoLevel | None = None
+    lgd_snapshot_id: str | None = None
+    # the linked unit changed in LGD since it was picked; informational, the place is unchanged
+    lgd_note: PlaceLgdNote | None = None
     locality: str | None = None
     district: str | None = None
     state: str | None = None
@@ -140,6 +154,16 @@ class PlaceOut(ApiModel):
 
 
 # ---------- names ----------
+class NameSuggestionIn(ApiModel):
+    """Marks a name the user accepted from a transliteration suggestion (ADR-0025 §5).
+
+    The server, not the client, records the provenance: origin ``calculation``, its own engine
+    version and the user as the one who confirmed it.
+    """
+
+    method: Literal["lexicon", "rules"]
+
+
 class NameIn(ApiModel):
     type: NameType = NameType.BIRTH
     given_name: str | None = Field(default=None, max_length=200)
@@ -159,6 +183,19 @@ class NameIn(ApiModel):
     is_preferred: bool = False
     evidence_status: EvidenceStatus = EvidenceStatus.USER_ASSERTION
     confidence: Confidence = Confidence.UNKNOWN
+    suggestion: NameSuggestionIn | None = None
+
+    @model_validator(mode="after")
+    def _suggested_names_are_transliterations(self) -> NameIn:
+        # a suggested spelling is another form of a typed name: never the preferred one, never evidence
+        if self.suggestion is not None:
+            if self.type != NameType.TRANSLITERATION:
+                raise ValueError("a suggested spelling can only be saved as a transliteration")
+            if self.is_preferred:
+                raise ValueError("a suggested spelling cannot be the preferred name")
+            if self.evidence_status != EvidenceStatus.USER_ASSERTION:
+                raise ValueError("a suggested spelling is not evidence")
+        return self
 
     @model_validator(mode="after")
     def _has_content(self) -> NameIn:
@@ -197,6 +234,8 @@ class NameUpdate(ApiModel):
 
 
 class NameOut(ApiModel):
+    # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
+    review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID
     type: NameType
     given_name: str | None
@@ -315,6 +354,8 @@ class ParticipantOut(ApiModel):
 
 
 class EventOut(ApiModel):
+    # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
+    review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID
     type: EventType
     subtype: str | None
@@ -414,6 +455,11 @@ class PersonSummary(ApiModel):
     is_minor: bool = False
     is_protected: bool = False
     privacy_level: PrivacyLevel | None = None
+    # created by Smart Add as "unknown for now" (ADR-0020 §4): records origin, never cleared by a name
+    is_provisional: bool = False
+    # for provisional people only: needs_details (no name), unverified (a relationship has no
+    # supporting evidence) or verified. A name alone never makes a person verified.
+    provisional_state: Literal["needs_details", "unverified", "verified"] | None = None
 
 
 class PersonOut(PersonSummary):
@@ -469,6 +515,8 @@ class RelationshipUpdate(ApiModel):
 
 
 class RelationshipOut(ApiModel):
+    # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
+    review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID
     person_a_id: uuid.UUID
     person_b_id: uuid.UUID
@@ -564,6 +612,32 @@ class GraphOut(ApiModel):
     unions: list[dict[str, str]] = []
 
 
+class AgeOrderOut(ApiModel):
+    """Whether the person reached by a sibling word in ``chain`` is older or younger than the person
+    that word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 §5)."""
+
+    chain_index: int
+    person_id: uuid.UUID
+    relative_to_id: uuid.UUID
+    order: Literal["elder", "younger", "unknown"]
+    # family_confirmed wins over birth_dates; unknown when dates overlap, are missing or conflict
+    basis: Literal["family_confirmed", "birth_dates", "unknown"]
+    record_id: uuid.UUID | None = None  # the family-confirmed record, for correcting it
+    dates_disagree: bool = False  # a family-confirmed order the viewer's visible birth dates contradict
+
+
+class RelativeAgeOrderIn(ApiModel):
+    person_id: uuid.UUID
+    relative_to_id: uuid.UUID
+    order: Literal["elder", "younger"]
+
+
+class RelativeAgeOrderOut(ApiModel):
+    id: uuid.UUID
+    elder_person_id: uuid.UUID
+    younger_person_id: uuid.UUID
+
+
 class RelationshipPathOut(ApiModel):
     from_id: uuid.UUID
     to_id: uuid.UUID
@@ -574,3 +648,8 @@ class RelationshipPathOut(ApiModel):
     common_ancestor_ids: list[uuid.UUID] = []
     lineages: list[Lineage] = []
     explanation: str | None = None
+    age_orders: list[AgeOrderOut] = []
+    # the reader's relationship word in their chosen language and region (ADR-0026 §6)
+    terms: list[KinshipTermOut] = []
+    # the age order an age-dependent word depends on (asked once, in any language), if any
+    age_decision: AgeOrderOut | None = None

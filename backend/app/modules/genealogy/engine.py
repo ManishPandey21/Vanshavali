@@ -14,8 +14,9 @@ from app.authz.context import TreeContext
 from app.core.config import get_settings
 from app.models import Person, Relationship
 from app.models.enums import PARENT_TYPES, UNION_TYPES, EvidenceStatus, Lineage, RelationshipType, SexAtBirth
-from app.modules.genealogy import lookup
+from app.modules.genealogy import ageorder, lookup, provisional
 from app.modules.genealogy.schemas import (
+    AgeOrderOut,
     FamilyOut,
     GraphEdge,
     GraphNode,
@@ -48,6 +49,9 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
             )
         )
     )
+    # concealed provisional people are left out entirely: no "private relative" placeholder
+    concealed = provisional.concealed_ids(ctx)
+    rels = [r for r in rels if r.person_a_id not in concealed and r.person_b_id not in concealed]
     parent_edges = [
         r for r in rels if r.type in PARENT_TYPES and r.person_b_id == pid and _lineage_filter(lineages, r)
     ]
@@ -73,6 +77,7 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
                 )
             )
         )
+        shared = [r for r in shared if r.person_b_id not in concealed]
     union_partner_ids = {r.person_b_id if r.person_a_id == pid else r.person_a_id for r in union_edges}
     all_ids = (
         {pid}
@@ -229,6 +234,36 @@ def _walk(
     ]
 
 
+def _reachable_without(
+    rows: list[_Row], root_id: uuid.UUID, direction: str, concealed: frozenset[uuid.UUID]
+) -> list[_Row]:
+    """The walk's edges still reachable from the root once concealed people are taken out.
+
+    Nobody is reached *through* a concealed provisional person, so an ancestor beyond one does not
+    appear as an unexplained node that would reveal the gap.
+    """
+    up = direction == "ancestors"
+    by_from: dict[uuid.UUID, list[_Row]] = {}
+    for r in rows:
+        if r.parent in concealed or r.child in concealed:
+            continue
+        by_from.setdefault(r.child if up else r.parent, []).append(r)
+    keep: list[_Row] = []
+    reached = {root_id}
+    frontier = [root_id]
+    while frontier:
+        nxt: list[uuid.UUID] = []
+        for node in frontier:
+            for r in by_from.get(node, []):
+                keep.append(r)
+                to = r.parent if up else r.child
+                if to not in reached:
+                    reached.add(to)
+                    nxt.append(to)
+        frontier = nxt
+    return keep
+
+
 def graph(
     ctx: TreeContext,
     root_id: uuid.UUID,
@@ -240,6 +275,9 @@ def graph(
     lookup.get_person_subject(ctx, root_id)
     depth = max(1, min(depth, get_settings().max_traversal_depth))
     rows = _walk(ctx, root_id, direction, depth, lineages)
+    concealed = provisional.concealed_ids(ctx)
+    if concealed:
+        rows = _reachable_without(rows, root_id, direction, concealed)
     gen: dict[uuid.UUID, int] = {root_id: 0}
     for r in rows:
         node = r.parent if direction == "ancestors" else r.child
@@ -396,6 +434,15 @@ class _Edge(NamedTuple):
 
 Adjacency = dict[uuid.UUID, list[tuple[uuid.UUID, _Edge]]]
 
+# Namespace for the virtual parent an explicit sibling pair shares (ADR-0020 §3). Virtual ids never
+# leave the engine: they are stripped from paths and common ancestors before anything is returned.
+_VIRTUAL_PARENT_NS = uuid.UUID("6f1d3c2e-8a54-4b7e-9c10-5a2b7e9d4f31")
+
+
+def virtual_parent_id(a: uuid.UUID, b: uuid.UUID) -> uuid.UUID:
+    lo, hi = sorted((a, b), key=str)
+    return uuid.uuid5(_VIRTUAL_PARENT_NS, f"{lo}:{hi}")
+
 
 class _LazyGraph:
     """Relationship edges loaded on demand, one batched query per BFS frontier.
@@ -410,11 +457,13 @@ class _LazyGraph:
         self.lineages = lineages
         self.loaded: set[uuid.UUID] = set()
         self.seen_edges: set[uuid.UUID] = set()
+        self.virtual: set[uuid.UUID] = set()
+        # deleted people and concealed provisional people are not walked through at all
         self.deleted = set(
             ctx.db.scalars(
                 select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None))
             )
-        )
+        ) | provisional.concealed_ids(ctx)
         self._parents: Adjacency = {}
         self._children: Adjacency = {}
         self._spouses: Adjacency = {}
@@ -455,6 +504,15 @@ class _LazyGraph:
             elif r.type in UNION_TYPES:
                 self._spouses.setdefault(r.person_a_id, []).append((r.person_b_id, r))
                 self._spouses.setdefault(r.person_b_id, []).append((r.person_a_id, r))
+            elif r.type == RelationshipType.SIBLING:
+                # An explicit sibling edge (parents not recorded): the pair shares a virtual parent, so
+                # the calculator resolves brother, uncle, cousin… through it like a real one.
+                v = virtual_parent_id(r.person_a_id, r.person_b_id)
+                self.virtual.add(v)
+                self.loaded.add(v)  # nothing to load from the database for it
+                for child in (r.person_a_id, r.person_b_id):
+                    self._parents.setdefault(child, []).append((v, r))
+                    self._children.setdefault(v, []).append((child, r))
 
 
 class _LazyAdjacency:
@@ -508,8 +566,20 @@ def relationship_path(
     lookup.get_person(ctx, b_id)
     lazy = _LazyGraph(ctx, lineages)
     graph = (lazy.parents, lazy.children, lazy.spouses)
+
+    def real(o: RelationshipPathOut) -> RelationshipPathOut:
+        """Drop virtual sibling parents: they are a calculation device, not people."""
+        if not lazy.virtual:
+            return o
+        return o.model_copy(
+            update={
+                "path": [p for p in o.path if p not in lazy.virtual],
+                "common_ancestor_ids": [c for c in o.common_ancestor_ids if c not in lazy.virtual],
+            }
+        )
+
     # pass 1 without sex data finds the path; only the people it touches are then loaded
-    out = _relationship_path_raw(ctx, a_id, b_id, graph, {})
+    out = real(_relationship_path_raw(ctx, a_id, b_id, graph, {}))
     _parents, _children, spouses = graph
     touched = {p for p in out.path if p is not None} | set(out.common_ancestor_ids)
     visible = set(lookup.visible_subjects(ctx, touched))
@@ -525,11 +595,18 @@ def relationship_path(
         .tuples()
         .all()
     }
-    out = _relationship_path_raw(ctx, a_id, b_id, graph, sex)
+    raw = _relationship_path_raw(ctx, a_id, b_id, graph, sex)
+    out = real(raw)
+    age_orders: list[AgeOrderOut] = []
+    if raw.found and len(raw.path) > 1:
+        hops = _chain_hops([p for p in raw.path if p is not None], *graph, sex)
+        if [w for w, _, _ in hops] == raw.chain:  # direct non-biological edges carry their own words
+            age_orders = ageorder.for_sibling_hops(ctx, hops, visible)
     return out.model_copy(
         update={
             "path": [p if p in visible else None for p in out.path],
             "common_ancestor_ids": [c for c in out.common_ancestor_ids if c in visible],
+            "age_orders": age_orders,
         }
     )
 
@@ -752,6 +829,36 @@ def _bfs_path(
     return [*reversed(left), *right[1:]]
 
 
+def _chain_hops(
+    path: list[uuid.UUID],
+    parents: _LazyAdjacency,
+    children: _LazyAdjacency,
+    spouses: _LazyAdjacency,
+    sex: dict[uuid.UUID, SexAtBirth | None],
+) -> list[tuple[str, uuid.UUID, uuid.UUID]]:
+    """Kinship chain words with the two people each word joins: ``("brother", father, uncle)``.
+
+    A parent→child step collapses into a sibling word joining the two children, so age order is
+    compared between the right pair (the uncle and the *father* for Tau/Chacha), never the viewer.
+    """
+    hops: list[tuple[str, uuid.UUID, uuid.UUID]] = []
+    parents.graph.prefetch(path)
+    for x, y in pairwise(path):
+        s = sex.get(y)
+        if any(p == y for p, _ in parents.get(x, [])):
+            word = _gendered(s, "father", "mother", "parent")
+        elif any(c == y for c, _ in children.get(x, [])):
+            word = _gendered(s, "son", "daughter", "child")
+        else:
+            word = _gendered(s, "husband", "wife", "spouse")
+        if hops and hops[-1][0] in ("father", "mother", "parent") and word in ("son", "daughter", "child"):
+            sibling = {"son": "brother", "daughter": "sister", "child": "sibling"}[word]
+            hops[-1] = (sibling, hops[-1][1], y)
+        else:
+            hops.append((word, x, y))
+    return hops
+
+
 def _chain(
     path: list[uuid.UUID],
     parents: _LazyAdjacency,
@@ -760,21 +867,4 @@ def _chain(
     sex: dict[uuid.UUID, SexAtBirth | None],
 ) -> list[str]:
     """Kinship chain words (father, brother, wife…) so the UI can render regional terms (e.g. mama, bua)."""
-    words: list[str] = []
-    parents.graph.prefetch(path)
-    for x, y in pairwise(path):
-        s = sex.get(y)
-        if any(p == y for p, _ in parents.get(x, [])):
-            words.append(_gendered(s, "father", "mother", "parent"))
-        elif any(c == y for c, _ in children.get(x, [])):
-            words.append(_gendered(s, "son", "daughter", "child"))
-        else:
-            words.append(_gendered(s, "husband", "wife", "spouse"))
-    # collapse parent→child into sibling
-    out: list[str] = []
-    for w in words:
-        if out and out[-1] in ("father", "mother", "parent") and w in ("son", "daughter", "child"):
-            out[-1] = {"son": "brother", "daughter": "sister", "child": "sibling"}[w]
-        else:
-            out.append(w)
-    return out
+    return [w for w, _, _ in _chain_hops(path, parents, children, spouses, sex)]

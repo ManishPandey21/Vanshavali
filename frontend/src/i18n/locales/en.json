@@ -32,6 +32,61 @@
     "rateLimited": "Too many attempts. Please wait a minute and try again.",
     "validation": "Please check the highlighted fields"
   },
+  "lgd": {
+    "ancestral": {
+      "dismiss": "Dismiss",
+      "offer": "Ancestral village of {{branch}}",
+      "use": "Use {{place}}"
+    },
+    "attribution": "Source: Local Government Directory, Government of India; India Post (data of {{snapshot}}). Government Open Data Licence – India.",
+    "change": "Change {{level}} ({{name}})",
+    "find": "Find in the Local Government Directory",
+    "hint": "Pick the state, district and village, or search. You can still edit the name afterwards: your family's spelling is kept.",
+    "level": {
+      "district": "District",
+      "state": "State or union territory",
+      "sub_district": "Sub-district",
+      "urban_body": "Town (urban local body)",
+      "village": "Village",
+      "villageOrTown": "Village or town"
+    },
+    "linkedShort": "LGD {{level}} {{code}}",
+    "matchAlias": "also known as {{name}}",
+    "noResults": "No match in the directory",
+    "note": {
+      "choose": "Choose the current village or town",
+      "renamed": "LGD now lists this {{level}} as {{name}} (since {{since}}).",
+      "retired": "LGD no longer lists this {{level}} (since {{since}}).",
+      "successors": "It now lists: {{names}}.",
+      "unchanged": "Your record stays as it is until you update it.",
+      "under": "LGD now lists this {{level}} under {{path}} (since {{since}}).",
+      "update": "Update to LGD's current listing"
+    },
+    "notListed": "My village is not listed",
+    "notListedDone": "Not listed: the district and state are kept as text, without an LGD code.",
+    "pin": "PIN code",
+    "pinHint": "Optional. A PIN code suggests the district; it never picks the village.",
+    "pinNoDistrict": "This PIN's district is not matched in the directory; choose it above.",
+    "pinOffices": "PIN {{pin}}: {{offices}}",
+    "pinUnknown": "No post office with this PIN code in the directory.",
+    "searchAll": "Search all villages and towns",
+    "searchAllHint": "Type at least three letters, in English or Hindi, or choose a state first.",
+    "searchAllPlaceholder": "e.g. Rampur, रामपुर",
+    "searchAllScoped": "Searching within {{place}}.",
+    "subDistrict": {
+      "sub_district": "Sub-district",
+      "tehsil": "Tehsil",
+      "taluka": "Taluka",
+      "mandal": "Mandal",
+      "block": "Block",
+      "circle": "Circle",
+      "subdivision": "Sub-division"
+    },
+    "title": "Local Government Directory",
+    "typeToFilter": "Type to filter…",
+    "useDistrict": "Use {{district}}, {{state}}",
+    "useUnit": "Use {{name}} ({{level}})"
+  },
   "nav": {
     "audit": "Audit log",
     "branches": "Branches",
@@ -56,6 +111,7 @@
     "people": "People",
     "places": "Places",
     "relationship": "How are we related?",
+    "review": "Review",
     "search": "Search",
     "settings": "Tree settings",
     "skipToContent": "Skip to main content",
@@ -70,7 +126,8 @@
     "visualizations": "Charts & maps",
     "events": "Life events",
     "timeline": "Family timeline",
-    "reminders": "Reminders"
+    "reminders": "Reminders",
+    "traditions": "Traditions"
   },
   "auth": {
     "createAccount": "Create account",
@@ -181,6 +238,125 @@
       "submit": "Close my account permanently"
     }
   },
+  "review": {
+    "requiredNotice": "Your family reviews changes like this one. We opened a form to send it for review instead.",
+    "state": {
+      "family_reviewed": "Family-confirmed",
+      "contested": "Challenged"
+    },
+    "challengeLabel": "Challenge: {{what}}",
+    "challengeTitle": "Challenge this fact",
+    "challengeHint": "Say why you think it is wrong. Nothing changes until a reviewer looks at it.",
+    "sendChallenge": "Send challenge",
+    "challengeSent": "Your challenge was sent. A reviewer will look at it.",
+    "challengeReason": "Why it may be wrong",
+    "proposeTitle": "Send this change for review",
+    "proposeHint": "Your family reviews changes like this before they are made. Nothing changes until a reviewer approves it.",
+    "openProposal": "Open the proposal",
+    "sendForReview": "Send for review",
+    "sent": "Sent for review. You will be told when it is decided.",
+    "op": {
+      "create": "Add",
+      "update": "Change",
+      "delete": "Remove"
+    },
+    "target": {
+      "person": "person",
+      "name": "name",
+      "event": "event or vital record",
+      "relationship": "relationship",
+      "assertion": "heritage detail",
+      "tradition": "family tradition",
+      "kinship_word": "family word for a relationship"
+    },
+    "rationale": "Why this change is right",
+    "rationaleHint": "For example: \"Grandfather's school certificate gives 1932\".",
+    "notifications": "Notifications",
+    "notificationsUnread_one": "Notifications, {{count}} unread",
+    "notificationsUnread_other": "Notifications, {{count}} unread",
+    "markAllRead": "Mark all read",
+    "noNotifications": "Nothing new.",
+    "dupTitle": "Already in the tree?",
+    "dupUse": "Use this person",
+    "dupSomeoneElse": "This is someone else",
+    "title": "Review",
+    "subtitle": "Proposed changes and challenges in this family tree",
+    "view": {
+      "to_review": "To review",
+      "mine": "Mine",
+      "closed": "Closed"
+    },
+    "empty": {
+      "to_review": "Nothing is waiting for your review.",
+      "mine": "You have not proposed any changes.",
+      "closed": "No decided proposals yet."
+    },
+    "challengeAbout": "Challenge about {{person}}",
+    "someone": "someone in the tree",
+    "changesTo_one": "{{count}} change to {{person}}",
+    "changesTo_other": "{{count}} changes to {{person}}",
+    "formerMember": "A former member",
+    "status": {
+      "draft": "Draft",
+      "awaiting_review": "Awaiting review",
+      "accepted": "Accepted",
+      "rejected": "Not accepted",
+      "withdrawn": "Withdrawn",
+      "stale": "Out of date"
+    },
+    "by": "Proposed by {{name}}",
+    "openPerson": "Open this person's profile",
+    "staleNotice": "Out of date:",
+    "decisionNote": "Note from {{name}}:",
+    "correction": "Proposed correction",
+    "changes": "Changes",
+    "outdated": "Changed since proposed",
+    "field": {
+      "label": "Field"
+    },
+    "now": "Now",
+    "proposed": "Proposed",
+    "hiddenField": "Hidden from you",
+    "decide": "Your decision",
+    "note": "Note",
+    "noteHint": "Required when you do not accept.",
+    "uphold": "Uphold challenge",
+    "approve": "Approve",
+    "dismiss": "Dismiss challenge",
+    "reject": "Do not accept",
+    "rebase": "Propose again against today's record",
+    "withdraw": "Withdraw",
+    "becameStale": "The record changed after this was proposed. Nothing was applied; the proposer can propose it again.",
+    "comments": "Comments",
+    "addComment": "Add a comment",
+    "postComment": "Post comment",
+    "historyEmpty": "No changes recorded yet.",
+    "reverted": "The earlier values are back.",
+    "revertProposed": "Sent for review: the earlier values come back once a reviewer approves.",
+    "system": "An import or merge",
+    "reviewedBy": "reviewed by {{name}}",
+    "revert": "Revert",
+    "pendingForPerson_one": "{{count}} change to this person awaits review.",
+    "pendingForPerson_other": "{{count}} changes to this person await review.",
+    "see": "See",
+    "policyTitle": "Family review",
+    "policyIntro": "Choose which changes by contributors need a reviewer's approval. Owners, family admins and reviewers always write directly. Every change is kept in each person's history.",
+    "policy": {
+      "off": "No review",
+      "structure": "Review relationships and heritage",
+      "all": "Review all changes"
+    },
+    "policyHint": {
+      "off": "Changes are made at once (the default).",
+      "structure": "Changes to relationships and heritage details (gotra, kul and others) wait for a reviewer.",
+      "all": "Also names, dates and other facts. Adding new people never waits."
+    },
+    "policySave": "Save review setting",
+    "familySubject": {
+      "tradition": "a family tradition",
+      "kinship_word": "the family's relationship words"
+    }
+  },
   "trees": {
     "create": "New family tree",
     "createSubtitle": "A tree is private: only people you invite can see it.",
@@ -236,14 +412,31 @@
     "searchPlaceholder": "Search by any name, alias or spelling…",
     "searching": "Searching…",
     "subtitle": "Everyone in this tree you are allowed to see",
-    "title": "People"
+    "title": "People",
+    "toComplete": {
+      "filter": "To complete",
+      "intro": "People added as “unknown for now”. They are not counted as family members, and only you and the tree admins can see them, until they have a name and their relationships are backed by evidence.",
+      "emptyTitle": "Nothing to complete",
+      "emptyBody": "Everyone you can see has a name and evidence for their relationships.",
+      "needsDetails": "No name yet.",
+      "unverified": "Named, but their relationships have no supporting evidence yet.",
+      "addName": "Add their name",
+      "reviewEvidence": "Review relationship evidence",
+      "count_one": "{{count}} to complete",
+      "count_other": "{{count}} to complete",
+      "countHint": "Added as unknown for now; not counted as members until named and verified. Only you and tree admins see this."
+    }
   },
   "person": {
     "address": "Address",
     "badge": {
       "minor": "Minor",
       "protected": "Protected",
-      "protectedHint": "Living, minor or unknown-status: sensitive details are restricted"
+      "protectedHint": "Living, minor or unknown-status: sensitive details are restricted",
+      "provisional": "To complete",
+      "provisionalHint": "Added as unknown for now; add a name to complete this person",
+      "unverified": "Not yet verified",
+      "unverifiedHint": "Added as unknown for now. Their name is recorded, but their relationships have no supporting evidence yet."
     },
     "birthDate": "Birth date",
     "birthPlace": "Birth place",
@@ -265,6 +458,8 @@
       "birthDetails": "Birth details",
       "birthPlace": "Place of birth",
       "birthTime": "Time of birth",
+      "branch": "Family branch",
+      "branchHint": "Optional. Adds the person to this branch.",
       "deathDate": "Date of death",
       "deathDetails": "Death details",
       "deathPlace": "Place of death",
@@ -304,7 +499,8 @@
       "property": "Property",
       "events": "Events",
       "photos": "Photos",
-      "visualizations": "Charts"
+      "visualizations": "Charts",
+      "history": "History"
     },
     "viewInTree": "View in tree",
     "vitals": "Life details"
@@ -341,7 +537,15 @@
     "honorificSuffix": "Honorific (after)",
     "matronymic": "Matronymic",
     "patronymic": "Patronymic / father's name",
-    "villagePrefix": "Village prefix"
+    "villagePrefix": "Village prefix",
+    "usedFrom": "Used from (year)",
+    "usedUntil": "Used until (year)",
+    "surnameTimeline": "Surnames over time",
+    "yearsFromTo": "{{from}}–{{to}}",
+    "yearsUntil": "until {{to}}",
+    "yearsFrom": "from {{from}}",
+    "yearsUnknown": "years not recorded",
+    "now": "now"
   },
   "date": {
     "calendar": "Calendar",
@@ -580,7 +784,13 @@
     "title": "Heritage profile",
     "value": "Value",
     "valueRequired": "Enter a value, or set the status to unknown / withheld.",
-    "valueStatus": "Status"
+    "valueStatus": "Status",
+    "temple": "Temple (optional)",
+    "templeHint": "The temple where the family worships this deity. Pick a place, or type a temple's name to add it as a place of type temple. The deity and the temple are separate facts.",
+    "pravaraSuggestions": "Pravara suggestions for this gotra",
+    "pravaraDiffer": "Often associated with this gotra; traditions differ. Pick one only if it is what your family says, or type your own.",
+    "pravaraNoneReviewed": "No reviewed pravara links for this gotra yet. Search the list or type your family's pravara.",
+    "pravaraNoGotra": "Record the gotra from the list first to see pravaras often associated with it. Every pravara stays searchable."
   },
   "households": {
     "addMember": "Add a member",
@@ -752,7 +962,18 @@
     "subtitle": "Pick two people to see how they are related",
     "swap": "Swap people",
     "title": "How are we related?",
-    "to": "Relative"
+    "to": "Relative",
+    "basis": {
+      "family_confirmed": "Older/younger as confirmed by the family.",
+      "birth_dates": "Older/younger worked out from the birth dates you can see."
+    },
+    "datesDisagree": "The family's answer differs from the recorded birth dates; the family's answer is used.",
+    "ageQuestion": "Is {{person}} older or younger than {{other}}?",
+    "ageQuestionHint": "The word for this relative depends on it (e.g. Tau or Chacha). Your answer is saved for the whole family.",
+    "age": {
+      "elder": "Older than {{other}}",
+      "younger": "Younger than {{other}}"
+    }
   },
   "kin": {
     "brother": "brother",
@@ -975,6 +1196,7 @@
       "OWNER": "Owner",
       "PROPERTY_CUSTODIAN": "Property custodian",
       "RESEARCHER": "Researcher",
+      "REVIEWER": "Reviewer",
       "VIEWER": "Viewer"
     },
     "roleHint": {
@@ -985,6 +1207,7 @@
       "OWNER": "Full control, including deletion",
       "PROPERTY_CUSTODIAN": "Manages ancestral property records",
       "RESEARCHER": "Adds sources and proposes facts",
+      "REVIEWER": "Reviews changes others propose and challenges to facts; edits nothing by itself.",
       "VIEWER": "Read-only"
     },
     "evidence": {
@@ -1105,7 +1328,10 @@
       "recorded_parent_name": "Parent's name as recorded",
       "religion": "Religion",
       "temple": "Family temple",
-      "tharavad_or_equivalent": "Tharavad / ancestral house"
+      "tharavad_or_equivalent": "Tharavad / ancestral house",
+      "devak": "Devak",
+      "ancestral_occupation": "Ancestral occupation",
+      "family_language": "Family language"
     },
     "valueStatus": {
       "known": "Known",
@@ -1461,6 +1687,14 @@
       "succeeded": "Ready",
       "failed": "Failed",
       "cancelled": "Cancelled"
+    },
+    "traditionKind": {
+      "ritual_guide": "Ritual guide",
+      "custom": "Custom",
+      "song": "Song",
+      "recipe": "Recipe",
+      "story": "Story",
+      "other": "Other"
     }
   },
   "documents": {
@@ -2379,7 +2613,8 @@
       "language": "Language",
       "builtWithA": "Built with",
       "builtWithB": "for preserving Indian family heritage.",
-      "love": "love"
+      "love": "love",
+      "dataCredit": "Place names: Local Government Directory, Government of India, and India Post, under the Government Open Data Licence – India."
     },
     "plant": {
       "kicker": "Try it now — no sign-up",
@@ -2911,5 +3146,467 @@
     "addFirst": "Add the first person",
     "onlyOne": "No children are recorded for {{name}} yet",
     "addRelatives": "Add their children, spouse or parents"
+  },
+  "smartAdd": {
+    "open": "Add a relative",
+    "title": "Add a relative of {{name}}",
+    "titleTerm": "Add {{name}}'s {{term}}",
+    "desc": "Choose the relationship. We'll use relatives already in the tree and show you everything before saving.",
+    "whom": "Whom do you want to add?",
+    "more": "More relations",
+    "back": "Back",
+    "group": {
+      "grandparents": "Grandparents",
+      "paternal": "Father's side",
+      "maternal": "Mother's side",
+      "siblings": "Brothers, sisters and their families",
+      "children": "Children's families",
+      "in_laws": "In-laws"
+    },
+    "hop": {
+      "parent": {
+        "male": "father",
+        "female": "mother",
+        "any": "parent"
+      },
+      "child": {
+        "male": "son",
+        "female": "daughter",
+        "any": "child"
+      },
+      "sibling": {
+        "male": "brother",
+        "female": "sister",
+        "any": "brother or sister"
+      },
+      "spouse": {
+        "male": "husband",
+        "female": "wife",
+        "any": "spouse"
+      }
+    },
+    "thatPerson": "this person",
+    "stepQuestion": "Who is {{name}}'s {{who}}?",
+    "ageNote": {
+      "elder": "Choosing someone here records that they are older than {{name}}.",
+      "younger": "Choosing someone here records that they are younger than {{name}}."
+    },
+    "addUnknown": "Not in the tree yet — add the {{who}} as unknown for now",
+    "hiddenNote_one": "One recorded relative here is private to you. Ask a tree admin if they are the right person.",
+    "hiddenNote_other": "{{count}} recorded relatives here are private to you. Ask a tree admin if one of them is the right person.",
+    "noOptions": "There is no one to choose here, and a new person can't be added at this step. Use the family panel instead, or ask a tree admin.",
+    "blocked": {
+      "two_biological_parents": "This person already has two biological parents recorded, so another one can't be added here."
+    },
+    "givenName": "Given name",
+    "surname": "Surname",
+    "birthYear": "Born about (year)",
+    "birthYearHint": "Optional — an approximate year is fine",
+    "sexHint": "Optional. Choosing a relationship does not record sex at birth; enter it only if you know it.",
+    "otherParent": "Other parent",
+    "otherParentNone": "Not recorded / someone else",
+    "relativeAge": "Older or younger than {{name}}?",
+    "age": {
+      "elder": "Older",
+      "younger": "Younger",
+      "unknown": "Don't know"
+    },
+    "moreLater": "You can add dates, places, photos and other names later from their profile.",
+    "err": {
+      "name": "Enter at least a given name or a surname.",
+      "year": "Enter a four-digit year that is not in the future."
+    },
+    "reviewButton": "Review",
+    "confirm": "Confirm and add",
+    "previewIntro": "This is what will be saved:",
+    "preview": {
+      "role": "{{name}}'s {{who}}",
+      "existing": "{{role}}: {{name}} (already in the tree)",
+      "provisional": "{{role}}: not known yet — added as an unnamed person you can complete later",
+      "new": "{{role}}: {{name}} (new)",
+      "sharedParents": "Linked as a child of {{names}}, so they show as a real brother or sister.",
+      "explicitSibling": "Linked directly as a brother or sister (their parents aren't recorded yet).",
+      "age": {
+        "elder": "Recorded as older than {{name}}.",
+        "younger": "Recorded as younger than {{name}}."
+      }
+    },
+    "previewFooter": "Nothing has been saved yet. You can undo this for 30 minutes after confirming.",
+    "unknownPerson": "the unnamed person",
+    "provisionalSex": "Sex at birth of the unnamed person",
+    "added": "{{name}} was added as {{anchor}}'s {{term}}.",
+    "undone": "Undone. Nothing from this addition remains in the tree.",
+    "undo": "Undo",
+    "openProfile": "Open {{name}}'s profile",
+    "provisionalNote": "Unnamed people are marked “To complete”. Add their name from their profile when you know it. Until they are named and their relationships are supported by evidence, only you and the tree admins can see them, and they are left out of exports.",
+    "terms": {
+      "father": {
+        "label": "Father",
+        "meaning": "Papa · पिता"
+      },
+      "mother": {
+        "label": "Mother",
+        "meaning": "Ma · माँ"
+      },
+      "husband": {
+        "label": "Husband",
+        "meaning": "Pati · पति"
+      },
+      "wife": {
+        "label": "Wife",
+        "meaning": "Patni · पत्नी"
+      },
+      "son": {
+        "label": "Son",
+        "meaning": "Beta · बेटा"
+      },
+      "daughter": {
+        "label": "Daughter",
+        "meaning": "Beti · बेटी"
+      },
+      "brother": {
+        "label": "Brother",
+        "meaning": "Bhai · भाई"
+      },
+      "sister": {
+        "label": "Sister",
+        "meaning": "Behen · बहन"
+      },
+      "dada": {
+        "label": "Dada · दादा",
+        "meaning": "Father's father"
+      },
+      "dadi": {
+        "label": "Dadi · दादी",
+        "meaning": "Father's mother"
+      },
+      "nana": {
+        "label": "Nana · नाना",
+        "meaning": "Mother's father"
+      },
+      "nani": {
+        "label": "Nani · नानी",
+        "meaning": "Mother's mother"
+      },
+      "tau": {
+        "label": "Tau · ताऊ",
+        "meaning": "Father's elder brother"
+      },
+      "tai": {
+        "label": "Tai · ताई",
+        "meaning": "Wife of father's elder brother"
+      },
+      "chacha": {
+        "label": "Chacha · चाचा",
+        "meaning": "Father's younger brother"
+      },
+      "chachi": {
+        "label": "Chachi · चाची",
+        "meaning": "Wife of father's younger brother"
+      },
+      "bua": {
+        "label": "Bua · बुआ",
+        "meaning": "Father's sister"
+      },
+      "fufa": {
+        "label": "Fufa · फूफा",
+        "meaning": "Father's sister's husband"
+      },
+      "mama": {
+        "label": "Mama · मामा",
+        "meaning": "Mother's brother"
+      },
+      "mami": {
+        "label": "Mami · मामी",
+        "meaning": "Mother's brother's wife"
+      },
+      "mausi": {
+        "label": "Mausi · मौसी",
+        "meaning": "Mother's sister"
+      },
+      "mausa": {
+        "label": "Mausa · मौसा",
+        "meaning": "Mother's sister's husband"
+      },
+      "bhaiya": {
+        "label": "Bhaiya · भैया",
+        "meaning": "Elder brother"
+      },
+      "didi": {
+        "label": "Didi · दीदी",
+        "meaning": "Elder sister"
+      },
+      "bhabhi": {
+        "label": "Bhabhi · भाभी",
+        "meaning": "Brother's wife"
+      },
+      "jija": {
+        "label": "Jija · जीजा",
+        "meaning": "Sister's husband"
+      },
+      "bhatija": {
+        "label": "Bhatija · भतीजा",
+        "meaning": "Brother's son"
+      },
+      "bhatiji": {
+        "label": "Bhatiji · भतीजी",
+        "meaning": "Brother's daughter"
+      },
+      "bhanja": {
+        "label": "Bhanja · भांजा",
+        "meaning": "Sister's son"
+      },
+      "bhanji": {
+        "label": "Bhanji · भांजी",
+        "meaning": "Sister's daughter"
+      },
+      "bahu": {
+        "label": "Bahu · बहू",
+        "meaning": "Son's wife"
+      },
+      "damaad": {
+        "label": "Damaad · दामाद",
+        "meaning": "Daughter's husband"
+      },
+      "pota": {
+        "label": "Pota · पोता",
+        "meaning": "Son's son"
+      },
+      "poti": {
+        "label": "Poti · पोती",
+        "meaning": "Son's daughter"
+      },
+      "nati": {
+        "label": "Nati · नाती",
+        "meaning": "Daughter's son"
+      },
+      "natin": {
+        "label": "Natin · नातिन",
+        "meaning": "Daughter's daughter"
+      },
+      "sasur": {
+        "label": "Sasur · ससुर",
+        "meaning": "Spouse's father"
+      },
+      "saas": {
+        "label": "Saas · सास",
+        "meaning": "Spouse's mother"
+      },
+      "jeth": {
+        "label": "Jeth · जेठ",
+        "meaning": "Husband's elder brother"
+      },
+      "jethani": {
+        "label": "Jethani · जेठानी",
+        "meaning": "Wife of husband's elder brother"
+      },
+      "devar": {
+        "label": "Devar · देवर",
+        "meaning": "Husband's younger brother"
+      },
+      "devrani": {
+        "label": "Devrani · देवरानी",
+        "meaning": "Wife of husband's younger brother"
+      },
+      "nanad": {
+        "label": "Nanad · ननद",
+        "meaning": "Husband's sister"
+      },
+      "nandoi": {
+        "label": "Nandoi · ननदोई",
+        "meaning": "Husband's sister's husband"
+      },
+      "bhai_sahab": {
+        "label": "Bhai Sahab · भाई साहब",
+        "meaning": "Wife's elder brother"
+      },
+      "saala": {
+        "label": "Saala · साला",
+        "meaning": "Wife's younger brother"
+      },
+      "sahlaj": {
+        "label": "Sahlaj · सलहज",
+        "meaning": "Wife's brother's wife"
+      },
+      "saali": {
+        "label": "Saali · साली",
+        "meaning": "Wife's sister"
+      },
+      "sadhu": {
+        "label": "Sadhu · साढ़ू",
+        "meaning": "Wife's sister's husband"
+      },
+      "samdhi": {
+        "label": "Samdhi · समधी",
+        "meaning": "Your child's father-in-law"
+      },
+      "samdhan": {
+        "label": "Samdhan · समधन",
+        "meaning": "Your child's mother-in-law"
+      }
+    },
+    "continue": "Continue"
+  },
+  "smartSelect": {
+    "family": "Your family",
+    "addOwn": "Add “{{text}}” as your family's own entry",
+    "addFailed": "Could not save this entry. Your text is kept; try again.",
+    "linked": "Chosen from the list. The text is saved as you typed it.",
+    "hint": "Start typing to see suggestions, or write your own."
+  },
+  "translit": {
+    "inDevanagari": "In Devanagari:",
+    "inLatin": "In Latin letters:",
+    "possible": "possible spelling",
+    "add": "Add as another name",
+    "dismiss": "Dismiss",
+    "hint": "Your spelling stays as you typed it. Adding saves this as a separate name.",
+    "addedNote": "Will be saved as another name:",
+    "suggestedConfirmed": "Spelling suggested, confirmed by you"
+  },
+  "kinship": {
+    "familyWord": "Your family's word",
+    "packWord": "Usual word",
+    "unreviewed": "not yet reviewed",
+    "preferenceTitle": "Relationship words",
+    "preferenceIntro": "Choose the words you read for relationships (चाचा, ताऊ, मामा…). This is separate from the app's language. Packs not yet reviewed by a native speaker say so.",
+    "wordsIn": "Relationship words in",
+    "followTree": "The family's default",
+    "english": "English",
+    "treeTitle": "Relationship words in this family",
+    "treeDefault": "Default relationship words",
+    "treeDefaultHint": "What members read unless they choose their own words.",
+    "followUi": "Each reader's app language",
+    "familyWords": "Your family's own words",
+    "familyWordsIntro": "Record a word your family uses instead of the usual one (for example Bhauji for bhabhi). It is shown first, with the usual word beside it. A word never changes anyone's record.",
+    "noFamilyWords": "No family words recorded.",
+    "oneBranch": "One branch",
+    "removeWord": "Remove the family word {{word}}",
+    "addWord": "Add a family word",
+    "relationship": "Relationship, step by step from the person",
+    "step": "Step {{n}}",
+    "noStep": "(none)",
+    "reads": "Reads",
+    "ageOnly": "Only when the relative is",
+    "anyAge": "Any age",
+    "elder": "elder",
+    "younger": "younger",
+    "language": "Language",
+    "lang": {
+      "hi": "Hindi"
+    },
+    "word": "Your family's word",
+    "branch": "Used in",
+    "wholeTree": "The whole family",
+    "saveWord": "Save word",
+    "of": "{{acc}}'s {{word}}",
+    "ofFeminine": "{{acc}}'s {{word}}"
+  },
+  "offers": {
+    "title": "Your family's own list entries",
+    "intro": "Entries your family added (a kuladevata, a devak…) are visible only in this tree. You may offer one to everyone's suggestions. Reviewers check it first, and the shared entry never names your family.",
+    "vocab": {
+      "kuladevata": "Kuladevata",
+      "kuladevi": "Kuladevi",
+      "devak": "Devak",
+      "gotra": "Gotra",
+      "kula": "Kula / vamsha"
+    },
+    "status": {
+      "none": "Not offered",
+      "offered": "Offered, awaiting review",
+      "accepted": "Added to everyone's suggestions",
+      "declined": "Not added"
+    },
+    "offer": "Offer to everyone",
+    "withdraw": "Withdraw offer",
+    "dialogTitle": "Offer “{{label}}” to everyone",
+    "dialogIntro": "Reviewers may merge it with similar entries. Only the name, its other spellings and what you write below are shared; your family is never named.",
+    "temple": "Well-known temple (optional)",
+    "templeHint": "For example, Jejuri for Khandoba.",
+    "note": "Note for the reviewers (optional)",
+    "noteHint": "Do not include names of family members.",
+    "send": "Send offer"
+  },
+  "traditions": {
+    "title": "Family traditions",
+    "subtitle": "Ritual guides, customs, songs, recipes and stories your family keeps.",
+    "add": "Add a tradition",
+    "addTitle": "Add a family tradition",
+    "editTitle": "Edit tradition",
+    "proposeEdit": "Propose a change",
+    "search": "Search titles and text",
+    "kind": "Kind",
+    "allKinds": "All kinds",
+    "kinds": {
+      "ritual_guide": "Ritual guide",
+      "custom": "Custom",
+      "song": "Song",
+      "recipe": "Recipe",
+      "story": "Story",
+      "other": "Other"
+    },
+    "empty": "No traditions recorded yet",
+    "noMatch": "No traditions match",
+    "emptyHint": "Write down how your family does things: a puja, a wedding custom, a song, Dadi's recipe.",
+    "by": "Written by {{name}}",
+    "forPerson": "Family traditions",
+    "back": "All traditions",
+    "noText": "No text yet.",
+    "links": "Mentions",
+    "history": "History",
+    "withdraw": "Withdraw",
+    "withdrawTitle": "Withdraw this tradition?",
+    "withdrawBody": "It will no longer be shown. Its history is kept.",
+    "sources": "Sources",
+    "op": {
+      "create": "Written",
+      "update": "Changed",
+      "delete": "Removed"
+    },
+    "field": {
+      "title": "title",
+      "body": "text",
+      "kind": "kind",
+      "language": "language",
+      "privacy_level": "who can read it",
+      "branch_id": "branch",
+      "withdrawn_at": "withdrawn",
+      "script": "script"
+    },
+    "language": "Language",
+    "languageUnset": "Not set",
+    "languages": {
+      "hi": "Hindi",
+      "en": "English",
+      "mr": "Marathi",
+      "bn": "Bengali",
+      "gu": "Gujarati",
+      "pa": "Punjabi",
+      "ta": "Tamil",
+      "te": "Telugu",
+      "kn": "Kannada",
+      "ml": "Malayalam",
+      "or": "Odia",
+      "ur": "Urdu",
+      "sa": "Sanskrit",
+      "bho": "Bhojpuri",
+      "mai": "Maithili",
+      "awa": "Awadhi"
+    },
+    "titleLabel": "Title",
+    "titleRequired": "Give it a title.",
+    "tooLong": "The text is too long (at most 50,000 characters).",
+    "body": "Text",
+    "bodyHint": "Plain text. Leave a blank line between paragraphs, start a line with - for a list, and wrap words in ** for bold.",
+    "people": "People it mentions",
+    "linkPerson": "Add a person",
+    "unlink": "Remove {{name}}",
+    "peopleHint": "Mentioning someone never changes who can read this entry.",
+    "branch": "Branch",
+    "noBranch": "The whole family",
+    "rationaleRequired": "Say why this change is right.",
+    "reviewNotice": "Your family reviews changes to entries other people wrote. This change is sent for review.",
+    "sent": "Sent for review. The change appears once a reviewer approves it."
   }
 }

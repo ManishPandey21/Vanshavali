@@ -50,6 +50,9 @@ The drill runs these steps (full options are in the script header):
    (`ops/backup/seed_source.py`): `alembic upgrade head`, the demo tree, a synthetic tree of
    `DRILL_PEOPLE` people (`benchmark.build`), and one STANDARD photo and one VAULT birth
    certificate uploaded through the API.
+   The demo login's password comes only from `VSH_DEMO_PASSWORD`. `drill.sh` generates a random
+   one per run, and you must set it yourself with `DRILL_SKIP_SEED=1`. It is never written to the
+   manifest or printed.
 2. **Back up:**
    - `pg_dump -Fc`, piped straight into `age` (or `openssl enc -aes-256-cbc -pbkdf2 -iter 200000`
      with the passphrase read from `env:DRILL_PASSPHRASE`, never from argv);

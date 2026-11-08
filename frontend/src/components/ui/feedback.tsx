@@ -23,6 +23,7 @@ export function useErrorMessage() {
       if (error.status === 404) return t("errors.notFound");
       if (error.status === 0) return t("errors.network");
       if (error.status === 429) return t("errors.rateLimited");
+      if (error.code === "review_required") return t("review.requiredNotice");
       if (error.code === "validation_error") {
         const fe = error.fieldErrors();
         const first = Object.entries(fe)[0];

@@ -1,3 +1,4 @@
+import { NotificationBell, ProposeChangeHost } from "../review/ReviewParts";
 import { useMemo, useState, type ComponentType } from "react";
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -7,6 +8,7 @@ import {
   Bell,
   CalendarRange,
   ChartPie,
+  ClipboardCheck,
   History as HistoryIcon,
   FileText,
   LandPlot,
@@ -19,6 +21,7 @@ import {
   MapPin,
   MoreHorizontal,
   Network,
+  NotebookPen,
   Route,
   Search,
   Settings,
@@ -67,6 +70,7 @@ export function TreeLayout() {
       { to: `${base}/joint-family`, label: t("nav.jointFamily"), icon: LayoutGrid, group: "family" },
       { to: `${base}/branches`, label: t("nav.branches"), icon: Landmark, group: "family" },
       { to: `${base}/households`, label: t("nav.households"), icon: UsersRound, group: "family" },
+      { to: `${base}/traditions`, label: t("nav.traditions"), icon: NotebookPen, group: "family" },
       { to: `${base}/documents`, label: t("nav.documents"), icon: FileText, group: "records" },
       ...(ctx.can(Perm.PROPERTY_READ) || ctx.can(Perm.PROPERTY_WRITE) ? [{ to: `${base}/property`, label: t("nav.property"), icon: LandPlot, group: "records" as const }] : []),
       ...(ctx.can(Perm.GEDCOM_IMPORT) || ctx.can(Perm.GEDCOM_EXPORT) ? [{ to: `${base}/import-export`, label: t("nav.importExport"), icon: ArrowDownUp, group: "records" as const }] : []),
@@ -74,6 +78,7 @@ export function TreeLayout() {
       { to: `${base}/sources`, label: t("nav.sources"), icon: BookOpen, group: "research" },
       { to: `${base}/search`, label: t("nav.search"), icon: Search, group: "research" },
       { to: `${base}/duplicates`, label: t("nav.duplicates"), icon: Copy, group: "research" },
+      { to: `${base}/review`, label: t("nav.review"), icon: ClipboardCheck, group: "research" },
     ];
     list.push({ to: `${base}/admin/members`, label: t("nav.members"), icon: ShieldCheck, group: "admin" });
     if (ctx.can(Perm.MEMBERS_MANAGE)) list.push({ to: `${base}/admin/invitations`, label: t("nav.invitations"), icon: UserPlus, group: "admin" });
@@ -143,6 +148,7 @@ export function TreeLayout() {
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-2 border-t border-stone-200 pt-3">
+              <NotificationBell treeId={ctx.tree.id} />
               <LanguageSwitcher />
               <UserMenu />
             </div>
@@ -153,6 +159,7 @@ export function TreeLayout() {
           <header className="no-print flex items-center justify-between gap-2 border-b border-stone-200 bg-white/80 px-4 py-2 backdrop-blur lg:hidden">
             <BrandMark />
             <div className="flex items-center gap-2">
+              <NotificationBell treeId={ctx.tree.id} />
               <LanguageSwitcher />
               <UserMenu />
             </div>
@@ -160,6 +167,7 @@ export function TreeLayout() {
           <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-5 lg:px-8 lg:py-8">
             <Outlet />
           </main>
+          <ProposeChangeHost treeId={ctx.tree.id} />
         </div>
 
         <nav aria-label={t("nav.mobileNavigation")} className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white lg:hidden">
