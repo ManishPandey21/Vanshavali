@@ -19,6 +19,7 @@ from app.modules.genealogy.router import router as genealogy_router
 from app.modules.geo.router import router as geo_router
 from app.modules.heritage.router import router as heritage_router
 from app.modules.identity.router import router as auth_router
+from app.modules.kinship.router import router as kinship_router
 from app.modules.lifeevents.router import router as lifeevents_router
 from app.modules.masterdata.router import router as masterdata_router
 from app.modules.merge.router import router as merge_router
@@ -31,6 +32,7 @@ from app.modules.render.router import router as render_router
 from app.modules.review.router import router as review_router
 from app.modules.search.router import router as search_router
 from app.modules.smartadd.router import router as smartadd_router
+from app.modules.traditions.router import router as traditions_router
 from app.modules.translit.router import router as translit_router
 from app.modules.trees.router import router as trees_router
 from app.modules.visualization.router import router as visualization_router
@@ -41,6 +43,7 @@ api_router.include_router(trees_router)
 api_router.include_router(genealogy_router)
 api_router.include_router(smartadd_router)
 api_router.include_router(masterdata_router)
+api_router.include_router(kinship_router)
 api_router.include_router(translit_router)
 api_router.include_router(geo_router)
 api_router.include_router(review_router)
@@ -53,6 +56,7 @@ api_router.include_router(render_files_router)
 api_router.include_router(public_router)
 api_router.include_router(evidence_router)
 api_router.include_router(heritage_router)
+api_router.include_router(traditions_router)
 api_router.include_router(family_router)
 api_router.include_router(search_router)
 api_router.include_router(consent_router)

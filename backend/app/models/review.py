@@ -147,5 +147,7 @@ class UserNotification(TreeScopedMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     kind: Mapped[NotificationKind] = mapped_column(enum_column(NotificationKind))
     proposal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    # what the notification is about when it is not a proposal (an offered vocabulary entry)
+    subject_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     read_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))

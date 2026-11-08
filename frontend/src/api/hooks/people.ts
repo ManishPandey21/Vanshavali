@@ -298,10 +298,11 @@ export function useGraph(
   });
 }
 
-export function useRelationshipPath(treeId: string, from: string, to: string, lineage: Lineage[]) {
+export function useRelationshipPath(treeId: string, from: string, to: string, lineage: Lineage[], lang = "en") {
   return useQuery({
-    queryKey: peopleKeys.path(treeId, from, to, lineage.join(",")),
-    queryFn: () => api.get<RelationshipPathOut>(`/trees/${treeId}/relationship-path`, { from, to, lineage }),
+    queryKey: [...peopleKeys.path(treeId, from, to, lineage.join(",")), lang],
+    // the UI language is the last fallback for relationship words (ADR-0026 §6)
+    queryFn: () => api.get<RelationshipPathOut>(`/trees/${treeId}/relationship-path`, { from, to, lineage, lang }),
     enabled: !!from && !!to,
   });
 }

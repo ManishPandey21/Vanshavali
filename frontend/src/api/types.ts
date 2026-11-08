@@ -283,3 +283,22 @@ export type RevertOut = S["RevertOut"];
 export type NotificationsOut = S["NotificationsOut"];
 export type DuplicateCheckIn = S["DuplicateCheckIn"];
 export type DuplicateCheckOut = S["DuplicateCheckOut"];
+
+// ADR-0026: cultural depth
+export type OfferIn = S["OfferIn"];
+export type OfferOut = S["OfferOut"];
+export type OfferStatus = S["OfferStatus"];
+export type KinshipTermOut = S["KinshipTermOut"];
+export type KinshipPackOut = S["KinshipPackOut"];
+export type KinshipPreferenceIn = S["KinshipPreferenceIn"];
+export type KinshipOverrideIn = S["KinshipOverrideIn"];
+export type KinshipOverrideOut = S["KinshipOverrideOut"];
+export type TraditionKind = S["TraditionKind"];
+export type TraditionEntryIn = S["TraditionEntryIn"];
+export type TraditionEntryUpdate = S["TraditionEntryUpdate"];
+export type TraditionOut = S["TraditionOut"];
+export type TraditionSummaryOut = S["TraditionSummaryOut"];
+export type TraditionsOut = S["TraditionsOut"];
+export type TraditionLinkIn = S["TraditionLinkIn"];
+export type TraditionLinkOut = S["TraditionLinkOut"];
+export type TraditionRevisionOut = S["TraditionRevisionOut"];

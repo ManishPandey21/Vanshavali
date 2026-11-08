@@ -33,6 +33,9 @@ class Tree(TimestampMixin, Base):
         default=ReviewPolicy.OFF,
         server_default=ReviewPolicy.OFF.value,
     )
+    # the tree's default kinship words (ADR-0026 §6); a member's own choice comes first
+    kinship_lang: Mapped[str | None] = mapped_column(String(16))
+    kinship_region: Mapped[str | None] = mapped_column(String(40))
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="SET NULL")
     )

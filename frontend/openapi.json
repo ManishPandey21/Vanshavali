@@ -3867,7 +3867,7 @@
      "master-data"
     ],
     "summary": "Vocabulary Terms",
-    "description": "Global suggestions, searchable by label in any script, alias or spelling.",
+    "description": "Global suggestions, searchable by label in any script, alias or spelling. Sends a weak ETag.",
     "operationId": "vocabulary_terms_api_v1_vocabularies__key__get",
     "parameters": [
      {
@@ -3928,6 +3928,37 @@
        "default": false,
        "title": "Include Retired"
       }
+     },
+     {
+      "name": "reviewed_only",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "description": "only reviewed terms (pravara: only links with a cited source)",
+       "default": false,
+       "title": "Reviewed Only"
+      },
+      "description": "only reviewed terms (pravara: only links with a cited source)"
+     },
+     {
+      "name": "scope",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 80
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "a region or tradition",
+       "title": "Scope"
+      },
+      "description": "a region or tradition"
      }
     ],
     "responses": {
@@ -3940,6 +3971,9 @@
         }
        }
       }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the ETag)"
      },
      "422": {
       "description": "Validation Error",
@@ -4098,6 +4132,407 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/TreeTermOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabularies/{key}/terms/{code}/offer": {
+   "post": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Offer Tree Term",
+    "description": "Offer one of the family's own entries to the common suggestion lists (tree admin; ADR-0026 \u00a74).\n\nOperators review offers; an accepted entry becomes a shared term through a code-reviewed pack\nchange, and the shared term never names the family.",
+    "operationId": "offer_tree_term_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_post",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/OfferIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "Withdraw Offer",
+    "description": "Withdraw a pending offer (tree admin).",
+    "operationId": "withdraw_offer_api_v1_trees__tree_id__vocabularies__key__terms__code__offer_delete",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Key"
+      }
+     },
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/vocabulary-offers": {
+   "get": {
+    "tags": [
+     "master-data"
+    ],
+    "summary": "List Offers",
+    "description": "This family's offered entries and what became of them (tree admin).",
+    "operationId": "list_offers_api_v1_trees__tree_id__vocabulary_offers_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/OfferOut"
+         },
+         "title": "Response List Offers Api V1 Trees  Tree Id  Vocabulary Offers Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/kinship/packs": {
+   "get": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Kinship Packs",
+    "description": "Packs of relationship words a reader may choose (reviewed ones; drafts for reviewers).",
+    "operationId": "kinship_packs_api_v1_kinship_packs_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/KinshipPackOut"
+         },
+         "type": "array",
+         "title": "Response Kinship Packs Api V1 Kinship Packs Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/me/kinship-preference": {
+   "put": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Set Kinship Preference",
+    "description": "Which relationship words this reader sees, in every tree; null follows the tree's default.",
+    "operationId": "set_kinship_preference_api_v1_me_kinship_preference_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/KinshipPreferenceIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/KinshipPreferenceOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/kinship-overrides": {
+   "get": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "List Kinship Overrides",
+    "description": "The family's own words for relationships (\"Bhayo\" for bhabhi).",
+    "operationId": "list_kinship_overrides_api_v1_trees__tree_id__kinship_overrides_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/KinshipOverrideOut"
+         },
+         "title": "Response List Kinship Overrides Api V1 Trees  Tree Id  Kinship Overrides Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Put Kinship Override",
+    "description": "Record the family's word for a relationship, tree-wide or for one branch (family.write;\nunder family review when the tree reviews all changes).",
+    "operationId": "put_kinship_override_api_v1_trees__tree_id__kinship_overrides_put",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/KinshipOverrideIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/KinshipOverrideOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/kinship-overrides/{override_id}": {
+   "delete": {
+    "tags": [
+     "kinship"
+    ],
+    "summary": "Delete Kinship Override",
+    "operationId": "delete_kinship_override_api_v1_trees__tree_id__kinship_overrides__override_id__delete",
+    "parameters": [
+     {
+      "name": "override_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Override Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
         }
        }
       }
@@ -8918,6 +9353,414 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "List Traditions",
+    "description": "Entries the reader may see, newest first; ``q`` searches titles and text in any script.",
+    "operationId": "list_traditions_api_v1_trees__tree_id__traditions_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "kind",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "$ref": "#/components/schemas/TraditionKind"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Kind"
+      }
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "branch_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Branch Id"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 100,
+       "default": "",
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Create Tradition",
+    "operationId": "create_tradition_api_v1_trees__tree_id__traditions_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TraditionEntryIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Get Tradition",
+    "operationId": "get_tradition_api_v1_trees__tree_id__traditions__entry_id__get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Update Tradition",
+    "description": "Edit an entry. Someone else's entry follows the tree's review policy (409 review_required:\nsend it as a proposed change).",
+    "operationId": "update_tradition_api_v1_trees__tree_id__traditions__entry_id__patch",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TraditionEntryUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TraditionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Withdraw Tradition",
+    "description": "Withdraw an entry (author or tree admin); its history is kept.",
+    "operationId": "withdraw_tradition_api_v1_trees__tree_id__traditions__entry_id__delete",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}/history": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Tradition History",
+    "operationId": "tradition_history_api_v1_trees__tree_id__traditions__entry_id__history_get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/TraditionRevisionOut"
+         },
+         "title": "Response Tradition History Api V1 Trees  Tree Id  Traditions  Entry Id  History Get"
         }
        }
       }
@@ -17098,6 +17941,16 @@
       ],
       "title": "Person Label"
      },
+     "family_subject": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "target_type": {
       "anyOf": [
        {
@@ -17484,7 +18337,8 @@
      "land_parcel",
      "property_interest",
      "property_event",
-     "household"
+     "household",
+     "tradition"
     ],
     "title": "CitationTarget"
    },
@@ -18798,7 +19652,8 @@
      "land_parcel",
      "property_event",
      "source",
-     "household"
+     "household",
+     "tradition"
     ],
     "title": "DocumentLinkTarget"
    },
@@ -21730,6 +22585,9 @@
      "family_traditions",
      "language_traditions",
      "recorded_parent_name",
+     "devak",
+     "ancestral_occupation",
+     "family_language",
      "other"
     ],
     "title": "HeritageAttribute"
@@ -23381,6 +24239,380 @@
     ],
     "title": "JobStatus"
    },
+   "KinshipOverrideIn": {
+    "properties": {
+     "pattern": {
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "^[a-z_]+(\\.[a-z_]+){0,5}(:(elder|younger))?$",
+      "title": "Pattern"
+     },
+     "lang": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}$",
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z_]{1,40}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "word": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Word"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "pattern",
+     "lang",
+     "word"
+    ],
+    "title": "KinshipOverrideIn"
+   },
+   "KinshipOverrideOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "pattern": {
+      "type": "string",
+      "title": "Pattern"
+     },
+     "lang": {
+      "type": "string",
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "word": {
+      "type": "string",
+      "title": "Word"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "pattern",
+     "lang",
+     "region",
+     "word",
+     "branch_id",
+     "revision",
+     "updated_at"
+    ],
+    "title": "KinshipOverrideOut"
+   },
+   "KinshipPackOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "lang": {
+      "type": "string",
+      "title": "Lang"
+     },
+     "region": {
+      "type": "string",
+      "title": "Region"
+     },
+     "name": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object",
+      "title": "Name"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "draft",
+       "reviewed"
+      ],
+      "title": "Status"
+     },
+     "in_use": {
+      "type": "boolean",
+      "title": "In Use",
+      "default": false
+     },
+     "reviewer": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewer"
+     },
+     "reviewed_on": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewed On"
+     },
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "licence": {
+      "type": "string",
+      "title": "Licence"
+     },
+     "term_count": {
+      "type": "integer",
+      "title": "Term Count"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "lang",
+     "region",
+     "name",
+     "status",
+     "source",
+     "licence",
+     "term_count"
+    ],
+    "title": "KinshipPackOut"
+   },
+   "KinshipPreferenceIn": {
+    "properties": {
+     "lang": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z_]{1,40}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     }
+    },
+    "type": "object",
+    "title": "KinshipPreferenceIn"
+   },
+   "KinshipPreferenceOut": {
+    "properties": {
+     "lang": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     }
+    },
+    "type": "object",
+    "required": [
+     "lang",
+     "region"
+    ],
+    "title": "KinshipPreferenceOut"
+   },
+   "KinshipTermOut": {
+    "properties": {
+     "pack": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pack"
+     },
+     "lang": {
+      "type": "string",
+      "title": "Lang"
+     },
+     "region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Region"
+     },
+     "term": {
+      "type": "string",
+      "title": "Term"
+     },
+     "transliteration": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Transliteration"
+     },
+     "alternatives": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Alternatives",
+      "default": []
+     },
+     "basis": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "family_confirmed",
+         "birth_dates",
+         "unknown"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Basis"
+     },
+     "review_status": {
+      "type": "string",
+      "enum": [
+       "reviewed",
+       "unreviewed",
+       "family"
+      ],
+      "title": "Review Status"
+     },
+     "family_word": {
+      "type": "boolean",
+      "title": "Family Word",
+      "default": false
+     },
+     "pack_term": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pack Term"
+     },
+     "description": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Description"
+     }
+    },
+    "type": "object",
+    "required": [
+     "lang",
+     "term",
+     "review_status"
+    ],
+    "title": "KinshipTermOut",
+    "description": "A relationship word for the chain of a ``/relationship-path`` answer (ADR-0026 \u00a76)."
+   },
    "LifeEventCategory": {
     "type": "string",
     "enum": [
@@ -24948,7 +26180,9 @@
      "challenge_opened",
      "challenge_upheld",
      "challenge_dismissed",
-     "proposal_comment"
+     "proposal_comment",
+     "offer_accepted",
+     "offer_declined"
     ],
     "title": "NotificationKind"
    },
@@ -25155,6 +26389,133 @@
      "engine"
     ],
     "title": "OcrTextOut"
+   },
+   "OfferIn": {
+    "properties": {
+     "note": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "temple": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Temple"
+     }
+    },
+    "type": "object",
+    "title": "OfferIn"
+   },
+   "OfferOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "vocabulary_key": {
+      "type": "string",
+      "title": "Vocabulary Key"
+     },
+     "code": {
+      "type": "string",
+      "title": "Code"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "aliases": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Aliases",
+      "default": []
+     },
+     "offer_status": {
+      "$ref": "#/components/schemas/OfferStatus"
+     },
+     "offered_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offered At"
+     },
+     "offer_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offer Note"
+     },
+     "offer_temple": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offer Temple"
+     },
+     "promoted_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Promoted Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "vocabulary_key",
+     "code",
+     "label",
+     "offer_status"
+    ],
+    "title": "OfferOut"
+   },
+   "OfferStatus": {
+    "type": "string",
+    "enum": [
+     "none",
+     "offered",
+     "accepted",
+     "declined"
+    ],
+    "title": "OfferStatus",
+    "description": "A family's own vocabulary entry offered to the common suggestion lists (\u00a74)."
    },
    "Page_AuditEventOut_": {
     "properties": {
@@ -30267,6 +31628,16 @@
       ],
       "title": "Person Label"
      },
+     "family_subject": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReviewTarget"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "item_count": {
       "type": "integer",
       "title": "Item Count"
@@ -31025,6 +32396,24 @@
       "type": "array",
       "title": "Age Orders",
       "default": []
+     },
+     "terms": {
+      "items": {
+       "$ref": "#/components/schemas/KinshipTermOut"
+      },
+      "type": "array",
+      "title": "Terms",
+      "default": []
+     },
+     "age_decision": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AgeOrderOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -32278,7 +33667,9 @@
      "name",
      "event",
      "relationship",
-     "assertion"
+     "assertion",
+     "tradition",
+     "kinship_word"
     ],
     "title": "ReviewTarget",
     "description": "Record types that carry revisions and review state (and can be proposed or challenged)."
@@ -34607,6 +35998,182 @@
     ],
     "title": "TokenIn"
    },
+   "TraditionEntryIn": {
+    "properties": {
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Title"
+     },
+     "body": {
+      "type": "string",
+      "maxLength": 55000,
+      "title": "Body",
+      "default": ""
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Z][a-z]{3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel",
+      "default": "TREE_MEMBERS"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionLinkIn"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Links",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "title"
+    ],
+    "title": "TraditionEntryIn"
+   },
+   "TraditionEntryUpdate": {
+    "properties": {
+     "kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/TraditionKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "body": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 55000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Body"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Z][a-z]{3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PrivacyLevel"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "links": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/TraditionLinkIn"
+        },
+        "type": "array",
+        "maxItems": 50
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Links"
+     }
+    },
+    "type": "object",
+    "title": "TraditionEntryUpdate"
+   },
    "TraditionIn": {
     "properties": {
      "tradition_type": {
@@ -34693,6 +36260,412 @@
     ],
     "title": "TraditionIn",
     "description": "Traditional genealogy record details (Bahi / Panda / temple register; PRS \u00a720)."
+   },
+   "TraditionKind": {
+    "type": "string",
+    "enum": [
+     "ritual_guide",
+     "custom",
+     "song",
+     "recipe",
+     "story",
+     "other"
+    ],
+    "title": "TraditionKind"
+   },
+   "TraditionLinkIn": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/TraditionLinkTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id"
+    ],
+    "title": "TraditionLinkIn"
+   },
+   "TraditionLinkOut": {
+    "properties": {
+     "target_type": {
+      "$ref": "#/components/schemas/TraditionLinkTarget"
+     },
+     "target_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Target Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     }
+    },
+    "type": "object",
+    "required": [
+     "target_type",
+     "target_id",
+     "label"
+    ],
+    "title": "TraditionLinkOut"
+   },
+   "TraditionLinkTarget": {
+    "type": "string",
+    "enum": [
+     "person",
+     "event",
+     "place"
+    ],
+    "title": "TraditionLinkTarget"
+   },
+   "TraditionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "excerpt": {
+      "type": "string",
+      "title": "Excerpt"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel"
+     },
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     },
+     "body": {
+      "type": "string",
+      "title": "Body"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionLinkOut"
+      },
+      "type": "array",
+      "title": "Links",
+      "default": []
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "review_state": {
+      "$ref": "#/components/schemas/ReviewState"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "created_by": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created By"
+     },
+     "can_edit": {
+      "type": "boolean",
+      "title": "Can Edit",
+      "default": false
+     },
+     "edit_needs_review": {
+      "type": "boolean",
+      "title": "Edit Needs Review",
+      "default": false
+     },
+     "can_withdraw": {
+      "type": "boolean",
+      "title": "Can Withdraw",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "title",
+     "excerpt",
+     "language",
+     "script",
+     "branch_id",
+     "privacy_level",
+     "author_name",
+     "updated_at",
+     "body",
+     "revision",
+     "review_state",
+     "created_at",
+     "created_by"
+    ],
+    "title": "TraditionOut"
+   },
+   "TraditionRevisionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "op": {
+      "type": "string",
+      "title": "Op"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "actor_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Actor Name"
+     },
+     "reviewer_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reviewer Name"
+     },
+     "proposal_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proposal Id"
+     },
+     "changed": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Changed"
+     },
+     "before": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Before"
+     },
+     "after": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "After"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "revision",
+     "op",
+     "created_at",
+     "actor_name",
+     "reviewer_name",
+     "proposal_id",
+     "changed",
+     "before",
+     "after"
+    ],
+    "title": "TraditionRevisionOut"
+   },
+   "TraditionSummaryOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/TraditionKind"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "excerpt": {
+      "type": "string",
+      "title": "Excerpt"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "script": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Script"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/PrivacyLevel"
+     },
+     "author_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Author Name"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "kind",
+     "title",
+     "excerpt",
+     "language",
+     "script",
+     "branch_id",
+     "privacy_level",
+     "author_name",
+     "updated_at"
+    ],
+    "title": "TraditionSummaryOut"
+   },
+   "TraditionsOut": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/TraditionSummaryOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "TraditionsOut"
    },
    "TransferOut": {
     "properties": {
@@ -34862,6 +36835,28 @@
       "$ref": "#/components/schemas/ReviewPolicy",
       "default": "off"
      },
+     "kinship_lang": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Lang"
+     },
+     "kinship_region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Region"
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -35007,6 +37002,30 @@
         "type": "null"
        }
       ]
+     },
+     "kinship_lang": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Lang"
+     },
+     "kinship_region": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^[a-z_]{1,40}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Region"
      }
     },
     "type": "object",
@@ -35164,6 +37183,28 @@
      "preferred_language": {
       "type": "string",
       "title": "Preferred Language"
+     },
+     "kinship_lang": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Lang"
+     },
+     "kinship_region": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Kinship Region"
      },
      "created_at": {
       "type": "string",
@@ -35758,6 +37799,27 @@
        }
       ],
       "title": "Id"
+     },
+     "offer_status": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/OfferStatus"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "promoted_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Promoted Code"
      }
     },
     "type": "object",

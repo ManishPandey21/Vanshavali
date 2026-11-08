@@ -20,7 +20,6 @@ function Harness({ onChange, vocabulary = "gotra", linkable }: { onChange: (t: s
       label="Gotra"
       text={text}
       linkable={linkable}
-      fallback={["Kashyapa"]}
       onChange={(t, r) => {
         setText(t);
         onChange(t, r);
@@ -79,9 +78,10 @@ describe("SmartSelect", () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Not found" } }, 404))));
     const onChange = vi.fn();
     renderWithProviders(<Harness onChange={onChange} />);
-    // once the 404 arrives: a plain input with the static fallback list, not the ARIA combobox
-    await waitFor(() => expect(document.querySelector("datalist option[value='Kashyapa']")).not.toBeNull());
+    // once the 404 arrives: a plain input, not the ARIA combobox, and no static list (ADR-0026 §8)
+    await waitFor(() => expect(screen.queryByRole("combobox", { name: "Gotra" })).toBeNull());
     expect(screen.getByLabelText("Gotra")).not.toHaveAttribute("aria-controls");
+    expect(document.querySelector("datalist")).toBeNull();
     await userEvent.type(screen.getByLabelText("Gotra"), "Atri");
     expect(onChange).toHaveBeenLastCalledWith("Atri", null);
   });

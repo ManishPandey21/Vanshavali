@@ -162,6 +162,7 @@ export function NameFields({
           {(p) => <TextInput {...p} lang="en" value={value.romanized_value ?? ""} onChange={(e) => set({ romanized_value: e.target.value })} />}
         </Field>
       </div>
+      {value.type === "historical" && <NameYears value={value} onChange={(date_range) => set({ date_range })} />}
       {onAddName && !value.suggestion && <TransliterationSuggestion name={value} onAdd={onAddName} />}
       {value.suggestion && <p className="mt-2 text-xs text-ink-muted">{t("translit.suggestedConfirmed")}</p>}
       <button type="button" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-kumkum-800" aria-expanded={more} onClick={() => setMore(!more)}>
@@ -204,6 +205,39 @@ export function NameFields({
           {error}
         </p>
       )}
+    </div>
+  );
+}
+
+type YearRange = NonNullable<NameDraft["date_range"]>;
+
+const yearOf = (d: unknown): string => {
+  const y = d && typeof d === "object" && "year" in d ? (d as { year?: number | null }).year : null;
+  return y ? String(y) : "";
+};
+
+/**
+ * When a former surname was used ("Sharma until 1950, then Upadhyay"), as years (ADR-0026 §2).
+ * Shown on the profile as a timeline of names.
+ */
+function NameYears({ value, onChange }: { value: NameDraft; onChange: (r: YearRange | null) => void }) {
+  const { t } = useTranslation();
+  const range = (value.date_range ?? {}) as Record<string, unknown>;
+  const set = (key: "from" | "to", year: string) => {
+    const next: Record<string, unknown> = { ...range };
+    const y = Number.parseInt(year, 10);
+    if (year && Number.isFinite(y) && y > 0) next[key] = { precision: "year_only", year: y };
+    else delete next[key];
+    onChange(Object.keys(next).length ? (next as YearRange) : null);
+  };
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-sm">
+      <Field label={t("names.usedFrom")}>
+        {(p) => <TextInput {...p} inputMode="numeric" pattern="[0-9]*" maxLength={4} value={yearOf(range.from)} onChange={(e) => set("from", e.target.value.replace(/\D/g, ""))} />}
+      </Field>
+      <Field label={t("names.usedUntil")}>
+        {(p) => <TextInput {...p} inputMode="numeric" pattern="[0-9]*" maxLength={4} value={yearOf(range.to)} onChange={(e) => set("to", e.target.value.replace(/\D/g, ""))} />}
+      </Field>
     </div>
   );
 }

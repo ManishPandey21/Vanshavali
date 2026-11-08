@@ -29,6 +29,7 @@ from app.models.enums import (
     SexAtBirth,
 )
 from app.modules.geo.schemas import PlaceLgdNote
+from app.modules.kinship.schemas import KinshipTermOut
 
 
 class ProvenanceOut(ApiModel):
@@ -648,3 +649,7 @@ class RelationshipPathOut(ApiModel):
     lineages: list[Lineage] = []
     explanation: str | None = None
     age_orders: list[AgeOrderOut] = []
+    # the reader's relationship word in their chosen language and region (ADR-0026 §6)
+    terms: list[KinshipTermOut] = []
+    # the age order an age-dependent word depends on (asked once, in any language), if any
+    age_decision: AgeOrderOut | None = None

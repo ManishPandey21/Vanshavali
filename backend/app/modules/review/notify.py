@@ -21,10 +21,11 @@ from app.models import (
     ChangeProposal,
     ChangeProposalItem,
     TreeMembership,
+    TreeVocabularyTerm,
     User,
     UserNotification,
 )
-from app.models.enums import NotificationKind, Role
+from app.models.enums import NotificationKind, ReviewTarget, Role
 from app.modules.genealogy import lookup
 
 TEXT = {
@@ -36,6 +37,8 @@ TEXT = {
     NotificationKind.CHALLENGE_UPHELD: "Your challenge about {person} was upheld.",
     NotificationKind.CHALLENGE_DISMISSED: "Your challenge about {person} was dismissed.",
     NotificationKind.PROPOSAL_COMMENT: "{actor} commented on a proposed change to {person}.",
+    NotificationKind.OFFER_ACCEPTED: "Your family's entry “{label}” was added to the common suggestions.",
+    NotificationKind.OFFER_DECLINED: "Your family's entry “{label}” was not added to the common suggestions.",
 }
 
 
@@ -88,16 +91,26 @@ def _text(
     proposals: dict[uuid.UUID, ChangeProposal],
     counts: dict[uuid.UUID, int],
     names: dict[uuid.UUID, str],
+    family_records: dict[uuid.UUID, str],
 ) -> str:
     p = proposals.get(n.proposal_id) if n.proposal_id else None
     person = "someone in the tree"
+    if p is not None and p.person_id is None and p.id in family_records:
+        person = family_records[p.id]
     if p is not None and p.person_id is not None:
         visible = lookup.visible_subjects(ctx, [p.person_id])
         if p.person_id in visible:
             person = visible[p.person_id].person.preferred_display_name or person
     actor = names.get(n.actor_id, "A family member") if n.actor_id else "A family member"
+    label = "an entry"
+    if n.subject_id is not None and n.kind in (
+        NotificationKind.OFFER_ACCEPTED,
+        NotificationKind.OFFER_DECLINED,
+    ):
+        term = ctx.db.get(TreeVocabularyTerm, n.subject_id)
+        label = term.label if term is not None and term.tree_id == ctx.tree_id else label
     return TEXT[n.kind].format(
-        actor=actor, person=person, n=counts.get(n.proposal_id, 1) if n.proposal_id else 1
+        actor=actor, person=person, label=label, n=counts.get(n.proposal_id, 1) if n.proposal_id else 1
     )
 
 
@@ -140,6 +153,18 @@ def list_for(ctx: TreeContext, offset: int, limit: int) -> tuple[list[dict[str, 
         if pids
         else {}
     )
+    # proposals about the family as a whole (a tradition, the family's words), ADR-0026
+    family_records: dict[uuid.UUID, str] = {}
+    if pids:
+        for pid, t in ctx.db.execute(
+            select(ChangeProposalItem.proposal_id, ChangeProposalItem.target_type).where(
+                ChangeProposalItem.proposal_id.in_(pids),
+                ChangeProposalItem.target_type.in_([ReviewTarget.TRADITION, ReviewTarget.KINSHIP_WORD]),
+            )
+        ).all():
+            family_records[pid] = (
+                "a family tradition" if t == ReviewTarget.TRADITION else "the family's relationship words"
+            )
     actors = {n.actor_id for n in page if n.actor_id}
     names = (
         dict(
@@ -157,7 +182,7 @@ def list_for(ctx: TreeContext, offset: int, limit: int) -> tuple[list[dict[str, 
             "id": n.id,
             "kind": n.kind,
             "proposal_id": n.proposal_id,
-            "text": _text(ctx, n, proposals, counts, names),
+            "text": _text(ctx, n, proposals, counts, names, family_records),
             "created_at": n.created_at,
             "read": n.read_at is not None,
         }

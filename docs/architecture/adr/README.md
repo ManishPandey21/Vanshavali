@@ -29,3 +29,4 @@ into 0003, 0009 and 0010.
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |
 | 0021 | [Change proposals, family review and duplicates at entry](0021-change-proposals-family-review.md) | Accepted |
 | 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |
+| 0026 | [Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions](0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md) | Accepted |

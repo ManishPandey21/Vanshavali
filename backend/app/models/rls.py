@@ -46,6 +46,7 @@ RLS_TABLES: tuple[str, ...] = (
     "household",
     "household_membership",
     "import_job",
+    "kinship_override",
     "land_parcel",
     "merge_record",
     "name_record",
@@ -66,6 +67,8 @@ RLS_TABLES: tuple[str, ...] = (
     "render_artifact",
     "render_job",
     "source",
+    "tradition_entry",
+    "tradition_link",
     "tree_vocabulary_term",
     "user_notification",
 )

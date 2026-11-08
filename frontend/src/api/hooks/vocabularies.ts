@@ -26,3 +26,14 @@ export function useAddVocabularyTerm(treeId: string, key: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tree", treeId, "vocabulary", key] }),
   });
 }
+
+/** Pravaras linked to a gotra by a reviewed, sourced link only (ADR-0026 §3). */
+export function usePravaraSuggestions(gotraCode: string | null, lang: string) {
+  return useQuery({
+    queryKey: ["vocabulary", "pravara", "reviewed", gotraCode, lang],
+    queryFn: () => api.get<VocabularyTerms>("/vocabularies/pravara", { parent: gotraCode!, reviewed_only: true, lang }),
+    enabled: !!gotraCode,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}

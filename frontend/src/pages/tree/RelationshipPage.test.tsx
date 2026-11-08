@@ -16,8 +16,16 @@ function server(order: "elder" | "younger" | "unknown", basis = order === "unkno
     const u = String(url);
     if (init?.method === "POST") return Promise.resolve(jsonResponse({ id: "rec", elder_person_id: "uncle", younger_person_id: "father" }, 201));
     if (u.includes("/relationship-path")) {
+      const age = { chain_index: 1, person_id: "uncle", relative_to_id: "father", order, basis, record_id: null, dates_disagree: false };
+      // the server picks the word (ADR-0026 §6); here only for a Hindi reader
+      const word = { elder: ["ताऊ", "tau"], younger: ["चाचा", "chacha"], unknown: ["चाचा / ताऊ", "chacha / tau"] }[order];
+      const terms = u.includes("lang=hi")
+        ? [{ pack: "kinship-hi-north", lang: "hi", region: "north", term: word[0], transliteration: word[1], alternatives: [], basis, review_status: "unreviewed", family_word: false, pack_term: null, description: null }]
+        : [];
       return Promise.resolve(
         jsonResponse({
+          terms,
+          age_decision: age,
           from_id: "me",
           to_id: "uncle",
           found: true,
@@ -26,7 +34,7 @@ function server(order: "elder" | "younger" | "unknown", basis = order === "unkno
           path: ["me", "father", "uncle"],
           common_ancestor_ids: [],
           lineages: [],
-          age_orders: [{ chain_index: 1, person_id: "uncle", relative_to_id: "father", order, basis, record_id: null, dates_disagree: false }],
+          age_orders: [age],
         }),
       );
     }
@@ -45,7 +53,27 @@ describe("RelationshipPage: age-aware terms", () => {
     expect(screen.getByText("पिता के बड़े भाई", { exact: false })).toBeInTheDocument();
     expect(screen.getByText(/परिवार ने पुष्टि की है/)).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: /बड़े हैं या छोटे/ })).not.toBeInTheDocument();
+    // a pack word not yet reviewed by a native speaker says so
+    expect(screen.getByText("tau")).toBeInTheDocument();
     await i18n.changeLanguage("en");
+  });
+
+  it("shows a family's own word first, with the pack's word beside it", async () => {
+    await i18n.changeLanguage("en");
+    const base = server("elder");
+    vi.stubGlobal("fetch", (url: RequestInfo | URL, init?: RequestInit) => {
+      if (String(url).includes("/relationship-path"))
+        return base(url, init).then(async (r: Response) => {
+          const body = await r.json();
+          body.terms = [{ pack: "kinship-hi-north", lang: "hi", region: "north", term: "बड़े बाबूजी", transliteration: null, alternatives: [], basis: "family_confirmed", review_status: "family", family_word: true, pack_term: "ताऊ", description: null }];
+          return jsonResponse(body);
+        });
+      return base(url, init);
+    });
+    renderWithProviders(<RelationshipPage />, { route: "/?from=me&to=uncle" });
+    expect(await screen.findByText("बड़े बाबूजी")).toBeInTheDocument();
+    expect(screen.getByText("Your family's word")).toBeInTheDocument();
+    expect(screen.getByText("ताऊ")).toBeInTheDocument();
   });
 
   it("asks an editor whether the uncle is older or younger than the father, and records the answer", async () => {

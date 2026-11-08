@@ -1,7 +1,7 @@
 """Revision counters and value history for every write path (ADR-0021 §3).
 
 One ``before_flush`` hook on every session sees every insert, update and delete of the five
-reviewable record types, whichever code path made it: the direct endpoints, Smart Add, GEDCOM
+reviewable record types (and traditions and family words, ADR-0026), whichever code path made it: the direct endpoints, Smart Add, GEDCOM
 import, merge, an applied proposal. For each record whose *facts* changed it:
 
 * increments ``revision`` (a create starts at 1);
@@ -29,7 +29,17 @@ from sqlalchemy import event, inspect, select
 from sqlalchemy.orm import Session
 
 from app.core.ids import uuid7
-from app.models import Assertion, Event, EventParticipant, NameRecord, Person, RecordRevision, Relationship
+from app.models import (
+    Assertion,
+    Event,
+    EventParticipant,
+    KinshipOverride,
+    NameRecord,
+    Person,
+    RecordRevision,
+    Relationship,
+    TraditionEntry,
+)
 from app.models.enums import ParticipantRole, ProposalOp, ReviewState, ReviewTarget
 
 TRACKED: dict[type, ReviewTarget] = {
@@ -38,6 +48,9 @@ TRACKED: dict[type, ReviewTarget] = {
     Event: ReviewTarget.EVENT,
     Relationship: ReviewTarget.RELATIONSHIP,
     Assertion: ReviewTarget.ASSERTION,
+    # ADR-0026: not about one person; their history is read from the record itself
+    TraditionEntry: ReviewTarget.TRADITION,
+    KinshipOverride: ReviewTarget.KINSHIP_WORD,
 }
 MODEL_FOR: dict[ReviewTarget, type] = {v: k for k, v in TRACKED.items()}
 

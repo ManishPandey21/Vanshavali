@@ -1,0 +1,322 @@
+{
+  "key": "pravara",
+  "version": 1,
+  "description": "Pravara (the rishis a family invokes), each linked to the gotra it is often associated with. Traditions differ: a pravara is never filled in from a gotra, and a gotra is never inferred from a pravara.",
+  "source": "Draft seed list compiled for Vanshavali (2026-11) from commonly repeated associations; not authoritative. Every gotra link stays draft, and is not suggested from a gotra, until a cited source (text, edition, page) and a reviewer are recorded here by code review (ADR-0026 §3).",
+  "licence": "CC0-1.0 (project data)",
+  "allows_custom": true,
+  "terms": [
+    {
+      "code": "kashyapa_avatsara_naidhruva",
+      "labels": {
+        "en": "Kashyapa, Avatsara, Naidhruva",
+        "hi": "काश्यप, आवत्सार, नैध्रुव"
+      },
+      "aliases": [
+        "Kashyapa Avatsara Naidhruva"
+      ],
+      "parent": "kashyapa",
+      "attributes": {
+        "rishis": [
+          "Kashyapa",
+          "Avatsara",
+          "Naidhruva"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "angirasa_barhaspatya_bharadvaja",
+      "labels": {
+        "en": "Angirasa, Barhaspatya, Bharadvaja",
+        "hi": "आंगिरस, बार्हस्पत्य, भारद्वाज"
+      },
+      "aliases": [
+        "Angirasa Barhaspatya Bharadvaja"
+      ],
+      "parent": "bharadwaja",
+      "attributes": {
+        "rishis": [
+          "Angirasa",
+          "Barhaspatya",
+          "Bharadvaja"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "vasishtha_indrapramada_abharadvasava",
+      "labels": {
+        "en": "Vasishtha, Indrapramada, Abharadvasava",
+        "hi": "वासिष्ठ, ऐन्द्रप्रमद, आभरद्वसव"
+      },
+      "aliases": [
+        "Vasishtha Indrapramada Abharadvasava"
+      ],
+      "parent": "vashishtha",
+      "attributes": {
+        "rishis": [
+          "Vasishtha",
+          "Indrapramada",
+          "Abharadvasava"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "atreya_archananasa_shyavashva",
+      "labels": {
+        "en": "Atreya, Archananasa, Shyavashva",
+        "hi": "आत्रेय, आर्चनानस, श्यावाश्व"
+      },
+      "aliases": [
+        "Atreya Archananasa Shyavashva"
+      ],
+      "parent": "atri",
+      "attributes": {
+        "rishis": [
+          "Atreya",
+          "Archananasa",
+          "Shyavashva"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "angirasa_ayasya_gautama",
+      "labels": {
+        "en": "Angirasa, Ayasya, Gautama",
+        "hi": "आंगिरस, आयास्य, गौतम"
+      },
+      "aliases": [
+        "Angirasa Ayasya Gautama"
+      ],
+      "parent": "gautama",
+      "attributes": {
+        "rishis": [
+          "Angirasa",
+          "Ayasya",
+          "Gautama"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "bhargava_chyavana_apnavana_aurva_jamadagnya",
+      "labels": {
+        "en": "Bhargava, Chyavana, Apnavana, Aurva, Jamadagnya",
+        "hi": "भार्गव, च्यावन, आप्नवान, और्व, जामदग्न्य"
+      },
+      "aliases": [
+        "Bhargava Chyavana Apnavana Aurva Jamadagnya"
+      ],
+      "parent": "jamadagni",
+      "attributes": {
+        "rishis": [
+          "Bhargava",
+          "Chyavana",
+          "Apnavana",
+          "Aurva",
+          "Jamadagnya"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "vaishvamitra_devarata_audala",
+      "labels": {
+        "en": "Vaishvamitra, Devarata, Audala",
+        "hi": "वैश्वामित्र, देवरात, औदल"
+      },
+      "aliases": [
+        "Vaishvamitra Devarata Audala"
+      ],
+      "parent": "vishvamitra",
+      "attributes": {
+        "rishis": [
+          "Vaishvamitra",
+          "Devarata",
+          "Audala"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "kashyapa_avatsara_shandilya",
+      "labels": {
+        "en": "Kashyapa, Avatsara, Shandilya",
+        "hi": "काश्यप, आवत्सार, शाण्डिल्य"
+      },
+      "aliases": [
+        "Kashyapa Avatsara Shandilya"
+      ],
+      "parent": "shandilya",
+      "attributes": {
+        "rishis": [
+          "Kashyapa",
+          "Avatsara",
+          "Shandilya"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "shandilya_asita_devala",
+      "labels": {
+        "en": "Shandilya, Asita, Devala",
+        "hi": "शाण्डिल्य, असित, देवल"
+      },
+      "aliases": [
+        "Shandilya Asita Devala"
+      ],
+      "parent": "shandilya",
+      "attributes": {
+        "rishis": [
+          "Shandilya",
+          "Asita",
+          "Devala"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "vasishtha_shaktya_parasharya",
+      "labels": {
+        "en": "Vasishtha, Shaktya, Parasharya",
+        "hi": "वासिष्ठ, शाक्त्य, पाराशर्य"
+      },
+      "aliases": [
+        "Vasishtha Shaktya Parasharya"
+      ],
+      "parent": "parashara",
+      "attributes": {
+        "rishis": [
+          "Vasishtha",
+          "Shaktya",
+          "Parasharya"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "vasishtha_maitravaruna_kaundinya",
+      "labels": {
+        "en": "Vasishtha, Maitravaruna, Kaundinya",
+        "hi": "वासिष्ठ, मैत्रावरुण, कौण्डिन्य"
+      },
+      "aliases": [
+        "Vasishtha Maitravaruna Kaundinya"
+      ],
+      "parent": "kaundinya",
+      "attributes": {
+        "rishis": [
+          "Vasishtha",
+          "Maitravaruna",
+          "Kaundinya"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "angirasa_barhaspatya_bharadvaja_shainya_gargya",
+      "labels": {
+        "en": "Angirasa, Barhaspatya, Bharadvaja, Shainya, Gargya",
+        "hi": "आंगिरस, बार्हस्पत्य, भारद्वाज, शैन्य, गार्ग्य"
+      },
+      "aliases": [
+        "Angirasa Barhaspatya Bharadvaja Shainya Gargya"
+      ],
+      "parent": "garga",
+      "attributes": {
+        "rishis": [
+          "Angirasa",
+          "Barhaspatya",
+          "Bharadvaja",
+          "Shainya",
+          "Gargya"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "vaishvamitra_aghamarshana_kaushika",
+      "labels": {
+        "en": "Vaishvamitra, Aghamarshana, Kaushika",
+        "hi": "वैश्वामित्र, आघमर्षण, कौशिक"
+      },
+      "aliases": [
+        "Vaishvamitra Aghamarshana Kaushika"
+      ],
+      "parent": "kaushika",
+      "attributes": {
+        "rishis": [
+          "Vaishvamitra",
+          "Aghamarshana",
+          "Kaushika"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    },
+    {
+      "code": "agastya_dardhachyuta_idhmavaha",
+      "labels": {
+        "en": "Agastya, Dardhachyuta, Idhmavaha",
+        "hi": "आगस्त्य, दार्ढच्युत, इध्मवाह"
+      },
+      "aliases": [
+        "Agastya Dardhachyuta Idhmavaha"
+      ],
+      "parent": "agastya",
+      "attributes": {
+        "rishis": [
+          "Agastya",
+          "Dardhachyuta",
+          "Idhmavaha"
+        ],
+        "source": null,
+        "reviewer": null,
+        "tradition": null
+      },
+      "status": "draft"
+    }
+  ]
+}

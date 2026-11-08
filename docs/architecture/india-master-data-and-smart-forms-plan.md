@@ -140,6 +140,8 @@ scope (principle 3).
      are shown as-is (no rewrite of stored data).
   3. When every consumer is switched and a release has passed, delete `src/data/masterData/*` and
      update CLAUDE.md. Rollback = turn the flag off; tree-custom terms are kept.
+     *Done in R4 (ADR-0026 §8): the static lists are gone, the fields are plain text when the
+     service is off; nakshatras and rashis moved to `src/lib/astrology/` as fixed lists.*
 - **Frontend.** `useVocabulary(key)` and one accessible `SmartSelect` combobox (search label or
   alias in any script; groups "Suggested / Your family / Other"; Unknown / Not applicable / Add my
   own only where the vocabulary allows them).
@@ -260,7 +262,7 @@ valid), native Hindi review of new strings, and the elder-friendly UX review in 
 - Challenge a fact → contested proposal. Per-person version history from the audit log, with revert.
 - In-app notification centre.
 
-### Phase G: Gotra/Pravara/Kuladevata and family traditions
+### Phase G: Gotra/Pravara/Kuladevata and family traditions — [ADR-0026](adr/0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md)
 
 - Heritage attributes `devak`, `ancestral_occupation`, `surname_history` (or historical
   `name_record`s with a period), multi-valued `family_language`.

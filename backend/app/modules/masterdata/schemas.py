@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 from typing import Any, Literal
 
 from pydantic import Field, field_validator
 
 from app.api.schemas import ApiModel
-from app.models.enums import VocabularyTermStatus
+from app.models.enums import OfferStatus, VocabularyTermStatus
 
 
 class VocabularyOut(ApiModel):
@@ -31,6 +32,9 @@ class VocabularyTermOut(ApiModel):
     origin: Literal["global", "family"] = "global"
     # family entries only: the tree-scoped row (for future edit/remove)
     id: uuid.UUID | None = None
+    # family entries only (ADR-0026 §4): offered to the common lists, and the global code it became
+    offer_status: OfferStatus | None = None
+    promoted_code: str | None = None
 
 
 class VocabularyTermsOut(ApiModel):
@@ -61,3 +65,33 @@ class TreeTermOut(ApiModel):
     term: VocabularyTermOut
     # false when the label matched an existing entry, which is returned instead of a duplicate
     created: bool
+
+
+def _clean(v: str | None) -> str | None:
+    if v is None:
+        return None
+    v = " ".join(v.split())
+    return v or None
+
+
+class OfferIn(ApiModel):
+    note: str | None = Field(default=None, max_length=500)
+    temple: str | None = Field(default=None, max_length=200)  # a well-known temple name, as text
+
+    @field_validator("note", "temple")
+    @classmethod
+    def _strip(cls, v: str | None) -> str | None:
+        return _clean(v)
+
+
+class OfferOut(ApiModel):
+    id: uuid.UUID
+    vocabulary_key: str
+    code: str
+    label: str
+    aliases: list[str] = []
+    offer_status: OfferStatus
+    offered_at: dt.datetime | None = None
+    offer_note: str | None = None
+    offer_temple: str | None = None
+    promoted_code: str | None = None

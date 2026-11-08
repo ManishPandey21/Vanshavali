@@ -55,9 +55,13 @@ from app.modules.genealogy.schemas import (
 )
 from app.modules.heritage import service as heritage
 from app.modules.heritage.schemas import AssertionIn, AssertionUpdate
+from app.modules.kinship import service as kinship
+from app.modules.kinship.schemas import KinshipOverrideIn
 from app.modules.review import notify, policy, redaction
 from app.modules.review.revisions import MODEL_FOR, applying
 from app.modules.review.schemas import ChallengeIn, ProposalIn, ProposalItemIn
+from app.modules.traditions import service as traditions
+from app.modules.traditions.schemas import TraditionEntryUpdate
 
 PROPOSALS_PER_MINUTE = 20
 MAX_OPEN_CHALLENGES = 20
@@ -79,7 +83,14 @@ SCHEMAS: dict[tuple[ReviewTarget, ProposalOp], type[BaseModel] | None] = {
     (ReviewTarget.ASSERTION, ProposalOp.CREATE): AssertionIn,
     (ReviewTarget.ASSERTION, ProposalOp.UPDATE): AssertionUpdate,
     (ReviewTarget.ASSERTION, ProposalOp.DELETE): None,
+    # ADR-0026: editing someone else's tradition; setting or removing a family word. Adding a
+    # tradition never needs review.
+    (ReviewTarget.TRADITION, ProposalOp.UPDATE): TraditionEntryUpdate,
+    (ReviewTarget.KINSHIP_WORD, ProposalOp.CREATE): KinshipOverrideIn,
+    (ReviewTarget.KINSHIP_WORD, ProposalOp.DELETE): None,
 }
+# records that belong to the family as a whole, not to a person
+FAMILY_TARGETS = frozenset({ReviewTarget.TRADITION, ReviewTarget.KINSHIP_WORD})
 
 
 def _now() -> dt.datetime:
@@ -128,6 +139,16 @@ def resolve_item(ctx: TreeContext, item: ProposalItemIn) -> Resolved:
     body = _parse(t, op, item.patch)
     if op != ProposalOp.CREATE and item.target_id is None:
         raise Unprocessable("target_id is required to change or delete a record")
+    if t == ReviewTarget.TRADITION:
+        entry = traditions.get_entry(ctx, _need(item.target_id))
+        ctx.require(Permission.FAMILY_WRITE)
+        return Resolved([], {_key(t, entry.id): entry.revision}, body, entry)
+    if t == ReviewTarget.KINSHIP_WORD:
+        ctx.require(Permission.FAMILY_WRITE)
+        if op == ProposalOp.CREATE:
+            return Resolved([], {}, body, None)
+        word = kinship.get_override(ctx, _need(item.target_id))
+        return Resolved([], {_key(t, word.id): word.revision}, body, word)
     if t == ReviewTarget.PERSON:
         p = lookup.get_person(ctx, item.target_id)  # type: ignore[arg-type]
         ctx.require(Permission.PERSON_WRITE, person_id=p.id)
@@ -303,6 +324,10 @@ def create_challenge(ctx: TreeContext, body: ChallengeIn) -> ChangeProposal:
 
 def target_record(ctx: TreeContext, t: ReviewTarget, rid: uuid.UUID) -> tuple[Any, list[uuid.UUID]]:
     """A reviewable record the reader can see, and the people it belongs to."""
+    if t == ReviewTarget.TRADITION:
+        return traditions.get_entry(ctx, rid), []
+    if t == ReviewTarget.KINSHIP_WORD:
+        return kinship.get_override(ctx, rid), []
     if t == ReviewTarget.PERSON:
         p = lookup.get_person(ctx, rid)
         return p, [p.id]
@@ -470,6 +495,13 @@ def _apply_one(pctx: TreeContext, item: ChangeProposalItem) -> Any:
     """Run the direct service for one item, as the proposer (whose rights the service checks)."""
     body: Any = _parse(item.target_type, item.op, item.patch)
     t, op = item.target_type, item.op
+    if t == ReviewTarget.TRADITION:
+        return traditions.update_entry(pctx, _need(item.target_id), body)
+    if t == ReviewTarget.KINSHIP_WORD:
+        if op == ProposalOp.CREATE:
+            return kinship.put_override(pctx, body)
+        kinship.delete_override(pctx, _need(item.target_id))
+        return None
     if op == ProposalOp.CREATE:
         if t == ReviewTarget.NAME:
             return genealogy.add_name(pctx, _need(item.person_id), body)

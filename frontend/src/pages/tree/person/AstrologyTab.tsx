@@ -6,8 +6,8 @@ import { useAstrology, useBirthConflicts, useDeleteAstrology, useSaveAstrology }
 import { useTreeCtx } from "../../../lib/tree-context";
 import { Perm } from "../../../lib/permissions";
 import { emptyDate, normalizeDate, validateDate, validateTime } from "../../../lib/dates";
-import { nakshatras } from "../../../data/masterData/nakshatras";
-import { rashis } from "../../../data/masterData/rashis";
+import { nakshatras } from "../../../lib/astrology/nakshatras";
+import { rashis } from "../../../lib/astrology/rashis";
 import { DateText, TimeText } from "../../../components/dates/DateText";
 import { GenealogicalDateEditor } from "../../../components/dates/GenealogicalDateEditor";
 import { TimeEditor, TimezoneSelect } from "../../../components/dates/TimeEditor";

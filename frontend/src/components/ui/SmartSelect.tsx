@@ -1,4 +1,4 @@
-import { useContext, useId, useMemo, type ReactNode } from "react";
+import { useContext, useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link2, Plus } from "lucide-react";
 import type { VocabularyTerm } from "../../api/types";
@@ -24,7 +24,7 @@ const fold = (s: string) => s.normalize("NFKC").trim().toLocaleLowerCase();
  * Text field with suggestions from a master-data vocabulary (ADR-0018). The text is always the
  * value: suggestions only help typing, and "Add as our family's own" saves a family entry for
  * reuse. Nothing is ever filled in automatically. If the vocabulary service is unavailable, the
- * field becomes a plain text input (with optional static `fallback` suggestions).
+ * field becomes a plain text input: no static list is kept (ADR-0026 §8).
  */
 export function SmartSelect({
   vocabulary,
@@ -32,7 +32,6 @@ export function SmartSelect({
   hint,
   text,
   onChange,
-  fallback = [],
   lang,
   dir,
   linkable = true,
@@ -43,7 +42,6 @@ export function SmartSelect({
   text: string;
   /** `ref` is set when the text came from a list entry, and cleared as soon as the user types. */
   onChange: (text: string, ref: VocabRef | null) => void;
-  fallback?: string[];
   lang?: string;
   dir?: "rtl";
   /** false = suggestions only; the caller stores text and never a reference (e.g. occupation). */
@@ -56,7 +54,6 @@ export function SmartSelect({
   const q = useDebounced(text.trim(), 200);
   const terms = useVocabulary(treeId, vocabulary, q, uiLang);
   const add = useAddVocabularyTerm(treeId ?? "", vocabulary);
-  const listId = useId();
   // anything but a well-formed answer (switched off, offline, unexpected body) means: plain field
   const usable = !terms.isError && (terms.isPending || (Array.isArray(terms.data?.items) && !!terms.data?.vocabulary));
   const canAdd = !!treeId && !!tree?.can(Perm.PERSON_WRITE) && !!terms.data?.vocabulary?.allows_custom;
@@ -105,16 +102,7 @@ export function SmartSelect({
     return (
       <Field label={label} hint={hint}>
         {(p) => (
-          <>
-            <TextInput {...p} lang={lang} dir={dir} value={text} onChange={(e) => onChange(e.target.value, null)} list={fallback.length ? listId : undefined} />
-            {fallback.length > 0 && (
-              <datalist id={listId}>
-                {fallback.map((f) => (
-                  <option key={f} value={f} />
-                ))}
-              </datalist>
-            )}
-          </>
+          <TextInput {...p} lang={lang} dir={dir} value={text} onChange={(e) => onChange(e.target.value, null)} />
         )}
       </Field>
     );
