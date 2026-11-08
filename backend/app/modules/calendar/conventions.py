@@ -1,20 +1,27 @@
 """Calendar conventions, observance cities and the gate in front of every computed lunar date.
 
 A convention (ADR-0022 §3) is a code-reviewed setting: its month system, which civil day a tithi
-falls on for each kind of day, and how adhik months are handled. A convention is **offered** for
-conversion and lunar reminders only when all three hold (§8):
+falls on for each kind of day, and how adhik months are handled. Computed lunar dates (calendar
+entries, conversion suggestions, tithi reminders) are **offered** for a convention *at a city*
+only when every gate holds (ADR-0022 §8 and the owner decisions of 8 Nov 2026):
 
-1. ``VSH_LUNAR_CALENDAR_ENABLED`` is true (set only after the engine licence review is signed off);
+1. ``VSH_LUNAR_CALENDAR_ENABLED`` is true (the operator's switch);
 2. the engine's ephemeris is present and matches its checksum;
-3. the convention is marked ``golden_verified``, which the test suite allows only when its golden
-   panchang table (``golden/<key>.json``) exists and passes.
+3. a **licence sign-off** in ``data/approvals.json`` names a qualified reviewer and is bound to the
+   current engine (library versions) and ephemeris checksum;
+4. an **accuracy approval** for that convention and city names an independent panchang reviewer and
+   is bound to the engine, the ephemeris, the convention's definition and the golden table, by
+   their digests. Changing any of them makes the approval stale until it is revalidated;
+5. the **product owner's activation** for that convention and city.
 
-No convention is ever inferred from a surname, a place or a community.
+A golden table on its own enables nothing. No convention is ever inferred from a surname, a place
+or a community.
 """
 
 from __future__ import annotations
 
 import functools
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,9 +29,10 @@ from typing import Any, Literal
 
 from app.core.config import get_settings
 from app.core.lunar import MonthConvention
-from app.modules.calendar import engine
+from app.modules.calendar import engine, ephemeris
 
 DATA = Path(__file__).parent / "data"
+APPROVALS = DATA / "approvals.json"
 GOLDEN = Path(__file__).parent / "golden"
 DayRule = Literal["sunrise", "aparahna"]
 
@@ -37,7 +45,6 @@ class Convention:
     day_rule: dict[str, DayRule]
     adhik_rule: Literal["nija"]
     regions: tuple[str, ...]
-    golden_verified: bool
 
     def rule_for(self, kind: str) -> DayRule:
         return self.day_rule.get(kind) or self.day_rule["default"]
@@ -68,7 +75,6 @@ def all_conventions() -> dict[str, Convention]:
             day_rule=c["day_rule"],
             adhik_rule=c["adhik_rule"],
             regions=tuple(c["regions"]),
-            golden_verified=bool(c["golden_verified"]),
         )
     return out
 
@@ -88,19 +94,114 @@ def lunar_enabled() -> bool:
     return bool(get_settings().lunar_calendar_enabled)
 
 
-def offered(key: str | None) -> bool:
-    """Whether computed lunar dates may be shown for this convention now."""
-    c = all_conventions().get(key or "")
-    return bool(c and c.golden_verified and lunar_enabled() and engine.available())
+# ---------------------------------------------------------------- what an approval is bound to
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def convention_digest(key: str) -> str | None:
+    """The convention's rules (not its labels), so a rule change needs revalidation."""
+    raw = json.loads((DATA / "conventions.json").read_text(encoding="utf-8"))
+    entry = next((c for c in raw["conventions"] if c["key"] == key), None)
+    if entry is None:
+        return None
+    rules = {k: entry[k] for k in ("key", "month_convention", "day_rule", "adhik_rule")}
+    return _sha256(json.dumps(rules, sort_keys=True, separators=(",", ":")).encode())
+
+
+def golden_digest(key: str) -> str | None:
+    path = GOLDEN / f"{key}.json"
+    return _sha256(path.read_bytes()) if path.is_file() else None
+
+
+def identity(key: str) -> dict[str, str | None]:
+    """The values an accuracy approval for ``key`` must carry to be current."""
+    return {
+        "engine_version": engine.ENGINE_VERSION,
+        "ephemeris_sha256": ephemeris.SHA256,
+        "convention_sha256": convention_digest(key),
+        "golden_sha256": golden_digest(key),
+    }
+
+
+def approvals() -> dict[str, Any]:
+    if not APPROVALS.is_file():
+        return {"licence": None, "accuracy": [], "activation": []}
+    return dict(json.loads(APPROVALS.read_text(encoding="utf-8")))
+
+
+def _named(rec: dict[str, Any], *fields: str) -> bool:
+    return all(isinstance(rec.get(f), str) and rec[f].strip() for f in fields)
+
+
+def licence_problem() -> str | None:
+    """Why the licence gate is closed, or None when a current sign-off is recorded."""
+    rec = approvals().get("licence")
+    if not rec:
+        return "no licence sign-off recorded"
+    if not _named(rec, "reviewer", "role", "signed_on", "record"):
+        return "the licence sign-off does not name its reviewer, role, date and record"
+    if rec.get("engine_version") != engine.ENGINE_VERSION:
+        return f"the licence sign-off covers {rec.get('engine_version')}, not {engine.ENGINE_VERSION}"
+    if rec.get("ephemeris_sha256") != ephemeris.SHA256:
+        return "the licence sign-off covers a different ephemeris file"
+    return None
+
+
+def accuracy_problems(key: str, city: str) -> list[str]:
+    """Why no current accuracy approval covers ``key`` at ``city`` (empty when one does)."""
+    recs = [
+        a for a in approvals().get("accuracy") or [] if a.get("convention") == key and a.get("city") == city
+    ]
+    if not recs:
+        return [f"no accuracy approval for {key} at {city}"]
+    want = identity(key)
+    problems: list[str] = []
+    for rec in recs:
+        if not _named(rec, "prepared_by", "reviewer", "reviewed_on", "record"):
+            problems.append(
+                "an approval does not name who prepared it, its reviewer, the date and the record"
+            )
+            continue
+        if rec["prepared_by"].strip().casefold() == rec["reviewer"].strip().casefold():
+            problems.append("the reviewer must be independent of whoever prepared the table")
+            continue
+        stale = [k for k, v in want.items() if v is None or rec.get(k) != v]
+        if stale:
+            problems.append(f"stale approval ({', '.join(stale)} changed): revalidate")
+            continue
+        return []
+    return problems
+
+
+def activated(key: str, city: str) -> bool:
+    return any(
+        a.get("convention") == key and a.get("city") == city and _named(a, "approved_by", "approved_on")
+        for a in approvals().get("activation") or []
+    )
+
+
+def verified(key: str, city: str) -> bool:
+    return licence_problem() is None and not accuracy_problems(key, city)
+
+
+def offered(key: str | None, city: str | None) -> bool:
+    """Whether computed lunar dates may be shown for this convention at this city now."""
+    if not key or not city or key not in all_conventions() or city not in cities():
+        return False
+    return bool(lunar_enabled() and engine.available() and verified(key, city) and activated(key, city))
+
+
+def offered_cities(key: str) -> list[str]:
+    return [c for c in cities() if offered(key, c)]
 
 
 def status() -> dict[str, Any]:
-    """For the settings screen: what is and is not switched on, and why."""
+    """For operators: what is and is not switched on, and why."""
     return {
         "lunar_enabled": lunar_enabled(),
-        "engine_available": engine.available() if lunar_enabled() else None,
-        "conventions": {
-            k: {"golden_verified": c.golden_verified, "offered": offered(k)}
-            for k, c in all_conventions().items()
-        },
+        "engine_available": engine.available(),
+        "engine_version": engine.ENGINE_VERSION,
+        "licence": licence_problem() or "signed off",
+        "conventions": {k: {"offered_cities": offered_cities(k)} for k in all_conventions()},
     }

@@ -7,7 +7,6 @@ for the test only (no golden table ships, so nothing is offered in a real deploy
 
 from __future__ import annotations
 
-import dataclasses
 import datetime as dt
 import logging
 import os
@@ -18,7 +17,7 @@ from sqlalchemy import select
 
 from app.core.config import get_settings
 from app.models import AuditEvent, CalendarFeed
-from app.modules.calendar import conventions, engine
+from app.modules.calendar import conventions, engine, ephemeris
 from tests.conftest import new_tree, owner_session
 from tests.helpers import create_person
 
@@ -47,15 +46,50 @@ def window(client: Any, t: str, start: dt.date | None = None, end: dt.date | Non
 
 @pytest.fixture
 def lunar_on(monkeypatch):
-    """Switch tithi dates on for this test: engine present, flag on, purnimanta treated as verified."""
+    """Switch tithi dates on: engine present, flag on, purnimanta signed off at Varanasi and London."""
     if not engine.available():
         if os.environ.get("VSH_REQUIRE_EPHEMERIS"):
             pytest.fail("the ephemeris is required here")
         pytest.skip("ephemeris not installed")
     monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", True)
-    real = conventions.all_conventions()
-    verified = {k: dataclasses.replace(c, golden_verified=(k == "purnimanta")) for k, c in real.items()}
-    monkeypatch.setattr(conventions, "all_conventions", lambda: verified)
+    # purnimanta has no golden table yet: stand in a digest for one, and nothing else
+    real_digest = conventions.golden_digest
+    monkeypatch.setattr(
+        conventions, "golden_digest", lambda k: "test-table" if k == "purnimanta" else real_digest(k)
+    )
+    places = ("varanasi", "london")
+    signed = {"reviewed_on": "2026-11-08", "record": "test"}
+    data = {
+        "licence": {
+            "reviewer": "A licensing reviewer",
+            "role": "counsel",
+            "signed_on": "2026-11-08",
+            "record": "test",
+            "engine_version": engine.ENGINE_VERSION,
+            "ephemeris_sha256": ephemeris.SHA256,
+        },
+        "accuracy": [
+            {
+                "convention": "purnimanta",
+                "city": c,
+                **conventions.identity("purnimanta"),
+                "prepared_by": "A developer",
+                "reviewer": "An independent panchang reviewer",
+                **signed,
+            }
+            for c in places
+        ],
+        "activation": [
+            {
+                "convention": "purnimanta",
+                "city": c,
+                "approved_by": "Product owner",
+                "approved_on": "2026-11-08",
+            }
+            for c in places
+        ],
+    }
+    monkeypatch.setattr(conventions, "approvals", lambda: data)
 
 
 # ---------------------------------------------------------------- settings
@@ -256,6 +290,27 @@ def test_a_lunar_reminder_stops_when_the_convention_is_no_longer_offered(owner, 
     monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", False)
     got = owner.get(f"/trees/{t}/reminders").json()
     assert [(x["id"], x["deliverable"]) for x in got] == [(rem["id"], False)]
+
+
+def test_tithi_dates_are_offered_only_at_signed_off_cities(owner, tree, lunar_on):
+    """Approval is per convention and city (owner decision 3): Delhi is not signed off here."""
+    t = tree["id"]
+    owner.put(f"/trees/{t}/calendar-settings", json={"convention": "purnimanta", "observance_city": "delhi"})
+    settings = owner.get(f"/trees/{t}/calendar-settings").json()
+    purnimanta = next(c for c in settings["conventions"] if c["key"] == "purnimanta")
+    assert (purnimanta["offered"], purnimanta["golden_verified"]) == (False, False)
+    assert window(owner, t)["lunar_unavailable"] == "convention_not_offered"
+    r = owner.post(f"/trees/{t}/calendar/convert", json={"lunar": LUNAR | {"samvat": "vikram", "year": 2045}})
+    assert r.status_code == 422 and r.json()["error"]["code"] == "lunar_not_available"
+    p = create_person(owner, t, "Dadaji", death={"date": {"precision": "unknown", "lunar": LUNAR}})
+    eid = _death_event(owner, t, p["id"])
+    r = owner.post(f"/trees/{t}/reminders", json={"event_id": eid, "date_rule": "lunar"})
+    assert r.status_code == 422 and r.json()["error"]["code"] == "lunar_not_available"
+    # the same tithi at a signed-off city is offered
+    r = owner.post(
+        f"/trees/{t}/reminders", json={"event_id": eid, "date_rule": "lunar", "observance_city": "varanasi"}
+    )
+    assert r.status_code == 201, r.text
 
 
 # ---------------------------------------------------------------- the feed (T49)

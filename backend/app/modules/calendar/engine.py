@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import datetime as dt
 import functools
+import importlib.metadata
 import itertools
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -28,7 +29,22 @@ from zoneinfo import ZoneInfo
 from app.core.config import get_settings
 from app.modules.calendar import ephemeris
 
-ENGINE_VERSION = f"skyfield-1.55/{ephemeris.NAME}/lahiri-iau2006/1"
+
+def _dist_version(name: str) -> str:
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return "missing"
+
+
+# Everything an accuracy approval is bound to (ADR-0022, owner decisions of 8 Nov 2026): the
+# installed library versions, the ephemeris and the method. Upgrading any of them changes this
+# string, which makes every existing approval stale until the convention is revalidated.
+METHOD_VERSION = "lahiri-iau2006/1"
+ENGINE_VERSION = (
+    f"skyfield-{_dist_version('skyfield')}/jplephem-{_dist_version('jplephem')}"
+    f"/{ephemeris.NAME}/{METHOD_VERSION}"
+)
 _LAHIRI_J2000 = 23.857092  # degrees
 
 

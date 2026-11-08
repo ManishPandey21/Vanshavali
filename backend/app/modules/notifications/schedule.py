@@ -7,7 +7,8 @@
   recipient's IANA time zone (so DST zones are handled by ``zoneinfo``).
 * A lunar reminder (ADR-0022 §5) follows the event's tithi: its occurrences are the civil days the
   calendar engine finds under the reminder's convention at its observance city. It is annual only,
-  and only for a convention that is offered (licence review signed off, golden table passed).
+  and only for a convention offered at the observance city (licence signed off, accuracy approved
+  by an independent reviewer, activated by the product owner: see `calendar.conventions`).
 """
 
 from __future__ import annotations
@@ -110,13 +111,13 @@ def anchor_for(
         raise NotSchedulable("lunar_annual_only", "A tithi reminder repeats every year")
     if not convention:
         raise NotSchedulable("convention_required", "Choose the calendar convention the family follows")
-    if not conventions.offered(convention):
-        raise NotSchedulable(
-            "lunar_not_available",
-            "Tithi reminders are not available yet for this convention (ADR-0022 §8)",
-        )
     if not city or city not in conventions.cities():
         raise NotSchedulable("observance_place_required", "Choose the city where the day is observed")
+    if not conventions.offered(convention, city):
+        raise NotSchedulable(
+            "lunar_not_available",
+            "Tithi reminders are not available yet for this convention and city (ADR-0022 §8)",
+        )
     year = raw.get("year") if raw.get("calendar", "gregorian") == "gregorian" else None
     return LunarAnchor(LunarDate.model_validate(lunar), str(convention), city, kind, year)
 

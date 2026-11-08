@@ -1,12 +1,15 @@
 """Calendar engine, lunar dates, observance rules and the golden-table gate (ADR-0022 §1-§3, §8-§9).
 
-These tests check structure and rules. Accuracy against published panchangs is the golden tables'
-job (``app/modules/calendar/golden``); none ships yet, so no convention is offered.
+These tests check structure, rules and the gate. Accuracy against published panchangs is the
+golden tables' job (``app/modules/calendar/golden``), and offering a convention needs signed
+approvals in ``data/approvals.json``; none is recorded, so nothing is offered.
 """
 
 from __future__ import annotations
 
+import copy
 import datetime as dt
+import importlib.metadata
 import itertools
 import os
 from pathlib import Path
@@ -17,7 +20,7 @@ from pydantic import ValidationError
 from app.core.config import get_settings
 from app.core.dates import DatePrecision, GenealogicalDate
 from app.core.lunar import LunarDate, MonthConvention, Paksha, tithi_index, to_amanta_masa
-from app.modules.calendar import conventions, engine, ephemeris, golden_check, observance
+from app.modules.calendar import conventions, engine, ephemeris, golden_check, observance, transcribe_rp
 
 UTC = dt.UTC
 
@@ -96,23 +99,107 @@ def test_ephemeris_is_accepted_only_with_its_checksum(tmp_path):
         ephemeris.verify(tmp_path / "missing.bsp")
 
 
-# ---------------------------------------------------------------- the gate (§8)
-def test_nothing_is_offered_by_default_or_without_a_verified_convention(monkeypatch):
+# ---------------------------------------------------------------- the gate (§8, owner decisions)
+EVERY = [(k, c) for k in conventions.all_conventions() for c in conventions.cities()]
+
+
+def test_nothing_is_offered_by_default_or_without_signed_approvals(monkeypatch):
     assert get_settings().lunar_calendar_enabled is False
-    assert not any(conventions.offered(k) for k in conventions.all_conventions())
+    assert not any(conventions.offered(k, c) for k, c in EVERY)
     monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", True)
-    # switched on, but no convention has passed its golden table yet
-    assert not any(conventions.offered(k) for k in conventions.all_conventions())
-    assert conventions.offered("no_such_convention") is False
+    # switched on, but nothing is signed off: still nothing
+    assert not any(conventions.offered(k, c) for k, c in EVERY)
+    assert conventions.offered("no_such_convention", "delhi") is False
+    assert conventions.offered("amanta", None) is False
 
 
-def test_a_convention_is_verified_only_with_a_passing_golden_table():
-    for key, conv in conventions.all_conventions().items():
-        if conv.golden_verified:
-            table = conventions.golden_table(key)
-            assert table is not None, f"{key} is marked verified without a golden table"
-            report = golden_check.check(table)
-            assert report.passed, (key, report.coverage_gaps, report.mismatches[:5])
+def test_shipped_approvals_are_current_and_point_at_passing_tables():
+    """An approval in the repo must still match what it was given for, or the suite fails."""
+    recorded = conventions.approvals()
+    if recorded.get("licence"):
+        assert conventions.licence_problem() is None, conventions.licence_problem()
+    for rec in recorded.get("accuracy") or []:
+        key, city = rec["convention"], rec["city"]
+        assert not conventions.accuracy_problems(key, city), (
+            key,
+            city,
+            conventions.accuracy_problems(key, city),
+        )
+        report = golden_check.check(conventions.golden_table(key) or {}, key, city)
+        assert report.passed, (key, city, report.coverage_gaps, report.mismatches[:5])
+    for act in recorded.get("activation") or []:
+        assert conventions.verified(act["convention"], act["city"]), (
+            f"activated without a current sign-off: {act}"
+        )
+
+
+def _approve(monkeypatch, key: str = "amanta", city: str = "mumbai") -> dict:
+    data = {
+        "licence": {
+            "reviewer": "A licensing reviewer",
+            "role": "counsel",
+            "signed_on": "2026-11-08",
+            "record": "test",
+            "engine_version": engine.ENGINE_VERSION,
+            "ephemeris_sha256": ephemeris.SHA256,
+        },
+        "accuracy": [
+            {
+                "convention": key,
+                "city": city,
+                **conventions.identity(key),
+                "prepared_by": "A developer",
+                "reviewer": "An independent panchang reviewer",
+                "reviewed_on": "2026-11-08",
+                "record": "test",
+            }
+        ],
+        "activation": [
+            {"convention": key, "city": city, "approved_by": "Product owner", "approved_on": "2026-11-08"}
+        ],
+    }
+    monkeypatch.setattr(conventions, "approvals", lambda: data)
+    return data
+
+
+def test_every_gate_is_needed_and_approvals_are_bound_to_what_was_checked(monkeypatch, ready):
+    monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", True)
+    # a golden table on its own enables nothing
+    assert conventions.golden_table("amanta") is not None
+    assert not conventions.offered("amanta", "mumbai")
+    data = _approve(monkeypatch)
+    assert conventions.offered("amanta", "mumbai")
+    # only the approved convention at the approved city
+    assert not conventions.offered("amanta", "delhi") and not conventions.offered("purnimanta", "mumbai")
+    breakers = {
+        "no licence sign-off": lambda d: d.update(licence=None),
+        "licence for another engine": lambda d: d["licence"].update(engine_version="skyfield-0.1/x"),
+        "licence for another ephemeris": lambda d: d["licence"].update(ephemeris_sha256="0" * 64),
+        "no activation": lambda d: d.update(activation=[]),
+        "the table changed": lambda d: d["accuracy"][0].update(golden_sha256="0" * 64),
+        "the convention's rules changed": lambda d: d["accuracy"][0].update(convention_sha256="0" * 64),
+        "the engine changed": lambda d: d["accuracy"][0].update(engine_version="skyfield-0.1/x"),
+        "the ephemeris changed": lambda d: d["accuracy"][0].update(ephemeris_sha256="0" * 64),
+        "reviewer not independent": lambda d: d["accuracy"][0].update(reviewer="a developer"),
+        "no reviewer": lambda d: d["accuracy"][0].update(reviewer=""),
+    }
+    for why, breaks in breakers.items():
+        broken = copy.deepcopy(data)
+        breaks(broken)
+        monkeypatch.setattr(conventions, "approvals", lambda b=broken: b)
+        assert not conventions.offered("amanta", "mumbai"), why
+    monkeypatch.setattr(conventions, "approvals", lambda: data)
+    monkeypatch.setattr(get_settings(), "lunar_calendar_enabled", False)
+    assert not conventions.offered("amanta", "mumbai")
+
+
+def test_the_engine_version_names_what_an_approval_is_bound_to():
+    assert engine.ENGINE_VERSION.startswith(
+        f"skyfield-{importlib.metadata.version('skyfield')}/jplephem-{importlib.metadata.version('jplephem')}/de440s/"
+    )
+    ids = {k: conventions.identity(k) for k in conventions.all_conventions()}
+    assert ids["amanta"]["convention_sha256"] != ids["purnimanta"]["convention_sha256"]
+    assert ids["amanta"]["golden_sha256"] and ids["purnimanta"]["golden_sha256"] is None
 
 
 def test_conventions_and_cities_are_well_formed():
@@ -122,7 +209,7 @@ def test_conventions_and_cities_are_well_formed():
         assert c.rule_for("memorial") == "aparahna" and c.rule_for("birthday") == "sunrise"
         assert set(c.labels) >= {"en", "hi"}
     cs = conventions.cities()
-    assert set(cs) >= golden_check.REQUIRED_CITIES
+    assert set(cs) >= set(transcribe_rp.METROS)  # the Rashtriya Panchang publishes their sunrise
     for c in cs.values():
         assert -90 <= c.lat <= 90 and -180 <= c.lon <= 180
         dt.datetime.now(tz=__import__("zoneinfo").ZoneInfo(c.tz))
@@ -247,30 +334,62 @@ def test_overseas_days_are_computed_where_they_are_observed(ready):
 
 
 # ---------------------------------------------------------------- the golden checker itself
-def test_golden_checker_reports_gaps_and_mismatches(ready):
-    place = conventions.cities()["varanasi"].place()
-    day = dt.date(2026, 11, 8)
-    s = engine.day_summary(place, day)
-    paksha, tithi = (
-        ("shukla", s["tithi_at_sunrise"] + 1)
-        if s["tithi_at_sunrise"] < 15
-        else ("krishna", s["tithi_at_sunrise"] - 14)
-    )
-    good = {
-        "city": "varanasi",
-        "date": day.isoformat(),
-        "tithi_at_sunrise": {"paksha": paksha, "tithi": tithi},
+def _amanta() -> dict:
+    table = conventions.golden_table("amanta")
+    assert table is not None
+    return table
+
+
+def test_the_amanta_table_is_transcribed_from_the_rashtriya_panchang_not_generated():
+    t = _amanta()
+    src = t["sources"]["rashtriya-panchang-1948-online"]
+    assert src["publisher"].startswith("India Meteorological Department")
+    assert "NOT yet verified" in src["usage"]  # permission to reproduce is a human sign-off
+    assert {"kartika.html", "tables.html"} <= set(src["pages"])
+    assert all(len(v) == 64 for v in src["pages"].values())
+    assert "no approval" in t["status"]
+    # each ending keeps the text as printed, so a reviewer can check it against the page
+    row = next(r for r in t["tithi_ends"] if r["ist"] == "2026-10-23T14:36")
+    assert row["printed"] == "(Asvina Sukla) Dvadasi h. 14-36"
+    assert (row["masa"], row["paksha"], row["tithi"], row["adhik"]) == ("ashvin", "shukla", 12, False)
+    assert any(r["adhik"] and r["masa"] == "jyeshtha" for r in t["tithi_ends"])  # Mala Jyaishtha 2026
+
+
+def test_golden_checker_on_the_official_table(ready):
+    t = _amanta()
+    small = {
+        **t,
+        "tithi_ends": [r for r in t["tithi_ends"] if "2026-10-20" <= r["ist"] < "2026-12-12"],
+        "sunrises": [r for r in t["sunrises"] if "2026-10-21" <= r["date"] < "2026-12-10"],
     }
-    wrong = good | {"tithi_at_sunrise": {"paksha": paksha, "tithi": tithi % 15 + 1}}
-    report = golden_check.check({"source": {"panchang": "checker self-test"}, "rows": [good]})
-    assert report.mismatches == [] and not report.passed  # too little coverage to verify anything
-    assert any("missing cities" in g for g in report.coverage_gaps)
-    assert golden_check.check({"rows": [wrong]}).mismatches
-    assert any("source" in g for g in golden_check.check({"rows": [good]}).coverage_gaps)
+    report = golden_check.check(small, "amanta", "mumbai")
+    # the one documented divergence keeps counting until a named reviewer accepts it
+    assert len(report.mismatches) == 1 and "pending review" in report.mismatches[0]
+    assert report.compared["civil_days"] > 40 and not report.passed
+    assert any("3 years" in g for g in report.coverage_gaps)
+    accepted = copy.deepcopy(small)
+    accepted["divergences"][0]["accepted_by"] = "An independent panchang reviewer"
+    assert golden_check.check(accepted, "amanta", "mumbai").mismatches == []
+    # a wrong ending, a wrong month and a wrong sunrise are all caught
+    bad = copy.deepcopy(small)
+    first = bad["tithi_ends"][0]
+    first["ist"] = (dt.datetime.fromisoformat(first["ist"]) + dt.timedelta(minutes=10)).isoformat(
+        timespec="minutes"
+    )
+    bad["tithi_ends"][1]["masa"] = "pausha"
+    next(r for r in bad["sunrises"] if r["city"] == "mumbai")["ist"] = "07:30"
+    found = golden_check.check(bad, "amanta", "mumbai").mismatches
+    assert any("±2 min" in m for m in found) and any("pausha" in m for m in found)
+    assert any("engine sunrise" in m for m in found)
+    assert any(
+        "names no published source" in g
+        for g in golden_check.check({**small, "sources": {}}, "amanta", "mumbai").coverage_gaps
+    )
 
 
-def test_no_golden_table_is_generated_by_the_engine():
-    """Rows must come from a published panchang: every shipped table names its source per row set."""
+def test_every_golden_table_cites_its_sources():
+    """Rows come from published panchangs: every shipped table names them, with checksums."""
     for path in Path(conventions.GOLDEN).glob("*.json"):
         table = conventions.golden_table(path.stem)
-        assert table and table.get("source", {}).get("panchang"), path.name
+        assert table and table.get("format") == 2, path.name
+        assert golden_check._sources_gaps(table) == [], (path.name, golden_check._sources_gaps(table))

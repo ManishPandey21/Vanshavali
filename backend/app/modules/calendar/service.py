@@ -2,7 +2,7 @@
 
 Everything is evaluated as the reader: a date shows only if they may see it in full (a living
 person's birthday follows the birth-date field groups; a redacted date never carries its tithi).
-Computed tithi dates appear only for an offered convention (``conventions.offered``).
+Computed tithi dates appear only for a convention offered at the city (``conventions.offered``).
 """
 
 from __future__ import annotations
@@ -68,8 +68,8 @@ def get_calendar_settings(ctx: TreeContext) -> CalendarSettingsOut:
             ConventionOut(
                 key=c.key,
                 label=c.labels[lang],
-                golden_verified=c.golden_verified,
-                offered=conventions.offered(c.key),
+                golden_verified=conventions.verified(c.key, ctx.tree.observance_city or ""),
+                offered=conventions.offered(c.key, ctx.tree.observance_city),
             )
             for c in conventions.all_conventions().values()
         ],
@@ -188,10 +188,10 @@ def calendar(ctx: TreeContext, start: dt.date, end: dt.date) -> CalendarOut:
     why: Any = None
     if not conventions.lunar_enabled():
         why = "disabled"
-    elif not conventions.offered(convention):
-        why = "convention_not_offered"
     elif not city:
         why = "no_city"
+    elif not conventions.offered(convention, city):
+        why = "convention_not_offered"  # not signed off, verified and activated for this city
     else:
         entries += _lunar_entries(ctx, events, start, end, str(convention), city)
     entries.sort(key=lambda e: (e.day, e.label))
@@ -204,12 +204,13 @@ def convert(ctx: TreeContext, body: ConvertIn) -> ConvertOut:
     _require_member(ctx)
     convention = body.convention or ctx.tree.calendar_convention
     city = body.observance_city or ctx.tree.observance_city
-    if not conventions.offered(convention):
-        raise Unprocessable(
-            "Finding the Gregorian date is not available yet for this convention", code="lunar_not_available"
-        )
     if not city or city not in conventions.cities():
         raise Unprocessable("Choose the city where the day is observed", code="observance_place_required")
+    if not conventions.offered(convention, city):
+        raise Unprocessable(
+            "Finding the Gregorian date is not available yet for this convention and city",
+            code="lunar_not_available",
+        )
     if body.lunar.year is None or body.lunar.samvat is None:
         raise Unprocessable("A samvat year is needed to find a Gregorian date", code="year_required")
     conv = conventions.all_conventions()[str(convention)]
