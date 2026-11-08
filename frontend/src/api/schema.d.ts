@@ -6786,6 +6786,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Can Manage
+             * @default false
+             */
+            can_manage?: boolean;
         };
         /** MemberUpdate */
         MemberUpdate: {
@@ -10341,6 +10346,11 @@ export interface components {
              * @default []
              */
             my_permissions?: string[];
+            /**
+             * My Grantable Roles
+             * @default []
+             */
+            my_grantable_roles?: components["schemas"]["Role"][];
             /** My Branch Id */
             my_branch_id?: string | null;
             /** My Linked Person Id */
@@ -12834,6 +12844,8 @@ export interface operations {
                 to: string;
                 /** @description Restrict to these lineages (biological, legal, ritual, social) */
                 lineage?: components["schemas"]["Lineage"][] | null;
+                /** @description the reader's UI language */
+                lang?: string | null;
             };
             header?: never;
             path: {

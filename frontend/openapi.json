@@ -3579,6 +3579,25 @@
        "title": "Lineage"
       },
       "description": "Restrict to these lineages (biological, legal, ritual, social)"
+     },
+     {
+      "name": "lang",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^[a-z]{2,3}(-[A-Za-z]{2,4})?$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "the reader's UI language",
+       "title": "Lang"
+      },
+      "description": "the reader's UI language"
      }
     ],
     "responses": {
@@ -25183,6 +25202,11 @@
       "type": "string",
       "format": "date-time",
       "title": "Created At"
+     },
+     "can_manage": {
+      "type": "boolean",
+      "title": "Can Manage",
+      "default": false
      }
     },
     "type": "object",
@@ -36876,6 +36900,14 @@
       },
       "type": "array",
       "title": "My Permissions",
+      "default": []
+     },
+     "my_grantable_roles": {
+      "items": {
+       "$ref": "#/components/schemas/Role"
+      },
+      "type": "array",
+      "title": "My Grantable Roles",
       "default": []
      },
      "my_branch_id": {
