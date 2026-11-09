@@ -303,6 +303,13 @@ historical records, GEDCOM-imported photos and event-album photos.
   form no longer edits privacy.
 - **Tests.** `tests/test_record_sharing.py` (21 cases), component tests
   `VisibilitySharing.test.tsx`, Playwright `record-sharing.spec.ts`; threat model T54/T55.
+- **Follow-up: grantees only read (§10).** Items promised by the closed #52 and not carried by #50.
+  A member a private document is shared with may read it (and download when allowed), but may not
+  rename it, link or tag it, add it to an album or property event, reprocess it, review its
+  extraction proposals, delete or restore it, whatever their role: `documents.access.
+  require_owner_if_private` returns `403 not_content_owner`, and `DocumentOut.can_change` lets the
+  UI hide those controls. Shared audiences keep the role rules. A property's
+  `hidden_document_count` no longer counts other members' private records (§1: no count).
 
 **Not in increment 1:** oral history (waits for ADR-0023), traditions (still `may_read`, finding
 A9), standalone photo collections, takedown by suspension, ownership transfer, notifying the owner

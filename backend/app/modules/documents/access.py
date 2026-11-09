@@ -95,6 +95,17 @@ def get_document(ctx: TreeContext, document_id: uuid.UUID, *, include_deleted: b
     return doc
 
 
+def require_owner_if_private(ctx: TreeContext, doc: Document) -> None:
+    """ADR-0027 §10: a grantee changes nothing on a private record, whatever their role.
+
+    On "Only me" and "Selected members" records, only the content owner may edit, delete, restore,
+    link, tag, reprocess or review extraction. Members it is shared with may only read (and download
+    when allowed). Shared audiences keep the existing role rules.
+    """
+    if is_private_record_level(doc.privacy_level) and not is_owner(ctx, doc):
+        raise Forbidden("Only the record's owner can change a private record", code="not_content_owner")
+
+
 def require_content(ctx: TreeContext, doc: Document) -> None:
     if not can_access_content(ctx, doc):
         raise Forbidden("You do not have permission to open the contents of this document")
