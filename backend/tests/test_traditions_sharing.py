@@ -1,4 +1,4 @@
-"""Family traditions on the record sharing model (ADR-0027, increment 2; threat T56).
+"""Family traditions on the record sharing model (ADR-0027, increment 2; threat T57).
 
 A tradition entry is a shareable record: Only me, Selected members, Selected branch or All family
 members, owned by its author's membership. Nobody outside its audience — tree owner, family admin,

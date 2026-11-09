@@ -334,7 +334,7 @@ listed in the threat model's residual risks.
   (without download controls); an entry's page has the same `RecordSharingPanel` as documents.
 - **Tests.** `tests/test_traditions_sharing.py` (12 cases, including the migration and its
   downgrade), a component test for records without downloads, and a second Playwright test in
-  `record-sharing.spec.ts`; threat model T56.
+  `record-sharing.spec.ts`; threat model T57.
 
 ## Implementation notes (9 Nov 2026, increment 3: event photo albums)
 - **Choosing at upload.** `POST /events/{id}/media` accepts the record audiences, a branch and
@@ -354,4 +354,4 @@ listed in the threat model's residual risks.
   which opens Visibility & Sharing; each photo shows its badge and, for its owner, a "Who can see"
   link to the photo's sharing panel.
 - **Tests.** `tests/test_album_sharing.py` (6 cases), a third Playwright test in
-  `record-sharing.spec.ts`; threat model T57.
+  `record-sharing.spec.ts`; threat model T58.

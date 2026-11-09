@@ -1,4 +1,4 @@
-"""Event photo albums on the record sharing model (ADR-0027, increment 3; threat T57).
+"""Event photo albums on the record sharing model (ADR-0027, increment 3; threat T58).
 
 An album's photos are documents with their own audience; the album shows each viewer only what
 they may see. A photo in an event's album is never more visible than the event and the people in
