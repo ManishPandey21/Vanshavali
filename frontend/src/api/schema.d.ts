@@ -5268,6 +5268,11 @@ export interface components {
              */
             can_edit_sharing?: boolean;
             /**
+             * Can Change
+             * @default true
+             */
+            can_change?: boolean;
+            /**
              * Variants
              * @default []
              */

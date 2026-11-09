@@ -18,6 +18,7 @@ from typing import Any
 from sqlalchemy import func, select
 
 from app.authz.context import TreeContext
+from app.authz.privacy import is_private_record_level
 from app.core.errors import NotFound
 from app.models import (
     Citation,
@@ -367,7 +368,9 @@ class PropertySerializer:
                 if doc.deleted_at is not None:
                     continue
                 if not service.can_view_document(self.ctx, doc):
-                    hidden[link.target_id] += 1
+                    # ADR-0027 §1: someone else's private record is not even counted
+                    if not is_private_record_level(doc.privacy_level):
+                        hidden[link.target_id] += 1
                     continue
                 visible[link.target_id].append(
                     DocumentRef(
