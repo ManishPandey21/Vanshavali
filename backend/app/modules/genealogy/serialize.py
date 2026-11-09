@@ -436,9 +436,12 @@ def media_summary(
         )
     ).all()
     out: dict[uuid.UUID, tuple[int, uuid.UUID | None]] = {}
-    for m, doc in rows:
+    first: dict[uuid.UUID, uuid.UUID] = {}
+    for m, doc in sorted(rows, key=lambda r: (r[0].sort_order, r[0].created_at)):
         if not can_view_document(ctx, doc):
             continue
         n, cover = out.get(m.event_id, (0, None))
         out[m.event_id] = (n + 1, doc.id if m.is_cover else cover)
-    return out
+        first.setdefault(m.event_id, doc.id)
+    # a cover the viewer may not see is replaced by their first visible photo (ADR-0027 §6)
+    return {eid: (n, cover or first.get(eid)) for eid, (n, cover) in out.items()}

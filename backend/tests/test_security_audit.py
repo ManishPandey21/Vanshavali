@@ -169,7 +169,8 @@ def test_contributor_source_hijacks_vault_document_extraction(owner, tree, membe
     )
     assert r.status_code == 201, r.text
     doc = r.json()
-    assert doc["storage_class"] == "VAULT" and doc["privacy_level"] == "PRIVATE_TREE_ADMINS"
+    # new vault uploads are Only me (ADR-0027 §9); the attack below must fail either way
+    assert doc["storage_class"] == "VAULT" and doc["privacy_level"] == "ONLY_ME"
 
     contributor = member_factory(["CONTRIBUTOR"])
     assert contributor.get(f"/trees/{t}/documents/{doc['id']}").status_code == 404

@@ -7,7 +7,15 @@ from typing import Any
 from pydantic import EmailStr, Field
 
 from app.api.schemas import ApiModel
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode, ReviewPolicy, Role
+from app.models.enums import (
+    GrantPermission,
+    GrantResource,
+    NominationStatus,
+    PrivacyLevel,
+    PublicMode,
+    ReviewPolicy,
+    Role,
+)
 
 
 class TreeCreate(ApiModel):
@@ -39,6 +47,9 @@ class TreeOut(ApiModel):
     created_at: dt.datetime
     my_roles: list[Role] = []
     my_permissions: list[str] = []
+    # roles this member may give or take away (owner: all; family admin: all but owner and family
+    # admin; branch admin: contributor, researcher, viewer); the server re-checks every change
+    my_grantable_roles: list[Role] = []
     my_branch_id: uuid.UUID | None = None
     my_linked_person_id: uuid.UUID | None = None
 
@@ -52,6 +63,8 @@ class MemberOut(ApiModel):
     branch_id: uuid.UUID | None
     linked_person_id: uuid.UUID | None
     created_at: dt.datetime
+    # whether the caller may change or remove this membership (only roles it could grant)
+    can_manage: bool = False
 
 
 class MemberUpdate(ApiModel):
@@ -101,6 +114,7 @@ class GrantCreate(ApiModel):
 class GrantOut(ApiModel):
     id: uuid.UUID
     user_id: uuid.UUID
+    membership_id: uuid.UUID
     resource_type: GrantResource
     resource_id: uuid.UUID
     permission: GrantPermission
@@ -118,3 +132,32 @@ class AuditEventOut(ApiModel):
     summary: str | None
     details: dict[str, Any]
     created_at: dt.datetime
+
+
+# ---- Family Admin nominations (ADR-0006 amendment of 9 Nov 2026) ----
+class NominationCreate(ApiModel):
+    membership_id: uuid.UUID
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class NominationApprove(ApiModel):
+    # required when the nominee is branch-scoped: approval makes them a whole-tree family admin
+    clear_branch: bool = False
+
+
+class NominationOut(ApiModel):
+    id: uuid.UUID
+    nominee_membership_id: uuid.UUID | None
+    nominee_name: str
+    nominator_name: str
+    reason: str  # empty once closed
+    status: NominationStatus
+    created_at: dt.datetime
+    expires_at: dt.datetime
+    nominee_accepted: bool
+    nominee_branch_scoped: bool
+    is_mine: bool  # the caller is the nominee
+    can_accept: bool
+    can_decline: bool
+    can_decide: bool  # the caller is an owner
+    can_withdraw: bool  # the caller made it

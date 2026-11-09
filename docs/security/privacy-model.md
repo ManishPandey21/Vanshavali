@@ -37,7 +37,26 @@ From most open to most restricted:
 | `CUSTOM` | Admins, plus users holding an explicit `access_grant` |
 
 Explicit grants (`access_grant`, per person, document or property, with an optional expiry) raise
-visibility for one member. Documents also distinguish `view` from `download`.
+visibility for one member. Documents also distinguish `view` from `download`. A grant belongs to the
+member's membership (ADR-0027 §3): it is deleted with it (removed, or account closed), inviting the
+same person again does not restore it, and it can never name a member of another tree. Privacy
+managers see, create and revoke grants only on records they can see themselves (threat T53).
+
+**Shareable records (ADR-0027).** Documents, photos and recordings take a record audience instead:
+
+| Audience (`document.privacy_level`) | Who can see it |
+|---|---|
+| `ONLY_ME` | The record's owner (their *current* membership). Nobody else, whatever their role. |
+| `SELECTED_MEMBERS` | The owner and memberships holding a grant on it. No role-based access. |
+| `FAMILY_BRANCH` + `audience_branch_id` | The owner, members of that branch, family admins (ADR-0006's meaning) and grantees. |
+| `TREE_MEMBERS` | Every member except researcher-only memberships. |
+| legacy levels | As above for people; `CUSTOM`/`PRIVATE_SELF` keep their old meaning until the owner converts them. |
+
+*View* (metadata, thumbnail, preview, playback) and *download* (the original, ZIP and video exports)
+are separate: viewers download only when `allow_download` is on or they hold a `download` grant. New
+vault documents and records tagged with a protected living person start as `ONLY_ME` without
+download. A record is never more open than any protected person tagged in it. Grants belong to one
+membership and are deleted with it; no record is public in v1.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
@@ -252,3 +271,17 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Family words stay in the family.** A tree's own kinship words are visible only inside that
   tree.
 
+
+## Family Admin nominations (ADR-0006 amendment, 9 Nov 2026)
+- **Who sees a nomination:** the Owners, the Family Admins and the nominee. The nominee sees who
+  nominated them and the reason (owner decision). No other member sees that a nomination exists.
+- **The reason text** is personal comment about a family member. It appears only in the nomination
+  itself: never in audit events, notification text or exports.
+- **Notifications store ids only** (ADR-0021 §7) and render for the reader at read time.
+- **Promotion changes what someone can see.** Approval needs the nominee's own acceptance first,
+  because a Family Admin sees `PRIVATE_TREE_ADMINS` data of living relatives. `PRIVATE_SELF` and
+  ADR-0027's private audiences stay closed to them.
+- **Retention of closed nominations:** the reason text is erased the moment a nomination closes
+  (approved, declined by either side, withdrawn, expired or lapsed). The row keeps only ids, the
+  status and timestamps, so the notifications and audit events that point to it still resolve. It is
+  deleted with the tree.

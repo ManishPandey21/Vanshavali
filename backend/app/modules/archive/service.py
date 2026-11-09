@@ -235,7 +235,7 @@ def build_archive(
             "included": False,
         }
         wants_bytes = d.storage_class != StorageClass.VAULT or include_vault_documents
-        if wants_bytes and doc_access.can_access_content(ctx, d):
+        if wants_bytes and doc_access.can_download(ctx, d):  # exports count as downloads (ADR-0027 §4)
             path = f"documents/{d.id}/{_safe(d.original_filename)}"
             files[path] = store.get(d.storage_key)
             entry.update(included=True, path=path)

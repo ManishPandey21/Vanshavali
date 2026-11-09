@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import uuid
 
@@ -12,9 +13,9 @@ from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
-from app.models import AccessGrant, AuditEvent, Tree, TreeInvitation, TreeMembership, User
-from app.models.enums import Role
-from app.modules.trees import service
+from app.models import AccessGrant, AdminNomination, AuditEvent, Tree, TreeInvitation, TreeMembership, User
+from app.models.enums import GrantResource, Role
+from app.modules.trees import nominations, service
 from app.modules.trees.schemas import (
     AuditEventOut,
     GrantCreate,
@@ -24,6 +25,9 @@ from app.modules.trees.schemas import (
     InvitationPreview,
     MemberOut,
     MemberUpdate,
+    NominationApprove,
+    NominationCreate,
+    NominationOut,
     TreeCreate,
     TreeOut,
     TreeUpdate,
@@ -43,6 +47,7 @@ def _tree_out(tree: Tree, m: TreeMembership) -> TreeOut:
         update={
             "my_roles": [Role(r) for r in m.roles],
             "my_permissions": service.tree_permissions(m),
+            "my_grantable_roles": service.grantable_for(m),
             "my_branch_id": m.branch_id,
             "my_linked_person_id": m.linked_person_id,
         }
@@ -129,6 +134,7 @@ def list_members(ctx: TreeCtx) -> list[MemberOut]:
             branch_id=m.branch_id,
             linked_person_id=m.linked_person_id if m.linked_person_id in linked_visible else None,
             created_at=m.created_at,
+            can_manage=service.can_manage(ctx, m),
         )
         for m, u in rows
     ]
@@ -157,6 +163,7 @@ def update_member(membership_id: uuid.UUID, body: MemberUpdate, ctx: TreeCtx) ->
         branch_id=m.branch_id,
         linked_person_id=m.linked_person_id,
         created_at=m.created_at,
+        can_manage=service.can_manage(ctx, m),
     )
 
 
@@ -164,6 +171,51 @@ def update_member(membership_id: uuid.UUID, body: MemberUpdate, ctx: TreeCtx) ->
 def remove_member(membership_id: uuid.UUID, ctx: TreeCtx) -> Message:
     service.remove_member(ctx, membership_id)
     return Message(message="Member removed")
+
+
+# ---- Family Admin nominations (ADR-0006 amendment of 9 Nov 2026) ----
+def _nomination_out(ctx: TreeContext, n: AdminNomination) -> NominationOut:
+    return NominationOut(**nominations.describe(ctx, [n])[0])
+
+
+@router.get("/trees/{tree_id}/admin-nominations", response_model=list[NominationOut])
+def list_admin_nominations(ctx: TreeCtx) -> list[NominationOut]:
+    """Open nominations: all of them for owners and family admins, only your own otherwise."""
+    return [NominationOut(**d) for d in nominations.describe(ctx, nominations.list_open(ctx))]
+
+
+@router.post(
+    "/trees/{tree_id}/admin-nominations", response_model=NominationOut, status_code=status.HTTP_201_CREATED
+)
+def create_admin_nomination(body: NominationCreate, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.create(ctx, body.membership_id, body.reason))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/accept", response_model=NominationOut)
+def accept_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.accept(ctx, nomination_id))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/decline", response_model=NominationOut)
+def decline_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.decline(ctx, nomination_id))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/approve", response_model=NominationOut)
+def approve_admin_nomination(
+    nomination_id: uuid.UUID, body: NominationApprove, ctx: TreeCtx
+) -> NominationOut:
+    return _nomination_out(ctx, nominations.approve(ctx, nomination_id, clear_branch=body.clear_branch))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/reject", response_model=NominationOut)
+def reject_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.reject(ctx, nomination_id))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/withdraw", response_model=NominationOut)
+def withdraw_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.withdraw(ctx, nomination_id))
 
 
 # ---- invitations ----
@@ -232,10 +284,16 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 # ---- explicit access grants ----
 @router.get("/trees/{tree_id}/grants", response_model=list[GrantOut])
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
-    ctx.require(Permission.PRIVACY_MANAGE)
+    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7). A record's
+    owner manages the grants on it; grants on a private record are listed to its owner only."""
+    if not (ctx.has(Permission.PRIVACY_MANAGE) or ctx.has(Permission.DOCUMENT_UPLOAD)):
+        raise Forbidden()  # only privacy managers and record owners (uploaders) have grants to manage
+    grants = list(ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id)))
+    manageable = service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id) for g in grants])
     return [
         GrantOut.model_validate(g)
-        for g in ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id))
+        for g in grants
+        if (GrantResource(g.resource_type), g.resource_id) in manageable
     ]
 
 
@@ -249,11 +307,10 @@ def create_grant(body: GrantCreate, ctx: TreeCtx) -> GrantOut:
 
 @router.delete("/trees/{tree_id}/grants/{grant_id}", response_model=Message)
 def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
-    ctx.require(Permission.PRIVACY_MANAGE)
     g = ctx.db.scalar(
         select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
     )
-    if g is None:
+    if g is None or not service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id)]):
         raise NotFound("Grant not found")
     ctx.db.delete(g)
     audit.log(ctx, "grant.revoked", target_type=str(g.resource_type), target_id=g.resource_id)
@@ -261,6 +318,38 @@ def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
 
 
 # ---- audit ----
+def _document_ids(item: AuditEventOut) -> set[uuid.UUID]:
+    ids: set[uuid.UUID] = set()
+    if item.target_type == "document" and item.target_id is not None:
+        ids.add(item.target_id)
+    raw = (item.details or {}).get("document_id")
+    if isinstance(raw, str):
+        with contextlib.suppress(ValueError):
+            ids.add(uuid.UUID(raw))
+    return ids
+
+
+def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> list[AuditEventOut]:
+    """Events about a record the reader may not see become an opaque "private record" entry with
+    no id, title or details, so the audit log never reveals a private record (ADR-0027 §11)."""
+    from app.models import Document
+    from app.modules.documents.access import can_view_document
+
+    wanted = set().union(*(_document_ids(i) for i in items)) if items else set()
+    if not wanted:
+        return items
+    docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(wanted)))
+    visible = {d.id for d in docs if can_view_document(ctx, d)}
+    out = []
+    for i in items:
+        if _document_ids(i) - visible:
+            i = i.model_copy(
+                update={"target_type": "private_record", "target_id": None, "summary": None, "details": {}}
+            )
+        out.append(i)
+    return out
+
+
 @router.get("/trees/{tree_id}/audit", response_model=Page[AuditEventOut])
 def list_audit(
     ctx: TreeCtx,
@@ -283,4 +372,5 @@ def list_audit(
     items = [
         AuditEventOut.model_validate(e).model_copy(update={"actor_name": name}) for e, name in rows[:limit]
     ]
+    items = _redact_private_records(ctx, items)
     return Page(items=items, next_cursor=encode_cursor(offset + limit) if len(rows) > limit else None)

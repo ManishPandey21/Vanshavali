@@ -8,6 +8,7 @@ import { AlertTriangle, Check, Copy, Globe2, Trash2, UserPlus, X } from "lucide-
 import type { InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, ReviewPolicy, Role } from "../../api/types";
 import { PersonPicker } from "../../components/pickers";
 import {
+  useAdminNominations,
   useAudit,
   useClaims,
   useCreateInvitation,
@@ -31,17 +32,33 @@ import { ConfirmDialog, Dialog } from "../../components/ui/Dialog";
 import { EmptyState, ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Checkbox, Field, Select, TextArea, TextInput } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
+import { AdminNominationsPanel, NominateDialog } from "../../components/tree/AdminNominations";
 
 export const ROLES: Role[] = ["OWNER", "FAMILY_ADMIN", "BRANCH_ADMIN", "CONTRIBUTOR", "REVIEWER", "RESEARCHER", "VIEWER", "DOCUMENT_CUSTODIAN", "PROPERTY_CUSTODIAN"];
 
-function RolePicker({ value, onChange, legend }: { value: Role[]; onChange: (r: Role[]) => void; legend: string }) {
+/**
+ * Only the roles this manager may give or take away are offered (from the server's
+ * `my_grantable_roles`); a role the member already holds but the manager may not change is shown
+ * locked. The server re-checks every change.
+ */
+function RolePicker({ value, onChange, legend, locked = false }: { value: Role[]; onChange: (r: Role[]) => void; legend: string; locked?: boolean }) {
   const { t } = useTranslation();
+  const { tree } = useTreeCtx();
+  const grantable = new Set<Role>(tree.my_grantable_roles ?? []);
+  const shown = ROLES.filter((r) => grantable.has(r) || value.includes(r));
   return (
     <fieldset>
       <legend className="label">{legend}</legend>
       <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-        {ROLES.map((r) => (
-          <Checkbox key={r} label={t(`enum.role.${r}`)} hint={t(`enum.roleHint.${r}`)} checked={value.includes(r)} onChange={(c) => onChange(c ? [...value, r] : value.filter((x) => x !== r))} />
+        {shown.map((r) => (
+          <Checkbox
+            key={r}
+            label={t(`enum.role.${r}`)}
+            hint={grantable.has(r) && !locked ? t(`enum.roleHint.${r}`) : t("members.roleLocked")}
+            checked={value.includes(r)}
+            disabled={locked || !grantable.has(r)}
+            onChange={(c) => onChange(c ? [...value, r] : value.filter((x) => x !== r))}
+          />
         ))}
       </div>
     </fieldset>
@@ -50,13 +67,18 @@ function RolePicker({ value, onChange, legend }: { value: Role[]; onChange: (r: 
 
 export function MembersPage() {
   const { t, i18n } = useTranslation();
-  const { treeId, can } = useTreeCtx();
+  const { treeId, can, tree } = useTreeCtx();
   const members = useMembers(treeId);
   const me = useMe();
   const [editing, setEditing] = useState<MemberOut | null>(null);
   const [removing, setRemoving] = useState<MemberOut | null>(null);
   const remove = useRemoveMember(treeId);
   const manage = can(Perm.MEMBERS_MANAGE);
+  // only a family admin nominates (ADR-0006 amendment of 9 Nov 2026); an owner grants the role directly
+  const canNominate = (tree.my_roles ?? []).includes("FAMILY_ADMIN");
+  const nominations = useAdminNominations(treeId);
+  const nominated = new Set((nominations.data ?? []).map((n) => n.nominee_membership_id));
+  const [nominating, setNominating] = useState<MemberOut | null>(null);
   return (
     <div>
       <PageHeader
@@ -70,6 +92,7 @@ export function MembersPage() {
           ) : undefined
         }
       />
+      <AdminNominationsPanel />
       {members.isLoading && <Spinner />}
       <ErrorAlert error={members.error || remove.error} />
       <div className="card relative overflow-x-auto">
@@ -117,10 +140,17 @@ export function MembersPage() {
                 {manage && (
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setEditing(m)}>
-                        {t("members.changeRoles")}
-                      </Button>
-                      {m.user_id !== me.data?.id && (
+                      {canNominate && m.user_id !== me.data?.id && !m.roles.some((r) => r === "OWNER" || r === "FAMILY_ADMIN") && !nominated.has(m.id) && (
+                        <Button size="sm" variant="ghost" onClick={() => setNominating(m)} aria-label={t("nominations.nominateNamed", { name: m.display_name })}>
+                          {t("nominations.nominate")}
+                        </Button>
+                      )}
+                      {m.can_manage && (
+                        <Button size="sm" variant="ghost" onClick={() => setEditing(m)}>
+                          {t("members.changeRoles")}
+                        </Button>
+                      )}
+                      {m.can_manage && m.user_id !== me.data?.id && (
                         <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setRemoving(m)} aria-label={t("members.removeNamed", { name: m.display_name })} />
                       )}
                     </div>
@@ -132,6 +162,7 @@ export function MembersPage() {
         </table>
       </div>
       {editing && <EditMemberDialog member={editing} onClose={() => setEditing(null)} />}
+      {nominating && <NominateDialog member={nominating} onClose={() => setNominating(null)} />}
       <ConfirmDialog
         open={!!removing}
         onClose={() => setRemoving(null)}
@@ -165,9 +196,11 @@ function LinkedPerson({ personId }: { personId: string }) {
 
 function EditMemberDialog({ member, onClose }: { member: MemberOut; onClose: () => void }) {
   const { t } = useTranslation();
-  const { treeId, isAdmin } = useTreeCtx();
+  const { treeId, isAdmin, tree } = useTreeCtx();
   const me = useMe();
   const update = useUpdateMember(treeId);
+  // nobody changes their own roles, except an owner (ADR-0006); the server refuses it too
+  const ownRolesLocked = member.user_id === me.data?.id && !(tree.my_roles ?? []).includes("OWNER");
   const branches = useBranches(treeId);
   const linked = usePerson(treeId, member.linked_person_id ?? undefined);
   const [roles, setRoles] = useState<Role[]>(member.roles);
@@ -179,7 +212,8 @@ function EditMemberDialog({ member, onClose }: { member: MemberOut; onClose: () 
   const currentLinked = person === undefined ? (linked.data ?? null) : person;
   const submit = () => {
     if (!roles.length) return;
-    const body: MemberUpdate = { roles, branch_id: branch || null, clear_branch: !branch && !!member.branch_id };
+    const body: MemberUpdate = { branch_id: branch || null, clear_branch: !branch && !!member.branch_id };
+    if (!ownRolesLocked) body.roles = roles;
     if (canLink && person !== undefined) {
       if (person) body.linked_person_id = person.id;
       else body.clear_linked_person = true;
@@ -203,7 +237,8 @@ function EditMemberDialog({ member, onClose }: { member: MemberOut; onClose: () 
       }
     >
       <div className="space-y-3">
-        <RolePicker value={roles} onChange={setRoles} legend={t("members.roles")} />
+        <RolePicker value={roles} onChange={setRoles} legend={t("members.roles")} locked={ownRolesLocked} />
+        {ownRolesLocked && <p className="text-sm text-ink-muted">{t("members.ownRolesLocked")}</p>}
         {!roles.length && <p className="field-error">{t("members.atLeastOneRole")}</p>}
         <Field label={t("members.branchScope")} hint={t("members.branchScopeHint")}>
           {(p) => (

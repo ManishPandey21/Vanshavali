@@ -4,6 +4,7 @@ import datetime as dt
 import re
 import secrets
 import uuid
+from collections.abc import Iterable
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -14,8 +15,9 @@ from app.core import audit
 from app.core.config import get_settings
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessable
 from app.core.security import new_token, token_hash
-from app.models import AccessGrant, FamilyBranch, Person, Tree, TreeInvitation, TreeMembership, User
+from app.models import AccessGrant, FamilyBranch, Tree, TreeInvitation, TreeMembership, User
 from app.models.enums import GrantResource, Role
+from app.modules.trees import nominations
 
 INVITATION_TTL_DAYS = 14
 _ADMIN_GRANTABLE = {Role.OWNER, Role.FAMILY_ADMIN}
@@ -147,9 +149,14 @@ def accept_invitation(db: Session, user: User, token: str, info: RequestInfo) ->
                 "your roles instead",
                 code="scope_conflict",
             )
+        before = list(existing.roles)
         existing.roles = sorted(set(existing.roles) | set(inv.roles))
         existing.branch_id = inv.branch_id
         membership = existing
+        from app.core.db import bind_tree
+
+        bind_tree(db, inv.tree_id)  # admin_nomination is row-level secured
+        nominations.on_roles_changed(db, inv.tree_id, existing, before, existing.roles, user.id)
     else:
         membership = TreeMembership(
             tree_id=inv.tree_id,
@@ -187,6 +194,52 @@ def _owner_count(db: Session, tree_id: uuid.UUID) -> int:
     )
 
 
+def grantable_roles(ctx: TreeContext) -> frozenset[Role]:
+    """The roles this caller may give or take away. Only an owner manages owner and family-admin roles;
+    a branch admin manages contributor, researcher and viewer roles in its own branch."""
+    if ctx.is_owner:
+        return frozenset(Role)
+    if ctx.is_admin:
+        return frozenset(Role) - _ADMIN_GRANTABLE
+    return frozenset(_BRANCH_ADMIN_GRANTABLE)
+
+
+def grantable_for(m: TreeMembership) -> list[Role]:
+    """What a member may grant, from their own membership (for the UI; the server re-checks)."""
+    roles = {Role(r) for r in m.roles}
+    if Role.OWNER in roles:
+        return sorted(Role)
+    if Role.FAMILY_ADMIN in roles:
+        return sorted(frozenset(Role) - _ADMIN_GRANTABLE)
+    if Permission.MEMBERS_MANAGE.value in tree_permissions(m) and m.branch_id is not None:
+        return sorted(_BRANCH_ADMIN_GRANTABLE)
+    return []
+
+
+def can_manage(ctx: TreeContext, m: TreeMembership) -> bool:
+    """Whether this caller may change or remove membership ``m`` (mirrors update/remove)."""
+    if not ctx.has(Permission.MEMBERS_MANAGE):
+        return False
+    if not ctx.is_admin and (ctx.branch_scope is None or m.branch_id != ctx.branch_scope):
+        return False
+    if Role.OWNER.value in m.roles and not ctx.is_owner:
+        return False
+    return m.user_id == ctx.user_id or {Role(r) for r in m.roles} <= grantable_roles(ctx)
+
+
+def _require_manageable(ctx: TreeContext, m: TreeMembership) -> None:
+    """A member may be changed or removed only by someone who could have granted all of its roles.
+
+    Without this, a family admin could delete another family admin's membership (taking away a role
+    only the owner may take away), and a branch admin could demote or remove a peer or a custodian.
+    """
+    held = {Role(r) for r in m.roles}
+    if m.user_id == ctx.user_id:
+        return  # own membership: role changes are refused separately; leaving is not an escalation
+    if not held <= grantable_roles(ctx):
+        raise Forbidden("You can only manage members whose roles you could grant")
+
+
 def _get_membership(ctx: TreeContext, membership_id: uuid.UUID) -> TreeMembership:
     m = ctx.db.scalar(
         select(TreeMembership).where(
@@ -214,12 +267,16 @@ def update_member(
     m = _get_membership(ctx, membership_id)
     if m.user_id == ctx.user_id and roles is not None and not ctx.is_owner:
         raise Forbidden("You cannot change your own roles")
+    _require_manageable(ctx, m)
+    previous_roles = sorted(m.roles)
     new_branch = None if clear_branch else (branch_id if branch_id is not None else m.branch_id)
     if roles is not None:
         old = {Role(r) for r in m.roles}
         new = set(roles)
         if (old ^ new) & _ADMIN_GRANTABLE and not ctx.is_owner:
             raise Forbidden("Only a tree owner can grant or remove owner/family-admin roles")
+        if not (old ^ new) <= grantable_roles(ctx):
+            raise Forbidden("You can only give or take away roles you could grant")
         added = new - old
         if added:
             _validate_roles(ctx, sorted(added), new_branch)
@@ -247,12 +304,19 @@ def update_member(
         lookup.get_person(ctx, linked_person_id)
         m.linked_person_id = linked_person_id
     ctx.db.flush()
+    nominations.on_roles_changed(ctx.db, ctx.tree_id, m, previous_roles, m.roles, ctx.user_id)
+    admin_change = bool(({Role(r) for r in previous_roles} ^ {Role(r) for r in m.roles}) & _ADMIN_GRANTABLE)
     audit.log(
         ctx,
         "member.updated",
         target_type="membership",
         target_id=m.id,
-        details={"roles": list(m.roles), "branch_changed": clear_branch or branch_id is not None},
+        details={
+            "previous_roles": previous_roles,
+            "roles": sorted(m.roles),
+            "admin_change": admin_change,
+            "branch_changed": clear_branch or branch_id is not None,
+        },
     )
     return m
 
@@ -265,8 +329,48 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
             raise Forbidden("Only an owner can remove an owner")
         if _owner_count(ctx.db, ctx.tree_id) <= 1:
             raise Conflict("A tree must keep at least one owner", code="last_owner")
+    _require_manageable(ctx, m)
+    roles = sorted(m.roles)
+    nominations.on_member_leaving(ctx.db, ctx.tree_id, m, ctx.user_id)
+    audit_cascaded_grants(ctx.db, tree_id=ctx.tree_id, membership_id=m.id, actor_user_id=ctx.user_id)
     ctx.db.delete(m)
-    audit.log(ctx, "member.removed", target_type="membership", target_id=m.id)
+    audit.log(
+        ctx,
+        "member.removed",
+        target_type="membership",
+        target_id=m.id,
+        details={"roles": roles, "admin_change": bool({Role(r) for r in roles} & _ADMIN_GRANTABLE)},
+    )
+
+
+def audit_cascaded_grants(
+    db: Session, *, tree_id: uuid.UUID, membership_id: uuid.UUID, actor_user_id: uuid.UUID | None
+) -> int:
+    """Record how many grants go with a membership about to be deleted.
+
+    The grants themselves are deleted by the ``ON DELETE CASCADE`` on ``access_grant.membership_id``
+    (ADR-0027 §3). Call this before the delete. Audited with a count only: no resource ids or titles.
+    ``access_grant`` is row-level secured, so the session must be bound to ``tree_id``.
+    """
+    count = int(
+        db.scalar(
+            select(func.count())
+            .select_from(AccessGrant)
+            .where(AccessGrant.tree_id == tree_id, AccessGrant.membership_id == membership_id)
+        )
+        or 0
+    )
+    if count:
+        audit.record(
+            db,
+            action="grant.cascade_removed",
+            actor_user_id=actor_user_id,
+            tree_id=tree_id,
+            target_type="membership",
+            target_id=membership_id,
+            details={"count": count},
+        )
+    return count
 
 
 def create_grant(
@@ -277,17 +381,32 @@ def create_grant(
     permission: str,
     expires_at: dt.datetime | None,
 ) -> AccessGrant:
-    ctx.require(Permission.PRIVACY_MANAGE)
-    member = ctx.db.scalar(
+    membership_id = ctx.db.scalar(
         select(TreeMembership.id).where(
             TreeMembership.tree_id == ctx.tree_id, TreeMembership.user_id == user_id
         )
     )
-    if member is None:
+    if membership_id is None:
         raise NotFound("Grants can only be given to members of this tree")
-    _assert_resource_in_tree(ctx, resource_type, resource_id)
+    if not manageable_grant_resources(ctx, [(resource_type, resource_id)]):
+        if not ctx.has(Permission.PRIVACY_MANAGE) and resource_type != GrantResource.DOCUMENT:
+            raise Forbidden()
+        raise NotFound("Resource not found")
+    if resource_type == GrantResource.DOCUMENT:
+        from app.models import Document
+        from app.models.enums import RecordPrivacyLevel
+
+        level = ctx.db.scalar(
+            select(Document.privacy_level).where(Document.tree_id == ctx.tree_id, Document.id == resource_id)
+        )
+        if level == RecordPrivacyLevel.ONLY_ME:
+            raise Conflict(
+                "This record is kept for its owner only; choose Selected members to share it",
+                code="only_me_record",
+            )
     grant = AccessGrant(
         tree_id=ctx.tree_id,
+        membership_id=membership_id,
         user_id=user_id,
         resource_type=resource_type,
         resource_id=resource_id,
@@ -307,16 +426,42 @@ def create_grant(
     return grant
 
 
-def _assert_resource_in_tree(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUID) -> None:
-    from app.models import Document, Property
+def manageable_grant_resources(
+    ctx: TreeContext, resources: Iterable[tuple[GrantResource, uuid.UUID]]
+) -> set[tuple[GrantResource, uuid.UUID]]:
+    """The resources whose grants this caller may see, create or revoke (ADR-0027 §3, finding A7).
 
-    model = {
-        GrantResource.PERSON: Person,
-        GrantResource.DOCUMENT: Document,
-        GrantResource.PROPERTY: Property,
-    }[resource_type]
-    if ctx.db.scalar(select(model.id).where(model.tree_id == ctx.tree_id, model.id == resource_id)) is None:  # type: ignore[attr-defined]
-        raise NotFound("Resource not found")
+    ``privacy.manage`` plus the record being visible to the caller: a privacy manager is never told
+    that a record they cannot see exists, nor who may see it. Anything else is treated as absent.
+
+    Documents (ADR-0027 §3, §10): their owner manages their grants; a privacy manager only those of
+    a document that is not private (``ONLY_ME`` / ``SELECTED_MEMBERS`` are the owner's alone).
+    """
+    from app.authz.privacy import is_private_record_level
+    from app.models import Document, Property
+    from app.modules.documents.access import can_view_document, is_owner
+    from app.modules.genealogy.lookup import visible_subjects
+    from app.modules.property.service import can_view_property
+
+    wanted: dict[GrantResource, set[uuid.UUID]] = {}
+    for rt, rid in resources:
+        wanted.setdefault(GrantResource(rt), set()).add(rid)
+    ok: set[tuple[GrantResource, uuid.UUID]] = set()
+    manager = ctx.has(Permission.PRIVACY_MANAGE)
+    if manager and (ids := wanted.get(GrantResource.PERSON)):
+        ok |= {(GrantResource.PERSON, pid) for pid in visible_subjects(ctx, ids)}
+    if ids := wanted.get(GrantResource.DOCUMENT):
+        docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(ids)))
+        ok |= {
+            (GrantResource.DOCUMENT, d.id)
+            for d in docs
+            if can_view_document(ctx, d)
+            and (is_owner(ctx, d) or (manager and not is_private_record_level(d.privacy_level)))
+        }
+    if manager and (ids := wanted.get(GrantResource.PROPERTY)):
+        props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))
+        ok |= {(GrantResource.PROPERTY, p.id) for p in props if can_view_property(ctx, p)}
+    return ok
 
 
 def tree_permissions(membership: TreeMembership) -> list[str]:

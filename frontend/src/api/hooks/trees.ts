@@ -9,6 +9,8 @@ import type {
   MemberOut,
   MemberUpdate,
   Message,
+  NominationCreate,
+  NominationOut,
   Page,
   TreeOut,
   TreeUpdate,
@@ -21,6 +23,7 @@ export const treeKeys = {
   invitations: (t: string) => ["tree", t, "invitations"] as const,
   audit: (t: string, action?: string) => ["tree", t, "audit", action ?? ""] as const,
   claims: (t: string) => ["tree", t, "claims"] as const,
+  nominations: (t: string) => ["tree", t, "admin-nominations"] as const,
 };
 
 export function useTrees() {
@@ -144,6 +147,40 @@ export function useReviewClaim(treeId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: treeKeys.claims(treeId) });
       qc.invalidateQueries({ queryKey: ["tree", treeId, "person"] });
+    },
+  });
+}
+
+// ---- Family Admin nominations (ADR-0006 amendment of 9 Nov 2026) ----
+export function useAdminNominations(treeId: string) {
+  return useQuery({
+    queryKey: treeKeys.nominations(treeId),
+    queryFn: () => api.get<NominationOut[]>(`/trees/${treeId}/admin-nominations`),
+  });
+}
+
+export function useCreateNomination(treeId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: NominationCreate) => api.post<NominationOut>(`/trees/${treeId}/admin-nominations`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: treeKeys.nominations(treeId) }),
+  });
+}
+
+export type NominationStep = "accept" | "decline" | "approve" | "reject" | "withdraw";
+
+export function useNominationStep(treeId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, step, clearBranch }: { id: string; step: NominationStep; clearBranch?: boolean }) =>
+      api.post<NominationOut>(`/trees/${treeId}/admin-nominations/${id}/${step}`, step === "approve" ? { clear_branch: !!clearBranch } : {}),
+    onSuccess: (_d, { step }) => {
+      void qc.invalidateQueries({ queryKey: treeKeys.nominations(treeId) });
+      // approval changes the nominee's roles; the caller's own roles may have changed too
+      if (step === "approve" || step === "accept") {
+        void qc.invalidateQueries({ queryKey: treeKeys.members(treeId) });
+        void qc.invalidateQueries({ queryKey: treeKeys.detail(treeId) });
+      }
     },
   });
 }
