@@ -264,6 +264,9 @@ def check_documents(ctx: TreeContext, document_ids: Sequence[uuid.UUID]) -> list
         doc = lookup.get_in_tree(ctx, Document, did, "Document")
         if not can_view_document(ctx, doc):
             raise NotFound("Document not found")
+        from app.modules.documents.access import require_owner_if_private
+
+        require_owner_if_private(ctx, doc)  # linking changes a private record: owner only (§10)
         docs.append(doc)
     return docs
 
