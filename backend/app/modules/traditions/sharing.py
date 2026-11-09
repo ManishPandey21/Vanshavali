@@ -41,6 +41,20 @@ def entry_allows(
     )
 
 
+def entry_audience_allows(ctx: TreeContext, e: TraditionEntry) -> bool:
+    """Is the viewer in the entry's audience, withdrawn or not? For the audit log, which keeps
+    showing a withdrawn entry's history to those it was shared with (ADR-0027 §11)."""
+    if ctx.public or not ctx.is_member:
+        return False
+    return record_allows(
+        ctx,
+        RecordPrivacyLevel(e.privacy_level),
+        owner_membership_id=e.owner_membership_id,
+        audience_branch_id=e.branch_id if e.privacy_level == RecordPrivacyLevel.FAMILY_BRANCH else None,
+        grant=(GrantResource.TRADITION, e.id),
+    )
+
+
 class TraditionRecord(core.RecordAdapter):
     resource = GrantResource.TRADITION
     audit_type = "tradition"

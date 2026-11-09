@@ -8,12 +8,16 @@ Create Date: 2026-11-09
   backfilled from ``created_by`` where that user is still a member.
 * ``tradition_entry.privacy_level`` accepts the record audiences ``ONLY_ME`` and ``SELECTED_MEMBERS``.
   Traditions used ``PRIVATE_SELF`` to mean *the author only* (``traditions.may_read``), which is
-  exactly ``ONLY_ME``; existing rows are moved to it, so nobody gains or loses access.
+  ``ONLY_ME``; existing rows are moved to it. This is an accepted exception to ADR-0027 open point 2
+  (legacy levels kept). At migration time nobody gains or loses access, but afterwards a re-invited
+  author no longer gets their old private entries back, and an entry whose author had already left
+  becomes an orphan nobody can read or claim. See the ADR's increment 2 notes.
 * ``access_grant.resource_type`` accepts ``tradition`` ("Selected members" on an entry).
 
 Downgrade deletes tradition grants (no older equivalent), maps ``ONLY_ME`` back to ``PRIVATE_SELF``
-(identical meaning under the old ``may_read``) and ``SELECTED_MEMBERS`` to ``CUSTOM`` (admins only:
-the selected members lose access), then drops the column.
+(the author by user id again, so a re-invited author regains access) and ``SELECTED_MEMBERS`` to
+``CUSTOM`` (the selected members lose access and tree admins gain it), then drops the owner column.
+These effects cannot be undone by upgrading again.
 """
 
 from __future__ import annotations
