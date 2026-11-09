@@ -300,6 +300,12 @@ widen them.
 8. **Still open (separate decision):** routing legal requests (for example a court or police
    request about a record nobody in the tree has reported) and the legal review's role in
    deciding appeals (ADR-0023 §13). Until then, only member reports start a takedown.
+9. **Not decided (reserved by the owner): an ownership offer (§2) that exists when a record is
+   suspended.** The draft code holds one interim behaviour (see "Implemented in this draft, not
+   approved" in the increment 8 notes); it is not policy. The options under consideration:
+   - **A. Cancel the offer automatically on suspension**; a new offer is needed after a lift.
+   - **B. Pause the offer during the suspension**, and decide whether it may be accepted after a
+     lift or must be renewed.
 
 ## Suggested cross-references for ADR-0023 (PR #42), not made here
 - §3 "Private" maps to `ONLY_ME` with two holders; "Shared in the tree" maps to the Selected
@@ -528,8 +534,15 @@ unchanged and legal-request routing stays open.
   on the record's own audience, as if it were not suspended.
 - **Lifting** clears `suspended_at`, then re-runs `enforce_ceiling`; grants, levels and links are
   read as they are now.
-- **Ownership** (increment 5) cannot change while a record is suspended: no new offer and no
-  accepting an earlier one (409 `record_suspended`); the owner may still cancel an offer.
+- **Implemented in this draft, not approved (detail 9 above is the owner's to decide).** Ownership
+  (increment 5) cannot change while a record is suspended: no new offer and no accepting an earlier
+  one (409 `record_suspended`); the owner may still cancel an offer. An offer made before the
+  suspension is kept, so this draft behaves as option B with acceptance allowed after a lift. As
+  written it also (a) keeps listing the record's title and id in the offered member's
+  `GET /ownership-offers` during the suspension, (b) tells that member the record is suspended
+  through the 409 code, and (c) takes no lock on the record in `suspend` or `accept`, so an accept
+  racing a suspension can transfer a record that has just been suspended. These follow from the
+  interim rule and are left as they are until the decision.
 - **API.** `POST /trees/{id}/records/{type}/{id}/reports`; `GET /record-reports`,
   `POST /record-reports/{id}/dismiss`, `POST /record-reports/{id}/suspend`;
   `GET /record-suspensions` (+ `/{id}`), `POST /record-suspensions/{id}/appeal`,
