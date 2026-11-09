@@ -803,6 +803,9 @@ class NotificationKind(StrEnum):
     NOMINATION_REJECTED = "nomination_rejected"
     NOMINATION_EXPIRED = "nomination_expired"
     NOMINATION_LAPSED = "nomination_lapsed"
+    # ADR-0027 §5: a record was made more private automatically (subject_id = the record)
+    DOCUMENT_NARROWED = "document_narrowed"
+    TRADITION_NARROWED = "tradition_narrowed"
 
 
 # ---- cultural depth (ADR-0026)

@@ -422,3 +422,22 @@ listed in the threat model's residual risks.
 - **No schema change**, no migration.
 - **Tests.** `tests/test_collections_export_search.py` (search by role and audience, the owner's,
   the tree owner's and the author's export); threat model T59 extended.
+
+## Implementation notes (9 Nov 2026, increment 6: telling owners about automatic narrowing)
+- **Owner notice (§5, "and tells the owner").** When `enforce_ceiling` narrows a document or a
+  tradition entry (a private person tagged or made private, an album's event made private, an
+  erasure, a hidden profile), the record's owner gets an in-app notice: kind `document_narrowed` or
+  `tradition_narrowed` and the record's id, nothing else. The actor is not stored, so the notice
+  never says who caused it or why. No notice when the owner narrowed it themselves or has left the
+  tree; at most one unread notice per record. The text is built when read and quotes the title only
+  while the reader may still see the record; the notice links to the record. Photo collections are
+  never narrowed automatically (they tag nobody), so they have no notice.
+- **Hidden during a claim review.** "This is me, remove me" through a claim link hides the profile
+  (ADR-0011) and now narrows the documents and traditions tagging it at once, run as the system
+  (no actor in the audit; reason `person_privacy`, the same as any privacy change, so the owner
+  never learns of the request). The link holder is not a member and gains nothing. Declining the
+  request restores the profile but never widens a record again; its owner decides.
+- **Migration** `c7e3a1f5b829` (after `b5c1e7a93d42`) adds the two kinds to the notification
+  check constraint; the downgrade deletes those notices first.
+- **Tests.** `tests/test_narrowing_notices.py` (6 cases), Vitest `ReviewParts.test.tsx`; threat
+  model T61.

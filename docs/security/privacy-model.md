@@ -64,6 +64,9 @@ A standalone photo collection has its own audience (new collections are Only me)
 photo in it only if they may see both, and sharing a collection never shares its photos.
 Global search and the archive export follow the same rule: a collection is a hit or exported only
 for someone who may see it, and only the photos they may see are listed in it.
+When a record is made more private automatically, its owner is told in the app (which record, never
+who caused it or why). A profile hidden after a "remove me" request through a claim link narrows the
+records tagging it at once; declining the request never widens them again.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

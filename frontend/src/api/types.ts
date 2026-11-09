@@ -293,6 +293,7 @@ export type ChallengeIn = S["ChallengeIn"];
 export type RevisionOut = S["RevisionOut"];
 export type RevertOut = S["RevertOut"];
 export type NotificationsOut = S["NotificationsOut"];
+export type NotificationOut = S["NotificationOut"];
 export type DuplicateCheckIn = S["DuplicateCheckIn"];
 export type DuplicateCheckOut = S["DuplicateCheckOut"];
 
