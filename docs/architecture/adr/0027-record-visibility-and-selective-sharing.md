@@ -319,15 +319,44 @@ listed in the threat model's residual risks.
   `owner_membership_id` (backfilled from `created_by`). `traditions.may_read` is now
   `record_allows` (finding A9 closed): the private audiences admit no role. Traditions always used
   `PRIVATE_SELF` for *the author only*, so migration `8d2e6b4f1a37` moves those rows to `ONLY_ME` and
-  the API maps a submitted `PRIVATE_SELF` to `ONLY_ME`: nobody gained or lost access. "Selected
+  the API maps a submitted `PRIVATE_SELF` to `ONLY_ME` (see the exception below). "Selected
   branch" is the entry's existing `branch_id`; moving a Selected-branch entry to another branch is an
   audience change and follows §10. Entries are text: no separate download right. Never public.
+- **Exception to open point 2 (accepted for traditions only).** Resolution 2 keeps legacy
+  `PRIVATE_SELF` records until their owners convert them. Traditions are converted at migration
+  instead, because their `PRIVATE_SELF` never had the tree-owner custodian meaning that it has on
+  documents: it meant *the author only*. Documents and every other record keep resolution 2. What
+  the conversion changes, exactly (tested in `tests/test_traditions_sharing.py`):
+  - *At migration time nobody gains or loses access*: an entry's readers are its author, if still a
+    member, before and after.
+  - *Re-invited authors.* The old rule matched the author's user id, so an author removed and invited
+    again read their old private entries again. Now the owner is a membership: a re-invited author
+    does not get them back (ADR-0027 §3, stress test 2). This is permanent.
+  - *Orphans.* An entry whose author had already left has no owner: nobody can read, share, convert
+    or claim it, not even that author if re-invited. It stays under its retention policy (§2).
+  - *Unchanged:* `CUSTOM` entries stay `CUSTOM` (admins and grantees); no grants are created or
+    deleted on upgrade; grants on people, documents and properties are untouched.
+  - *Downgrade (not reversible in effect):* tradition grants are deleted, so selected members lose
+    access; `SELECTED_MEMBERS` becomes `CUSTOM`, so tree owners and family admins *gain* read access
+    to those entries; `ONLY_ME` becomes `PRIVATE_SELF`, so a re-invited author reads their old entries
+    again; owners (and any transfer of ownership) are dropped. Upgrading again re-runs the owner
+    backfill from `created_by`, so a re-invited former author then owns their old entries. A
+    downgrade therefore needs the same approval as a privacy change.
 - **Grants.** `GrantResource.TRADITION`; `manageable_grant_resources` treats entries like documents
   (owner, or a privacy manager for a shared entry); `ONLY_ME` cannot be granted directly (409).
 - **Ceilings.** People linked to an entry cap it like people tagged in a document; linking a
   protected living person, or making a linked person more private, narrows the entry.
 - **Review.** Proposals are applied as the proposer (ADR-0021), so a proposal by a non-owner to
-  change who may read an entry fails when approved (403) and the entry is unchanged.
+  change who may read an entry fails when approved (403) and the entry is unchanged. Nobody but the
+  owner may propose a change to a private entry (403), and a proposal about an entry that becomes
+  private is hidden from everyone who can no longer read it, its proposer included; it reappears if
+  the entry is shared again. While hidden it cannot be decided.
+- **Changes (§10).** A private entry is edited and withdrawn by its owner alone: members it is
+  shared with read it, whatever their role (`can_edit`, `can_withdraw` say so). Revoking a grant,
+  removing a member from the sharing panel, narrowing to Only me, withdrawing the entry or a grant's
+  expiry all end access on the next request (§7).
+- **Audit (§11).** Events about an entry the reader is not in the audience of are shown as an opaque
+  `private_record` entry. A withdrawn entry that was shared keeps its history visible.
 - **API.** `GET|PUT /traditions/{id}/sharing`, `POST …/sharing/preview`; `TraditionOut.is_owner`,
   `can_edit_sharing`.
 - **UI.** The tradition editor picks the audience for a new entry with Visibility & Sharing
