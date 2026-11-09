@@ -80,17 +80,27 @@ class TreeInvitation(TreeScopedMixin, Base):
 
 
 class AccessGrant(TreeScopedMixin, Base):
-    """Explicit share of one resource with one member (CUSTOM privacy, vault downloads)."""
+    """Explicit share of one resource with one membership (CUSTOM privacy, vault downloads).
+
+    A grant belongs to the membership (ADR-0027 §3): removing the member deletes it (ON DELETE
+    CASCADE), and inviting the same person again creates a new membership with no grants. The
+    composite FK keeps the grantee in the grant's tree. The unique constraint leads with
+    ``(tree_id, membership_id)``, so it also serves the per-request lookup and the cascade.
+    """
 
     __tablename__ = "access_grant"
     __table_args__ = (
         tree_unique("access_grant"),
+        tree_fk(["membership_id"], "tree_membership", ondelete="CASCADE"),
         UniqueConstraint(
-            "tree_id", "user_id", "resource_type", "resource_id", "permission", name="uq_access_grant"
+            "tree_id", "membership_id", "resource_type", "resource_id", "permission", name="uq_access_grant"
         ),
         Index("ix_access_grant_lookup", "tree_id", "resource_type", "resource_id"),
     )
 
+    membership_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    # Deprecated (ADR-0027 §3): kept for one release, always the membership's user; never used for
+    # access decisions. Dropped in the next release.
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE")
     )

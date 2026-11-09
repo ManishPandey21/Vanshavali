@@ -1313,6 +1313,7 @@
      "trees"
     ],
     "summary": "List Grants",
+    "description": "Grants on records the caller may manage; others are not listed (ADR-0027 \u00a73, A7).",
     "operationId": "list_grants_api_v1_trees__tree_id__grants_get",
     "parameters": [
      {

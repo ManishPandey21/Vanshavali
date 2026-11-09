@@ -486,7 +486,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Grants */
+        /**
+         * List Grants
+         * @description Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7).
+         */
         get: operations["list_grants_api_v1_trees__tree_id__grants_get"];
         put?: never;
         /** Create Grant */

@@ -104,6 +104,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
+| `membership_id` | UUID | no | → tree_membership (composite, same tree) |
 | `user_id` | UUID | no | → app_user |
 | `resource_type` | enum(person, document, property) | no |  |
 | `resource_id` | UUID | no |  |
@@ -117,7 +118,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
 
-Constraints/indexes: `UNIQUE (tree_id, user_id, resource_type, resource_id, permission)`; `UNIQUE (tree_id, id)`; `INDEX ix_access_grant_lookup (tree_id, resource_type, resource_id)`; `INDEX ix_access_grant_tree_id (tree_id)`
+Constraints/indexes: `UNIQUE (tree_id, membership_id, resource_type, resource_id, permission)`; `UNIQUE (tree_id, id)`; `INDEX ix_access_grant_lookup (tree_id, resource_type, resource_id)`; `INDEX ix_access_grant_tree_id (tree_id)`
 
 ## Genealogy
 
