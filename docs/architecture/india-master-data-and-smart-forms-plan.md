@@ -297,14 +297,16 @@ valid), native Hindi review of new strings, and the elder-friendly UX review in 
   and no tree access.
 - **Consent withdrawal:** the narrator can withdraw at any time; media, transcript and unreviewed
   proposals are erased; already-accepted facts keep their citation but lose the media link.
-- **Retention:** raw audio is kept for a defined period (default proposed: until transcript review
-  plus 90 days) unless the family explicitly chooses to archive it; transcripts follow story
-  privacy; both covered by erasure and "remove me".
+- **Retention:** superseded by [ADR-0023](adr/0023-oral-history-ask-an-elder.md) §9 (owner
+  decision, 8 Nov 2026): raw audio deleted 30 days after transcript review and never kept beyond
+  90 days after upload, unless the narrator separately consents to an archive; transcripts follow
+  story privacy; both covered by erasure and "remove me".
 - **Other living relatives mentioned:** stories default to the most restrictive of narrator and
   tagged-person privacy; facts about other people become proposals governed by *their* privacy;
   a tagged relative can ask to be untagged or for the passage to be hidden.
-- Speech-to-text self-hosted by default; external provider only per-tree informed opt-in (Q7/Q17);
-  transcript → `extraction_proposal`s.
+- Speech-to-text self-hosted by default; external provider only with a per-tree admin opt-in **and**
+  the narrator's explicit consent (Q7/Q17, ADR-0023 §8); engine choice deferred; transcript →
+  `extraction_proposal`s.
 
 ### Phase J: Duplicate detection inside Smart Add — [ADR-0021](adr/0021-change-proposals-family-review.md) §8
 
