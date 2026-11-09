@@ -31,3 +31,4 @@ into 0003, 0009 and 0010.
 | 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |
 | 0026 | [Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions](0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md) | Accepted |
 | 0027 | [Record visibility and selective sharing for family media and records](0027-record-visibility-and-selective-sharing.md) | Accepted (implementation in progress) |
+| 0028 | [Super Admin master-data console: global terms published from the interface (Option B)](0028-super-admin-master-data-console.md) | Proposed |
