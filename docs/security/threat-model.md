@@ -113,13 +113,19 @@ the attacker's account. The impact is limited to the victim acting in the attack
 SameSite=Lax cookies apply.
 
 ## 5. Residual risks and deferred controls
-- **Selective sharing of records: grant revival fixed (9 Nov 2026).** Grants are still keyed by
-  `user_id`, but removing a member or closing an account now deletes that user's grants in the
-  tree, and existing orphaned grants were deleted by migration (T53). A re-invited person starts
-  with no grants; the manual workaround (delete a removed member's grants via
-  `GET`/`DELETE /trees/{id}/grants` before re-inviting) is no longer needed. ADR-0027 §3
-  (grants bound to `membership_id` with `ON DELETE CASCADE`) replaces this stopgap. The other
-  selective-sharing gaps recorded with ADR-0027 are unchanged.
+- **Selective sharing of records (audit of 8 Nov 2026; fix accepted in ADR-0027, implementation
+  in progress).** Confirmed on `main` with probes against the test stack:
+  - `CUSTOM` documents are readable and downloadable by every `OWNER`/`FAMILY_ADMIN` without a grant,
+    and `PRIVATE_SELF` documents by the tree owner; there is no "only me" for a record.
+  - `access_grant` is keyed by `user_id`. **Fixed (9 Nov 2026, T53):** removing a member or
+    closing an account now deletes that user's grants in the tree, and a migration deleted the
+    grants already orphaned, so re-inviting the same person no longer revives them. ADR-0027 §3
+    (grants bound to `membership_id` with `ON DELETE CASCADE`) replaces this stopgap.
+  - `FAMILY_BRANCH` on a document admits no branch member (documents carry no branch).
+  - `GET /trees/{id}/grants` lists every grant to any privacy manager, revealing that restricted
+    records exist and who holds them.
+  - Tagging a protected living person on a document does not tighten the document's privacy.
+  - Viewing a non-vault document always allows downloading the original.
 - **Heritage visualization milestone (Oct 2026).** The SMS (Twilio) and WhatsApp (Twilio, Meta
   Cloud API) adapters are written against the providers' public APIs but have **not been exercised
   against the live services**; they stay disabled until credentials, DLT registration and template

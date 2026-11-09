@@ -41,6 +41,12 @@ visibility for one member. Documents also distinguish `view` from `download`. A 
 end when they leave it (removed, or account closed); inviting the same person again does not
 restore them (threat T53).
 
+> **Accepted (ADR-0027), being implemented.** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
+> cannot yet be shared with chosen members only. ADR-0027 proposes two record-only audiences,
+> `ONLY_ME` and `SELECTED_MEMBERS`, with no role-based visibility; membership-bound grants; separate
+> view and download; and ceilings from consent and tagged people. The current gaps are listed in the
+> threat model, §5.
+
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
 (`person.field_privacy`), then the defaults below. A field is never *less* private than the person.
