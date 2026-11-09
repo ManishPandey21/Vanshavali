@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: increments 1 (documents), 2 (traditions) and 3 (event photo albums) — see the implementation notes
+  are resolved as below) · Implementation: increments 1 (documents), 2 (traditions), 3 (event photo albums) and 4 (photo collections) — see the implementation notes
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -355,3 +355,27 @@ listed in the threat model's residual risks.
   link to the photo's sharing panel.
 - **Tests.** `tests/test_album_sharing.py` (6 cases), a third Playwright test in
   `record-sharing.spec.ts`; threat model T58.
+
+## Implementation notes (9 Nov 2026, increment 4: standalone photo collections)
+- **Model.** `photo_collection` (a shareable record: title, description, record audience, owner
+  membership, branch audience; new collections are Only me) and `photo_collection_item` (a photo,
+  caption, order, cover), both tree-scoped with row-level security; `GrantResource.COLLECTION`.
+  Migration `b5c1e7a93d42`, with a downgrade that deletes collection grants and drops both tables.
+- **Album × photo (§6).** A viewer sees an item only when they may see the collection and the
+  photo; lists, counts and covers are per viewer. Adding a photo never changes who can see it, and
+  sharing a collection never shares its photos. The owner is told how many photos part of the
+  collection's audience cannot see (`items_not_shared`, and a flag on each item).
+- **Who may change what (§10).** Only the owner changes the contents, title or description, or
+  deletes the collection (its photos stay in the vault). Sharing uses the shared core through a
+  `CollectionRecord` adapter: the owner widens with confirmation, admins only narrow; no download
+  right at collection level (downloads belong to each photo). Only photos the owner can see can be
+  added; never another tree's.
+- **Audit (§11).** Audit-log redaction now covers documents, traditions and collections. This also
+  closes a gap from increment 2: entries about a private tradition named it to admins.
+- **API.** `/trees/{id}/collections` (list, create), `/collections/{id}` (get, patch, delete),
+  `/collections/{id}/items` (add, patch, remove), `/collections/{id}/sharing` (+ `/preview`).
+- **UI.** "Photo collections" in the family menu: list with per-viewer covers and counts, a new
+  collection dialog with Visibility & Sharing, a detail page with a photo picker, cover, removal,
+  the not-shared warning and the sharing panel.
+- **Tests.** `tests/test_photo_collections.py` (7 cases), page tests in `CollectionsPage.test.tsx`,
+  a fourth Playwright test in `record-sharing.spec.ts`; threat model T59.

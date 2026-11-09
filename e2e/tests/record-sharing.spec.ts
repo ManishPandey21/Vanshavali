@@ -163,3 +163,45 @@ test("an album photo kept for Only me is left out of the album for everyone else
     expect(got.media_count).toBe(0);
   }
 });
+
+test("a photo collection shared with one member shows them only the photos they may see", async ({ browser, context, baseURL }) => {
+  const base = baseURL!;
+  const { treeId } = await registerWithTree(context, base, "Pandey parivar", "Tree Owner");
+  const author = await join(browser, base, context, treeId, "Author Chachi", ["CONTRIBUTOR"]);
+  const asha = await join(browser, base, context, treeId, "Asha Pandey", ["VIEWER"]);
+  const upload = async (title: string, level: string) => {
+    const csrf = (await author.cookies()).find((c) => c.name === "vsh_csrf")?.value ?? "";
+    const res = await author.request.post(`${base}/api/v1/trees/${treeId}/documents`, {
+      headers: { "X-CSRF-Token": csrf },
+      multipart: { file: { name: `${title}.png`, mimeType: "image/png", buffer: await renderTextPng(browser, [title]) }, category: "photo", title, privacy_level: level },
+    });
+    expect(res.status()).toBe(201);
+    return ((await res.json()) as { id: string }).id;
+  };
+  const shared = await upload("Village well", "TREE_MEMBERS");
+  await upload("Nani resting", "ONLY_ME");
+
+  const page = await author.newPage();
+  await page.goto(`/t/${treeId}/collections`);
+  await page.getByRole("button", { name: "New collection" }).first().click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel(/^Name/).fill("Nani's village");
+  await dialog.getByRole("radio", { name: "Selected members" }).check();
+  await dialog.getByRole("list", { name: "Family members to share with" }).getByRole("listitem").filter({ hasText: "Asha Pandey" }).getByRole("checkbox", { name: "Can view" }).check();
+  await dialog.getByRole("button", { name: "Create collection" }).click();
+  await expect(page.getByRole("heading", { name: "Nani's village", level: 1 })).toBeVisible();
+  const collectionId = page.url().split("/collections/")[1].split(/[?#/]/)[0];
+
+  await page.getByRole("button", { name: "Add photos" }).click();
+  const picker = page.getByRole("dialog", { name: "Add photos" });
+  await picker.getByRole("checkbox", { name: "Village well" }).check();
+  await picker.getByRole("checkbox", { name: "Nani resting" }).check();
+  await picker.getByRole("button", { name: "Add 2 photos" }).click();
+  await expect(page.getByRole("list", { name: "Photos in this collection" }).getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByRole("note")).toContainText("1 photo is kept more private than this collection");
+
+  const seen = await api<{ items: { document_id: string }[]; item_count: number }>(asha, "GET", `/trees/${treeId}/collections/${collectionId}`, undefined, base);
+  expect(seen.items.map((i) => i.document_id)).toEqual([shared]);
+  expect(seen.item_count).toBe(1);
+  expect(await status(context, base, `/trees/${treeId}/collections/${collectionId}`)).toBe(404);
+});

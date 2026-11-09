@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import datetime as dt
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Query, Request, status
 from sqlalchemy import select
@@ -318,31 +319,52 @@ def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
 
 
 # ---- audit ----
-def _document_ids(item: AuditEventOut) -> set[uuid.UUID]:
-    ids: set[uuid.UUID] = set()
-    if item.target_type == "document" and item.target_id is not None:
-        ids.add(item.target_id)
+_RECORD_TARGETS = ("document", "tradition", "collection")
+
+
+def _record_refs(item: AuditEventOut) -> set[tuple[str, uuid.UUID]]:
+    """The shareable records an audit entry is about: its target, and a photo named in details."""
+    refs: set[tuple[str, uuid.UUID]] = set()
+    if item.target_type in _RECORD_TARGETS and item.target_id is not None:
+        refs.add((item.target_type, item.target_id))
     raw = (item.details or {}).get("document_id")
     if isinstance(raw, str):
         with contextlib.suppress(ValueError):
-            ids.add(uuid.UUID(raw))
-    return ids
+            refs.add(("document", uuid.UUID(raw)))
+    return refs
+
+
+def _visible_records(ctx: TreeContext, refs: set[tuple[str, uuid.UUID]]) -> set[tuple[str, uuid.UUID]]:
+    from app.models import Document, PhotoCollection, TraditionEntry
+    from app.modules.collections.service import collection_allows
+    from app.modules.documents.access import can_view_document
+    from app.modules.traditions.sharing import entry_allows
+
+    checks: dict[str, tuple[Any, Any]] = {
+        "document": (Document, can_view_document),
+        "tradition": (TraditionEntry, entry_allows),
+        "collection": (PhotoCollection, collection_allows),
+    }
+    visible: set[tuple[str, uuid.UUID]] = set()
+    for kind, (model, allows) in checks.items():
+        ids = {rid for k, rid in refs if k == kind}
+        if ids:
+            rows: Any = ctx.db.scalars(select(model).where(model.tree_id == ctx.tree_id, model.id.in_(ids)))
+            visible |= {(kind, r.id) for r in rows if allows(ctx, r)}
+    return visible
 
 
 def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> list[AuditEventOut]:
-    """Events about a record the reader may not see become an opaque "private record" entry with
-    no id, title or details, so the audit log never reveals a private record (ADR-0027 §11)."""
-    from app.models import Document
-    from app.modules.documents.access import can_view_document
-
-    wanted = set().union(*(_document_ids(i) for i in items)) if items else set()
+    """Events about a record the reader may not see (a document, tradition or collection) become an
+    opaque "private record" entry with no id, title or details, so the audit log never reveals a
+    private record (ADR-0027 §11)."""
+    wanted = set().union(*(_record_refs(i) for i in items)) if items else set()
     if not wanted:
         return items
-    docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(wanted)))
-    visible = {d.id for d in docs if can_view_document(ctx, d)}
+    visible = _visible_records(ctx, wanted)
     out = []
     for i in items:
-        if _document_ids(i) - visible:
+        if _record_refs(i) - visible:
             i = i.model_copy(
                 update={"target_type": "private_record", "target_id": None, "summary": None, "details": {}}
             )

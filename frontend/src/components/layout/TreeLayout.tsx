@@ -2,35 +2,7 @@ import { NotificationBell, ProposeChangeHost } from "../review/ReviewParts";
 import { useMemo, useState, type ComponentType } from "react";
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  ArchiveRestore,
-  ArrowDownUp,
-  Bell,
-  CalendarRange,
-  ChartPie,
-  ClipboardCheck,
-  History as HistoryIcon,
-  FileText,
-  LandPlot,
-  BookOpen,
-  ClipboardList,
-  Copy,
-  Home,
-  Landmark,
-  LayoutGrid,
-  MapPin,
-  MoreHorizontal,
-  Network,
-  NotebookPen,
-  Route,
-  Search,
-  Settings,
-  ShieldCheck,
-  UserPlus,
-  Users,
-  UsersRound,
-  type LucideProps,
-} from "lucide-react";
+import { ArchiveRestore, ArrowDownUp, Bell, CalendarRange, ChartPie, ClipboardCheck, History as HistoryIcon, FileText, LandPlot, BookOpen, ClipboardList, Copy, Home, Landmark, LayoutGrid, MapPin, MoreHorizontal, Network, NotebookPen, Route, Search, Settings, ShieldCheck, UserPlus, Users, UsersRound, type LucideProps, Images } from "lucide-react";
 import { useTree } from "../../api/hooks/trees";
 import { TreeContext, makeTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
@@ -71,6 +43,7 @@ export function TreeLayout() {
       { to: `${base}/branches`, label: t("nav.branches"), icon: Landmark, group: "family" },
       { to: `${base}/households`, label: t("nav.households"), icon: UsersRound, group: "family" },
       { to: `${base}/traditions`, label: t("nav.traditions"), icon: NotebookPen, group: "family" },
+      { to: `${base}/collections`, label: t("nav.collections"), icon: Images, group: "family" },
       { to: `${base}/documents`, label: t("nav.documents"), icon: FileText, group: "records" },
       ...(ctx.can(Perm.PROPERTY_READ) || ctx.can(Perm.PROPERTY_WRITE) ? [{ to: `${base}/property`, label: t("nav.property"), icon: LandPlot, group: "records" as const }] : []),
       ...(ctx.can(Perm.GEDCOM_IMPORT) || ctx.can(Perm.GEDCOM_EXPORT) ? [{ to: `${base}/import-export`, label: t("nav.importExport"), icon: ArrowDownUp, group: "records" as const }] : []),
