@@ -1313,7 +1313,7 @@
      "trees"
     ],
     "summary": "List Grants",
-    "description": "Grants the caller may manage: everything for privacy managers except grants on other members'\nprivate records; a record owner's own grants for anyone else (ADR-0027 \u00a73).",
+    "description": "Grants on records the caller may manage; others are not listed (ADR-0027 \u00a73, A7). A record's\nowner manages the grants on it; grants on a private record are listed to its owner only.",
     "operationId": "list_grants_api_v1_trees__tree_id__grants_get",
     "parameters": [
      {

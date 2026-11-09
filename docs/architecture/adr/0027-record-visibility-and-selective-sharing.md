@@ -92,6 +92,13 @@ collection (§6). Its `privacy_level` takes one of these audiences:
 - `GET /trees/{id}/grants` returns only grants on resources the caller may manage (fixes A7). A
   record's own `GET …/sharing` returns its grants to its owner only.
 
+**Implemented (9 Nov 2026):** `membership_id` with the composite FK and cascade, backfill and
+orphan deletion (§12.2, migration `9c4f2a7d1e83`); lookups by membership; `GET /grants` (and grant
+creation and revocation) limited to records the caller may see — `privacy.manage` plus visibility
+until §2 defines a content owner. **Waits for §1/§2:** owner-only granting on `ONLY_ME` /
+`SELECTED_MEMBERS` records, `GET …/sharing`, and the new `GrantResource` values (§12.4).
+**Next release:** drop `access_grant.user_id`.
+
 ### 4. View, preview, play and download
 - **View** = metadata, thumbnail, preview, in-app playback/streaming, OCR text and confirmed
   extracted facts.
@@ -264,12 +271,13 @@ historical records, GEDCOM-imported photos and event-album photos.
 - **Model.** `RecordPrivacyLevel` (every `PrivacyLevel` value plus `ONLY_ME` and `SELECTED_MEMBERS`)
   on `document.privacy_level` only; other tables keep `PrivacyLevel`'s CHECK constraint, so people,
   events and properties cannot hold the new values. New columns `document.owner_membership_id`,
-  `audience_branch_id`, `allow_download`; `access_grant.membership_id` (composite FK, ON DELETE
-  CASCADE). Migration `3f6a8c1d2e94` backfills owners from `created_by` and grants from
-  `(tree_id, user_id)`; its downgrade maps the new levels to `PRIVATE_SELF` and `CUSTOM`.
+  `audience_branch_id`, `allow_download`. Migration `3f6a8c1d2e94` (after `9c4f2a7d1e83`, which
+  bound grants to memberships, ManishPandey21/Vanshavali#49) backfills owners from `created_by`; its
+  downgrade maps the new levels to `PRIVATE_SELF` and `CUSTOM`.
 - **One evaluator.** `authz.privacy.record_allows` sits beside `level_allows` and delegates to it
   for every shared or legacy level; `level_allows` refuses the record-only levels outright (fail
-  closed). `TreeContext.has_grant` reads grants of the current membership only. The uploader
+  closed). Grant management uses #49's `trees.service.manageable_grant_resources`, extended so a document's
+  owner manages its grants and grants on a private record are the owner's alone. The uploader
   fallback (`created_by`) is replaced by the owner membership, so a re-invited uploader does not get
   their old records back.
 - **View / content / download.** `documents.access`: view → content (thumbnail, preview, OCR text,

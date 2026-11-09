@@ -1,12 +1,11 @@
 """record visibility and selective sharing (ADR-0027)
 
 Revision ID: 3f6a8c1d2e94
-Revises: 7b3e9d2c4f61
+Revises: 9c4f2a7d1e83
 Create Date: 2026-11-09
 
-* ``access_grant.membership_id`` (composite FK to ``tree_membership``, ON DELETE CASCADE), backfilled
-  from ``(tree_id, user_id)``. Grants with no membership were already deleted by 7b3e9d2c4f61; any
-  left are deleted here. A grant now dies with its membership (ADR-0027 §3).
+Grants already belong to memberships (9c4f2a7d1e83, ADR-0027 §3); this adds the record side:
+
 * ``document.owner_membership_id`` (the content owner; SET NULL when they leave), backfilled from
   ``created_by`` where that user is still a member; ``document.audience_branch_id`` ("Selected
   branch"); ``document.allow_download`` (true for existing rows: unchanged behaviour).
@@ -26,7 +25,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "3f6a8c1d2e94"
-down_revision: str | None = "7b3e9d2c4f61"
+down_revision: str | None = "9c4f2a7d1e83"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -47,27 +46,6 @@ def _in(values: tuple[str, ...]) -> str:
 
 
 def upgrade() -> None:
-    # ---- grants belong to memberships
-    op.add_column("access_grant", sa.Column("membership_id", postgresql.UUID(as_uuid=True), nullable=True))
-    op.execute(
-        """
-        UPDATE access_grant g SET membership_id = m.id
-        FROM tree_membership m
-        WHERE m.tree_id = g.tree_id AND m.user_id = g.user_id
-        """
-    )
-    op.execute("DELETE FROM access_grant WHERE membership_id IS NULL")
-    op.alter_column("access_grant", "membership_id", nullable=False)
-    op.create_foreign_key(
-        op.f("fk_access_grant_tree_id_membership_id_tree_membership"),
-        "access_grant",
-        "tree_membership",
-        ["tree_id", "membership_id"],
-        ["tree_id", "id"],
-        ondelete="CASCADE",
-    )
-    op.create_index("ix_access_grant_membership", "access_grant", ["tree_id", "membership_id"])
-
     # ---- document owner, branch audience, download switch
     op.add_column("document", sa.Column("owner_membership_id", postgresql.UUID(as_uuid=True), nullable=True))
     op.add_column("document", sa.Column("audience_branch_id", postgresql.UUID(as_uuid=True), nullable=True))
@@ -121,8 +99,3 @@ def downgrade() -> None:
     op.drop_column("document", "audience_branch_id")
     op.drop_column("document", "owner_membership_id")
 
-    op.drop_index("ix_access_grant_membership", table_name="access_grant")
-    op.drop_constraint(
-        op.f("fk_access_grant_tree_id_membership_id_tree_membership"), "access_grant", type_="foreignkey"
-    )
-    op.drop_column("access_grant", "membership_id")

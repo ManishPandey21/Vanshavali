@@ -123,7 +123,7 @@ class TreeContext:
         self, resource_type: GrantResource, resource_id: uuid.UUID, permission: GrantPermission
     ) -> bool:
         if self.user is None or self.membership is None:
-            return False
+            return False  # grants belong to a membership (ADR-0027 §3)
         if self._grants is None:
             import datetime as dt
 
@@ -134,11 +134,7 @@ class TreeContext:
                     AccessGrant.resource_id,
                     AccessGrant.permission,
                     AccessGrant.expires_at,
-                ).where(
-                    AccessGrant.tree_id == self.tree_id,
-                    # ADR-0027 §3: grants belong to this membership, never to the user in general
-                    AccessGrant.membership_id == self.membership.id,
-                )
+                ).where(AccessGrant.tree_id == self.tree_id, AccessGrant.membership_id == self.membership.id)
             ).all()
             grants: dict[tuple[str, uuid.UUID], set[str]] = {}
             for rt, rid, perm, exp in rows:

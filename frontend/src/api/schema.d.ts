@@ -488,8 +488,8 @@ export interface paths {
         };
         /**
          * List Grants
-         * @description Grants the caller may manage: everything for privacy managers except grants on other members'
-         *     private records; a record owner's own grants for anyone else (ADR-0027 §3).
+         * @description Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7). A record's
+         *     owner manages the grants on it; grants on a private record are listed to its owner only.
          */
         get: operations["list_grants_api_v1_trees__tree_id__grants_get"];
         put?: never;

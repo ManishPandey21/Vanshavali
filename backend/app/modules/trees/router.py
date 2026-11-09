@@ -13,8 +13,8 @@ from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
-from app.models import AuditEvent, Tree, TreeInvitation, TreeMembership, User
-from app.models.enums import Role
+from app.models import AccessGrant, AuditEvent, Tree, TreeInvitation, TreeMembership, User
+from app.models.enums import GrantResource, Role
 from app.modules.trees import service
 from app.modules.trees.schemas import (
     AuditEventOut,
@@ -236,9 +236,17 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 # ---- explicit access grants ----
 @router.get("/trees/{tree_id}/grants", response_model=list[GrantOut])
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
-    """Grants the caller may manage: everything for privacy managers except grants on other members'
-    private records; a record owner's own grants for anyone else (ADR-0027 §3)."""
-    return [GrantOut.model_validate(g) for g in service.visible_grants(ctx)]
+    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7). A record's
+    owner manages the grants on it; grants on a private record are listed to its owner only."""
+    if not (ctx.has(Permission.PRIVACY_MANAGE) or ctx.has(Permission.DOCUMENT_UPLOAD)):
+        raise Forbidden()  # only privacy managers and record owners (uploaders) have grants to manage
+    grants = list(ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id)))
+    manageable = service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id) for g in grants])
+    return [
+        GrantOut.model_validate(g)
+        for g in grants
+        if (GrantResource(g.resource_type), g.resource_id) in manageable
+    ]
 
 
 @router.post("/trees/{tree_id}/grants", response_model=GrantOut, status_code=status.HTTP_201_CREATED)
@@ -251,7 +259,13 @@ def create_grant(body: GrantCreate, ctx: TreeCtx) -> GrantOut:
 
 @router.delete("/trees/{tree_id}/grants/{grant_id}", response_model=Message)
 def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
-    service.revoke_grant(ctx, grant_id)
+    g = ctx.db.scalar(
+        select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
+    )
+    if g is None or not service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id)]):
+        raise NotFound("Grant not found")
+    ctx.db.delete(g)
+    audit.log(ctx, "grant.revoked", target_type=str(g.resource_type), target_id=g.resource_id)
     return Message(message="Grant revoked")
 
 

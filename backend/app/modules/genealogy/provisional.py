@@ -109,13 +109,13 @@ def forget(ctx: TreeContext) -> None:
 
 def share_with_creator(ctx: TreeContext, person: Person) -> None:
     """Let the user who created a provisional person keep seeing (and so completing) them."""
-    if ctx.user_id is None or ctx.membership_id is None:
+    if ctx.user_id is None or ctx.membership is None:
         return
     ctx.db.add(
         AccessGrant(
             tree_id=ctx.tree_id,
+            membership_id=ctx.membership.id,
             user_id=ctx.user_id,
-            membership_id=ctx.membership_id,
             resource_type=GrantResource.PERSON,
             resource_id=person.id,
             permission=GrantPermission.VIEW,
@@ -129,7 +129,7 @@ def share_with_creator(ctx: TreeContext, person: Person) -> None:
 
 def revoke_creator_grants(ctx: TreeContext, person_ids: list[uuid.UUID]) -> None:
     """Undo of a Smart Add: the creator's grants on the people it created go with them."""
-    if not person_ids:
+    if not person_ids or ctx.membership is None:
         return
     for g in ctx.db.scalars(
         select(AccessGrant).where(
@@ -137,7 +137,7 @@ def revoke_creator_grants(ctx: TreeContext, person_ids: list[uuid.UUID]) -> None
             AccessGrant.resource_type == GrantResource.PERSON,
             AccessGrant.resource_id.in_(person_ids),
             AccessGrant.created_by == ctx.user_id,
-            AccessGrant.user_id == ctx.user_id,
+            AccessGrant.membership_id == ctx.membership.id,
         )
     ):
         ctx.db.delete(g)
