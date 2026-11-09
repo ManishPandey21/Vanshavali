@@ -82,8 +82,9 @@ membership) so it offers only those controls. The server re-checks every change.
 Promoting a member to family admin stays the owner's decision. A workflow in which a family admin
 *nominates* a member and the owner approves is a separate change to this ADR (tracked as an issue).
 
-## Amendment (9 Nov 2026, **Proposed**): Family Admin nominations, approved by an Owner
-Status: **Proposed**, for design review. Nothing below is built. Tracked in issue #45.
+## Amendment (9 Nov 2026, **Accepted**): Family Admin nominations, approved by an Owner
+Status: **Accepted** on 9 Nov 2026 by the owner, with the decisions recorded at the end. Not built
+yet. Tracked in issue #45; threat-model entry T56.
 
 ### Context
 - Owners want Family Admins to be able to **put a member forward** for Family Admin. The decision
@@ -93,7 +94,8 @@ Status: **Proposed**, for design review. Nothing below is built. Tracked in issu
 - Becoming a Family Admin is a large change:
   - the member gains every permission except deleting the tree;
   - they can see `PRIVATE_TREE_ADMINS` data (full birth dates, contact details, addresses, jati and
-    astrology of living people). `PRIVATE_SELF` stays Owner-only;
+    astrology of living people). `PRIVATE_SELF` stays Owner-only, and ADR-0027's private audiences
+    ("Only me", "Selected members") stay closed to every role;
   - they can read the audit log.
 
   So the workflow must never grant the role by itself, and the person being promoted must agree.
@@ -151,7 +153,7 @@ Status: **Proposed**, for design review. Nothing below is built. Tracked in issu
     - `POST /admin-nominations/{id}/withdraw` (nominator).
 
 ### Threats and tests to write before code
-A new threat-model entry, numbered when it is written, covers:
+Threat-model entry **T56** covers:
 - a nomination used to escalate (self-nomination, or a non-Family-Admin nominating);
 - a role granted without the nominee's consent or without an Owner;
 - approval of a stale nomination after the nominator was demoted;
@@ -194,8 +196,7 @@ Plus a Vitest for the nomination screens and a Playwright flow (nominate → acc
    and must confirm it.
 6. *The nominee leaves the tree.* The nomination lapses.
 
-### Open points for design review
-1. The 14-day expiry, and the limit of 5 open nominations per tree.
-2. Whether Branch Admins should also be able to nominate, for a Family Admin role or for their own
-   branch.
-3. Whether the nominee should see the reason, or only that they were nominated and by whom.
+### Decisions on the open points (owner, 9 Nov 2026)
+1. **Expiry: 14 days.** The limit of 5 open nominations per tree is accepted as proposed.
+2. **Branch Admins cannot nominate.** Only a Family Admin nominates (§1 of this amendment).
+3. **The nominee sees the reason**, together with who nominated them (§7).
