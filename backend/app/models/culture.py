@@ -49,7 +49,7 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
     __table_args__ = (
         tree_unique("tradition_entry"),
         tree_fk(["branch_id"], "family_branch", ondelete="SET NULL"),
-        # ADR-0027 §2: the content owner, and a member offered ownership who has not accepted yet
+        # ADR-0027 §2: the entry's owner is a membership; leaving the tree orphans the entry
         tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
         tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
         Index("ix_tradition_entry_tree_kind", "tree_id", "kind"),
@@ -67,14 +67,14 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
     language: Mapped[str | None] = mapped_column(String(16))
     script: Mapped[str | None] = mapped_column(String(16))
     branch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    # a shareable record (ADR-0027 §1): may also be ONLY_ME or SELECTED_MEMBERS. A FAMILY_BRANCH
-    # entry is shared with ``branch_id``.
+    # a record audience (ADR-0027): Only me / Selected members / Selected branch (branch_id) / family
     privacy_level: Mapped[RecordPrivacyLevel] = mapped_column(
         enum_column(RecordPrivacyLevel, "tradition_privacy_level"),
         default=RecordPrivacyLevel.TREE_MEMBERS,
         server_default=RecordPrivacyLevel.TREE_MEMBERS.value,
     )
     owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    # ADR-0027 §2: a member the owner offered the record to, until they accept or decline
     pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
     withdrawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))

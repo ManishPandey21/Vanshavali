@@ -106,7 +106,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 |---|---|---|---|
 | `membership_id` | UUID | no | → tree_membership (composite, same tree) |
 | `user_id` | UUID | no | → app_user |
-| `resource_type` | enum(person, document, property, tradition) | no |  |
+| `resource_type` | enum(person, document, property, tradition, collection) | no |  |
 | `resource_id` | UUID | no |  |
 | `permission` | enum(view, download) | no |  |
 | `expires_at` | DATETIME | yes |  |
@@ -1575,3 +1575,5 @@ Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `IN
 - `admin_nomination`
 - `auth_token`
 - `external_identity`
+- `photo_collection`
+- `photo_collection_item`

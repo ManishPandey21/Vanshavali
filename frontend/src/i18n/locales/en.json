@@ -72,7 +72,8 @@
     "timeline": "Family timeline",
     "reminders": "Reminders",
     "review": "Review",
-    "traditions": "Traditions"
+    "traditions": "Traditions",
+    "collections": "Photo collections"
   },
   "auth": {
     "createAccount": "Create account",
@@ -2721,13 +2722,15 @@
     "inPhoto": "In the photo",
     "untag": "Remove {{name}}",
     "setCover": "Use as the cover photo",
-    "privacyInherited": "The photo gets the stricter of the event's and the person's privacy.",
+    "privacyInherited": "By default a photo is as private as the event and the people in it, and Only me when a privately kept living relative is in it.",
     "upload": "Upload photo",
     "openAlbum": "Photos of {{event}}",
     "count_one": "{{count}} photo",
     "count_other": "{{count}} photos",
     "tagged": "Tagged in other photos",
-    "openDocument": "Open in the document vault"
+    "openDocument": "Open in the document vault",
+    "chooseAudience": "Choose who can see this photo",
+    "whoCanSee": "Who can see"
   },
   "reminders": {
     "remindMe": "Remind me",
@@ -3663,7 +3666,8 @@
     "noBranch": "The whole family",
     "rationaleRequired": "Say why this change is right.",
     "reviewNotice": "Your family reviews changes to entries other people wrote. This change is sent for review.",
-    "sent": "Sent for review. The change appears once a reviewer approves it."
+    "sent": "Sent for review. The change appears once a reviewer approves it.",
+    "branchIsAudience": "Who can read it follows this branch. Change it under Visibility & sharing."
   },
   "sharing": {
     "title": "Visibility & sharing",
@@ -3735,5 +3739,38 @@
     "withdrawnDone": "Nomination withdrawn.",
     "approvedDone": "{{name}} is now a family admin.",
     "rejectedDone": "The nomination was not approved."
+  },
+  "collections": {
+    "title": "Photo collections",
+    "subtitle": "Albums of family photos, shared with exactly the people you choose",
+    "new": "New collection",
+    "none": "No collections yet",
+    "noneHint": "Gather photos from the vault into a collection and choose who can see it.",
+    "newTitle": "New photo collection",
+    "newIntro": "A collection is Only me until you share it.",
+    "create": "Create collection",
+    "name": "Name",
+    "description": "Description",
+    "photosKeepTheirOwn": "Each photo keeps its own privacy: people see a photo in this collection only if they may see both.",
+    "photoCount_one": "{{count}} photo",
+    "photoCount_other": "{{count}} photos",
+    "back": "← All collections",
+    "addPhotos": "Add photos",
+    "empty": "No photos here yet",
+    "emptyHint": "Add photos you can see from the vault.",
+    "photos": "Photos in this collection",
+    "notSharedWarning_one": "{{count}} photo is kept more private than this collection: some people who see the collection will not see it.",
+    "notSharedWarning_other": "{{count}} photos are kept more private than this collection: some people who see the collection will not see them.",
+    "notSharedItem": "Not everyone who sees the collection can see this photo",
+    "removed": "Photo removed from the collection.",
+    "remove": "Remove {{name}} from the collection",
+    "added_one": "{{count}} photo added.",
+    "added_other": "{{count}} photos added.",
+    "deleteTitle": "Delete this collection?",
+    "deleteBody": "The photos stay in the vault with their own privacy.",
+    "addChosen_one": "Add {{count}} photo",
+    "addChosen_other": "Add {{count}} photos",
+    "noPhotosToAdd": "No other photos you can see.",
+    "photosToAdd": "Photos you can add"
   }
 }

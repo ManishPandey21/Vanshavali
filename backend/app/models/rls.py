@@ -54,6 +54,8 @@ RLS_TABLES: tuple[str, ...] = (
     "notification_delivery",
     "notification_preference",
     "person",
+    "photo_collection",
+    "photo_collection_item",
     "place",
     "profile_claim",
     "property",

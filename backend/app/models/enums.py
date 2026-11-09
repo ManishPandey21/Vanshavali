@@ -543,7 +543,8 @@ class GrantResource(StrEnum):
     PERSON = "person"
     DOCUMENT = "document"
     PROPERTY = "property"
-    TRADITION = "tradition"  # ADR-0027 §12.4: tradition entries shared with selected members
+    TRADITION = "tradition"  # ADR-0027: family traditions archive entries
+    COLLECTION = "collection"  # ADR-0027 §6: standalone photo collections
 
 
 class JobStatus(StrEnum):

@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: increment 1 (documents) — see the implementation notes
+  are resolved as below) · Implementation: increments 1 (documents), 2 (traditions), 3 (event photo albums) and 4 (photo collections) — see the implementation notes
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -309,23 +309,122 @@ A9), standalone photo collections, takedown by suspension, ownership transfer, n
 of an automatic narrowing, and narrowing when a profile is hidden during a claim review. These are
 listed in the threat model's residual risks.
 
-## Implementation notes (9 Nov 2026, increment 2: traditions and ownership transfer)
-- **Traditions (§1, §2, A9).** `tradition_entry.privacy_level` takes `RecordPrivacyLevel`;
-  `owner_membership_id` is backfilled from `created_by`. `traditions.may_read` now calls
-  `record_allows` with the entry's `branch_id` as its audience branch and a new `tradition`
-  `GrantResource` (§12.4), so "Selected members" works through `/grants`. Legacy meanings stay: a
-  tradition's `PRIVATE_SELF` is its author or owner only. Changes (`app/authz/records.py`): the
-  owner may change anything; a tree admin may only narrow an entry on a shared audience; nobody but
-  the owner edits or withdraws a private entry. Tradition events are redacted in the audit log like
-  documents, and a pending proposal on an entry made private is hidden from reviewers and proposer.
-  The sharing component (§9) is not on traditions yet: the API is.
-- **Ownership transfer (§2)**, for documents and traditions: `pending_owner_membership_id`; the owner
-  offers (`POST /trees/{id}/records/{type}/{rid}/ownership-offer`), the member accepts (`…/accept`)
-  or declines, the owner may cancel (`DELETE …`); `GET /trees/{id}/ownership-offers` lists offers to
-  the caller. Audited as `record.ownership_offered`, `record.ownership_transferred`,
-  `record.ownership_declined`, `record.ownership_offer_cancelled`, without titles. An orphaned record
-  cannot be offered by anyone.
-- **Further paths closed:** render files open for their requester only (tree admins still see the
-  jobs); the consent evidence-document check uses document visibility; `level_allows` denies an
-  unknown level by default.
-- Migration `d7a3c5e9f182`; tests `tests/test_tradition_privacy_and_ownership.py`; threat model T57.
+## Implementation notes (9 Nov 2026, increment 2: family traditions)
+- **Shared core.** The sharing rules moved to `app/modules/sharing/core.py` behind a small
+  `RecordAdapter` (how to evaluate a proposed setting, how to store it, which people are linked,
+  whether there is a download right). Documents (`documents/sharing.py`) and traditions
+  (`traditions/sharing.py`) are adapters; the API, the "who has access" computation, ceilings,
+  confirmation and grant replacement are one code path.
+- **Traditions are records.** `tradition_entry.privacy_level` takes `RecordPrivacyLevel`; new
+  `owner_membership_id` (backfilled from `created_by`). `traditions.may_read` is now
+  `record_allows` (finding A9 closed): the private audiences admit no role. Traditions always used
+  `PRIVATE_SELF` for *the author only*, so migration `8d2e6b4f1a37` moves those rows to `ONLY_ME` and
+  the API maps a submitted `PRIVATE_SELF` to `ONLY_ME` (see the exception below). "Selected
+  branch" is the entry's existing `branch_id`; moving a Selected-branch entry to another branch is an
+  audience change and follows §10. Entries are text: no separate download right. Never public.
+- **Exception to open point 2 (accepted for traditions only).** Resolution 2 keeps legacy
+  `PRIVATE_SELF` records until their owners convert them. Traditions are converted at migration
+  instead, because their `PRIVATE_SELF` never had the tree-owner custodian meaning that it has on
+  documents: it meant *the author only*. Documents and every other record keep resolution 2. What
+  the conversion changes, exactly (tested in `tests/test_traditions_sharing.py`):
+  - *At migration time nobody gains or loses access*: an entry's readers are its author, if still a
+    member, before and after.
+  - *Re-invited authors.* The old rule matched the author's user id, so an author removed and invited
+    again read their old private entries again. Now the owner is a membership: a re-invited author
+    does not get them back (ADR-0027 §3, stress test 2). This is permanent.
+  - *Orphans.* An entry whose author had already left has no owner: nobody can read, share, convert
+    or claim it, not even that author if re-invited. It stays under its retention policy (§2).
+  - *Unchanged:* `CUSTOM` entries stay `CUSTOM` (admins and grantees); no grants are created or
+    deleted on upgrade; grants on people, documents and properties are untouched.
+  - *Downgrade (not reversible in effect):* tradition grants are deleted, so selected members lose
+    access; `SELECTED_MEMBERS` becomes `CUSTOM`, so tree owners and family admins *gain* read access
+    to those entries; `ONLY_ME` becomes `PRIVATE_SELF`, so a re-invited author reads their old entries
+    again; owners (and any transfer of ownership) are dropped. Upgrading again re-runs the owner
+    backfill from `created_by`, so a re-invited former author then owns their old entries. A
+    downgrade therefore needs the same approval as a privacy change.
+- **Grants.** `GrantResource.TRADITION`; `manageable_grant_resources` treats entries like documents
+  (owner, or a privacy manager for a shared entry); `ONLY_ME` cannot be granted directly (409).
+- **Ceilings.** People linked to an entry cap it like people tagged in a document; linking a
+  protected living person, or making a linked person more private, narrows the entry.
+- **Review.** Proposals are applied as the proposer (ADR-0021), so a proposal by a non-owner to
+  change who may read an entry fails when approved (403) and the entry is unchanged. Nobody but the
+  owner may propose a change to a private entry (403), and a proposal about an entry that becomes
+  private is hidden from everyone who can no longer read it, its proposer included; it reappears if
+  the entry is shared again. While hidden it cannot be decided.
+- **Changes (§10).** A private entry is edited and withdrawn by its owner alone: members it is
+  shared with read it, whatever their role (`can_edit`, `can_withdraw` say so). Revoking a grant,
+  removing a member from the sharing panel, narrowing to Only me, withdrawing the entry or a grant's
+  expiry all end access on the next request (§7).
+- **Audit (§11).** Events about an entry the reader is not in the audience of are shown as an opaque
+  `private_record` entry. A withdrawn entry that was shared keeps its history visible.
+- **API.** `GET|PUT /traditions/{id}/sharing`, `POST …/sharing/preview`; `TraditionOut.is_owner`,
+  `can_edit_sharing`.
+- **UI.** The tradition editor picks the audience for a new entry with Visibility & Sharing
+  (without download controls); an entry's page has the same `RecordSharingPanel` as documents.
+- **Tests.** `tests/test_traditions_sharing.py` (12 cases, including the migration and its
+  downgrade), a component test for records without downloads, and a second Playwright test in
+  `record-sharing.spec.ts`; threat model T57.
+
+## Implementation notes (9 Nov 2026, increment 3: event photo albums)
+- **Choosing at upload.** `POST /events/{id}/media` accepts the record audiences, a branch and
+  `allow_download`. Without a choice: Only me (no download) when a protected living person is in
+  the photo (the event's principal included), per §9; otherwise ADR-0015's inheritance (the
+  strictest of the tree default, the event and its principal), unchanged.
+- **The event is a ceiling (§5.3).** `core.event_cap` maps the event's level like a person's.
+  `DocumentRecord.extra_caps` adds the event of every album a photo is in, so sharing a photo wider
+  than its event is refused (`422 privacy_too_open`) at upload and later. Making an event more
+  private narrows its photos (`core.enforce_event_ceiling`, from `update_event`), as a person's
+  privacy narrows the records they are tagged in.
+- **Linking an existing photo** into an album that is more private than the photo is refused:
+  adding a photo to an album never narrows someone's photo silently; its owner narrows it first.
+- **Album × photo (§6)** was already enforced in increment 1 (listings, counts, covers through
+  `can_view_document`); tests now cover the per-viewer cover with Selected members.
+- **UI.** The album's upload form keeps the default and offers "Choose who can see this photo",
+  which opens Visibility & Sharing; each photo shows its badge and, for its owner, a "Who can see"
+  link to the photo's sharing panel.
+- **Tests.** `tests/test_album_sharing.py` (6 cases), a third Playwright test in
+  `record-sharing.spec.ts`; threat model T58.
+
+## Implementation notes (9 Nov 2026, increment 4: standalone photo collections)
+- **Model.** `photo_collection` (a shareable record: title, description, record audience, owner
+  membership, branch audience; new collections are Only me) and `photo_collection_item` (a photo,
+  caption, order, cover), both tree-scoped with row-level security; `GrantResource.COLLECTION`.
+  Migration `b5c1e7a93d42`, with a downgrade that deletes collection grants and drops both tables.
+- **Album × photo (§6).** A viewer sees an item only when they may see the collection and the
+  photo; lists, counts and covers are per viewer. Adding a photo never changes who can see it, and
+  sharing a collection never shares its photos. The owner is told how many photos part of the
+  collection's audience cannot see (`items_not_shared`, and a flag on each item).
+- **Who may change what (§10).** Only the owner changes the contents, title or description, or
+  deletes the collection (its photos stay in the vault). Sharing uses the shared core through a
+  `CollectionRecord` adapter: the owner widens with confirmation, admins only narrow; no download
+  right at collection level (downloads belong to each photo). Only photos the owner can see can be
+  added; never another tree's.
+- **Audit (§11).** Audit-log redaction now covers documents, traditions and collections. This also
+  closes a gap from increment 2: entries about a private tradition named it to admins.
+- **API.** `/trees/{id}/collections` (list, create), `/collections/{id}` (get, patch, delete),
+  `/collections/{id}/items` (add, patch, remove), `/collections/{id}/sharing` (+ `/preview`).
+- **UI.** "Photo collections" in the family menu: list with per-viewer covers and counts, a new
+  collection dialog with Visibility & Sharing, a detail page with a photo picker, cover, removal,
+  the not-shared warning and the sharing panel.
+- **Tests.** `tests/test_photo_collections.py` (7 cases), page tests in `CollectionsPage.test.tsx`,
+  a fourth Playwright test in `record-sharing.spec.ts`; threat model T59.
+
+## Implementation notes (9 Nov 2026, increment 5: ownership transfer and remaining paths)
+- **Ownership transfer (§2)** for documents, tradition entries and photo collections:
+  `pending_owner_membership_id` (migration `e4b8c2d6f913`, after the photo collections). The owner
+  offers (`POST /trees/{id}/records/{type}/{rid}/ownership-offer`), the member accepts
+  (`…/accept`) or declines, the owner may cancel (`DELETE …`); `GET /trees/{id}/ownership-offers`
+  lists offers to the caller. An offer gives no access; it lapses if the member leaves (SET NULL).
+  Grants stay with the record and are managed by the new owner. Audited as
+  `record.ownership_offered`, `record.ownership_transferred`, `record.ownership_declined`,
+  `record.ownership_offer_cancelled`, without titles, and redacted like any record event. Anyone
+  but the owner or the member offered the record gets 404; an orphaned record cannot be offered or
+  claimed. There is no UI for transfers yet.
+- **Render files** open for their requester only: a render may embed the requester's private
+  photos. Tree admins still see other members' jobs.
+- **Consent evidence** is checked with document visibility, so naming a hidden document answers
+  404 like a missing one.
+- **`level_allows` denies by default:** a level no rule names admits nobody (before, it admitted
+  any member). No current level reaches that branch.
+- Tests: `tests/test_record_ownership.py`, `test_render_jobs.py`, `test_migrations.py`; threat T60.
+

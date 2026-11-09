@@ -60,6 +60,7 @@ export function VisibilitySharing({
   ceiling,
   audience,
   canWiden = true,
+  downloads = true,
   disabled = false,
   showProblems = false,
 }: {
@@ -71,6 +72,8 @@ export function VisibilitySharing({
   ceiling?: SharingOut["ceiling"];
   audience?: SharingMemberOut[];
   canWiden?: boolean;
+  /** false for records without a separate download right (e.g. traditions) */
+  downloads?: boolean;
   disabled?: boolean;
   showProblems?: boolean;
 }) {
@@ -172,7 +175,7 @@ export function VisibilitySharing({
                   <span className="min-w-0 font-medium">{m.display_name}</span>
                   <span className="flex gap-3">
                     <Checkbox label={t("sharing.canView")} checked={view} disabled={disabled || (!view && !canWiden)} onChange={(v) => setMember(m.id, v, v && dl)} />
-                    <Checkbox label={t("sharing.canDownload")} checked={dl} disabled={disabled || (!dl && !canWiden)} onChange={(v) => setMember(m.id, view || v, v)} />
+                    {downloads && <Checkbox label={t("sharing.canDownload")} checked={dl} disabled={disabled || (!dl && !canWiden)} onChange={(v) => setMember(m.id, view || v, v)} />}
                   </span>
                 </li>
               );
@@ -183,7 +186,7 @@ export function VisibilitySharing({
         </div>
       )}
 
-      {(value.privacy_level === "FAMILY_BRANCH" || value.privacy_level === "TREE_MEMBERS") && (
+      {downloads && (value.privacy_level === "FAMILY_BRANCH" || value.privacy_level === "TREE_MEMBERS") && (
         <Checkbox
           label={t("sharing.allowDownload")}
           hint={t("sharing.downloadHint")}
@@ -206,7 +209,7 @@ export function VisibilitySharing({
               <li key={a.membership_id}>
                 <Badge tone={a.access === "owner" ? "violet" : a.access === "role" ? "saffron" : "neutral"}>
                   {a.display_name} · {t(`sharing.access.${a.access}`)}
-                  {a.can_download ? " ⤓" : ""}
+                  {downloads && a.can_download ? " ⤓" : ""}
                 </Badge>
               </li>
             ))}

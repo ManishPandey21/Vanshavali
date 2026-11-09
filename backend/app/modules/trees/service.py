@@ -390,15 +390,24 @@ def create_grant(
     if membership_id is None:
         raise NotFound("Grants can only be given to members of this tree")
     if not manageable_grant_resources(ctx, [(resource_type, resource_id)]):
-        if not ctx.has(Permission.PRIVACY_MANAGE) and resource_type not in _RECORD_MODELS:
+        if not ctx.has(Permission.PRIVACY_MANAGE) and resource_type not in (
+            GrantResource.DOCUMENT,
+            GrantResource.TRADITION,
+            GrantResource.COLLECTION,
+        ):
             raise Forbidden()
         raise NotFound("Resource not found")
-    if resource_type in _RECORD_MODELS:
+    if resource_type in (GrantResource.DOCUMENT, GrantResource.TRADITION, GrantResource.COLLECTION):
+        from app.models import Document, PhotoCollection, TraditionEntry
         from app.models.enums import RecordPrivacyLevel
 
-        model = _record_model(resource_type)
+        model: Any = {
+            GrantResource.DOCUMENT: Document,
+            GrantResource.TRADITION: TraditionEntry,
+            GrantResource.COLLECTION: PhotoCollection,
+        }[resource_type]
         level = ctx.db.scalar(
-            select(model.privacy_level).where(model.tree_id == ctx.tree_id, model.id == resource_id)
+            select(model.privacy_level).where(model.tree_id == ctx.tree_id, model.id == resource_id)  # type: ignore[attr-defined]
         )
         if level == RecordPrivacyLevel.ONLY_ME:
             raise Conflict(
@@ -427,30 +436,6 @@ def create_grant(
     return grant
 
 
-_RECORD_MODELS = (GrantResource.DOCUMENT, GrantResource.TRADITION)
-
-
-def _record_model(resource_type: GrantResource) -> Any:
-    from app.models import Document, TraditionEntry
-
-    return Document if resource_type == GrantResource.DOCUMENT else TraditionEntry
-
-
-def owns_a_record(ctx: TreeContext) -> bool:
-    """The caller owns at least one document or tradition entry in this tree (ADR-0027 §2)."""
-    if ctx.membership_id is None:
-        return False
-    return any(
-        ctx.db.scalar(
-            select(model.id)
-            .where(model.tree_id == ctx.tree_id, model.owner_membership_id == ctx.membership_id)
-            .limit(1)
-        )
-        is not None
-        for model in (_record_model(GrantResource.DOCUMENT), _record_model(GrantResource.TRADITION))
-    )
-
-
 def manageable_grant_resources(
     ctx: TreeContext, resources: Iterable[tuple[GrantResource, uuid.UUID]]
 ) -> set[tuple[GrantResource, uuid.UUID]]:
@@ -459,9 +444,8 @@ def manageable_grant_resources(
     ``privacy.manage`` plus the record being visible to the caller: a privacy manager is never told
     that a record they cannot see exists, nor who may see it. Anything else is treated as absent.
 
-    Documents and tradition entries (ADR-0027 §3, §10): their owner manages their grants; a privacy
-    manager only those of a record that is not private (``ONLY_ME`` / ``SELECTED_MEMBERS`` are the
-    owner's alone).
+    Documents (ADR-0027 §3, §10): their owner manages their grants; a privacy manager only those of
+    a document that is not private (``ONLY_ME`` / ``SELECTED_MEMBERS`` are the owner's alone).
     """
     from app.authz.privacy import is_private_record_level
     from app.models import Document, Property
@@ -484,13 +468,9 @@ def manageable_grant_resources(
             if can_view_document(ctx, d)
             and (is_owner(ctx, d) or (manager and not is_private_record_level(d.privacy_level)))
         }
-    if manager and (ids := wanted.get(GrantResource.PROPERTY)):
-        props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))
-        ok |= {(GrantResource.PROPERTY, p.id) for p in props if can_view_property(ctx, p)}
     if ids := wanted.get(GrantResource.TRADITION):
         from app.models import TraditionEntry
-        from app.modules.traditions.service import is_owner as owns_entry
-        from app.modules.traditions.service import may_read
+        from app.modules.traditions import sharing as tsharing
 
         entries = ctx.db.scalars(
             select(TraditionEntry).where(TraditionEntry.tree_id == ctx.tree_id, TraditionEntry.id.in_(ids))
@@ -498,9 +478,25 @@ def manageable_grant_resources(
         ok |= {
             (GrantResource.TRADITION, e.id)
             for e in entries
-            if may_read(ctx, e)
-            and (owns_entry(ctx, e) or (manager and not is_private_record_level(e.privacy_level)))
+            if tsharing.entry_allows(ctx, e)
+            and (tsharing.is_owner(ctx, e) or (manager and not is_private_record_level(e.privacy_level)))
         }
+    if ids := wanted.get(GrantResource.COLLECTION):
+        from app.models import PhotoCollection
+        from app.modules.collections import service as collections
+
+        cols = ctx.db.scalars(
+            select(PhotoCollection).where(PhotoCollection.tree_id == ctx.tree_id, PhotoCollection.id.in_(ids))
+        )
+        ok |= {
+            (GrantResource.COLLECTION, c.id)
+            for c in cols
+            if collections.collection_allows(ctx, c)
+            and (collections.is_owner(ctx, c) or (manager and not is_private_record_level(c.privacy_level)))
+        }
+    if manager and (ids := wanted.get(GrantResource.PROPERTY)):
+        props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))
+        ok |= {(GrantResource.PROPERTY, p.id) for p in props if can_view_property(ctx, p)}
     return ok
 
 

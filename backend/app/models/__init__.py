@@ -4,6 +4,7 @@ from app.models import rls as _rls
 from app.models.astrology import AstrologyProfile
 from app.models.audit import AuditEvent
 from app.models.base import Base
+from app.models.collections import PhotoCollection, PhotoCollectionItem
 from app.models.culture import KinshipOverride, TraditionEntry, TraditionLink
 from app.models.documents import (
     Document,
@@ -94,6 +95,8 @@ __all__ = [
     "NotificationDelivery",
     "NotificationPreference",
     "Person",
+    "PhotoCollection",
+    "PhotoCollectionItem",
     "PincodeOffice",
     "Place",
     "ProfileClaim",

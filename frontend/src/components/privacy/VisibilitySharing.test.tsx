@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import type { DocumentOut, MemberOut, SharingOut } from "../../api/types";
 import { jsonResponse, renderWithProviders } from "../../test/utils";
 import { VisibilitySharing, draftProblem, type SharingDraft } from "./VisibilitySharing";
-import { DocumentSharingPanel } from "./DocumentSharingPanel";
+import { DocumentSharingPanel } from "./RecordSharingPanel";
 
 function member(id: string, name: string): MemberOut {
   return { id, user_id: `u-${id}`, email: "", display_name: name, roles: ["VIEWER"], branch_id: null, linked_person_id: null, created_at: "2026-11-01T00:00:00Z" };
@@ -60,6 +60,17 @@ describe("VisibilitySharing", () => {
     expect(screen.getByRole("radio", { name: "Selected branch" })).toBeDisabled();
     expect(screen.getByRole("radio", { name: "Selected members" })).toBeEnabled();
     expect(screen.getAllByText(/Someone tagged in this record is kept private/).length).toBeGreaterThan(0);
+  });
+
+  it("hides every download control for records without a download right (traditions)", () => {
+    const selected: SharingDraft = { ...onlyMe, privacy_level: "SELECTED_MEMBERS", members: [{ membership_id: "m-asha", can_download: false }] };
+    const { rerender } = renderWithProviders(
+      <VisibilitySharing value={selected} onChange={() => undefined} members={MEMBERS} branches={[]} ownMembershipId="m-me" downloads={false} />,
+    );
+    expect(screen.getAllByRole("checkbox", { name: "Can view" }).length).toBe(3); // the checklist is there
+    expect(screen.queryByRole("checkbox", { name: "Can download" })).not.toBeInTheDocument();
+    rerender(<VisibilitySharing value={{ ...onlyMe, privacy_level: "TREE_MEMBERS" }} onChange={() => undefined} members={MEMBERS} branches={[]} downloads={false} />);
+    expect(screen.queryByText(/download the original/)).not.toBeInTheDocument();
   });
 
   it("flags drafts that cannot be saved", () => {

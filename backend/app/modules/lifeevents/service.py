@@ -29,6 +29,7 @@ from app.models.enums import (
     EventSignificance,
     LifeEventCategory,
     PrivacyLevel,
+    RecordPrivacyLevel,
 )
 from app.modules.documents import access
 from app.modules.documents import service as documents
@@ -43,6 +44,7 @@ from app.modules.lifeevents.schemas import (
     EventMediaUpdate,
     TaggedPerson,
 )
+from app.modules.sharing import core
 
 MAX_PHOTOS_PER_EVENT = 200
 
@@ -259,6 +261,45 @@ def _add_media(
     return m
 
 
+def _album_photo_sharing(
+    ctx: TreeContext,
+    e: Event,
+    principal: uuid.UUID | None,
+    person_ids: list[uuid.UUID],
+    privacy_level: RecordPrivacyLevel | PrivacyLevel | None,
+    audience_branch_id: uuid.UUID | None,
+    allow_download: bool | None,
+) -> tuple[RecordPrivacyLevel, uuid.UUID | None, bool]:
+    """Who sees a new album photo (ADR-0027 §5, §9; ADR-0015).
+
+    The ceiling is the event and every protected person in the photo (the principal included).
+    Without a choice: Only me (no download) when a protected living person is in it; otherwise
+    ADR-0015's inheritance (the strictest of the tree default, the event and its principal).
+    """
+    people = list(dict.fromkeys([*([principal] if principal else []), *person_ids]))
+    person_caps = core.caps_for_people(ctx, people)
+    caps = person_caps + [c for c in [core.event_cap(ctx, e)] if c is not None]
+    if privacy_level is not None:
+        level = RecordPrivacyLevel(privacy_level)
+        if level == RecordPrivacyLevel.PUBLIC_DECEASED_ONLY:
+            raise Unprocessable("Records cannot be public", code="public_not_supported")
+        branch = audience_branch_id if level == RecordPrivacyLevel.FAMILY_BRANCH else None
+        if not core.within(level, branch, caps):
+            # never looser than its event and the people in it: a photo of a private event stays private
+            raise Unprocessable(
+                "A photo cannot be more visible than its event and people", code="privacy_too_open"
+            )
+        downloadable = (not person_caps) if allow_download is None else allow_download
+        return level, branch, downloadable
+    if person_caps:
+        return RecordPrivacyLevel.ONLY_ME, None, False if allow_download is None else allow_download
+    level = RecordPrivacyLevel(inherited_privacy(ctx, e, principal))
+    branch = None
+    if not core.within(level, None, caps):
+        level, branch = core.narrowest(caps)
+    return level, branch, True if allow_download is None else allow_download
+
+
 def upload_photo(
     ctx: TreeContext,
     event_id: uuid.UUID,
@@ -270,7 +311,9 @@ def upload_photo(
     taken_date: GenealogicalDate | None,
     is_cover: bool,
     person_ids: list[uuid.UUID],
-    privacy_level: PrivacyLevel | None,
+    privacy_level: RecordPrivacyLevel | PrivacyLevel | None,
+    audience_branch_id: uuid.UUID | None = None,
+    allow_download: bool | None = None,
 ) -> EventMedia:
     e, principal = _require_album_write(ctx, event_id)
     for pid in person_ids:
@@ -278,13 +321,9 @@ def upload_photo(
     sniffed = validate_upload(data)
     if not sniffed.mime.startswith("image/"):
         raise Unprocessable("Only images can be added to an event's photos", code="not_an_image")
-    inherited = inherited_privacy(ctx, e, principal)
-    level = privacy_level or inherited
-    if privacy_level is not None and _strictest(privacy_level, inherited) != privacy_level:
-        # never looser than what it would inherit: a photo of a private event stays private
-        raise Unprocessable(
-            "A photo cannot be more visible than its event and person", code="privacy_too_open"
-        )
+    level, branch, downloadable = _album_photo_sharing(
+        ctx, e, principal, person_ids, privacy_level, audience_branch_id, allow_download
+    )
     doc = documents.upload(
         ctx,
         data=data,
@@ -294,6 +333,8 @@ def upload_photo(
         description=caption,
         privacy_level=level,
         document_date=taken_date,
+        audience_branch_id=branch,
+        allow_download=downloadable,
     )
     m = _add_media(ctx, e, doc, caption=caption, taken_date=taken_date, is_cover=is_cover)
     if principal is not None and principal not in person_ids:
@@ -310,6 +351,13 @@ def link_photo(ctx: TreeContext, event_id: uuid.UUID, body: EventMediaLinkIn) ->
         raise Unprocessable("Only photos can be added to an event's photos", code="not_an_image")
     for pid in body.person_ids:
         lookup.get_person(ctx, pid)
+    cap = core.event_cap(ctx, e)
+    if cap is not None and not core.within(doc.privacy_level, doc.audience_branch_id, [cap]):
+        # adding a photo to an album never narrows someone's photo silently: its owner narrows it first
+        raise Unprocessable(
+            "This photo is shared more widely than the event; make it more private first",
+            code="privacy_too_open",
+        )
     m = _add_media(ctx, e, doc, caption=body.caption, taken_date=body.taken_date, is_cover=body.is_cover)
     _tag_people(ctx, doc, body.person_ids)
     return m

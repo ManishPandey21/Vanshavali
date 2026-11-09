@@ -527,6 +527,11 @@ def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Ev
             _unset_other_preferred(ctx, principal, e.type, e.id)
     e.updated_by = ctx.user_id
     audit.log(ctx, "event.changed", target_type="event", target_id=e.id, details={"fields": sorted(fields)})
+    if "privacy_level" in fields:
+        from app.modules.sharing.core import enforce_event_ceiling
+
+        ctx.db.flush()
+        enforce_event_ceiling(ctx, e.id)  # album photos narrow with their event (ADR-0027 §5.3)
     return e
 
 
@@ -643,7 +648,7 @@ def set_privacy(ctx: TreeContext, subject: Subject, body: PrivacyUpdate) -> Pers
     if body.privacy_level is not None:
         person.privacy_level = body.privacy_level
         ctx.db.flush()
-        from app.modules.documents.sharing import enforce_person_ceiling
+        from app.modules.sharing.core import enforce_person_ceiling
 
         enforce_person_ceiling(ctx, person.id)  # records tagging them narrow at once (ADR-0027 §5)
     if body.field_privacy is not None:
@@ -1181,7 +1186,7 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
     person.privacy_level = PrivacyLevel.PRIVATE_TREE_ADMINS
     person.field_privacy = {}
     db.flush()
-    from app.modules.documents.sharing import enforce_person_ceiling
+    from app.modules.sharing.core import enforce_person_ceiling
 
     enforce_person_ceiling(ctx, person.id)
     audit.log(

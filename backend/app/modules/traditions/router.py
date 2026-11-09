@@ -9,7 +9,9 @@ from fastapi import APIRouter, Query, status
 from app.api.deps import TreeCtx
 from app.api.schemas import Message, decode_cursor, encode_cursor
 from app.models.enums import TraditionKind
+from app.modules.sharing.schemas import SharingOut, SharingUpdate
 from app.modules.traditions import service
+from app.modules.traditions import sharing as tsharing
 from app.modules.traditions.schemas import (
     TraditionEntryIn,
     TraditionEntryUpdate,
@@ -66,3 +68,22 @@ def withdraw_tradition(entry_id: uuid.UUID, ctx: TreeCtx) -> Message:
 @router.get("/traditions/{entry_id}/history", response_model=list[TraditionRevisionOut])
 def tradition_history(entry_id: uuid.UUID, ctx: TreeCtx) -> list[TraditionRevisionOut]:
     return service.history(ctx, entry_id)
+
+
+# ---------------------------------------------------------------- Visibility & Sharing (ADR-0027)
+@router.get("/traditions/{entry_id}/sharing", response_model=SharingOut)
+def get_sharing(entry_id: uuid.UUID, ctx: TreeCtx) -> SharingOut:
+    """The entry's audience. Who has access is listed only to those who may change it."""
+    return tsharing.sharing_out(ctx, service.get_entry(ctx, entry_id))
+
+
+@router.put("/traditions/{entry_id}/sharing", response_model=SharingOut)
+def update_sharing(entry_id: uuid.UUID, body: SharingUpdate, ctx: TreeCtx) -> SharingOut:
+    """Change who can read the entry. Widening needs ``confirm_wider`` (409 otherwise)."""
+    return tsharing.update(ctx, service.get_entry(ctx, entry_id), body)
+
+
+@router.post("/traditions/{entry_id}/sharing/preview", response_model=SharingOut)
+def preview_sharing(entry_id: uuid.UUID, body: SharingUpdate, ctx: TreeCtx) -> SharingOut:
+    """Who would have access with these settings. Changes nothing."""
+    return tsharing.preview(ctx, service.get_entry(ctx, entry_id), body)

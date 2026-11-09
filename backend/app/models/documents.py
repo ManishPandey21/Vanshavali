@@ -30,8 +30,8 @@ class Document(TreeScopedMixin, Base):
         Index("ix_document_tree_checksum", "tree_id", "checksum_sha256"),
         # ADR-0027 §2: the content owner is a membership; leaving the tree orphans the record
         tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
-        tree_fk(["audience_branch_id"], "family_branch", ondelete="SET NULL"),
         tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["audience_branch_id"], "family_branch", ondelete="SET NULL"),
     )
 
     category: Mapped[DocumentCategory] = mapped_column(enum_column(DocumentCategory))

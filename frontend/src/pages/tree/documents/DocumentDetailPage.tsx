@@ -25,7 +25,7 @@ import { emptyDate, formatDate, normalizeDate, validateDate } from "../../../lib
 import { DOCUMENT_CATEGORIES, formatBytes } from "../../../lib/documents";
 import { PipelineBadges, StorageBadge } from "../../../components/documents/DocumentBits";
 import { ExtractionReview } from "../../../components/documents/ExtractionReview";
-import { DocumentSharingPanel } from "../../../components/privacy/DocumentSharingPanel";
+import { DocumentSharingPanel } from "../../../components/privacy/RecordSharingPanel";
 import { GenealogicalDateEditor } from "../../../components/dates/GenealogicalDateEditor";
 import { PersonPicker } from "../../../components/pickers";
 import { hasDate } from "../../../components/person/PersonForm";

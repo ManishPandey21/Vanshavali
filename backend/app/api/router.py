@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app.modules.archive.router import router as archive_router
 from app.modules.astrology.router import router as astrology_router
+from app.modules.collections.router import router as collections_router
 from app.modules.consent.attestation import router as attestation_router
 from app.modules.consent.claim_invites import router as claim_invites_router
 from app.modules.consent.router import router as consent_router
@@ -59,6 +60,7 @@ api_router.include_router(public_router)
 api_router.include_router(evidence_router)
 api_router.include_router(heritage_router)
 api_router.include_router(traditions_router)
+api_router.include_router(collections_router)
 api_router.include_router(family_router)
 api_router.include_router(search_router)
 api_router.include_router(consent_router)

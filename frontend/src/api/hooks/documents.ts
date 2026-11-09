@@ -21,8 +21,6 @@ import type {
   ProposalOut,
   ReprocessOut,
   ReviewIn,
-  SharingOut,
-  SharingUpdate,
 } from "../types";
 
 function useInvalidateTree(treeId: string) {
@@ -258,29 +256,5 @@ export function useDeleteGrant(treeId: string) {
   return useMutation({ mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/grants/${id}`), onSuccess: invalidate });
 }
 
-// ---------------------------------------------------------------- Visibility & Sharing (ADR-0027)
-export function useSharing(treeId: string, documentId: string) {
-  return useQuery({
-    queryKey: ["tree", treeId, "document", documentId, "sharing"],
-    queryFn: () => api.get<SharingOut>(`/trees/${treeId}/documents/${documentId}/sharing`),
-  });
-}
-
-/** Who would have access with these settings, computed by the server. Changes nothing. */
-export function useSharingPreview(treeId: string, documentId: string, body: SharingUpdate | null) {
-  return useQuery({
-    queryKey: ["tree", treeId, "document", documentId, "sharing", "preview", body],
-    queryFn: () => api.post<SharingOut>(`/trees/${treeId}/documents/${documentId}/sharing/preview`, body),
-    enabled: body !== null,
-    placeholderData: keepPreviousData,
-    retry: false,
-  });
-}
-
-export function useUpdateSharing(treeId: string, documentId: string) {
-  const invalidate = useInvalidateTree(treeId);
-  return useMutation({
-    mutationFn: (body: SharingUpdate) => api.put<SharingOut>(`/trees/${treeId}/documents/${documentId}/sharing`, body),
-    onSuccess: invalidate,
-  });
-}
+// Visibility & Sharing hooks live in ./sharing (shared by documents and traditions).
+export { useSharing, useSharingPreview, useUpdateSharing } from "./sharing";

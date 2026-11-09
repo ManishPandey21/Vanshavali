@@ -42,7 +42,8 @@ member's membership (ADR-0027 §3): it is deleted with it (removed, or account c
 same person again does not restore it, and it can never name a member of another tree. Privacy
 managers see, create and revoke grants only on records they can see themselves (threat T53).
 
-**Shareable records (ADR-0027).** Documents, photos and recordings take a record audience instead:
+**Shareable records (ADR-0027).** Documents, photos, recordings and family traditions take a
+record audience instead (traditions have no separate download right):
 
 | Audience (`document.privacy_level`) | Who can see it |
 |---|---|
@@ -57,6 +58,14 @@ are separate: viewers download only when `allow_download` is on or they hold a `
 vault documents and records tagged with a protected living person start as `ONLY_ME` without
 download. A record is never more open than any protected person tagged in it. Grants belong to one
 membership and are deleted with it; no record is public in v1.
+A photo in an event's album is never more visible than the event or a protected person in it, and
+becomes more private when the event does; each viewer sees only the album photos they may see.
+A standalone photo collection has its own audience (new collections are Only me); a viewer sees a
+photo in it only if they may see both, and sharing a collection never shares its photos.
+Ownership of a document, tradition or collection moves only when its owner offers it to another
+member and that member accepts; an offer gives no access, and a record whose owner left cannot be
+claimed by anyone. Members a private record is shared with only read it: the owner alone edits,
+withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
@@ -267,12 +276,7 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   word never sets anyone's sex or age. Caste, jati and religion still have no suggestion lists.
 - **Traditions have their own privacy level**, are never shown on public trees in R4, and are
   exported only as far as the exporter may see them. People linked to an entry are shown only to
-  members who may see them. Like documents (ADR-0027), an entry can be "Only me" or "Selected
-  members" (shared through tradition grants), which no role sees; its content owner (initially the
-  author) changes and shares it, admins may only narrow a shared entry, and a legacy `PRIVATE_SELF`
-  entry stays author-only.
-- **Ownership transfer (ADR-0027 §2).** The owner of a document or tradition may offer it to another
-  member, who becomes the owner only by accepting; nobody can claim a record whose owner left.
+  members who may see them.
 - **Family words stay in the family.** A tree's own kinship words are visible only inside that
   tree.
 

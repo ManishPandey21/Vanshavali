@@ -195,11 +195,11 @@ def test_access_grants_move_onto_memberships():
         admin.dispose()
 
 
-def test_tradition_owners_are_backfilled_and_downgrade_maps_the_new_levels():
-    """d7a3c5e9f182: owner from created_by while still a member; private levels map back on downgrade."""
+def test_ownership_offers_column_and_downgrade():
+    """e4b8c2d6f913: pending offers on documents, traditions and collections lapse with the member."""
     import uuid
 
-    db = DB + "_tradition_owners"
+    db = DB + "_offers"
     url = f"{_BASE}/{db}"
     admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
     with admin.connect() as c:
@@ -208,12 +208,11 @@ def test_tradition_owners_are_backfilled_and_downgrade_maps_the_new_levels():
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "3f6a8c1d2e94")
+        command.upgrade(cfg, "b5c1e7a93d42")
         engine = create_engine(url)
-        tree_id, member, leaver, membership = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
-        kept, orphan = uuid.uuid4(), uuid.uuid4()
+        t, u1, u2, m1, m2, e = (uuid.uuid4() for _ in range(6))
         with engine.begin() as conn:
-            for uid, email in ((member, "m@example.com"), (leaver, "l@example.com")):
+            for uid, email in ((u1, "a@example.com"), (u2, "b@example.com")):
                 conn.execute(
                     text(
                         "INSERT INTO app_user (id, email, password_hash, display_name) VALUES (:id, :e, 'x', 'U')"
@@ -221,46 +220,52 @@ def test_tradition_owners_are_backfilled_and_downgrade_maps_the_new_levels():
                     {"id": uid, "e": email},
                 )
             conn.execute(
-                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :s)"),
-                {"id": tree_id, "s": str(tree_id)},
+                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :s)"), {"id": t, "s": str(t)}
             )
-            conn.execute(
-                text(
-                    "INSERT INTO tree_membership (id, tree_id, user_id, roles) VALUES (:id, :t, :u, ARRAY['VIEWER'])"
-                ),
-                {"id": membership, "t": tree_id, "u": member},
-            )
-            for eid, uid in ((kept, member), (orphan, leaver)):
+            for mid, uid in ((m1, u1), (m2, u2)):
                 conn.execute(
                     text(
-                        "INSERT INTO tradition_entry (id, tree_id, kind, title, created_by)"
-                        " VALUES (:id, :t, 'recipe', 'R', :u)"
+                        "INSERT INTO tree_membership (id, tree_id, user_id, roles) VALUES (:id, :t, :u, ARRAY['CONTRIBUTOR'])"
                     ),
-                    {"id": eid, "t": tree_id, "u": uid},
+                    {"id": mid, "t": t, "u": uid},
                 )
-        command.upgrade(cfg, "d7a3c5e9f182")
-        with engine.begin() as conn:
-            owners = dict(conn.execute(text("SELECT id, owner_membership_id FROM tradition_entry")).all())
-            assert owners == {kept: membership, orphan: None}
-            conn.execute(
-                text("UPDATE tradition_entry SET privacy_level = 'ONLY_ME' WHERE id = :id"), {"id": kept}
-            )
-            conn.execute(
-                text("UPDATE tradition_entry SET privacy_level = 'SELECTED_MEMBERS' WHERE id = :id"),
-                {"id": orphan},
-            )
             conn.execute(
                 text(
-                    "INSERT INTO access_grant (id, tree_id, membership_id, user_id, resource_type, resource_id,"
-                    " permission) VALUES (:id, :t, :m, :u, 'tradition', :r, 'view')"
+                    "INSERT INTO tradition_entry (id, tree_id, kind, title, privacy_level, created_by, owner_membership_id)"
+                    " VALUES (:id, :t, 'recipe', 'R', 'ONLY_ME', :u, :m)"
                 ),
-                {"id": uuid.uuid4(), "t": tree_id, "m": membership, "u": member, "r": orphan},
+                {"id": e, "t": t, "u": u1, "m": m1},
             )
-        command.downgrade(cfg, "3f6a8c1d2e94")
+        command.upgrade(cfg, "e4b8c2d6f913")
+        with engine.begin() as conn:
+            for table in ("document", "tradition_entry", "photo_collection"):
+                cols = set(
+                    conn.execute(
+                        text("SELECT column_name FROM information_schema.columns WHERE table_name = :t"),
+                        {"t": table},
+                    ).scalars()
+                )
+                assert "pending_owner_membership_id" in cols, table
+            conn.execute(text("UPDATE tradition_entry SET pending_owner_membership_id = :m"), {"m": m2})
+            conn.execute(text("DELETE FROM tree_membership WHERE id = :m"), {"m": m2})  # the member leaves
+            row = conn.execute(
+                text("SELECT owner_membership_id, pending_owner_membership_id FROM tradition_entry")
+            ).one()
+            assert (row.owner_membership_id, row.pending_owner_membership_id) == (
+                m1,
+                None,
+            )  # the offer lapsed
+        command.downgrade(cfg, "b5c1e7a93d42")
         with engine.connect() as conn:
-            levels = dict(conn.execute(text("SELECT id, privacy_level FROM tradition_entry")).all())
-            assert levels == {kept: "PRIVATE_SELF", orphan: "CUSTOM"}
-            assert conn.execute(text("SELECT count(*) FROM access_grant")).scalar() == 0
+            for table in ("document", "tradition_entry", "photo_collection"):
+                cols = set(
+                    conn.execute(
+                        text("SELECT column_name FROM information_schema.columns WHERE table_name = :t"),
+                        {"t": table},
+                    ).scalars()
+                )
+                assert "pending_owner_membership_id" not in cols, table
+            assert conn.execute(text("SELECT owner_membership_id FROM tradition_entry")).scalar() == m1
         engine.dispose()
     finally:
         with admin.connect() as c:

@@ -101,8 +101,8 @@ class TraditionOut(TraditionSummaryOut):
     can_edit: bool = False
     edit_needs_review: bool = False
     can_withdraw: bool = False
-    owner_membership_id: uuid.UUID | None = None
-    is_owner: bool = False  # the viewer is the content owner (ADR-0027 §2)
+    is_owner: bool = False
+    can_edit_sharing: bool = False  # may open Visibility & Sharing (ADR-0027)
 
 
 class TraditionsOut(ApiModel):

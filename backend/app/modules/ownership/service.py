@@ -1,6 +1,6 @@
 """Transferring a shareable record to another member (ADR-0027 §2).
 
-Shareable records are documents and tradition entries. The owner offers a record to another
+Shareable records are documents, tradition entries and photo collections. The owner offers a record to another
 member, who becomes the owner only when they accept. The owner can cancel the offer; the member
 can decline it. Nobody else can transfer, claim or accept a record, so an orphaned record (its
 owner left) stays with its grantees. Every step is audited without titles or contents (§11).
@@ -18,23 +18,34 @@ from app.authz.context import TreeContext
 from app.authz.privacy import is_record_owner
 from app.core import audit
 from app.core.errors import NotFound, Unprocessable
-from app.models import Document, TraditionEntry, TreeMembership
+from app.models import Document, PhotoCollection, TraditionEntry, TreeMembership
 from app.models.enums import GrantResource
 from app.modules.ownership.schemas import OwnershipOfferOut, OwnershipOut
 
 _MODELS: dict[GrantResource, Any] = {
     GrantResource.DOCUMENT: Document,
     GrantResource.TRADITION: TraditionEntry,
+    GrantResource.COLLECTION: PhotoCollection,
 }
+
+
+def _live(model: Any) -> Any:
+    """The SQL condition for a record that has not been deleted or withdrawn."""
+    if model is Document:
+        return Document.deleted_at.is_(None)
+    if model is TraditionEntry:
+        return TraditionEntry.withdrawn_at.is_(None)
+    return PhotoCollection.id.is_not(None)  # collections are deleted outright
 
 
 def _record(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUID) -> Any:
     model = _MODELS.get(GrantResource(resource_type))
     if model is None or ctx.public or ctx.membership_id is None:
         raise NotFound("Record not found")
-    r = ctx.db.scalar(select(model).where(model.tree_id == ctx.tree_id, model.id == resource_id))
-    live = r is not None and (r.deleted_at is None if model is Document else r.withdrawn_at is None)
-    if not live:
+    r = ctx.db.scalar(
+        select(model).where(model.tree_id == ctx.tree_id, model.id == resource_id, _live(model))
+    )
+    if r is None:
         raise NotFound("Record not found")
     return r
 
@@ -119,27 +130,12 @@ def offers_for_me(ctx: TreeContext) -> list[OwnershipOfferOut]:
     me = ctx.membership_id
     if me is None or ctx.public:
         return []
-    docs = ctx.db.scalars(
-        select(Document).where(
-            Document.tree_id == ctx.tree_id,
-            Document.pending_owner_membership_id == me,
-            Document.deleted_at.is_(None),
+    out: list[OwnershipOfferOut] = []
+    for resource_type, model in _MODELS.items():
+        rows: Any = ctx.db.scalars(
+            select(model)
+            .where(model.tree_id == ctx.tree_id, model.pending_owner_membership_id == me, _live(model))
+            .order_by(model.created_at, model.id)
         )
-    )
-    entries = ctx.db.scalars(
-        select(TraditionEntry).where(
-            TraditionEntry.tree_id == ctx.tree_id,
-            TraditionEntry.pending_owner_membership_id == me,
-            TraditionEntry.withdrawn_at.is_(None),
-        )
-    )
-    return [
-        *(
-            OwnershipOfferOut(resource_type=GrantResource.DOCUMENT, resource_id=d.id, title=d.title)
-            for d in docs
-        ),
-        *(
-            OwnershipOfferOut(resource_type=GrantResource.TRADITION, resource_id=e.id, title=e.title)
-            for e in entries
-        ),
-    ]
+        out += [OwnershipOfferOut(resource_type=resource_type, resource_id=r.id, title=r.title) for r in rows]
+    return out
