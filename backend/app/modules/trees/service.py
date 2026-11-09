@@ -4,6 +4,7 @@ import datetime as dt
 import re
 import secrets
 import uuid
+from typing import Any
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -15,7 +16,7 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessable
 from app.core.security import new_token, token_hash
 from app.models import AccessGrant, FamilyBranch, Person, Tree, TreeInvitation, TreeMembership, User
-from app.models.enums import GrantResource, Role
+from app.models.enums import GrantResource, RecordPrivacyLevel, Role
 
 INVITATION_TTL_DAYS = 14
 _ADMIN_GRANTABLE = {Role.OWNER, Role.FAMILY_ADMIN}
@@ -323,6 +324,11 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
             raise Conflict("A tree must keep at least one owner", code="last_owner")
     _require_manageable(ctx, m)
     roles = sorted(m.roles)
+    # before the membership row goes: its ON DELETE CASCADE would otherwise remove the grants
+    # unaudited (ADR-0027 §3 keeps this explicit, counted deletion)
+    delete_member_grants(
+        ctx.db, tree_id=ctx.tree_id, user_id=m.user_id, actor_user_id=ctx.user_id, membership_id=m.id
+    )
     ctx.db.delete(m)
     audit.log(
         ctx,
@@ -330,9 +336,6 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
         target_type="membership",
         target_id=m.id,
         details={"roles": roles, "admin_change": bool({Role(r) for r in roles} & _ADMIN_GRANTABLE)},
-    )
-    delete_member_grants(
-        ctx.db, tree_id=ctx.tree_id, user_id=m.user_id, actor_user_id=ctx.user_id, membership_id=m.id
     )
 
 
@@ -369,6 +372,31 @@ def delete_member_grants(
     return count
 
 
+def _grant_document(ctx: TreeContext, resource_id: uuid.UUID) -> Any:
+    from app.modules.documents import access
+
+    return access.get_document(ctx, resource_id)  # 404 when the caller cannot see it
+
+
+def can_manage_grants_on(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUID) -> bool:
+    """ADR-0027 §3 and §10: grants on a private record are its owner's alone; on anything else they
+    need ``privacy.manage`` (or, for a document, being its owner)."""
+    if resource_type == GrantResource.DOCUMENT:
+        from app.authz.privacy import is_private_record_level
+        from app.models import Document
+        from app.modules.documents import access
+
+        doc = ctx.db.scalar(
+            select(Document).where(Document.tree_id == ctx.tree_id, Document.id == resource_id)
+        )
+        if doc is None or not access.can_view_document(ctx, doc):
+            return False
+        if access.is_owner(ctx, doc):
+            return True
+        return not is_private_record_level(doc.privacy_level) and ctx.has(Permission.PRIVACY_MANAGE)
+    return ctx.has(Permission.PRIVACY_MANAGE)
+
+
 def create_grant(
     ctx: TreeContext,
     user_id: uuid.UUID,
@@ -377,18 +405,29 @@ def create_grant(
     permission: str,
     expires_at: dt.datetime | None,
 ) -> AccessGrant:
-    ctx.require(Permission.PRIVACY_MANAGE)
-    member = ctx.db.scalar(
+    if resource_type == GrantResource.DOCUMENT:
+        doc = _grant_document(ctx, resource_id)
+        if not can_manage_grants_on(ctx, resource_type, resource_id):
+            raise Forbidden("Only the owner of this record can share it")
+        if doc.privacy_level == RecordPrivacyLevel.ONLY_ME:
+            raise Conflict(
+                "This record is kept for its owner only; choose Selected members to share it",
+                code="only_me_record",
+            )
+    else:
+        ctx.require(Permission.PRIVACY_MANAGE)
+    membership_id = ctx.db.scalar(
         select(TreeMembership.id).where(
             TreeMembership.tree_id == ctx.tree_id, TreeMembership.user_id == user_id
         )
     )
-    if member is None:
+    if membership_id is None:
         raise NotFound("Grants can only be given to members of this tree")
     _assert_resource_in_tree(ctx, resource_type, resource_id)
     grant = AccessGrant(
         tree_id=ctx.tree_id,
         user_id=user_id,
+        membership_id=membership_id,
         resource_type=resource_type,
         resource_id=resource_id,
         permission=permission,
@@ -405,6 +444,34 @@ def create_grant(
         details={"permission": str(permission), "grantee": str(user_id)},
     )
     return grant
+
+
+def visible_grants(ctx: TreeContext) -> list[AccessGrant]:
+    """Grants the caller may manage. Grants on private records are listed to their owner only, so
+    the list never reveals that a private record exists (ADR-0027 §3, finding A7)."""
+    rows = ctx.db.scalars(
+        select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id).order_by(AccessGrant.granted_at)
+    ).all()
+    cache: dict[tuple[str, uuid.UUID], bool] = {}
+    out = []
+    for g in rows:
+        key = (str(g.resource_type), g.resource_id)
+        if key not in cache:
+            cache[key] = can_manage_grants_on(ctx, g.resource_type, g.resource_id)
+        if cache[key]:
+            out.append(g)
+    return out
+
+
+def revoke_grant(ctx: TreeContext, grant_id: uuid.UUID) -> None:
+    g = ctx.db.scalar(
+        select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
+    )
+    if g is None or not can_manage_grants_on(ctx, g.resource_type, g.resource_id):
+        raise NotFound("Grant not found")
+    ctx.db.delete(g)
+    ctx.db.flush()
+    audit.log(ctx, "grant.revoked", target_type=str(g.resource_type), target_id=g.resource_id)
 
 
 def _assert_resource_in_tree(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUID) -> None:

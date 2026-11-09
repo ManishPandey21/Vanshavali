@@ -20,7 +20,7 @@ from app.core.errors import Unprocessable
 from app.core.storage import get_store
 from app.models import Document, DocumentDerivative, FamilyBranch
 from app.models.enums import ChartType, DerivativeKind, ProfileStatus
-from app.modules.documents.access import can_access_content
+from app.modules.documents.access import can_download
 from app.modules.genealogy import engine
 from app.modules.genealogy.schemas import PersonSummary
 from app.modules.render.schemas import RenderSettings
@@ -271,7 +271,8 @@ def _lifespan(ctx: TreeContext, s: RenderSettings) -> tuple[dict[str, Any], str,
 
 def _photo_uri(ctx: TreeContext, document_id: uuid.UUID) -> str | None:
     doc = ctx.db.scalar(select(Document).where(Document.tree_id == ctx.tree_id, Document.id == document_id))
-    if doc is None or doc.deleted_at is not None or not can_access_content(ctx, doc):
+    # a photo inside an exported video is a download (ADR-0027 §4)
+    if doc is None or doc.deleted_at is not None or not can_download(ctx, doc):
         return None
     for kind in (DerivativeKind.PREVIEW, DerivativeKind.THUMBNAIL):
         d = ctx.db.scalar(

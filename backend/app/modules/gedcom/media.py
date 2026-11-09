@@ -21,7 +21,7 @@ from app.core.errors import Conflict, Unprocessable
 from app.core.filetypes import sniff
 from app.core.storage import get_store
 from app.models import Document, ImportJob, Person
-from app.models.enums import DocumentCategory, DocumentLinkTarget, PrivacyLevel
+from app.models.enums import DocumentCategory, DocumentLinkTarget, PrivacyLevel, RecordPrivacyLevel
 from app.modules.documents import service as documents
 from app.modules.documents.schemas import DocumentLinkIn
 from app.modules.gedcom import package
@@ -156,7 +156,10 @@ def import_photos(ctx: TreeContext, job: ImportJob, imp: Importer) -> dict[str, 
             continue
         if linked.id in created_here:
             # one photo, several people: never less private than the most private of them
-            linked.privacy_level = _stricter(PrivacyLevel(linked.privacy_level), person.privacy_level)
+            if linked.privacy_level in PrivacyLevel.__members__.values():  # not ONLY_ME/SELECTED_MEMBERS
+                linked.privacy_level = RecordPrivacyLevel(
+                    _stricter(PrivacyLevel(linked.privacy_level), person.privacy_level)
+                )
         try:
             documents._add_link(ctx, linked, link)
             counts["photos_linked"] += 1

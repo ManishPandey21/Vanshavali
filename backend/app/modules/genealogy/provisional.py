@@ -109,12 +109,13 @@ def forget(ctx: TreeContext) -> None:
 
 def share_with_creator(ctx: TreeContext, person: Person) -> None:
     """Let the user who created a provisional person keep seeing (and so completing) them."""
-    if ctx.user_id is None:
+    if ctx.user_id is None or ctx.membership_id is None:
         return
     ctx.db.add(
         AccessGrant(
             tree_id=ctx.tree_id,
             user_id=ctx.user_id,
+            membership_id=ctx.membership_id,
             resource_type=GrantResource.PERSON,
             resource_id=person.id,
             permission=GrantPermission.VIEW,

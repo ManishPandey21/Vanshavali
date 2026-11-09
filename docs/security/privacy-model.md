@@ -41,11 +41,21 @@ visibility for one member. Documents also distinguish `view` from `download`. A 
 end when they leave it (removed, or account closed); inviting the same person again does not
 restore them (threat T53).
 
-> **Accepted (ADR-0027), being implemented.** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
-> cannot yet be shared with chosen members only. ADR-0027 proposes two record-only audiences,
-> `ONLY_ME` and `SELECTED_MEMBERS`, with no role-based visibility; membership-bound grants; separate
-> view and download; and ceilings from consent and tagged people. The current gaps are listed in the
-> threat model, §5.
+**Shareable records (ADR-0027).** Documents, photos and recordings take a record audience instead:
+
+| Audience (`document.privacy_level`) | Who can see it |
+|---|---|
+| `ONLY_ME` | The record's owner (their *current* membership). Nobody else, whatever their role. |
+| `SELECTED_MEMBERS` | The owner and memberships holding a grant on it. No role-based access. |
+| `FAMILY_BRANCH` + `audience_branch_id` | The owner, members of that branch, family admins (ADR-0006's meaning) and grantees. |
+| `TREE_MEMBERS` | Every member except researcher-only memberships. |
+| legacy levels | As above for people; `CUSTOM`/`PRIVATE_SELF` keep their old meaning until the owner converts them. |
+
+*View* (metadata, thumbnail, preview, playback) and *download* (the original, ZIP and video exports)
+are separate: viewers download only when `allow_download` is on or they hold a `download` grant. New
+vault documents and records tagged with a protected living person start as `ONLY_ME` without
+download. A record is never more open than any protected person tagged in it. Grants belong to one
+membership and are deleted with it; no record is public in v1.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

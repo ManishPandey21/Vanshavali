@@ -1573,6 +1573,23 @@
       "recipe": "Recipe",
       "story": "Story",
       "other": "Other"
+    },
+    "recordPrivacy": {
+      "ONLY_ME": "Only me",
+      "SELECTED_MEMBERS": "Selected members",
+      "FAMILY_BRANCH": "Selected branch",
+      "TREE_MEMBERS": "All family members",
+      "PRIVATE_SELF": "Me and the tree owner (older setting)",
+      "PRIVATE_TREE_ADMINS": "Admins and custodians",
+      "INVITED_RESEARCHER": "Members and researchers",
+      "PUBLIC_DECEASED_ONLY": "Public",
+      "CUSTOM": "Selected members and admins (older setting)"
+    },
+    "recordPrivacyHint": {
+      "ONLY_ME": "Nobody else, whatever their role — not even tree admins.",
+      "SELECTED_MEMBERS": "Only the family members you choose below.",
+      "FAMILY_BRANCH": "Members of one family branch, and the family admins.",
+      "TREE_MEMBERS": "Everyone in this family tree except outside researchers."
     }
   },
   "documents": {
@@ -1589,12 +1606,12 @@
     "date": "Date of the document",
     "description": "Description",
     "issuingAuthority": "Issuing authority",
-    "privacyHint": "Vault categories (certificates, deeds, kundlis) are restricted to admins and custodians regardless.",
+    "privacyHint": "New certificates, deeds and kundlis, and anything about a privately kept relative, start as Only me.",
     "privacyDefault": "Default for this category",
     "linkPersonOptional": "About a person (optional)",
     "willLinkTo": "Will be linked to {{target}}.",
     "vault": "Vault",
-    "vaultHint": "Stored in the encrypted vault: only admins, document custodians and explicit grants can open the file.",
+    "vaultHint": "Stored in the encrypted vault. It starts as Only me; you choose who else can open it.",
     "scan": "Scan",
     "preview": "Preview",
     "ocr": "OCR",
@@ -3647,5 +3664,42 @@
     "rationaleRequired": "Say why this change is right.",
     "reviewNotice": "Your family reviews changes to entries other people wrote. This change is sent for review.",
     "sent": "Sent for review. The change appears once a reviewer approves it."
+  },
+  "sharing": {
+    "title": "Visibility & sharing",
+    "legend": "Who can see this",
+    "intro": "Choose who in the family can see this record. Only you can share it more widely.",
+    "searchMembers": "Search family members by name",
+    "noMatches": "No member matches “{{q}}”.",
+    "canView": "Can view",
+    "canDownload": "Can download",
+    "allowDownload": "Everyone who can see it may also download the original",
+    "downloadHint": "Viewing shows the preview and plays audio or video; downloading saves the original file.",
+    "branch": "Family branch",
+    "chooseBranch": "Choose a branch",
+    "whoHasAccess": "Who has access",
+    "whoHasAccessCount_one": "{{count}} person can see this",
+    "whoHasAccessCount_other": "{{count}} people can see this",
+    "access": {
+      "owner": "Owner",
+      "selected": "Selected",
+      "branch": "Branch member",
+      "family": "Family member",
+      "role": "Family admin"
+    },
+    "save": "Save sharing",
+    "saved": "Sharing updated.",
+    "confirmTitle": "Share more widely?",
+    "confirmBody_one": "{{count}} more person will be able to see or download this. Copies already downloaded cannot be recalled.",
+    "confirmBody_other": "{{count}} more people will be able to see or download this. Copies already downloaded cannot be recalled.",
+    "confirm": "Yes, share",
+    "ceiling": "Someone tagged in this record is kept private, so it can be shared no wider than “{{level}}”.",
+    "legacy": "This record uses an older setting that also lets admins or the tree owner see it. Choose a new setting to keep it to the people you pick.",
+    "readOnly": "Only the owner of this record can change who sees it.",
+    "noOwner": "The person who added this record has left the tree; it can be narrowed but not shared more widely.",
+    "uploadNote": "You can change this later from the document page.",
+    "membersRequired": "Choose at least one member.",
+    "badge": "Visible to",
+    "membersList": "Family members to share with"
   }
 }

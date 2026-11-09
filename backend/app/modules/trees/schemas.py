@@ -106,6 +106,7 @@ class GrantCreate(ApiModel):
 class GrantOut(ApiModel):
     id: uuid.UUID
     user_id: uuid.UUID
+    membership_id: uuid.UUID
     resource_type: GrantResource
     resource_id: uuid.UUID
     permission: GrantPermission

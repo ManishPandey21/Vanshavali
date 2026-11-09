@@ -11,6 +11,7 @@ import { EmptyState, ErrorAlert, LiveRegion, Spinner } from "../ui/feedback";
 import { Checkbox, Field, TextInput } from "../ui/form";
 import { Badge } from "../ui/Badge";
 import { PhotoThumb } from "./PhotoThumb";
+import { RecordPrivacyBadge } from "../person/badges";
 import { uploadErrorMessage } from "../documents/DocumentBits";
 
 /** An event's photo album: cover, captions, people in the photo, uploads (privacy inherited). */
@@ -40,6 +41,7 @@ export function EventAlbum({ treeId, event, canEdit, onClose }: { treeId: string
                     </Badge>
                   )}
                 </div>
+                <RecordPrivacyBadge level={m.document.privacy_level} />
                 {m.taken_date_display && <p className="text-xs text-ink-muted">{m.taken_date_display}</p>}
                 {(m.people ?? []).length > 0 && <p className="text-xs text-ink-muted">{t("photos.inPhoto")}: {(m.people ?? []).map((p) => p.display_name).join(", ")}</p>}
                 {canEdit && (

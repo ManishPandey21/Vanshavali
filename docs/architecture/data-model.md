@@ -105,6 +105,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `user_id` | UUID | no | → app_user |
+| `membership_id` | UUID | no | → tree_membership (composite, same tree) |
 | `resource_type` | enum(person, document, property) | no |  |
 | `resource_id` | UUID | no |  |
 | `permission` | enum(view, download) | no |  |
@@ -117,7 +118,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
 
-Constraints/indexes: `UNIQUE (tree_id, user_id, resource_type, resource_id, permission)`; `UNIQUE (tree_id, id)`; `INDEX ix_access_grant_lookup (tree_id, resource_type, resource_id)`; `INDEX ix_access_grant_tree_id (tree_id)`
+Constraints/indexes: `UNIQUE (tree_id, user_id, resource_type, resource_id, permission)`; `UNIQUE (tree_id, id)`; `INDEX ix_access_grant_lookup (tree_id, resource_type, resource_id)`; `INDEX ix_access_grant_membership (tree_id, membership_id)`; `INDEX ix_access_grant_tree_id (tree_id)`
 
 ## Genealogy
 
@@ -884,7 +885,10 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_citation_target (tree_id,
 | `language` | VARCHAR(16) | yes |  |
 | `script` | VARCHAR(20) | yes |  |
 | `issuing_authority` | VARCHAR(300) | yes |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(ONLY_ME, SELECTED_MEMBERS, PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, …) | no |  |
+| `owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
+| `audience_branch_id` | UUID | yes | → family_branch (composite, same tree) |
+| `allow_download` | BOOLEAN | no |  |
 | `retention_policy` | VARCHAR(40) | no |  |
 | `scan_status` | enum(pending, clean, infected, error) | no |  |
 | `scan_engine` | VARCHAR(80) | yes |  |
@@ -904,7 +908,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_citation_target (tree_id,
 | `created_at` | DATETIME | no |  |
 | `updated_at` | DATETIME | no |  |
 
-Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_document_tree_checksum (tree_id, checksum_sha256)`; `INDEX ix_document_tree_id (tree_id)`
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_document_owner_membership_id (owner_membership_id)`; `INDEX ix_document_tree_checksum (tree_id, checksum_sha256)`; `INDEX ix_document_tree_id (tree_id)`
 
 ### `document_metadata_version`
 

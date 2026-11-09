@@ -6,7 +6,7 @@ import { ApiError } from "../../api/client";
 import { formatDate } from "../../lib/dates";
 import { formatBytes } from "../../lib/documents";
 import { Badge, type Tone } from "../ui/Badge";
-import { PrivacyBadge } from "../person/badges";
+import { RecordPrivacyBadge } from "../person/badges";
 
 const statusTone: Record<string, Tone> = {
   completed: "green",
@@ -70,7 +70,7 @@ export function DocumentRow({ treeId, doc }: { treeId: string; doc: DocumentOut 
       </div>
       <div className="flex flex-wrap items-center gap-1">
         <StorageBadge doc={doc} />
-        <PrivacyBadge level={doc.privacy_level} />
+        <RecordPrivacyBadge level={doc.privacy_level} />
         <PipelineBadges doc={doc} />
       </div>
     </li>

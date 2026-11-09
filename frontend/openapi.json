@@ -1313,6 +1313,7 @@
      "trees"
     ],
     "summary": "List Grants",
+    "description": "Grants the caller may manage: everything for privacy managers except grants on other members'\nprivate records; a record owner's own grants for anyone else (ADR-0027 \u00a73).",
     "operationId": "list_grants_api_v1_trees__tree_id__grants_get",
     "parameters": [
      {
@@ -13922,6 +13923,186 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/documents/{document_id}/sharing": {
+   "get": {
+    "tags": [
+     "documents"
+    ],
+    "summary": "Get Sharing",
+    "description": "The record's audience. Who has access is listed only to those who may change it.",
+    "operationId": "get_sharing_api_v1_trees__tree_id__documents__document_id__sharing_get",
+    "parameters": [
+     {
+      "name": "document_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Document Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharingOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "documents"
+    ],
+    "summary": "Update Sharing",
+    "description": "Change who can see and download the record. Widening needs ``confirm_wider`` (409 otherwise).",
+    "operationId": "update_sharing_api_v1_trees__tree_id__documents__document_id__sharing_put",
+    "parameters": [
+     {
+      "name": "document_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Document Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharingUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharingOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/documents/{document_id}/sharing/preview": {
+   "post": {
+    "tags": [
+     "documents"
+    ],
+    "summary": "Preview Sharing",
+    "description": "Who would have access with these settings. Changes nothing.",
+    "operationId": "preview_sharing_api_v1_trees__tree_id__documents__document_id__sharing_preview_post",
+    "parameters": [
+     {
+      "name": "document_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Document Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharingUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharingOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/documents/{document_id}/versions": {
    "get": {
     "tags": [
@@ -14192,7 +14373,7 @@
       "required": false,
       "schema": {
        "type": "string",
-       "pattern": "^(original|preview|thumbnail)$",
+       "pattern": "^(original|preview|thumbnail|stream)$",
        "default": "original",
        "title": "Variant"
       }
@@ -17350,12 +17531,35 @@
      "privacy_level": {
       "anyOf": [
        {
-        "$ref": "#/components/schemas/PrivacyLevel"
+        "$ref": "#/components/schemas/RecordPrivacyLevel"
        },
        {
         "type": "null"
        }
       ]
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "allow_download": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Allow Download"
      },
      "document_date": {
       "anyOf": [
@@ -19766,7 +19970,24 @@
       "title": "Issuing Authority"
      },
      "privacy_level": {
-      "$ref": "#/components/schemas/PrivacyLevel"
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "allow_download": {
+      "type": "boolean",
+      "title": "Allow Download",
+      "default": true
      },
      "scan_status": {
       "$ref": "#/components/schemas/ScanStatus"
@@ -19842,6 +20063,21 @@
       "title": "Can Access Content",
       "default": false
      },
+     "can_download": {
+      "type": "boolean",
+      "title": "Can Download",
+      "default": false
+     },
+     "is_owner": {
+      "type": "boolean",
+      "title": "Is Owner",
+      "default": false
+     },
+     "can_edit_sharing": {
+      "type": "boolean",
+      "title": "Can Edit Sharing",
+      "default": false
+     },
      "variants": {
       "items": {
        "type": "string"
@@ -19905,7 +20141,7 @@
       "$ref": "#/components/schemas/DocumentCategory"
      },
      "privacy_level": {
-      "$ref": "#/components/schemas/PrivacyLevel"
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
      },
      "linked_to": {
       "$ref": "#/components/schemas/DocumentLinkTarget"
@@ -19979,7 +20215,7 @@
      "privacy_level": {
       "anyOf": [
        {
-        "$ref": "#/components/schemas/PrivacyLevel"
+        "$ref": "#/components/schemas/RecordPrivacyLevel"
        },
        {
         "type": "null"
@@ -22313,6 +22549,11 @@
       "format": "uuid",
       "title": "User Id"
      },
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
      "resource_type": {
       "$ref": "#/components/schemas/GrantResource"
      },
@@ -22346,6 +22587,7 @@
     "required": [
      "id",
      "user_id",
+     "membership_id",
      "resource_type",
      "resource_id",
      "permission",
@@ -31873,6 +32115,22 @@
     ],
     "title": "PublicTreeOut"
    },
+   "RecordPrivacyLevel": {
+    "type": "string",
+    "enum": [
+     "ONLY_ME",
+     "SELECTED_MEMBERS",
+     "PRIVATE_SELF",
+     "PRIVATE_TREE_ADMINS",
+     "FAMILY_BRANCH",
+     "TREE_MEMBERS",
+     "INVITED_RESEARCHER",
+     "PUBLIC_DECEASED_ONLY",
+     "CUSTOM"
+    ],
+    "title": "RecordPrivacyLevel",
+    "description": "Audience of a shareable record (ADR-0027 \u00a71): every person level plus two record-only ones.\n\n``ONLY_ME`` and ``SELECTED_MEMBERS`` give no role-based visibility at all: only the record's\nowner and, for ``SELECTED_MEMBERS``, members holding a grant. People, events and properties\nnever take them (their columns keep ``PrivacyLevel``'s CHECK constraint)."
+   },
    "RegisterIn": {
     "properties": {
      "email": {
@@ -33976,6 +34234,209 @@
      "unknown"
     ],
     "title": "SexAtBirth"
+   },
+   "SharingCeilingOut": {
+    "properties": {
+     "max_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "branch_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Branch Ids",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "max_level"
+    ],
+    "title": "SharingCeilingOut",
+    "description": "The widest audience the people tagged in the record allow."
+   },
+   "SharingMemberIn": {
+    "properties": {
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
+     "can_download": {
+      "type": "boolean",
+      "title": "Can Download",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "membership_id"
+    ],
+    "title": "SharingMemberIn"
+   },
+   "SharingMemberOut": {
+    "properties": {
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
+     "display_name": {
+      "type": "string",
+      "title": "Display Name"
+     },
+     "access": {
+      "type": "string",
+      "enum": [
+       "owner",
+       "selected",
+       "branch",
+       "family",
+       "role"
+      ],
+      "title": "Access"
+     },
+     "can_download": {
+      "type": "boolean",
+      "title": "Can Download"
+     }
+    },
+    "type": "object",
+    "required": [
+     "membership_id",
+     "display_name",
+     "access",
+     "can_download"
+    ],
+    "title": "SharingMemberOut"
+   },
+   "SharingOut": {
+    "properties": {
+     "privacy_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "allow_download": {
+      "type": "boolean",
+      "title": "Allow Download"
+     },
+     "is_owner": {
+      "type": "boolean",
+      "title": "Is Owner"
+     },
+     "has_owner": {
+      "type": "boolean",
+      "title": "Has Owner"
+     },
+     "can_edit": {
+      "type": "boolean",
+      "title": "Can Edit"
+     },
+     "can_widen": {
+      "type": "boolean",
+      "title": "Can Widen"
+     },
+     "legacy": {
+      "type": "boolean",
+      "title": "Legacy"
+     },
+     "ceiling": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/SharingCeilingOut"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "members": {
+      "items": {
+       "$ref": "#/components/schemas/SharingMemberOut"
+      },
+      "type": "array",
+      "title": "Members"
+     },
+     "audience": {
+      "items": {
+       "$ref": "#/components/schemas/SharingMemberOut"
+      },
+      "type": "array",
+      "title": "Audience"
+     }
+    },
+    "type": "object",
+    "required": [
+     "privacy_level",
+     "audience_branch_id",
+     "allow_download",
+     "is_owner",
+     "has_owner",
+     "can_edit",
+     "can_widen",
+     "legacy",
+     "ceiling",
+     "members",
+     "audience"
+    ],
+    "title": "SharingOut"
+   },
+   "SharingUpdate": {
+    "properties": {
+     "privacy_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "allow_download": {
+      "type": "boolean",
+      "title": "Allow Download",
+      "default": false
+     },
+     "members": {
+      "items": {
+       "$ref": "#/components/schemas/SharingMemberIn"
+      },
+      "type": "array",
+      "maxItems": 500,
+      "title": "Members",
+      "default": []
+     },
+     "confirm_wider": {
+      "type": "boolean",
+      "title": "Confirm Wider",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "privacy_level"
+    ],
+    "title": "SharingUpdate",
+    "description": "The whole sharing setting of a record. ``members`` replaces the record's explicit grants."
    },
    "SiblingOut": {
     "properties": {

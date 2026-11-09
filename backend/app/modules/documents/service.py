@@ -45,6 +45,7 @@ from app.models.enums import (
     PrivacyLevel,
     ProcessingStatus,
     ProposalStatus,
+    RecordPrivacyLevel,
     ScanStatus,
     StorageClass,
 )
@@ -59,7 +60,9 @@ from app.modules.documents.schemas import (
 )
 from app.modules.genealogy import lookup
 
-VARIANTS = ("original", "preview", "thumbnail")
+VARIANTS = ("original", "preview", "thumbnail", "stream")
+# in-app playback of the original bytes (inline, no download); audio and video only (ADR-0027 §4)
+STREAMABLE_PREFIXES = ("audio/", "video/")
 METADATA_FIELDS = (
     "title",
     "description",
@@ -174,6 +177,11 @@ def _add_link(ctx: TreeContext, doc: Document, body: DocumentLinkIn) -> Document
     )
     ctx.db.add(link)
     ctx.db.flush()
+    if body.target_type == DocumentLinkTarget.PERSON:
+        from app.modules.documents import sharing
+
+        # tagging a protected person narrows the record at once, never widens it (ADR-0027 §5)
+        sharing.enforce_ceiling(ctx, doc, reason="tag")
     audit.log(
         ctx,
         "document.linked",
@@ -193,16 +201,22 @@ def upload(
     category: DocumentCategory,
     title: str,
     description: str | None = None,
-    privacy_level: PrivacyLevel | None = None,
+    privacy_level: RecordPrivacyLevel | PrivacyLevel | None = None,
     document_date: GenealogicalDate | None = None,
     language: str | None = None,
     script: str | None = None,
     issuing_authority: str | None = None,
     link: DocumentLinkIn | None = None,
+    audience_branch_id: uuid.UUID | None = None,
+    allow_download: bool | None = None,
 ) -> Document:
     _require_upload(ctx, category)
     if link is not None:
         check_link_target(ctx, link.target_type, link.target_id)  # fail before storing anything
+    storage_class = storage_class_for(category)
+    level, branch, downloadable = _initial_sharing(
+        ctx, storage_class, link, privacy_level, audience_branch_id, allow_download
+    )
     sniffed = validate_upload(data)
     checksum = hashlib.sha256(data).hexdigest()
     _reject_duplicate(ctx, checksum)
@@ -239,7 +253,6 @@ def upload(
             status_code=503,
         )
 
-    storage_class = storage_class_for(category)
     doc_id = uuid7()
     key = f"{storage_class.value}/{ctx.tree_id}/{checksum[:2]}/{doc_id}/original"
     doc = Document(
@@ -259,12 +272,10 @@ def upload(
         language=language,
         script=script,
         issuing_authority=issuing_authority,
-        privacy_level=privacy_level
-        or (
-            PrivacyLevel.PRIVATE_TREE_ADMINS
-            if storage_class == StorageClass.VAULT
-            else PrivacyLevel(ctx.tree.default_person_privacy)
-        ),
+        privacy_level=level,
+        audience_branch_id=branch,
+        allow_download=downloadable,
+        owner_membership_id=ctx.membership_id,
         scan_status=ScanStatus.CLEAN,
         scan_engine=result.engine,
         page_count=sniffed.page_count,
@@ -295,6 +306,59 @@ def upload(
         },
     )
     return doc
+
+
+def _initial_sharing(
+    ctx: TreeContext,
+    storage_class: StorageClass,
+    link: DocumentLinkIn | None,
+    privacy_level: RecordPrivacyLevel | PrivacyLevel | None,
+    audience_branch_id: uuid.UUID | None,
+    allow_download: bool | None,
+) -> tuple[RecordPrivacyLevel, uuid.UUID | None, bool]:
+    """Audience of a new upload (ADR-0027 §9): what the uploader chose, never wider than the people it
+    is tagged with; by default Only me for the vault and for records about a protected person."""
+    from app.modules.documents import sharing
+
+    caps = (
+        sharing.caps_for_people(ctx, [link.target_id])
+        if link is not None and link.target_type == DocumentLinkTarget.PERSON
+        else []
+    )
+    sensitive = storage_class == StorageClass.VAULT or bool(caps)
+    if privacy_level is None:
+        level = (
+            RecordPrivacyLevel.ONLY_ME if sensitive else RecordPrivacyLevel(ctx.tree.default_person_privacy)
+        )
+    else:
+        level = RecordPrivacyLevel(privacy_level)
+    if level == RecordPrivacyLevel.PUBLIC_DECEASED_ONLY:
+        raise Unprocessable("Records cannot be public", code="public_not_supported")
+    branch = audience_branch_id if level == RecordPrivacyLevel.FAMILY_BRANCH else None
+    if level == RecordPrivacyLevel.FAMILY_BRANCH and branch is None:
+        # inherited "branch" privacy (an event photo, a person's level): that person's own branch
+        branch_caps = [c for c in caps if c.level == RecordPrivacyLevel.FAMILY_BRANCH]
+        common = frozenset.intersection(*[c.branches for c in branch_caps]) if branch_caps else frozenset()
+        branch = min(common, key=str) if common else None
+    if branch is not None:
+        from app.models import FamilyBranch
+
+        if (
+            ctx.db.scalar(
+                select(FamilyBranch.id).where(FamilyBranch.tree_id == ctx.tree_id, FamilyBranch.id == branch)
+            )
+            is None
+        ):
+            raise NotFound("Branch not found")
+    if not sharing.within(level, branch, caps):
+        if privacy_level is not None:
+            raise Unprocessable(
+                "A person tagged in this record is kept more private; it cannot be shared this widely",
+                code="privacy_too_open",
+            )
+        level, branch = sharing.narrowest(caps)
+    downloadable = (not sensitive) if allow_download is None else allow_download
+    return level, branch, downloadable
 
 
 def _reject_duplicate(ctx: TreeContext, checksum: str) -> None:
@@ -358,6 +422,7 @@ def document_out(ctx: TreeContext, doc: Document, links: list[DocumentLink] | No
     if links is None:
         links = links_for(ctx, [doc.id])[doc.id]
     content = access.can_access_content(ctx, doc)
+    downloadable = content and access.can_download(ctx, doc)
     kinds = set(
         ctx.db.scalars(
             select(DocumentDerivative.kind).where(
@@ -379,13 +444,20 @@ def document_out(ctx: TreeContext, doc: Document, links: list[DocumentLink] | No
             )
             or 0
         )
-    variants = ["original"] + [
+    variants = (["original"] if downloadable else []) + [
         k.value for k in (DerivativeKind.PREVIEW, DerivativeKind.THUMBNAIL) if k in kinds
     ]
+    if doc.mime_type.startswith(STREAMABLE_PREFIXES):
+        variants.append("stream")
+    from app.modules.documents.sharing import can_edit
+
     return DocumentOut.model_validate(doc).model_copy(
         update={
             "links": _visible_links(ctx, links),
             "can_access_content": content,
+            "can_download": downloadable,
+            "is_owner": access.is_owner(ctx, doc),
+            "can_edit_sharing": can_edit(ctx, doc),
             "variants": variants if content else [],
             "has_ocr_text": content and DerivativeKind.OCR_TEXT in kinds,
             "pending_proposals": pending,
@@ -461,14 +533,13 @@ def update_metadata(ctx: TreeContext, document_id: uuid.UUID, body: DocumentUpda
             )
         if new_cat in PROPERTY_CATEGORIES:
             _require_upload(ctx, new_cat)
-    if "privacy_level" in changes:
-        if changes["privacy_level"] is None:
-            raise Unprocessable("privacy_level cannot be empty")
-        if not ctx.has(Permission.DOCUMENT_MANAGE):
-            raise Forbidden("Only document managers can change a document's privacy")
+    if "privacy_level" in changes and changes["privacy_level"] is None:
+        raise Unprocessable("privacy_level cannot be empty")
     if "document_date" in changes:
         changes["document_date"] = date_to_json(changes["document_date"])
-    current = _snapshot(doc)
+    current = _snapshot(doc)  # before any change, so the version history keeps the old values
+    if "privacy_level" in changes:
+        _change_level(ctx, doc, RecordPrivacyLevel(changes["privacy_level"]))
     effective = {k: v for k, v in changes.items() if (v.value if hasattr(v, "value") else v) != current[k]}
     if not effective:
         return doc
@@ -493,6 +564,27 @@ def update_metadata(ctx: TreeContext, document_id: uuid.UUID, body: DocumentUpda
         details={"fields": sorted(effective), "version": doc.metadata_version},
     )
     return doc
+
+
+def _change_level(ctx: TreeContext, doc: Document, level: RecordPrivacyLevel) -> None:
+    """``PATCH privacy_level`` follows the sharing rules (ADR-0027 §10): the owner may change it up to
+    the ceiling; anyone else who manages documents may only narrow a record that is not private."""
+    from app.modules.documents import sharing
+
+    if level == RecordPrivacyLevel(doc.privacy_level):
+        return
+    if not sharing.can_edit(ctx, doc):
+        raise Forbidden("You cannot change who can see this record")
+    current = sharing._current(ctx, doc)
+    if level in (RecordPrivacyLevel.ONLY_ME,):
+        current.members = {}
+    new = sharing.Proposal(
+        level,
+        current.audience_branch_id if level == RecordPrivacyLevel.FAMILY_BRANCH else None,
+        current.allow_download,
+        current.members,
+    )
+    sharing.apply(ctx, doc, new, confirm_wider=True)  # an explicit API call is the confirmation
 
 
 def versions(ctx: TreeContext, document_id: uuid.UUID) -> list[MetadataVersionOut]:
@@ -612,8 +704,8 @@ def issue_download_url(ctx: TreeContext, document_id: uuid.UUID, variant: str) -
     if variant not in VARIANTS:
         raise Unprocessable(f"variant must be one of {', '.join(VARIANTS)}")
     doc = access.get_document(ctx, document_id)
-    access.require_content(ctx, doc)
-    if variant != "original" and derivative(ctx.db, doc, DerivativeKind(variant)) is None:
+    _require_variant(ctx, doc, variant)
+    if variant in ("preview", "thumbnail") and derivative(ctx.db, doc, DerivativeKind(variant)) is None:
         raise NotFound(f"No {variant} is available for this document")
     s = get_settings()
     ttl = min(s.download_url_ttl_seconds, 300)
@@ -640,6 +732,15 @@ def issue_download_url(ctx: TreeContext, document_id: uuid.UUID, variant: str) -
     return f"{s.api_prefix}/files/{token}", expires
 
 
+def _require_variant(ctx: TreeContext, doc: Document, variant: str) -> None:
+    if variant == "original":
+        access.require_download(ctx, doc)
+        return
+    access.require_content(ctx, doc)
+    if variant == "stream" and not doc.mime_type.startswith(STREAMABLE_PREFIXES):
+        raise Unprocessable("Only audio and video can be played", code="not_streamable")
+
+
 def resolve_download_token(token: str) -> dict[str, Any]:
     body = verify_signed(token)
     if body is None or body.get("p") != "dl":
@@ -661,10 +762,11 @@ def read_content(ctx: TreeContext, document_id: uuid.UUID, variant: str) -> tupl
         doc = access.get_document(ctx, document_id)
     except NotFound:
         raise Forbidden("This download link is no longer valid", code="invalid_download_token")
-    if not access.can_access_content(ctx, doc):
+    allowed = access.can_download(ctx, doc) if variant == "original" else access.can_access_content(ctx, doc)
+    if not allowed:
         raise Forbidden("You no longer have permission to download this document")
     store = get_store()
-    if variant == "original":
+    if variant in ("original", "stream"):
         data, mime = store.get(doc.storage_key), doc.mime_type
     else:
         d = derivative(ctx.db, doc, DerivativeKind(variant))

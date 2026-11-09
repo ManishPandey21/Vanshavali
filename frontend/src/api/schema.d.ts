@@ -486,7 +486,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Grants */
+        /**
+         * List Grants
+         * @description Grants the caller may manage: everything for privacy managers except grants on other members'
+         *     private records; a record owner's own grants for anyone else (ADR-0027 §3).
+         */
         get: operations["list_grants_api_v1_trees__tree_id__grants_get"];
         put?: never;
         /** Create Grant */
@@ -3241,6 +3245,50 @@ export interface paths {
         patch: operations["update_document_api_v1_trees__tree_id__documents__document_id__patch"];
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sharing
+         * @description The record's audience. Who has access is listed only to those who may change it.
+         */
+        get: operations["get_sharing_api_v1_trees__tree_id__documents__document_id__sharing_get"];
+        /**
+         * Update Sharing
+         * @description Change who can see and download the record. Widening needs ``confirm_wider`` (409 otherwise).
+         */
+        put: operations["update_sharing_api_v1_trees__tree_id__documents__document_id__sharing_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/documents/{document_id}/sharing/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Sharing
+         * @description Who would have access with these settings. Changes nothing.
+         */
+        post: operations["preview_sharing_api_v1_trees__tree_id__documents__document_id__sharing_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/documents/{document_id}/versions": {
         parameters: {
             query?: never;
@@ -4165,7 +4213,11 @@ export interface components {
             title: string;
             /** Description */
             description?: string | null;
-            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            privacy_level?: components["schemas"]["RecordPrivacyLevel"] | null;
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /** Allow Download */
+            allow_download?: boolean | null;
             /**
              * Document Date
              * @description GenealogicalDate as JSON
@@ -5006,7 +5058,14 @@ export interface components {
             script: string | null;
             /** Issuing Authority */
             issuing_authority: string | null;
-            privacy_level: components["schemas"]["PrivacyLevel"];
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /**
+             * Allow Download
+             * @default true
+             */
+            allow_download?: boolean;
             scan_status: components["schemas"]["ScanStatus"];
             /** Page Count */
             page_count: number | null;
@@ -5040,6 +5099,21 @@ export interface components {
              */
             can_access_content?: boolean;
             /**
+             * Can Download
+             * @default false
+             */
+            can_download?: boolean;
+            /**
+             * Is Owner
+             * @default false
+             */
+            is_owner?: boolean;
+            /**
+             * Can Edit Sharing
+             * @default false
+             */
+            can_edit_sharing?: boolean;
+            /**
              * Variants
              * @default []
              */
@@ -5068,7 +5142,7 @@ export interface components {
             /** Title */
             title: string;
             category: components["schemas"]["DocumentCategory"];
-            privacy_level: components["schemas"]["PrivacyLevel"];
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
             linked_to: components["schemas"]["DocumentLinkTarget"];
             /**
              * Linked Id
@@ -5088,7 +5162,7 @@ export interface components {
             /** Description */
             description?: string | null;
             category?: components["schemas"]["DocumentCategory"] | null;
-            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            privacy_level?: components["schemas"]["RecordPrivacyLevel"] | null;
             document_date?: components["schemas"]["GenealogicalDate"] | null;
             /** Language */
             language?: string | null;
@@ -5759,6 +5833,11 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
             resource_type: components["schemas"]["GrantResource"];
             /**
              * Resource Id
@@ -8726,6 +8805,16 @@ export interface components {
             /** Slug */
             slug: string;
         };
+        /**
+         * RecordPrivacyLevel
+         * @description Audience of a shareable record (ADR-0027 §1): every person level plus two record-only ones.
+         *
+         *     ``ONLY_ME`` and ``SELECTED_MEMBERS`` give no role-based visibility at all: only the record's
+         *     owner and, for ``SELECTED_MEMBERS``, members holding a grant. People, events and properties
+         *     never take them (their columns keep ``PrivacyLevel``'s CHECK constraint).
+         * @enum {string}
+         */
+        RecordPrivacyLevel: "ONLY_ME" | "SELECTED_MEMBERS" | "PRIVATE_SELF" | "PRIVATE_TREE_ADMINS" | "FAMILY_BRANCH" | "TREE_MEMBERS" | "INVITED_RESEARCHER" | "PUBLIC_DECEASED_ONLY" | "CUSTOM";
         /** RegisterIn */
         RegisterIn: {
             /**
@@ -9439,6 +9528,95 @@ export interface components {
          * @enum {string}
          */
         SexAtBirth: "male" | "female" | "intersex" | "unknown";
+        /**
+         * SharingCeilingOut
+         * @description The widest audience the people tagged in the record allow.
+         */
+        SharingCeilingOut: {
+            max_level: components["schemas"]["RecordPrivacyLevel"];
+            /**
+             * Branch Ids
+             * @default []
+             */
+            branch_ids?: string[];
+        };
+        /** SharingMemberIn */
+        SharingMemberIn: {
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            /**
+             * Can Download
+             * @default false
+             */
+            can_download?: boolean;
+        };
+        /** SharingMemberOut */
+        SharingMemberOut: {
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "owner" | "selected" | "branch" | "family" | "role";
+            /** Can Download */
+            can_download: boolean;
+        };
+        /** SharingOut */
+        SharingOut: {
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id: string | null;
+            /** Allow Download */
+            allow_download: boolean;
+            /** Is Owner */
+            is_owner: boolean;
+            /** Has Owner */
+            has_owner: boolean;
+            /** Can Edit */
+            can_edit: boolean;
+            /** Can Widen */
+            can_widen: boolean;
+            /** Legacy */
+            legacy: boolean;
+            ceiling: components["schemas"]["SharingCeilingOut"] | null;
+            /** Members */
+            members: components["schemas"]["SharingMemberOut"][];
+            /** Audience */
+            audience: components["schemas"]["SharingMemberOut"][];
+        };
+        /**
+         * SharingUpdate
+         * @description The whole sharing setting of a record. ``members`` replaces the record's explicit grants.
+         */
+        SharingUpdate: {
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /**
+             * Allow Download
+             * @default false
+             */
+            allow_download?: boolean;
+            /**
+             * Members
+             * @default []
+             */
+            members?: components["schemas"]["SharingMemberIn"][];
+            /**
+             * Confirm Wider
+             * @default false
+             */
+            confirm_wider?: boolean;
+        };
         /** SiblingOut */
         SiblingOut: {
             person: components["schemas"]["PersonSummary"] | null;
@@ -18581,6 +18759,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sharing_api_v1_trees__tree_id__documents__document_id__sharing_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_sharing_api_v1_trees__tree_id__documents__document_id__sharing_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_sharing_api_v1_trees__tree_id__documents__document_id__sharing_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
                 };
             };
             /** @description Validation Error */

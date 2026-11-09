@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import uuid
 
@@ -12,7 +13,7 @@ from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
-from app.models import AccessGrant, AuditEvent, Tree, TreeInvitation, TreeMembership, User
+from app.models import AuditEvent, Tree, TreeInvitation, TreeMembership, User
 from app.models.enums import Role
 from app.modules.trees import service
 from app.modules.trees.schemas import (
@@ -235,11 +236,9 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 # ---- explicit access grants ----
 @router.get("/trees/{tree_id}/grants", response_model=list[GrantOut])
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
-    ctx.require(Permission.PRIVACY_MANAGE)
-    return [
-        GrantOut.model_validate(g)
-        for g in ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id))
-    ]
+    """Grants the caller may manage: everything for privacy managers except grants on other members'
+    private records; a record owner's own grants for anyone else (ADR-0027 §3)."""
+    return [GrantOut.model_validate(g) for g in service.visible_grants(ctx)]
 
 
 @router.post("/trees/{tree_id}/grants", response_model=GrantOut, status_code=status.HTTP_201_CREATED)
@@ -252,18 +251,43 @@ def create_grant(body: GrantCreate, ctx: TreeCtx) -> GrantOut:
 
 @router.delete("/trees/{tree_id}/grants/{grant_id}", response_model=Message)
 def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
-    ctx.require(Permission.PRIVACY_MANAGE)
-    g = ctx.db.scalar(
-        select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
-    )
-    if g is None:
-        raise NotFound("Grant not found")
-    ctx.db.delete(g)
-    audit.log(ctx, "grant.revoked", target_type=str(g.resource_type), target_id=g.resource_id)
+    service.revoke_grant(ctx, grant_id)
     return Message(message="Grant revoked")
 
 
 # ---- audit ----
+def _document_ids(item: AuditEventOut) -> set[uuid.UUID]:
+    ids: set[uuid.UUID] = set()
+    if item.target_type == "document" and item.target_id is not None:
+        ids.add(item.target_id)
+    raw = (item.details or {}).get("document_id")
+    if isinstance(raw, str):
+        with contextlib.suppress(ValueError):
+            ids.add(uuid.UUID(raw))
+    return ids
+
+
+def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> list[AuditEventOut]:
+    """Events about a record the reader may not see become an opaque "private record" entry with
+    no id, title or details, so the audit log never reveals a private record (ADR-0027 §11)."""
+    from app.models import Document
+    from app.modules.documents.access import can_view_document
+
+    wanted = set().union(*(_document_ids(i) for i in items)) if items else set()
+    if not wanted:
+        return items
+    docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(wanted)))
+    visible = {d.id for d in docs if can_view_document(ctx, d)}
+    out = []
+    for i in items:
+        if _document_ids(i) - visible:
+            i = i.model_copy(
+                update={"target_type": "private_record", "target_id": None, "summary": None, "details": {}}
+            )
+        out.append(i)
+    return out
+
+
 @router.get("/trees/{tree_id}/audit", response_model=Page[AuditEventOut])
 def list_audit(
     ctx: TreeCtx,
@@ -286,4 +310,5 @@ def list_audit(
     items = [
         AuditEventOut.model_validate(e).model_copy(update={"actor_name": name}) for e, name in rows[:limit]
     ]
+    items = _redact_private_records(ctx, items)
     return Page(items=items, next_cursor=encode_cursor(offset + limit) if len(rows) > limit else None)

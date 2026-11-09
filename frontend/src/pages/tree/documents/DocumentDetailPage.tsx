@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArchiveRestore, Download, Link2, RefreshCw, Trash2 } from "lucide-react";
-import type { DocumentCategory, DocumentLinkOut, DocumentLinkTarget, DocumentOut, GenealogicalDate, PersonSummary, PrivacyLevel } from "../../../api/types";
+import type { DocumentCategory, DocumentLinkOut, DocumentLinkTarget, DocumentOut, GenealogicalDate, PersonSummary } from "../../../api/types";
 import { saveBlob } from "../../../api/client";
 import {
   fetchDocumentFile,
@@ -25,11 +25,11 @@ import { emptyDate, formatDate, normalizeDate, validateDate } from "../../../lib
 import { DOCUMENT_CATEGORIES, formatBytes } from "../../../lib/documents";
 import { PipelineBadges, StorageBadge } from "../../../components/documents/DocumentBits";
 import { ExtractionReview } from "../../../components/documents/ExtractionReview";
-import { GrantsPanel } from "../../../components/privacy/GrantsPanel";
+import { DocumentSharingPanel } from "../../../components/privacy/DocumentSharingPanel";
 import { GenealogicalDateEditor } from "../../../components/dates/GenealogicalDateEditor";
 import { PersonPicker } from "../../../components/pickers";
-import { PRIVACY_LEVELS, hasDate } from "../../../components/person/PersonForm";
-import { PrivacyBadge } from "../../../components/person/badges";
+import { hasDate } from "../../../components/person/PersonForm";
+import { RecordPrivacyBadge } from "../../../components/person/badges";
 import { Button } from "../../../components/ui/Button";
 import { ConfirmDialog } from "../../../components/ui/Dialog";
 import { ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../../components/ui/feedback";
@@ -62,7 +62,7 @@ export function DocumentDetailPage() {
       />
       <div className="mb-4 flex flex-wrap items-center gap-1.5">
         <StorageBadge doc={d} />
-        <PrivacyBadge level={d.privacy_level} />
+        <RecordPrivacyBadge level={d.privacy_level} />
         <PipelineBadges doc={d} />
         {d.deleted_at && <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-800">{t("documents.inRecycleBin")}</span>}
       </div>
@@ -79,9 +79,9 @@ export function DocumentDetailPage() {
           {tab === "history" && <Versions doc={d} />}
         </Tabs>
       </div>
-      {d.privacy_level === "CUSTOM" && (
+      {!d.deleted_at && (
         <div className="mt-6">
-          <GrantsPanel resourceType="document" resourceId={d.id} isCustom allowDownload />
+          <DocumentSharingPanel doc={d} />
         </div>
       )}
     </div>
@@ -220,7 +220,6 @@ function MetadataForm({ doc }: { doc: DocumentOut }) {
   const [title, setTitle] = useState(doc.title);
   const [description, setDescription] = useState(doc.description ?? "");
   const [category, setCategory] = useState<DocumentCategory>(doc.category);
-  const [privacy, setPrivacy] = useState<PrivacyLevel>(doc.privacy_level);
   const [authority, setAuthority] = useState(doc.issuing_authority ?? "");
   const [date, setDate] = useState<GenealogicalDate>((doc.document_date as GenealogicalDate | null) ?? emptyDate());
   const [saved, setSaved] = useState("");
@@ -233,7 +232,6 @@ function MetadataForm({ doc }: { doc: DocumentOut }) {
         title: title.trim(),
         description: description.trim() || null,
         category,
-        privacy_level: privacy,
         issuing_authority: authority.trim() || null,
         document_date: hasDate(date) ? normalizeDate(date) : null,
       },
@@ -253,17 +251,6 @@ function MetadataForm({ doc }: { doc: DocumentOut }) {
                 {DOCUMENT_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     {t(`enum.docCategory.${c}`)}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
-          <Field label={t("privacy.level")}>
-            {(p) => (
-              <Select {...p} value={privacy} onChange={(e) => setPrivacy(e.target.value as PrivacyLevel)}>
-                {PRIVACY_LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {t(`enum.privacy.${l}`)}
                   </option>
                 ))}
               </Select>
@@ -313,7 +300,7 @@ function Versions({ doc }: { doc: DocumentOut }) {
                   s[k] != null ? (
                     <div key={k} className="flex gap-1">
                       <dt className="text-ink-muted">{t(`documents.field.${k}`)}:</dt>
-                      <dd>{k === "document_date" ? formatDate(s[k] as GenealogicalDate, t, i18n.language) : k === "category" ? t(`enum.docCategory.${String(s[k])}`) : k === "privacy_level" ? t(`enum.privacy.${String(s[k])}`) : String(s[k])}</dd>
+                      <dd>{k === "document_date" ? formatDate(s[k] as GenealogicalDate, t, i18n.language) : k === "category" ? t(`enum.docCategory.${String(s[k])}`) : k === "privacy_level" ? t(`enum.recordPrivacy.${String(s[k])}`) : String(s[k])}</dd>
                     </div>
                   ) : null,
                 )}

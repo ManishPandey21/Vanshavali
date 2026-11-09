@@ -89,11 +89,16 @@ class AccessGrant(TreeScopedMixin, Base):
             "tree_id", "user_id", "resource_type", "resource_id", "permission", name="uq_access_grant"
         ),
         Index("ix_access_grant_lookup", "tree_id", "resource_type", "resource_id"),
+        Index("ix_access_grant_membership", "tree_id", "membership_id"),
+        # ADR-0027 §3: a grant belongs to one membership and dies with it, so a re-invited person
+        # starts with nothing
+        tree_fk(["membership_id"], "tree_membership", ondelete="CASCADE"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE")
     )
+    membership_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     resource_type: Mapped[GrantResource] = mapped_column(enum_column(GrantResource))
     resource_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     permission: Mapped[GrantPermission] = mapped_column(enum_column(GrantPermission))
