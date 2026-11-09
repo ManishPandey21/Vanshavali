@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import uuid
 
@@ -283,8 +284,10 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 # ---- explicit access grants ----
 @router.get("/trees/{tree_id}/grants", response_model=list[GrantOut])
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
-    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7)."""
-    ctx.require(Permission.PRIVACY_MANAGE)
+    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7). A record's
+    owner manages the grants on it; grants on a private record are listed to its owner only."""
+    if not (ctx.has(Permission.PRIVACY_MANAGE) or ctx.has(Permission.DOCUMENT_UPLOAD)):
+        raise Forbidden()  # only privacy managers and record owners (uploaders) have grants to manage
     grants = list(ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id)))
     manageable = service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id) for g in grants])
     return [
@@ -304,7 +307,6 @@ def create_grant(body: GrantCreate, ctx: TreeCtx) -> GrantOut:
 
 @router.delete("/trees/{tree_id}/grants/{grant_id}", response_model=Message)
 def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
-    ctx.require(Permission.PRIVACY_MANAGE)
     g = ctx.db.scalar(
         select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
     )
@@ -316,6 +318,38 @@ def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
 
 
 # ---- audit ----
+def _document_ids(item: AuditEventOut) -> set[uuid.UUID]:
+    ids: set[uuid.UUID] = set()
+    if item.target_type == "document" and item.target_id is not None:
+        ids.add(item.target_id)
+    raw = (item.details or {}).get("document_id")
+    if isinstance(raw, str):
+        with contextlib.suppress(ValueError):
+            ids.add(uuid.UUID(raw))
+    return ids
+
+
+def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> list[AuditEventOut]:
+    """Events about a record the reader may not see become an opaque "private record" entry with
+    no id, title or details, so the audit log never reveals a private record (ADR-0027 §11)."""
+    from app.models import Document
+    from app.modules.documents.access import can_view_document
+
+    wanted = set().union(*(_document_ids(i) for i in items)) if items else set()
+    if not wanted:
+        return items
+    docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(wanted)))
+    visible = {d.id for d in docs if can_view_document(ctx, d)}
+    out = []
+    for i in items:
+        if _document_ids(i) - visible:
+            i = i.model_copy(
+                update={"target_type": "private_record", "target_id": None, "summary": None, "details": {}}
+            )
+        out.append(i)
+    return out
+
+
 @router.get("/trees/{tree_id}/audit", response_model=Page[AuditEventOut])
 def list_audit(
     ctx: TreeCtx,
@@ -338,4 +372,5 @@ def list_audit(
     items = [
         AuditEventOut.model_validate(e).model_copy(update={"actor_name": name}) for e, name in rows[:limit]
     ]
+    items = _redact_private_records(ctx, items)
     return Page(items=items, next_cursor=encode_cursor(offset + limit) if len(rows) > limit else None)

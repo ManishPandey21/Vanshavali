@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Baby, CircleDashed, EyeOff, Flower2, HeartPulse, HelpCircle, Lock, ShieldCheck, UserX } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { EvidenceStatus, GenealogicalDate, PersonSummary, PrivacyLevel, RelationshipType } from "../../api/types";
+import type { EvidenceStatus, GenealogicalDate, PersonSummary, PrivacyLevel, RecordPrivacyLevel, RelationshipType } from "../../api/types";
 import { Badge, type Tone } from "../ui/Badge";
 import { dateQualifier } from "../../lib/dates";
 import { lifespan } from "../../lib/dates";
@@ -67,6 +67,29 @@ const privacyTone: Record<PrivacyLevel, Tone> = {
   PUBLIC_DECEASED_ONLY: "green",
   CUSTOM: "violet",
 };
+
+const recordTone: Record<RecordPrivacyLevel, Tone> = {
+  ONLY_ME: "red",
+  SELECTED_MEMBERS: "violet",
+  FAMILY_BRANCH: "saffron",
+  TREE_MEMBERS: "neutral",
+  PRIVATE_SELF: "red",
+  PRIVATE_TREE_ADMINS: "red",
+  INVITED_RESEARCHER: "blue",
+  PUBLIC_DECEASED_ONLY: "green",
+  CUSTOM: "violet",
+};
+
+/** Who can see a document, photo, album entry or recording (ADR-0027). */
+export function RecordPrivacyBadge({ level }: { level: RecordPrivacyLevel }) {
+  const { t } = useTranslation();
+  return (
+    <Badge tone={recordTone[level]} icon={<Lock className="size-3" aria-hidden />} title={t(`enum.recordPrivacyHint.${level}`, { defaultValue: "" }) || undefined}>
+      <span className="sr-only">{t("sharing.badge")}: </span>
+      {t(`enum.recordPrivacy.${level}`)}
+    </Badge>
+  );
+}
 
 export function PrivacyBadge({ level }: { level: PrivacyLevel }) {
   const { t } = useTranslation();

@@ -30,7 +30,7 @@ from app.models import (
     Source,
     TraditionEntry,
 )
-from app.models.enums import CitationTarget, ParticipantRole, SourceType
+from app.models.enums import CitationTarget, ParticipantRole, PrivacyLevel, SourceType
 from app.modules.evidence.schemas import CitationIn, SourceIn, SourceUpdate
 from app.modules.genealogy import lookup
 
@@ -61,7 +61,24 @@ SYSTEM_SOURCE_MARKER = "Vanshavali document vault"
 
 
 def can_view_source(ctx: TreeContext, s: Source) -> bool:
+    """A source about a private record (ADR-0027) is seen exactly by those who see that record, so a
+    citation never reveals it; any other source follows its own level."""
+    if s.document_id is not None:
+        from app.authz.privacy import is_private_record_level
+        from app.models import Document
+        from app.modules.documents.access import can_view_document
+
+        doc = ctx.db.get(Document, s.document_id)
+        if doc is not None and doc.tree_id == ctx.tree_id and is_private_record_level(doc.privacy_level):
+            return can_view_document(ctx, doc)
     return level_allows(ctx, s.privacy_level)
+
+
+def source_level_for(level: str) -> PrivacyLevel:
+    """The stored level of a document's system source. Private record audiences have no person-level
+    equivalent; their sources are evaluated through the document (``can_view_source``)."""
+    private = {"ONLY_ME": PrivacyLevel.PRIVATE_SELF, "SELECTED_MEMBERS": PrivacyLevel.CUSTOM}
+    return private.get(str(level)) or PrivacyLevel(str(level))
 
 
 def get_source(ctx: TreeContext, source_id: uuid.UUID) -> Source:
@@ -139,7 +156,7 @@ def ensure_document_source(
             Source.tree_id == ctx.tree_id,
             Source.document_id == document_id,
             Source.repository == SYSTEM_SOURCE_MARKER,
-            Source.privacy_level == doc.privacy_level,
+            Source.privacy_level == source_level_for(doc.privacy_level),
         )
     )
     if s is None:
@@ -150,7 +167,7 @@ def ensure_document_source(
             issuing_authority=issuing_authority,
             document_id=document_id,
             repository=SYSTEM_SOURCE_MARKER,
-            privacy_level=doc.privacy_level,
+            privacy_level=source_level_for(doc.privacy_level),
             created_by=ctx.user_id,
         )
         ctx.db.add(s)

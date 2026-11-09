@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: in progress (see *Implementation status* below)
+  are resolved as below) · Implementation: increment 1 (documents) — see the implementation notes
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -26,7 +26,7 @@ not add up to "only the people I chose":
 | A7 | **`GET /trees/{id}/grants` lists every grant in the tree** to any privacy manager, which reveals that a private record exists and who may see it. | `trees/router.py::list_grants` |
 | A8 | **Tagging a person never tightens a record.** ADR-0015 inherits the principal's level only when a photo is *added to an event*; a `document_link` to a protected living person leaves the document as open as it was. | `documents/service.py::_add_link` |
 | A9 | **Traditions evaluate privacy themselves** (`traditions/service.py::may_read`): there `PRIVATE_SELF` means author-only and `CUSTOM` means admins-only (no grant resource exists for traditions). Same words, different meaning. | code |
-| A10 | **There is no UI for grants** at all; they exist only in the API. | frontend search |
+| A10 | **A record's owner has no way to share it.** The only grant UI (`GrantsPanel`) is for privacy managers and only on `CUSTOM` records. *(Corrected 9 Nov 2026: the first audit said there was no grant UI at all.)* | `components/privacy/GrantsPanel.tsx` |
 
 What already holds and is kept: deny by default and 404 for anything not visible; tree-scoped
 lookups, composite FKs and row-level security (T1); `can_view_document` is the single predicate used
@@ -263,3 +263,48 @@ the family shows only permitted photos.
 - §6 "Hiding a passage" restricts the recording to "narrator, interviewer **and tree admins**",
   which contradicts §3 (admins see no private story). Suggest "narrator, interviewer and the
   assigned reviewer".
+
+## Implementation notes (9 Nov 2026, increment 1: documents)
+Covers every route to a document, which also covers photos, videos, certificates, property and
+historical records, GEDCOM-imported photos and event-album photos.
+
+- **Model.** `RecordPrivacyLevel` (every `PrivacyLevel` value plus `ONLY_ME` and `SELECTED_MEMBERS`)
+  on `document.privacy_level` only; other tables keep `PrivacyLevel`'s CHECK constraint, so people,
+  events and properties cannot hold the new values. New columns `document.owner_membership_id`,
+  `audience_branch_id`, `allow_download`. Migration `3f6a8c1d2e94` (after `9c4f2a7d1e83`, which
+  bound grants to memberships, ManishPandey21/Vanshavali#49) backfills owners from `created_by`; its
+  downgrade maps the new levels to `PRIVATE_SELF` and `CUSTOM`.
+- **One evaluator.** `authz.privacy.record_allows` sits beside `level_allows` and delegates to it
+  for every shared or legacy level; `level_allows` refuses the record-only levels outright (fail
+  closed). Grant management uses #49's `trees.service.manageable_grant_resources`, extended so a document's
+  owner manages its grants and grants on a private record are the owner's alone. The uploader
+  fallback (`created_by`) is replaced by the owner membership, so a re-invited uploader does not get
+  their old records back.
+- **View / content / download.** `documents.access`: view → content (thumbnail, preview, OCR text,
+  a new `stream` variant for audio and video, served inline) → download (original, archive ZIP,
+  photos inside video exports). For vault documents at shared levels the custodian rule still grants
+  download; it never applies to the private audiences.
+- **Sharing API.** `GET|PUT /documents/{id}/sharing` and `POST …/sharing/preview`. "Who has access"
+  is computed by evaluating the real rules for every membership against the proposed settings.
+  `PATCH privacy_level` follows the same rules. `409 confirm_wider` before anyone new can see or
+  download; `403 owner_only_widening` for managers; `422 privacy_too_open` above the ceiling.
+- **Ceilings.** Linking a person (`_add_link`, uploads with a link) and `set_privacy`/erasure of a
+  person narrow the linked records. Citations: a source about a private record is visible exactly to
+  the record's audience (`evidence.can_view_source`), and its stored level is the nearest older one.
+- **Albums, exports, audit.** Album listings, counts and covers use visible photos only, and a
+  hidden cover falls back to the first visible photo. The archive includes bytes only where the
+  exporter may download. The audit API turns entries about records the reader cannot see into an
+  opaque `private_record` entry.
+- **UI.** `components/privacy/VisibilitySharing.tsx` (the reusable control: four audiences, a
+  searchable member checklist with separate *Can view* / *Can download*, branch picker, download
+  switch, the server-computed "who has access" list, ceiling reasons) used in the upload dialog and
+  in `DocumentSharingPanel` on every document page (with a confirmation before widening).
+  `RecordPrivacyBadge` on document cards, document pages and album photos. The document metadata
+  form no longer edits privacy.
+- **Tests.** `tests/test_record_sharing.py` (21 cases), component tests
+  `VisibilitySharing.test.tsx`, Playwright `record-sharing.spec.ts`; threat model T54/T55.
+
+**Not in increment 1:** oral history (waits for ADR-0023), traditions (still `may_read`, finding
+A9), standalone photo collections, takedown by suspension, ownership transfer, notifying the owner
+of an automatic narrowing, and narrowing when a profile is hidden during a claim review. These are
+listed in the threat model's residual risks.

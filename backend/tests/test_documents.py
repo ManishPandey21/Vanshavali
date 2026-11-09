@@ -255,6 +255,9 @@ def _vault_doc(owner, t):  # type: ignore[no-untyped-def]
         mime="application/pdf",
         category="birth_certificate",
         title="Birth certificate",
+        # the pre-ADR-0027 vault default, kept explicitly: new uploads default to ONLY_ME
+        # (test_record_sharing.py::test_new_vault_upload_is_only_me_without_download)
+        privacy_level="PRIVATE_TREE_ADMINS",
     )
     assert r.status_code == 201, r.text
     return r.json()
@@ -459,7 +462,9 @@ def test_soft_delete_and_restore(owner, tree, member_factory):
 def test_links_crud_and_documents_about_target(owner, tree, member_factory):
     t = tree["id"]
     a = create_person(owner, t, "Asha")
-    hidden = create_person(owner, t, "Hidden", status="living", privacy_level="PRIVATE_TREE_ADMINS")
+    # deceased: hidden from viewers but no cap on the record (a protected living person would narrow it,
+    # ADR-0027 §5: test_record_sharing.py::test_tagging_a_private_living_person_narrows_the_record)
+    hidden = create_person(owner, t, "Hidden", status="deceased", privacy_level="PRIVATE_TREE_ADMINS")
     doc = upload(owner, t, _png(), mime="image/png", privacy_level="TREE_MEMBERS").json()
     r = owner.post(
         f"/trees/{t}/documents/{doc['id']}/links", json={"target_type": "person", "target_id": a["id"]}

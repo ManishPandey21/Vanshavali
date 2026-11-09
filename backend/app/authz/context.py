@@ -53,6 +53,10 @@ class TreeContext:
         return self.membership is not None
 
     @property
+    def membership_id(self) -> uuid.UUID | None:
+        return self.membership.id if self.membership is not None else None
+
+    @property
     def is_owner(self) -> bool:
         return Role.OWNER in self.roles
 

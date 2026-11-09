@@ -14,7 +14,7 @@ from app.authz.context import load_tree_context
 from app.core.config import get_settings
 from app.core.dates import GenealogicalDate
 from app.core.errors import Forbidden, NotFound, Unprocessable
-from app.models.enums import DocumentCategory, DocumentLinkTarget, PrivacyLevel
+from app.models.enums import DocumentCategory, DocumentLinkTarget, RecordPrivacyLevel
 from app.modules.documents import service
 from app.modules.documents.schemas import (
     DocumentLinkIn,
@@ -23,6 +23,8 @@ from app.modules.documents.schemas import (
     DocumentUpdate,
     DownloadUrlOut,
     MetadataVersionOut,
+    SharingOut,
+    SharingUpdate,
 )
 from app.modules.search import providers
 
@@ -67,7 +69,9 @@ def upload_document(
     category: Annotated[DocumentCategory, Form()],
     title: Annotated[str, Form(min_length=1, max_length=400)],
     description: Annotated[str | None, Form(max_length=20000)] = None,
-    privacy_level: Annotated[PrivacyLevel | None, Form()] = None,
+    privacy_level: Annotated[RecordPrivacyLevel | None, Form()] = None,
+    audience_branch_id: Annotated[uuid.UUID | None, Form()] = None,
+    allow_download: Annotated[bool | None, Form()] = None,
     document_date: Annotated[str | None, Form(description="GenealogicalDate as JSON")] = None,
     language: Annotated[str | None, Form(max_length=16)] = None,
     script: Annotated[str | None, Form(max_length=20)] = None,
@@ -97,6 +101,8 @@ def upload_document(
         script=script,
         issuing_authority=issuing_authority,
         link=link,
+        audience_branch_id=audience_branch_id,
+        allow_download=allow_download,
     )
     service.schedule_processing(ctx, doc)
     return service.document_out(ctx, doc)
@@ -138,6 +144,31 @@ def update_document(document_id: uuid.UUID, body: DocumentUpdate, ctx: TreeCtx) 
     return service.document_out(ctx, service.update_metadata(ctx, document_id, body))
 
 
+# ---------------------------------------------------------------- Visibility & Sharing (ADR-0027)
+@router.get("/documents/{document_id}/sharing", response_model=SharingOut)
+def get_sharing(document_id: uuid.UUID, ctx: TreeCtx) -> SharingOut:
+    """The record's audience. Who has access is listed only to those who may change it."""
+    from app.modules.documents import access, sharing
+
+    return sharing.sharing_out(ctx, access.get_document(ctx, document_id))
+
+
+@router.put("/documents/{document_id}/sharing", response_model=SharingOut)
+def update_sharing(document_id: uuid.UUID, body: SharingUpdate, ctx: TreeCtx) -> SharingOut:
+    """Change who can see and download the record. Widening needs ``confirm_wider`` (409 otherwise)."""
+    from app.modules.documents import sharing
+
+    return sharing.update(ctx, document_id, body)
+
+
+@router.post("/documents/{document_id}/sharing/preview", response_model=SharingOut)
+def preview_sharing(document_id: uuid.UUID, body: SharingUpdate, ctx: TreeCtx) -> SharingOut:
+    """Who would have access with these settings. Changes nothing."""
+    from app.modules.documents import sharing
+
+    return sharing.preview(ctx, document_id, body)
+
+
 @router.get("/documents/{document_id}/versions", response_model=list[MetadataVersionOut])
 def metadata_versions(document_id: uuid.UUID, ctx: TreeCtx) -> list[MetadataVersionOut]:
     return service.versions(ctx, document_id)
@@ -171,7 +202,7 @@ def remove_link(document_id: uuid.UUID, link_id: uuid.UUID, ctx: TreeCtx) -> Mes
 def download_url(
     document_id: uuid.UUID,
     ctx: TreeCtx,
-    variant: str = Query(default="original", pattern="^(original|preview|thumbnail)$"),
+    variant: str = Query(default="original", pattern="^(original|preview|thumbnail|stream)$"),
 ) -> DownloadUrlOut:
     url, expires = service.issue_download_url(ctx, document_id, variant)
     return DownloadUrlOut(url=url, expires_at=expires, variant=variant)
@@ -203,6 +234,8 @@ def serve_file(token: str, request: Request, user: CurrentUser, db: DbDep) -> Re
     doc, data, mime = service.read_content(ctx, uuid.UUID(body["doc"]), variant)
     if variant == "original":
         disposition = _disposition("attachment", doc.original_filename)
+    elif variant == "stream":  # in-app playback, not a download (ADR-0027 §4)
+        disposition = _disposition("inline", doc.original_filename)
     else:
         stem = doc.original_filename.rsplit(".", 1)[0] or "document"
         disposition = _disposition("inline", f"{stem}-{variant}.jpg")

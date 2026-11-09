@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -11,8 +11,8 @@ from app.core.dates import GenealogicalDate
 from app.models.enums import (
     DocumentCategory,
     DocumentLinkTarget,
-    PrivacyLevel,
     ProcessingStatus,
+    RecordPrivacyLevel,
     ScanStatus,
     StorageClass,
 )
@@ -46,7 +46,9 @@ class DocumentOut(ApiModel):
     language: str | None
     script: str | None
     issuing_authority: str | None
-    privacy_level: PrivacyLevel
+    privacy_level: RecordPrivacyLevel
+    audience_branch_id: uuid.UUID | None = None
+    allow_download: bool = True
     scan_status: ScanStatus
     page_count: int | None
     ocr_status: ProcessingStatus
@@ -58,8 +60,11 @@ class DocumentOut(ApiModel):
     updated_at: dt.datetime
     deleted_at: dt.datetime | None
     links: list[DocumentLinkOut] = []
-    can_access_content: bool = False
-    variants: list[str] = []  # downloadable variants: original, preview, thumbnail
+    can_access_content: bool = False  # thumbnail, preview, playback, OCR text
+    can_download: bool = False  # the original file and exports (ADR-0027 §4)
+    is_owner: bool = False
+    can_edit_sharing: bool = False
+    variants: list[str] = []  # variants the viewer may fetch: original, preview, thumbnail, stream
     has_ocr_text: bool = False
     pending_proposals: int = 0
 
@@ -70,7 +75,7 @@ class DocumentUpdate(ApiModel):
     title: str | None = Field(default=None, min_length=1, max_length=400)
     description: str | None = Field(default=None, max_length=20000)
     category: DocumentCategory | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: RecordPrivacyLevel | None = None
     document_date: GenealogicalDate | None = None
     language: str | None = Field(default=None, max_length=16)
     script: str | None = Field(default=None, max_length=20)
@@ -89,3 +94,51 @@ class DownloadUrlOut(ApiModel):
     url: str
     expires_at: dt.datetime
     variant: str
+
+
+# ---------------------------------------------------------------- Visibility & Sharing (ADR-0027)
+SharingAccess = Literal["owner", "selected", "branch", "family", "role"]
+
+
+class SharingMemberIn(ApiModel):
+    membership_id: uuid.UUID
+    can_download: bool = False
+
+
+class SharingUpdate(ApiModel):
+    """The whole sharing setting of a record. ``members`` replaces the record's explicit grants."""
+
+    privacy_level: RecordPrivacyLevel
+    audience_branch_id: uuid.UUID | None = None
+    allow_download: bool = False
+    members: list[SharingMemberIn] = Field(default=[], max_length=500)
+    # a change that lets anyone new see or download the record must be confirmed (ADR-0027 §9)
+    confirm_wider: bool = False
+
+
+class SharingMemberOut(ApiModel):
+    membership_id: uuid.UUID
+    display_name: str
+    access: SharingAccess
+    can_download: bool
+
+
+class SharingCeilingOut(ApiModel):
+    """The widest audience the people tagged in the record allow."""
+
+    max_level: RecordPrivacyLevel
+    branch_ids: list[uuid.UUID] = []
+
+
+class SharingOut(ApiModel):
+    privacy_level: RecordPrivacyLevel
+    audience_branch_id: uuid.UUID | None
+    allow_download: bool
+    is_owner: bool
+    has_owner: bool
+    can_edit: bool
+    can_widen: bool
+    legacy: bool  # CUSTOM or PRIVATE_SELF: also seen by admins or the tree owner
+    ceiling: SharingCeilingOut | None
+    members: list[SharingMemberOut]  # the explicitly selected members (owner and managers only)
+    audience: list[SharingMemberOut]  # everyone who can see it, computed by the server
