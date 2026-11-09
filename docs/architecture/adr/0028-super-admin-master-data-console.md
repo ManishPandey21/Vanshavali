@@ -406,7 +406,8 @@ Kinds of data:
   through `owner_session()`. No API or worker code writes them.
 - **Experiment.** The application role's `INSERT, UPDATE, DELETE, TRUNCATE` on both tables was
   revoked in a throwaway worktree, by adding them to the read-only array in `GRANT_APP_ROLE_SQL`,
-  and the full backend suite was run against it. *Result: see the implementation notes below.*
+  and the full backend suite was run against it. **Nothing on today's runtime path needs those
+  writes.** Details are in the implementation notes below.
 - **Effects of revoking:**
   - Today it breaks nothing on the runtime path.
   - `tree_vocabulary_term` must stay writable: families add their own entries and make offers
@@ -570,4 +571,34 @@ updated in the first implementation PR, not by this proposal.
 7. **E2E specs and the runbook and go-live checklist updates.**
 
 ## Implementation notes
-- *9 Nov 2026: experiment for §14.* Pending; filled in below once the run completes.
+### 9 Nov 2026: the §14 experiment
+The experiment was run in a throwaway worktree of `main` at `1f99b97`, against local
+PostgreSQL 16. None of it was committed.
+
+**The change tested:**
+- `vocabulary` and `vocabulary_term` were added to the read-only array in `GRANT_APP_ROLE_SQL`.
+- The grants then applied were checked directly. The test application role:
+  - had `SELECT` on `vocabulary_term`;
+  - had **no** `INSERT` on `vocabulary_term`; a direct `INSERT` failed with "permission denied
+    for table vocabulary_term";
+  - kept `INSERT` on `tree_vocabulary_term`.
+
+**Full backend suite:** 704 passed, 4 skipped, 1 failed.
+- The one failure was `test_geo.py::test_the_application_role_can_only_read_reference_tables`.
+  That guard checks that the SQL array matches the `READ_ONLY_TABLES` constant, which the first run
+  deliberately left unchanged.
+- With the constant updated as well, the grant and master-data tests all pass:
+  - `test_geo.py`;
+  - `test_app_role.py`;
+  - `test_masterdata.py`;
+  - `test_heritage_depth.py`, which covers offers and curation.
+
+**Conclusion:**
+- Revoking the writes breaks nothing on `main` today.
+- Families' own entries and offers keep working.
+- Every loader path already runs as the schema owner.
+- Under Option B, publishing from the console needs the definer functions in §14, because the API
+  cannot write those tables once the grants are revoked.
+- Not covered by this run:
+  - the e2e suite;
+  - a pilot `migrate` run. Its loader uses the owner URL, so it is expected to be unaffected.
