@@ -16,6 +16,7 @@ from sqlalchemy import func, select
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
+from app.authz.privacy import is_private_record_level
 from app.core import audit
 from app.core.config import get_settings
 from app.core.dates import GenealogicalDate, date_to_json
@@ -156,6 +157,7 @@ def check_link_target(ctx: TreeContext, target_type: DocumentLinkTarget, target_
 
 
 def _add_link(ctx: TreeContext, doc: Document, body: DocumentLinkIn) -> DocumentLink:
+    access.require_owner_if_private(ctx, doc)  # links and person tags change the record (§10)
     check_link_target(ctx, body.target_type, body.target_id)
     existing = ctx.db.scalar(
         select(DocumentLink).where(
@@ -458,6 +460,7 @@ def document_out(ctx: TreeContext, doc: Document, links: list[DocumentLink] | No
             "can_download": downloadable,
             "is_owner": access.is_owner(ctx, doc),
             "can_edit_sharing": can_edit(ctx, doc),
+            "can_change": not is_private_record_level(doc.privacy_level) or access.is_owner(ctx, doc),
             "variants": variants if content else [],
             "has_ocr_text": content and DerivativeKind.OCR_TEXT in kinds,
             "pending_proposals": pending,
@@ -517,6 +520,7 @@ def _snapshot(doc: Document) -> dict[str, Any]:
 
 def update_metadata(ctx: TreeContext, document_id: uuid.UUID, body: DocumentUpdate) -> Document:
     doc = access.get_document(ctx, document_id)
+    access.require_owner_if_private(ctx, doc)
     if not _can_manage(ctx, doc):
         raise Forbidden()
     changes = {f: getattr(body, f) for f in body.model_fields_set if f in METADATA_FIELDS}
@@ -611,6 +615,7 @@ def versions(ctx: TreeContext, document_id: uuid.UUID) -> list[MetadataVersionOu
 def delete(ctx: TreeContext, document_id: uuid.UUID) -> Document:
     ctx.require(Permission.DOCUMENT_MANAGE)
     doc = access.get_document(ctx, document_id)
+    access.require_owner_if_private(ctx, doc)
     doc.deleted_at = dt.datetime.now(dt.UTC)
     doc.deleted_by = ctx.user_id
     audit.log(ctx, "document.deleted", target_type="document", target_id=doc.id)
@@ -620,6 +625,7 @@ def delete(ctx: TreeContext, document_id: uuid.UUID) -> Document:
 def restore(ctx: TreeContext, document_id: uuid.UUID) -> Document:
     ctx.require(Permission.DOCUMENT_MANAGE)
     doc = access.get_document(ctx, document_id, include_deleted=True)
+    access.require_owner_if_private(ctx, doc)
     if doc.deleted_at is None:
         return doc
     _reject_duplicate(ctx, doc.checksum_sha256)
@@ -648,6 +654,7 @@ def remove_link(ctx: TreeContext, document_id: uuid.UUID, link_id: uuid.UUID) ->
     )
     if link is None:
         raise NotFound("Link not found")
+    access.require_owner_if_private(ctx, doc)
     if not (ctx.has(Permission.DOCUMENT_MANAGE) or (link.created_by and link.created_by == ctx.user_id)):
         raise Forbidden()
     ctx.db.delete(link)
