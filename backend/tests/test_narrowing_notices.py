@@ -216,7 +216,7 @@ def test_migration_adds_the_kinds_and_downgrade_removes_their_notices():
                     insert, {"id": uuid.uuid4(), "t": tree_id, "u": user_id, "k": kind, "s": uuid.uuid4()}
                 )
         engine.dispose()
-        command.downgrade(cfg, "b5c1e7a93d42")
+        command.downgrade(cfg, "e4b8c2d6f913")
         engine = create_engine(url)
         with engine.begin() as conn:
             kinds = conn.execute(text("SELECT kind FROM user_notification")).scalars().all()

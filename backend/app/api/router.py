@@ -26,6 +26,7 @@ from app.modules.masterdata.router import router as masterdata_router
 from app.modules.merge.router import router as merge_router
 from app.modules.notifications.router import router as reminders_router
 from app.modules.notifications.router import user_router as notifications_user_router
+from app.modules.ownership.router import router as ownership_router
 from app.modules.property.router import router as property_router
 from app.modules.public.router import router as public_router
 from app.modules.render.router import files_router as render_files_router
@@ -41,6 +42,7 @@ from app.modules.visualization.router import router as visualization_router
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(trees_router)
+api_router.include_router(ownership_router)
 api_router.include_router(genealogy_router)
 api_router.include_router(smartadd_router)
 api_router.include_router(masterdata_router)
