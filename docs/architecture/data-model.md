@@ -1569,5 +1569,6 @@ Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `IN
 
 ## Other
 
+- `admin_nomination`
 - `auth_token`
 - `external_identity`
