@@ -1920,6 +1920,247 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/records/{resource_type}/{resource_id}/ownership-offer": {
+   "post": {
+    "tags": [
+     "ownership"
+    ],
+    "summary": "Offer Ownership",
+    "description": "The owner offers the record to another member, who becomes the owner when they accept.",
+    "operationId": "offer_ownership_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_post",
+    "parameters": [
+     {
+      "name": "resource_type",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/GrantResource"
+      }
+     },
+     {
+      "name": "resource_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Resource Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/OwnershipOfferIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OwnershipOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "ownership"
+    ],
+    "summary": "Withdraw Ownership Offer",
+    "description": "The owner cancels the offer, or the member it was offered to declines it.",
+    "operationId": "withdraw_ownership_offer_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_delete",
+    "parameters": [
+     {
+      "name": "resource_type",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/GrantResource"
+      }
+     },
+     {
+      "name": "resource_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Resource Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/records/{resource_type}/{resource_id}/ownership-offer/accept": {
+   "post": {
+    "tags": [
+     "ownership"
+    ],
+    "summary": "Accept Ownership",
+    "operationId": "accept_ownership_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_accept_post",
+    "parameters": [
+     {
+      "name": "resource_type",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/GrantResource"
+      }
+     },
+     {
+      "name": "resource_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Resource Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OwnershipOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/ownership-offers": {
+   "get": {
+    "tags": [
+     "ownership"
+    ],
+    "summary": "My Ownership Offers",
+    "description": "Records whose owners offered them to the caller.",
+    "operationId": "my_ownership_offers_api_v1_trees__tree_id__ownership_offers_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/OwnershipOfferOut"
+         },
+         "title": "Response My Ownership Offers Api V1 Trees  Tree Id  Ownership Offers Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/people": {
    "get": {
     "tags": [
@@ -28499,6 +28740,89 @@
     ],
     "title": "OfferStatus",
     "description": "A family's own vocabulary entry offered to the common suggestion lists (\u00a74)."
+   },
+   "OwnershipOfferIn": {
+    "properties": {
+     "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "User Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "user_id"
+    ],
+    "title": "OwnershipOfferIn"
+   },
+   "OwnershipOfferOut": {
+    "properties": {
+     "resource_type": {
+      "$ref": "#/components/schemas/GrantResource"
+     },
+     "resource_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Resource Id"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     }
+    },
+    "type": "object",
+    "required": [
+     "resource_type",
+     "resource_id",
+     "title"
+    ],
+    "title": "OwnershipOfferOut",
+    "description": "A record whose owner offered it to the viewer."
+   },
+   "OwnershipOut": {
+    "properties": {
+     "resource_type": {
+      "$ref": "#/components/schemas/GrantResource"
+     },
+     "resource_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Resource Id"
+     },
+     "owner_membership_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Owner Membership Id"
+     },
+     "pending_owner_membership_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pending Owner Membership Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "resource_type",
+     "resource_id",
+     "owner_membership_id",
+     "pending_owner_membership_id"
+    ],
+    "title": "OwnershipOut",
+    "description": "A record's owner and any pending transfer, for its owner (ADR-0027 \u00a72)."
    },
    "Page_AuditEventOut_": {
     "properties": {

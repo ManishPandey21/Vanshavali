@@ -51,6 +51,7 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
         tree_fk(["branch_id"], "family_branch", ondelete="SET NULL"),
         # ADR-0027 §2: the entry's owner is a membership; leaving the tree orphans the entry
         tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
         Index("ix_tradition_entry_tree_kind", "tree_id", "kind"),
         Index(
             "ix_tradition_entry_search_trgm",
@@ -73,6 +74,8 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
         server_default=RecordPrivacyLevel.TREE_MEMBERS.value,
     )
     owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    # ADR-0027 §2: a member the owner offered the record to, until they accept or decline
+    pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
     withdrawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
