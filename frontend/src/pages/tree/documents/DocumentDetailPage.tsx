@@ -71,7 +71,7 @@ export function DocumentDetailPage() {
         <Preview doc={d} />
         <Tabs label={t("documents.sections")} tabs={tabs} active={tabs.some((x) => x.id === tab) ? tab : "review"} onChange={setTab}>
           {tab === "review" && (
-            <ExtractionReview documentId={d.id} canReview={can(Perm.EXTRACTION_REVIEW) && d.can_access_content === true} needsTarget={!(d.links ?? []).some((l) => l.target_type === "person")} />
+            <ExtractionReview documentId={d.id} canReview={can(Perm.EXTRACTION_REVIEW) && d.can_access_content === true && d.can_change !== false} needsTarget={!(d.links ?? []).some((l) => l.target_type === "person")} />
           )}
           {tab === "ocr" && <OcrPanel doc={d} />}
           {tab === "details" && <MetadataForm doc={d} />}
@@ -98,7 +98,9 @@ function DocumentActions({ doc }: { doc: DocumentOut }) {
   const [downloading, setDownloading] = useState(false);
   const [dlError, setDlError] = useState<unknown>(null);
   const [confirm, setConfirm] = useState(false);
-  const manage = can(Perm.DOCUMENT_MANAGE);
+  // a private record shared with this member is read-only to them (ADR-0027 §10; the server decides)
+  const changeable = doc.can_change !== false;
+  const manage = can(Perm.DOCUMENT_MANAGE) && changeable;
   const download = async () => {
     setDownloading(true);
     setDlError(null);
@@ -119,7 +121,7 @@ function DocumentActions({ doc }: { doc: DocumentOut }) {
             {t("documents.download")}
           </Button>
         )}
-        {(can(Perm.DOCUMENT_UPLOAD) || manage) && !doc.deleted_at && (
+        {(can(Perm.DOCUMENT_UPLOAD) || manage) && changeable && !doc.deleted_at && (
           <Button variant="secondary" icon={<RefreshCw className="size-4" aria-hidden />} loading={reprocess.isPending} onClick={() => reprocess.mutate()}>
             {t("documents.reprocess")}
           </Button>
@@ -223,7 +225,7 @@ function MetadataForm({ doc }: { doc: DocumentOut }) {
   const [authority, setAuthority] = useState(doc.issuing_authority ?? "");
   const [date, setDate] = useState<GenealogicalDate>((doc.document_date as GenealogicalDate | null) ?? emptyDate());
   const [saved, setSaved] = useState("");
-  const canEdit = can(Perm.DOCUMENT_UPLOAD) || can(Perm.DOCUMENT_MANAGE);
+  const canEdit = (can(Perm.DOCUMENT_UPLOAD) || can(Perm.DOCUMENT_MANAGE)) && doc.can_change !== false;
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || (hasDate(date) && Object.keys(validateDate(date)).length)) return;
@@ -355,7 +357,7 @@ function LinksPanel({ doc }: { doc: DocumentOut }) {
   const { treeId, can } = useTreeCtx();
   const add = useAddDocumentLink(treeId, doc.id);
   const remove = useRemoveDocumentLink(treeId, doc.id);
-  const canEdit = (can(Perm.DOCUMENT_UPLOAD) || can(Perm.DOCUMENT_MANAGE)) && !doc.deleted_at;
+  const canEdit = (can(Perm.DOCUMENT_UPLOAD) || can(Perm.DOCUMENT_MANAGE)) && doc.can_change !== false && !doc.deleted_at;
   const [type, setType] = useState<DocumentLinkTarget>("person");
   const [person, setPerson] = useState<PersonSummary | null>(null);
   const [targetId, setTargetId] = useState("");
