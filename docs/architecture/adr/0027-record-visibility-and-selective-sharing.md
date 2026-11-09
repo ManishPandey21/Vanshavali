@@ -1,6 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
-- Status: **Proposed** (8 Nov 2026; awaiting the owner's review). No code until accepted.
+- Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
+  are resolved as below) · Implementation: in progress
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -229,7 +230,7 @@ the family shows only permitted photos.
 6. *An admin guesses a private document's id.* 404 on every route, no audit row visible to them.
 7. *A grantee holds a signed URL when access is revoked.* The next fetch is re-authorised: 403.
 
-## Open points for the owner
+## Open points (resolved on acceptance, 9 Nov 2026: as proposed)
 1. Should **Selected branch** include family admins (this ADR: yes, as ADR-0006's `FAMILY_BRANCH`)
    or be strictly branch members?
 2. Legacy `CUSTOM` and `PRIVATE_SELF` records: keep until owners convert (this ADR), or convert all
@@ -237,6 +238,17 @@ the family shows only permitted photos.
 3. The takedown path (§8.2): confirm it needs no admin read access, pending the legal review.
 4. Is **Public** needed for any media in v1, or should records stay members-only until Q13 is
    answered?
+
+**Resolutions.**
+1. Yes: **Selected branch** keeps ADR-0006's `FAMILY_BRANCH` meaning and includes family admins; the
+   "who has access" list names them.
+2. Legacy `CUSTOM` and `PRIVATE_SELF` records are **kept until their owners convert them**; nothing
+   is converted at migration.
+3. The takedown path gives **no read access**; the legal review (ADR-0023 §13) may tighten it but
+   not widen it.
+4. **No public records in v1.** Public pages serve no documents today, so under §1 ("only where
+   already supported") the Public audience is not offered for any record until Q13 is answered and
+   this ADR is amended.
 
 ## Suggested cross-references for ADR-0023 (PR #42), not made here
 - §3 "Private" maps to `ONLY_ME` with two holders; "Shared in the tree" maps to the Selected

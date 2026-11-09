@@ -111,8 +111,8 @@ the attacker's account. The impact is limited to the victim acting in the attack
 SameSite=Lax cookies apply.
 
 ## 5. Residual risks and deferred controls
-- **Selective sharing of records (audit of 8 Nov 2026; fix proposed in ADR-0027, not yet
-  implemented).** Confirmed on `main` with probes against the test stack:
+- **Selective sharing of records (audit of 8 Nov 2026; fix accepted in ADR-0027, implementation
+  in progress).** Confirmed on `main` with probes against the test stack:
   - `CUSTOM` documents are readable and downloadable by every `OWNER`/`FAMILY_ADMIN` without a grant,
     and `PRIVATE_SELF` documents by the tree owner; there is no "only me" for a record.
   - `access_grant` is keyed by `user_id`: removing a member leaves their grants in place, and

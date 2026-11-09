@@ -39,7 +39,7 @@ From most open to most restricted:
 Explicit grants (`access_grant`, per person, document or property, with an optional expiry) raise
 visibility for one member. Documents also distinguish `view` from `download`.
 
-> **Proposed (ADR-0027).** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
+> **Accepted (ADR-0027), being implemented.** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
 > cannot yet be shared with chosen members only. ADR-0027 proposes two record-only audiences,
 > `ONLY_ME` and `SELECTED_MEMBERS`, with no role-based visibility; membership-bound grants; separate
 > view and download; and ceilings from consent and tagged people. The current gaps are listed in the
