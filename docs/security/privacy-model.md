@@ -37,7 +37,16 @@ From most open to most restricted:
 | `CUSTOM` | Admins, plus users holding an explicit `access_grant` |
 
 Explicit grants (`access_grant`, per person, document or property, with an optional expiry) raise
-visibility for one member. Documents also distinguish `view` from `download`.
+visibility for one member. Documents also distinguish `view` from `download`. A grant belongs to the
+member's membership (ADR-0027 §3): it is deleted with it (removed, or account closed), inviting the
+same person again does not restore it, and it can never name a member of another tree. Privacy
+managers see, create and revoke grants only on records they can see themselves (threat T53).
+
+> **Accepted (ADR-0027), being implemented.** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
+> cannot yet be shared with chosen members only. ADR-0027 proposes two record-only audiences,
+> `ONLY_ME` and `SELECTED_MEMBERS`, with no role-based visibility; membership-bound grants; separate
+> view and download; and ceilings from consent and tagged people. The current gaps are listed in the
+> threat model, §5.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
@@ -268,3 +277,17 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   zone yet), used only to compute sunrise and keyed at ~11 km. Cached calendar days (`panchang_day`) contain no family data.
 - **No convention is inferred** from a surname, a place or a community; a person chooses it.
 
+
+## Family Admin nominations (ADR-0006 amendment, 9 Nov 2026)
+- **Who sees a nomination:** the Owners, the Family Admins and the nominee. The nominee sees who
+  nominated them and the reason (owner decision). No other member sees that a nomination exists.
+- **The reason text** is personal comment about a family member. It appears only in the nomination
+  itself: never in audit events, notification text or exports.
+- **Notifications store ids only** (ADR-0021 §7) and render for the reader at read time.
+- **Promotion changes what someone can see.** Approval needs the nominee's own acceptance first,
+  because a Family Admin sees `PRIVATE_TREE_ADMINS` data of living relatives. `PRIVATE_SELF` and
+  ADR-0027's private audiences stay closed to them.
+- **Retention of closed nominations:** the reason text is erased the moment a nomination closes
+  (approved, declined by either side, withdrawn, expired or lapsed). The row keeps only ids, the
+  status and timestamps, so the notifications and audit events that point to it still resolve. It is
+  deleted with the tree.

@@ -1,7 +1,7 @@
 """family calendar: lunar reminders, calendar settings, feeds, cached calendar days
 
 Revision ID: 7b2e4d9a1c63
-Revises: 6a1d9c3e5f27
+Revises: 9c4e2a7d5b18
 Create Date: 2026-11-08
 
 ADR-0022: `event_reminder` gains `date_rule` (solar | lunar), `convention` and an observance city;
@@ -22,7 +22,7 @@ from alembic import op
 from app.models.rls import GRANT_APP_ROLE_SQL
 
 revision: str = "7b2e4d9a1c63"
-down_revision: str | None = "6a1d9c3e5f27"
+down_revision: str | None = "9c4e2a7d5b18"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

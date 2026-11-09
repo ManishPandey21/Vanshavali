@@ -406,8 +406,11 @@ def change_password(
 def close_account(db: Session, user: User, password: str) -> None:
     from sqlalchemy import func
 
+    from app.core.db import bind_tree, unbind_tree
     from app.models import TreeMembership
     from app.models.enums import Role
+    from app.modules.trees.nominations import on_member_leaving
+    from app.modules.trees.service import audit_cascaded_grants
 
     if not verify_password(user.password_hash, password):
         raise ApiError("Password is incorrect", code="invalid_credentials", status_code=400)
@@ -434,7 +437,12 @@ def close_account(db: Session, user: User, password: str) -> None:
             target_type="membership",
             target_id=m.id,
         )
-        db.delete(m)
+        bind_tree(db, m.tree_id)  # access_grant is row-level secured: scope the count to this tree
+        on_member_leaving(db, m.tree_id, m, user.id)
+        audit_cascaded_grants(db, tree_id=m.tree_id, membership_id=m.id, actor_user_id=user.id)
+        db.delete(m)  # the membership's grants go with it (ON DELETE CASCADE, ADR-0027 §3)
+    if memberships:
+        unbind_tree(db)
     revoke_all(db, user.id)
     invalidate_tokens(db, user.id)
     user.is_active = False

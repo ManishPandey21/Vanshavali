@@ -23,6 +23,7 @@ from sqlalchemy import DDL, Table, event
 
 RLS_TABLES: tuple[str, ...] = (
     "access_grant",
+    "admin_nomination",
     "assertion",
     "astrology_profile",
     "branch_membership",

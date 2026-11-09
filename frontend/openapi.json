@@ -1072,6 +1072,380 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/admin-nominations": {
+   "get": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "List Admin Nominations",
+    "description": "Open nominations: all of them for owners and family admins, only your own otherwise.",
+    "operationId": "list_admin_nominations_api_v1_trees__tree_id__admin_nominations_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/NominationOut"
+         },
+         "title": "Response List Admin Nominations Api V1 Trees  Tree Id  Admin Nominations Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "Create Admin Nomination",
+    "operationId": "create_admin_nomination_api_v1_trees__tree_id__admin_nominations_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/NominationCreate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NominationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/accept": {
+   "post": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "Accept Admin Nomination",
+    "operationId": "accept_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__accept_post",
+    "parameters": [
+     {
+      "name": "nomination_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Nomination Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NominationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/decline": {
+   "post": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "Decline Admin Nomination",
+    "operationId": "decline_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__decline_post",
+    "parameters": [
+     {
+      "name": "nomination_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Nomination Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NominationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/approve": {
+   "post": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "Approve Admin Nomination",
+    "operationId": "approve_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__approve_post",
+    "parameters": [
+     {
+      "name": "nomination_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Nomination Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/NominationApprove"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NominationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/reject": {
+   "post": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "Reject Admin Nomination",
+    "operationId": "reject_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__reject_post",
+    "parameters": [
+     {
+      "name": "nomination_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Nomination Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NominationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/withdraw": {
+   "post": {
+    "tags": [
+     "trees"
+    ],
+    "summary": "Withdraw Admin Nomination",
+    "operationId": "withdraw_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__withdraw_post",
+    "parameters": [
+     {
+      "name": "nomination_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Nomination Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/NominationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/invitations": {
    "get": {
     "tags": [
@@ -1313,6 +1687,7 @@
      "trees"
     ],
     "summary": "List Grants",
+    "description": "Grants on records the caller may manage; others are not listed (ADR-0027 \u00a73, A7).",
     "operationId": "list_grants_api_v1_trees__tree_id__grants_get",
     "parameters": [
      {
@@ -27132,6 +27507,145 @@
     ],
     "title": "NeighbourhoodOut"
    },
+   "NominationApprove": {
+    "properties": {
+     "clear_branch": {
+      "type": "boolean",
+      "title": "Clear Branch",
+      "default": false
+     }
+    },
+    "type": "object",
+    "title": "NominationApprove"
+   },
+   "NominationCreate": {
+    "properties": {
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
+     "reason": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Reason"
+     }
+    },
+    "type": "object",
+    "required": [
+     "membership_id",
+     "reason"
+    ],
+    "title": "NominationCreate"
+   },
+   "NominationOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "nominee_membership_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nominee Membership Id"
+     },
+     "nominee_name": {
+      "type": "string",
+      "title": "Nominee Name"
+     },
+     "nominator_name": {
+      "type": "string",
+      "title": "Nominator Name"
+     },
+     "reason": {
+      "type": "string",
+      "title": "Reason"
+     },
+     "status": {
+      "$ref": "#/components/schemas/NominationStatus"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires At"
+     },
+     "nominee_accepted": {
+      "type": "boolean",
+      "title": "Nominee Accepted"
+     },
+     "nominee_branch_scoped": {
+      "type": "boolean",
+      "title": "Nominee Branch Scoped"
+     },
+     "is_mine": {
+      "type": "boolean",
+      "title": "Is Mine"
+     },
+     "can_accept": {
+      "type": "boolean",
+      "title": "Can Accept"
+     },
+     "can_decline": {
+      "type": "boolean",
+      "title": "Can Decline"
+     },
+     "can_decide": {
+      "type": "boolean",
+      "title": "Can Decide"
+     },
+     "can_withdraw": {
+      "type": "boolean",
+      "title": "Can Withdraw"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "nominee_membership_id",
+     "nominee_name",
+     "nominator_name",
+     "reason",
+     "status",
+     "created_at",
+     "expires_at",
+     "nominee_accepted",
+     "nominee_branch_scoped",
+     "is_mine",
+     "can_accept",
+     "can_decline",
+     "can_decide",
+     "can_withdraw"
+    ],
+    "title": "NominationOut"
+   },
+   "NominationStatus": {
+    "type": "string",
+    "enum": [
+     "open",
+     "approved",
+     "declined_by_owner",
+     "declined_by_nominee",
+     "withdrawn",
+     "expired",
+     "lapsed"
+    ],
+    "title": "NominationStatus",
+    "description": "A Family Admin nomination (ADR-0006 amendment of 9 Nov 2026, \u00a73)."
+   },
    "NotificationChannel": {
     "type": "string",
     "enum": [
@@ -27153,7 +27667,14 @@
      "challenge_dismissed",
      "proposal_comment",
      "offer_accepted",
-     "offer_declined"
+     "offer_declined",
+     "nomination_created",
+     "nomination_accepted",
+     "nomination_declined",
+     "nomination_approved",
+     "nomination_rejected",
+     "nomination_expired",
+     "nomination_lapsed"
     ],
     "title": "NotificationKind"
    },

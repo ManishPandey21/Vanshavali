@@ -12,7 +12,7 @@ into 0003, 0009 and 0010.
 | 0003 | [Genealogy relationship, event and assertion model](0003-genealogy-relationship-model.md) | Accepted |
 | 0004 | [Document storage, scanning and encryption](0004-document-storage.md) | Accepted |
 | 0005 | [Authentication: server-side sessions](0005-authentication.md) | Accepted |
-| 0006 | [Authorisation and privacy evaluation](0006-authorization.md) | Accepted |
+| 0006 | [Authorisation and privacy evaluation](0006-authorization.md) | Accepted; amendment of 9 Nov 2026 (Family Admin nominations) Accepted |
 | 0007 | [Search in PostgreSQL](0007-search.md) | Accepted |
 | 0008 | [GEDCOM 7 interoperability and Indian extensions](0008-gedcom.md) | Accepted |
 | 0009 | [OCR / AI extraction and provenance](0009-ocr-ai-provenance.md) | Accepted |
@@ -31,3 +31,4 @@ into 0003, 0009 and 0010.
 | 0022 | [Indian family calendar: tithi dates, Punyatithi reminders, family calendar and ICS feed](0022-family-calendar-tithi-punyatithi.md) | Accepted |
 | 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |
 | 0026 | [Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions](0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md) | Accepted |
+| 0027 | [Record visibility and selective sharing for family media and records](0027-record-visibility-and-selective-sharing.md) | Accepted (implementation in progress) |
