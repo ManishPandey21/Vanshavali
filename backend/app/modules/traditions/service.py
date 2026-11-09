@@ -20,6 +20,7 @@ from sqlalchemy import exists, select
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
+from app.authz.privacy import is_private_record_level
 from app.core import audit
 from app.core.errors import Forbidden, NotFound, Unprocessable
 from app.core.textnorm import detect_script, search_key
@@ -163,7 +164,7 @@ def needs_review_to_edit(ctx: TreeContext, e: TraditionEntry) -> bool:
 
 def entry_out(ctx: TreeContext, e: TraditionEntry) -> TraditionOut:
     names = _names(ctx, {e.created_by} if e.created_by else set())
-    can_write = ctx.has(Permission.FAMILY_WRITE)
+    can_write = ctx.has(Permission.FAMILY_WRITE) and may_change(ctx, e)
     return TraditionOut(
         **_summary(e, names).model_dump(),
         body=e.body,
@@ -174,8 +175,8 @@ def entry_out(ctx: TreeContext, e: TraditionEntry) -> TraditionOut:
         created_by=e.created_by,
         can_edit=can_write,
         edit_needs_review=can_write and needs_review_to_edit(ctx, e),
-        can_withdraw=_is_author(ctx, e) or ctx.is_admin,
-        is_owner=_is_author(ctx, e),
+        can_withdraw=may_change(ctx, e) and (_is_author(ctx, e) or tsharing.is_owner(ctx, e) or ctx.is_admin),
+        is_owner=tsharing.is_owner(ctx, e),
         can_edit_sharing=tsharing.TraditionRecord(e).can_edit(ctx),
     )
 
@@ -319,9 +320,21 @@ def create_entry(ctx: TreeContext, body: TraditionEntryIn) -> TraditionEntry:
     return e
 
 
+def may_change(ctx: TreeContext, e: TraditionEntry) -> bool:
+    """A private entry (Only me, Selected members) is changed and withdrawn by its owner alone:
+    members it is shared with only read it, whatever their role (ADR-0027 §10)."""
+    return not is_private_record_level(e.privacy_level) or tsharing.is_owner(ctx, e)
+
+
+def require_change(ctx: TreeContext, e: TraditionEntry) -> None:
+    if not may_change(ctx, e):
+        raise Forbidden("Only the person who owns this tradition can change it", code="not_content_owner")
+
+
 def update_entry(ctx: TreeContext, entry_id: uuid.UUID, body: TraditionEntryUpdate) -> TraditionEntry:
     e = get_entry(ctx, entry_id)
     ctx.require(Permission.FAMILY_WRITE)
+    require_change(ctx, e)
     if not _is_author(ctx, e):
         review_policy.require_direct(ctx, "all", [], [e])
     fields = body.model_fields_set - {"links"}
@@ -380,7 +393,8 @@ def update_entry(ctx: TreeContext, entry_id: uuid.UUID, body: TraditionEntryUpda
 
 def withdraw_entry(ctx: TreeContext, entry_id: uuid.UUID) -> None:
     e = get_entry(ctx, entry_id)
-    if not (_is_author(ctx, e) or ctx.is_admin):
+    require_change(ctx, e)
+    if not (_is_author(ctx, e) or tsharing.is_owner(ctx, e) or ctx.is_admin):
         raise Forbidden("Only the author or a tree admin can withdraw this")
     e.withdrawn_at = dt.datetime.now(dt.UTC)
     e.updated_by = ctx.user_id

@@ -338,11 +338,11 @@ def _visible_records(ctx: TreeContext, refs: set[tuple[str, uuid.UUID]]) -> set[
     from app.models import Document, PhotoCollection, TraditionEntry
     from app.modules.collections.service import collection_allows
     from app.modules.documents.access import can_view_document
-    from app.modules.traditions.sharing import entry_allows
+    from app.modules.traditions.sharing import entry_audience_allows
 
     checks: dict[str, tuple[Any, Any]] = {
         "document": (Document, can_view_document),
-        "tradition": (TraditionEntry, entry_allows),
+        "tradition": (TraditionEntry, entry_audience_allows),
         "collection": (PhotoCollection, collection_allows),
     }
     visible: set[tuple[str, uuid.UUID]] = set()
@@ -357,7 +357,7 @@ def _visible_records(ctx: TreeContext, refs: set[tuple[str, uuid.UUID]]) -> set[
 def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> list[AuditEventOut]:
     """Events about a record the reader may not see (a document, tradition or collection) become an
     opaque "private record" entry with no id, title or details, so the audit log never reveals a
-    private record (ADR-0027 §11)."""
+    private record (ADR-0027 §11). A withdrawn tradition that was shared keeps its history."""
     wanted = set().union(*(_record_refs(i) for i in items)) if items else set()
     if not wanted:
         return items

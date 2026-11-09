@@ -142,6 +142,7 @@ def resolve_item(ctx: TreeContext, item: ProposalItemIn) -> Resolved:
     if t == ReviewTarget.TRADITION:
         entry = traditions.get_entry(ctx, _need(item.target_id))
         ctx.require(Permission.FAMILY_WRITE)
+        traditions.require_change(ctx, entry)  # nobody proposes changes to someone's private entry
         return Resolved([], {_key(t, entry.id): entry.revision}, body, entry)
     if t == ReviewTarget.KINSHIP_WORD:
         ctx.require(Permission.FAMILY_WRITE)
@@ -377,8 +378,35 @@ def people_of(ctx: TreeContext, p: ChangeProposal) -> list[uuid.UUID]:
     return sorted(people, key=str)
 
 
+def _names_a_hidden_private_tradition(ctx: TreeContext, p: ChangeProposal) -> bool:
+    """The proposal (or a challenge) targets a private tradition the viewer may not read (ADR-0027 §1):
+    an entry made private after the proposal, or one whose grant the viewer has lost."""
+    from app.authz.privacy import is_private_record_level
+    from app.models import TraditionEntry
+
+    ids = {
+        i.target_id for i in items_of(ctx, p.id) if i.target_type == ReviewTarget.TRADITION and i.target_id
+    }
+    if p.target_type == ReviewTarget.TRADITION and p.target_id is not None:
+        ids.add(p.target_id)
+    for tid in ids:
+        entry = ctx.db.get(TraditionEntry, tid)
+        if (
+            entry is not None
+            and entry.tree_id == ctx.tree_id
+            and is_private_record_level(entry.privacy_level)
+            and not traditions.may_read(ctx, entry)
+        ):
+            return True
+    return False
+
+
 def may_view(ctx: TreeContext, p: ChangeProposal) -> bool:
-    """The proposer, those who may review it, and (for a challenge) members who can see the fact."""
+    """The proposer, those who may review it, and (for a challenge) members who can see the fact.
+
+    Nobody who cannot read a private tradition sees a proposal about it, not even its proposer."""
+    if _names_a_hidden_private_tradition(ctx, p):
+        return False
     if ctx.user_id is not None and p.proposer_id == ctx.user_id:
         return True
     people = people_of(ctx, p)
