@@ -13,7 +13,7 @@ from sqlalchemy import select
 
 from app.models import AccessGrant
 from tests.conftest import join_tree, new_tree, owner_session
-from tests.doc_fixtures import png_bytes, text_image, upload
+from tests.doc_fixtures import png_bytes, text_image, unique_png, upload
 
 _n = 0
 
@@ -21,7 +21,7 @@ _n = 0
 def _photo(client: Any, t: str, level: str, **form: Any) -> str:
     global _n
     _n += 1
-    data = png_bytes(text_image([f"Collection photo {_n}"], width=320))
+    data = unique_png(_n, "Collection photo")
     r = upload(
         client, t, data, mime="image/png", category="photo", title=f"Photo {_n}", privacy_level=level, **form
     )
