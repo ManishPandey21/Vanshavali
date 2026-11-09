@@ -26140,6 +26140,11 @@
       "type": "string",
       "format": "date-time",
       "title": "Created At"
+     },
+     "can_manage": {
+      "type": "boolean",
+      "title": "Can Manage",
+      "default": false
      }
     },
     "type": "object",
@@ -37955,6 +37960,14 @@
       },
       "type": "array",
       "title": "My Permissions",
+      "default": []
+     },
+     "my_grantable_roles": {
+      "items": {
+       "$ref": "#/components/schemas/Role"
+      },
+      "type": "array",
+      "title": "My Grantable Roles",
       "default": []
      },
      "my_branch_id": {

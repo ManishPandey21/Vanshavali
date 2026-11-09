@@ -55,3 +55,29 @@ and assertions but can't edit people.
 ## Consequences
 Every router uses a `tree_ctx` dependency and a `require()` call. A parametrised test checks that
 every route under `/trees/{tree_id}` rejects non-members and returns 404 across trees.
+
+## Amendment (8 Nov 2026): who may change or remove a membership
+A membership may be changed or removed only by someone who could have granted **every role it
+holds**. Before this amendment the rule held when roles were added but not when they were taken
+away, so a family admin could delete another family admin's membership, and a branch admin could
+demote or remove a peer branch admin or a custodian in its branch.
+
+| Caller | May give or take away | May change or remove the membership of |
+|---|---|---|
+| Owner | every role | anyone; the last owner can never be removed or demoted |
+| Family admin | every role except owner and family admin | members holding none of those two roles |
+| Branch admin | contributor, researcher, viewer | members of its own branch who hold only those roles |
+| Anyone else | nothing | nobody |
+
+Nobody changes their own roles, except an owner. Leaving the tree is not an escalation.
+
+Every role change is audited:
+- `member.updated` records the previous and the new roles, and whether an owner or family-admin
+  role changed;
+- `member.removed` records the roles that were removed.
+
+The API tells the UI what the caller may do (`my_grantable_roles` on the tree, `can_manage` on each
+membership) so it offers only those controls. The server re-checks every change.
+
+Promoting a member to family admin stays the owner's decision. A workflow in which a family admin
+*nominates* a member and the owner approves is a separate change to this ADR (tracked as an issue).
