@@ -40,6 +40,15 @@ def text_image(lines: list[str], *, width: int = 1400, size: int = 34) -> Image.
     return im
 
 
+def unique_png(n: int, label: str = "Photo") -> bytes:
+    """A small PNG whose pixels differ for every ``n`` (uploads of identical bytes are refused as
+    duplicates). The difference is a coloured block, not text, so it never depends on fonts."""
+    im = text_image([f"{label} {n}"], width=320)
+    ImageDraw.Draw(im).rectangle((0, 0, 15, 15), fill=((n * 37) % 256, (n * 91) % 256, (n * 53 + 1) % 256))
+    im.putpixel((16, 16), (n % 256, (n // 256) % 256, 7))
+    return png_bytes(im)
+
+
 def png_bytes(im: Image.Image) -> bytes:
     buf = io.BytesIO()
     im.save(buf, "PNG")

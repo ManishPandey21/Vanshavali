@@ -5,6 +5,7 @@ import re
 import secrets
 import uuid
 from collections.abc import Iterable
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -392,14 +393,19 @@ def create_grant(
         if not ctx.has(Permission.PRIVACY_MANAGE) and resource_type not in (
             GrantResource.DOCUMENT,
             GrantResource.TRADITION,
+            GrantResource.COLLECTION,
         ):
             raise Forbidden()
         raise NotFound("Resource not found")
-    if resource_type in (GrantResource.DOCUMENT, GrantResource.TRADITION):
-        from app.models import Document, TraditionEntry
+    if resource_type in (GrantResource.DOCUMENT, GrantResource.TRADITION, GrantResource.COLLECTION):
+        from app.models import Document, PhotoCollection, TraditionEntry
         from app.models.enums import RecordPrivacyLevel
 
-        model = Document if resource_type == GrantResource.DOCUMENT else TraditionEntry
+        model: Any = {
+            GrantResource.DOCUMENT: Document,
+            GrantResource.TRADITION: TraditionEntry,
+            GrantResource.COLLECTION: PhotoCollection,
+        }[resource_type]
         level = ctx.db.scalar(
             select(model.privacy_level).where(model.tree_id == ctx.tree_id, model.id == resource_id)  # type: ignore[attr-defined]
         )
@@ -474,6 +480,19 @@ def manageable_grant_resources(
             for e in entries
             if tsharing.entry_allows(ctx, e)
             and (tsharing.is_owner(ctx, e) or (manager and not is_private_record_level(e.privacy_level)))
+        }
+    if ids := wanted.get(GrantResource.COLLECTION):
+        from app.models import PhotoCollection
+        from app.modules.collections import service as collections
+
+        cols = ctx.db.scalars(
+            select(PhotoCollection).where(PhotoCollection.tree_id == ctx.tree_id, PhotoCollection.id.in_(ids))
+        )
+        ok |= {
+            (GrantResource.COLLECTION, c.id)
+            for c in cols
+            if collections.collection_allows(ctx, c)
+            and (collections.is_owner(ctx, c) or (manager and not is_private_record_level(c.privacy_level)))
         }
     if manager and (ids := wanted.get(GrantResource.PROPERTY)):
         props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))

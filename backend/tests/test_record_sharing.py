@@ -16,7 +16,7 @@ from sqlalchemy import select
 
 from app.models import AccessGrant, AuditEvent
 from tests.conftest import join_tree, new_tree, owner_session
-from tests.doc_fixtures import png_bytes, text_image, upload
+from tests.doc_fixtures import unique_png, upload
 from tests.helpers import create_person
 
 _n = 0
@@ -25,7 +25,7 @@ _n = 0
 def _png() -> bytes:
     global _n
     _n += 1  # distinct bytes: identical visible files are refused as duplicates
-    return png_bytes(text_image([f"Sharing test photo {_n}"], width=420))
+    return unique_png(_n, "Sharing test photo")
 
 
 def _doc(client: Any, t: str, level: str | None = None, **form: Any) -> dict[str, Any]:

@@ -60,6 +60,8 @@ download. A record is never more open than any protected person tagged in it. Gr
 membership and are deleted with it; no record is public in v1.
 A photo in an event's album is never more visible than the event or a protected person in it, and
 becomes more private when the event does; each viewer sees only the album photos they may see.
+A standalone photo collection has its own audience (new collections are Only me); a viewer sees a
+photo in it only if they may see both, and sharing a collection never shares its photos.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
