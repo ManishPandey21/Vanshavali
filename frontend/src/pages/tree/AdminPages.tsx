@@ -8,6 +8,7 @@ import { AlertTriangle, Check, Copy, Globe2, Trash2, UserPlus, X } from "lucide-
 import type { InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, ReviewPolicy, Role } from "../../api/types";
 import { PersonPicker } from "../../components/pickers";
 import {
+  useAdminNominations,
   useAudit,
   useClaims,
   useCreateInvitation,
@@ -31,6 +32,7 @@ import { ConfirmDialog, Dialog } from "../../components/ui/Dialog";
 import { EmptyState, ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../components/ui/feedback";
 import { Checkbox, Field, Select, TextArea, TextInput } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
+import { AdminNominationsPanel, NominateDialog } from "../../components/tree/AdminNominations";
 
 export const ROLES: Role[] = ["OWNER", "FAMILY_ADMIN", "BRANCH_ADMIN", "CONTRIBUTOR", "REVIEWER", "RESEARCHER", "VIEWER", "DOCUMENT_CUSTODIAN", "PROPERTY_CUSTODIAN"];
 
@@ -65,13 +67,18 @@ function RolePicker({ value, onChange, legend, locked = false }: { value: Role[]
 
 export function MembersPage() {
   const { t, i18n } = useTranslation();
-  const { treeId, can } = useTreeCtx();
+  const { treeId, can, tree } = useTreeCtx();
   const members = useMembers(treeId);
   const me = useMe();
   const [editing, setEditing] = useState<MemberOut | null>(null);
   const [removing, setRemoving] = useState<MemberOut | null>(null);
   const remove = useRemoveMember(treeId);
   const manage = can(Perm.MEMBERS_MANAGE);
+  // only a family admin nominates (ADR-0006 amendment of 9 Nov 2026); an owner grants the role directly
+  const canNominate = (tree.my_roles ?? []).includes("FAMILY_ADMIN");
+  const nominations = useAdminNominations(treeId);
+  const nominated = new Set((nominations.data ?? []).map((n) => n.nominee_membership_id));
+  const [nominating, setNominating] = useState<MemberOut | null>(null);
   return (
     <div>
       <PageHeader
@@ -85,6 +92,7 @@ export function MembersPage() {
           ) : undefined
         }
       />
+      <AdminNominationsPanel />
       {members.isLoading && <Spinner />}
       <ErrorAlert error={members.error || remove.error} />
       <div className="card relative overflow-x-auto">
@@ -132,6 +140,11 @@ export function MembersPage() {
                 {manage && (
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-1">
+                      {canNominate && m.user_id !== me.data?.id && !m.roles.some((r) => r === "OWNER" || r === "FAMILY_ADMIN") && !nominated.has(m.id) && (
+                        <Button size="sm" variant="ghost" onClick={() => setNominating(m)} aria-label={t("nominations.nominateNamed", { name: m.display_name })}>
+                          {t("nominations.nominate")}
+                        </Button>
+                      )}
                       {m.can_manage && (
                         <Button size="sm" variant="ghost" onClick={() => setEditing(m)}>
                           {t("members.changeRoles")}
@@ -149,6 +162,7 @@ export function MembersPage() {
         </table>
       </div>
       {editing && <EditMemberDialog member={editing} onClose={() => setEditing(null)} />}
+      {nominating && <NominateDialog member={nominating} onClose={() => setNominating(null)} />}
       <ConfirmDialog
         open={!!removing}
         onClose={() => setRemoving(null)}

@@ -334,4 +334,4 @@ listed in the threat model's residual risks.
   (without download controls); an entry's page has the same `RecordSharingPanel` as documents.
 - **Tests.** `tests/test_traditions_sharing.py` (12 cases, including the migration and its
   downgrade), a component test for records without downloads, and a second Playwright test in
-  `record-sharing.spec.ts`; threat model T56.
+  `record-sharing.spec.ts`; threat model T57.

@@ -410,6 +410,112 @@ export interface paths {
         patch: operations["update_member_api_v1_trees__tree_id__members__membership_id__patch"];
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/admin-nominations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Admin Nominations
+         * @description Open nominations: all of them for owners and family admins, only your own otherwise.
+         */
+        get: operations["list_admin_nominations_api_v1_trees__tree_id__admin_nominations_get"];
+        put?: never;
+        /** Create Admin Nomination */
+        post: operations["create_admin_nomination_api_v1_trees__tree_id__admin_nominations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Admin Nomination */
+        post: operations["accept_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline Admin Nomination */
+        post: operations["decline_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Admin Nomination */
+        post: operations["approve_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Admin Nomination */
+        post: operations["reject_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/admin-nominations/{nomination_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw Admin Nomination */
+        post: operations["withdraw_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/invitations": {
         parameters: {
             query?: never;
@@ -7193,6 +7299,71 @@ export interface components {
              */
             truncated?: boolean;
         };
+        /** NominationApprove */
+        NominationApprove: {
+            /**
+             * Clear Branch
+             * @default false
+             */
+            clear_branch?: boolean;
+        };
+        /** NominationCreate */
+        NominationCreate: {
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            /** Reason */
+            reason: string;
+        };
+        /** NominationOut */
+        NominationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nominee Membership Id */
+            nominee_membership_id: string | null;
+            /** Nominee Name */
+            nominee_name: string;
+            /** Nominator Name */
+            nominator_name: string;
+            /** Reason */
+            reason: string;
+            status: components["schemas"]["NominationStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Nominee Accepted */
+            nominee_accepted: boolean;
+            /** Nominee Branch Scoped */
+            nominee_branch_scoped: boolean;
+            /** Is Mine */
+            is_mine: boolean;
+            /** Can Accept */
+            can_accept: boolean;
+            /** Can Decline */
+            can_decline: boolean;
+            /** Can Decide */
+            can_decide: boolean;
+            /** Can Withdraw */
+            can_withdraw: boolean;
+        };
+        /**
+         * NominationStatus
+         * @description A Family Admin nomination (ADR-0006 amendment of 9 Nov 2026, §3).
+         * @enum {string}
+         */
+        NominationStatus: "open" | "approved" | "declined_by_owner" | "declined_by_nominee" | "withdrawn" | "expired" | "lapsed";
         /**
          * NotificationChannel
          * @enum {string}
@@ -7202,7 +7373,7 @@ export interface components {
          * NotificationKind
          * @enum {string}
          */
-        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined";
+        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed";
         /** NotificationOut */
         NotificationOut: {
             /**
@@ -11686,6 +11857,236 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemberOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_admin_nominations_api_v1_trees__tree_id__admin_nominations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_admin_nomination_api_v1_trees__tree_id__admin_nominations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NominationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nomination_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nomination_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nomination_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NominationApprove"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nomination_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_admin_nomination_api_v1_trees__tree_id__admin_nominations__nomination_id__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nomination_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NominationOut"];
                 };
             };
             /** @description Validation Error */

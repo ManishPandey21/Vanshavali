@@ -1,7 +1,7 @@
 """record visibility and selective sharing (ADR-0027)
 
 Revision ID: 3f6a8c1d2e94
-Revises: 9c4f2a7d1e83
+Revises: 9c4e2a7d5b18
 Create Date: 2026-11-09
 
 Grants already belong to memberships (9c4f2a7d1e83, ADR-0027 §3); this adds the record side:
@@ -25,7 +25,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "3f6a8c1d2e94"
-down_revision: str | None = "9c4f2a7d1e83"
+down_revision: str | None = "9c4e2a7d5b18"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

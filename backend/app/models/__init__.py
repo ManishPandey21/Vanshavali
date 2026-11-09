@@ -46,13 +46,14 @@ from app.models.review import (
     RecordRevision,
     UserNotification,
 )
-from app.models.tree import AccessGrant, Tree, TreeInvitation, TreeMembership
+from app.models.tree import AccessGrant, AdminNomination, Tree, TreeInvitation, TreeMembership
 from app.models.visualization import ChartPreset, RenderArtifact, RenderJob
 
 _rls.attach_to_metadata(Base.metadata.tables)  # type: ignore[arg-type]
 
 __all__ = [
     "AccessGrant",
+    "AdminNomination",
     "Assertion",
     "AstrologyProfile",
     "AuditEvent",

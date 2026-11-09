@@ -272,3 +272,17 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Family words stay in the family.** A tree's own kinship words are visible only inside that
   tree.
 
+
+## Family Admin nominations (ADR-0006 amendment, 9 Nov 2026)
+- **Who sees a nomination:** the Owners, the Family Admins and the nominee. The nominee sees who
+  nominated them and the reason (owner decision). No other member sees that a nomination exists.
+- **The reason text** is personal comment about a family member. It appears only in the nomination
+  itself: never in audit events, notification text or exports.
+- **Notifications store ids only** (ADR-0021 §7) and render for the reader at read time.
+- **Promotion changes what someone can see.** Approval needs the nominee's own acceptance first,
+  because a Family Admin sees `PRIVATE_TREE_ADMINS` data of living relatives. `PRIVATE_SELF` and
+  ADR-0027's private audiences stay closed to them.
+- **Retention of closed nominations:** the reason text is erased the moment a nomination closes
+  (approved, declined by either side, withdrawn, expired or lapsed). The row keeps only ids, the
+  status and timestamps, so the notifications and audit events that point to it still resolve. It is
+  deleted with the tree.

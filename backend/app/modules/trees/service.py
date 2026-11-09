@@ -17,6 +17,7 @@ from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessab
 from app.core.security import new_token, token_hash
 from app.models import AccessGrant, FamilyBranch, Tree, TreeInvitation, TreeMembership, User
 from app.models.enums import GrantResource, Role
+from app.modules.trees import nominations
 
 INVITATION_TTL_DAYS = 14
 _ADMIN_GRANTABLE = {Role.OWNER, Role.FAMILY_ADMIN}
@@ -148,9 +149,14 @@ def accept_invitation(db: Session, user: User, token: str, info: RequestInfo) ->
                 "your roles instead",
                 code="scope_conflict",
             )
+        before = list(existing.roles)
         existing.roles = sorted(set(existing.roles) | set(inv.roles))
         existing.branch_id = inv.branch_id
         membership = existing
+        from app.core.db import bind_tree
+
+        bind_tree(db, inv.tree_id)  # admin_nomination is row-level secured
+        nominations.on_roles_changed(db, inv.tree_id, existing, before, existing.roles, user.id)
     else:
         membership = TreeMembership(
             tree_id=inv.tree_id,
@@ -298,6 +304,7 @@ def update_member(
         lookup.get_person(ctx, linked_person_id)
         m.linked_person_id = linked_person_id
     ctx.db.flush()
+    nominations.on_roles_changed(ctx.db, ctx.tree_id, m, previous_roles, m.roles, ctx.user_id)
     admin_change = bool(({Role(r) for r in previous_roles} ^ {Role(r) for r in m.roles}) & _ADMIN_GRANTABLE)
     audit.log(
         ctx,
@@ -324,6 +331,7 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
             raise Conflict("A tree must keep at least one owner", code="last_owner")
     _require_manageable(ctx, m)
     roles = sorted(m.roles)
+    nominations.on_member_leaving(ctx.db, ctx.tree_id, m, ctx.user_id)
     audit_cascaded_grants(ctx.db, tree_id=ctx.tree_id, membership_id=m.id, actor_user_id=ctx.user_id)
     ctx.db.delete(m)
     audit.log(
