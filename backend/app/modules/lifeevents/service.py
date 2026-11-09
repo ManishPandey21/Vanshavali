@@ -306,6 +306,7 @@ def upload_photo(
 def link_photo(ctx: TreeContext, event_id: uuid.UUID, body: EventMediaLinkIn) -> EventMedia:
     e, _principal = _require_album_write(ctx, event_id)
     doc = access.get_document(ctx, body.document_id)
+    access.require_owner_if_private(ctx, doc)  # adding to an album changes a private photo (§10)
     if doc.category != DocumentCategory.PHOTO or not doc.mime_type.startswith("image/"):
         raise Unprocessable("Only photos can be added to an event's photos", code="not_an_image")
     for pid in body.person_ids:

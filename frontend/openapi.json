@@ -20632,6 +20632,11 @@
       "title": "Can Edit Sharing",
       "default": false
      },
+     "can_change": {
+      "type": "boolean",
+      "title": "Can Change",
+      "default": true
+     },
      "variants": {
       "items": {
        "type": "string"
