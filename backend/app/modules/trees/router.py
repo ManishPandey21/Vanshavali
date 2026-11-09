@@ -12,9 +12,9 @@ from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
-from app.models import AccessGrant, AuditEvent, Tree, TreeInvitation, TreeMembership, User
+from app.models import AccessGrant, AdminNomination, AuditEvent, Tree, TreeInvitation, TreeMembership, User
 from app.models.enums import GrantResource, Role
-from app.modules.trees import service
+from app.modules.trees import nominations, service
 from app.modules.trees.schemas import (
     AuditEventOut,
     GrantCreate,
@@ -24,6 +24,9 @@ from app.modules.trees.schemas import (
     InvitationPreview,
     MemberOut,
     MemberUpdate,
+    NominationApprove,
+    NominationCreate,
+    NominationOut,
     TreeCreate,
     TreeOut,
     TreeUpdate,
@@ -167,6 +170,51 @@ def update_member(membership_id: uuid.UUID, body: MemberUpdate, ctx: TreeCtx) ->
 def remove_member(membership_id: uuid.UUID, ctx: TreeCtx) -> Message:
     service.remove_member(ctx, membership_id)
     return Message(message="Member removed")
+
+
+# ---- Family Admin nominations (ADR-0006 amendment of 9 Nov 2026) ----
+def _nomination_out(ctx: TreeContext, n: AdminNomination) -> NominationOut:
+    return NominationOut(**nominations.describe(ctx, [n])[0])
+
+
+@router.get("/trees/{tree_id}/admin-nominations", response_model=list[NominationOut])
+def list_admin_nominations(ctx: TreeCtx) -> list[NominationOut]:
+    """Open nominations: all of them for owners and family admins, only your own otherwise."""
+    return [NominationOut(**d) for d in nominations.describe(ctx, nominations.list_open(ctx))]
+
+
+@router.post(
+    "/trees/{tree_id}/admin-nominations", response_model=NominationOut, status_code=status.HTTP_201_CREATED
+)
+def create_admin_nomination(body: NominationCreate, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.create(ctx, body.membership_id, body.reason))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/accept", response_model=NominationOut)
+def accept_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.accept(ctx, nomination_id))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/decline", response_model=NominationOut)
+def decline_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.decline(ctx, nomination_id))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/approve", response_model=NominationOut)
+def approve_admin_nomination(
+    nomination_id: uuid.UUID, body: NominationApprove, ctx: TreeCtx
+) -> NominationOut:
+    return _nomination_out(ctx, nominations.approve(ctx, nomination_id, clear_branch=body.clear_branch))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/reject", response_model=NominationOut)
+def reject_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.reject(ctx, nomination_id))
+
+
+@router.post("/trees/{tree_id}/admin-nominations/{nomination_id}/withdraw", response_model=NominationOut)
+def withdraw_admin_nomination(nomination_id: uuid.UUID, ctx: TreeCtx) -> NominationOut:
+    return _nomination_out(ctx, nominations.withdraw(ctx, nomination_id))
 
 
 # ---- invitations ----

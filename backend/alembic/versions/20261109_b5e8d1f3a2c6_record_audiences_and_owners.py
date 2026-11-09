@@ -1,7 +1,7 @@
 """record audiences and content owners
 
 Revision ID: b5e8d1f3a2c6
-Revises: 9c4f2a7d1e83
+Revises: 9c4e2a7d5b18
 Create Date: 2026-11-09
 
 ADR-0027 §1, §2 and §12.1, §12.3, §12.4.
@@ -32,7 +32,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "b5e8d1f3a2c6"
-down_revision: str | None = "9c4f2a7d1e83"
+down_revision: str | None = "9c4e2a7d5b18"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

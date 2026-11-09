@@ -208,7 +208,7 @@ def test_record_owners_are_backfilled_and_downgrade_maps_the_new_levels():
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "9c4f2a7d1e83")
+        command.upgrade(cfg, "9c4e2a7d5b18")
         engine = create_engine(url)
         tree_id, member, leaver, membership = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
         kept, orphan, entry = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
@@ -260,7 +260,7 @@ def test_record_owners_are_backfilled_and_downgrade_maps_the_new_levels():
                 text("UPDATE document SET privacy_level = 'SELECTED_MEMBERS' WHERE id = :id"), {"id": orphan}
             )
             conn.execute(text("UPDATE tradition_entry SET privacy_level = 'ONLY_ME'"))
-        command.downgrade(cfg, "9c4f2a7d1e83")
+        command.downgrade(cfg, "9c4e2a7d5b18")
         with engine.connect() as conn:
             levels = dict(conn.execute(text("SELECT id, privacy_level FROM document")).all())
             assert levels == {kept: "PRIVATE_SELF", orphan: "CUSTOM"}

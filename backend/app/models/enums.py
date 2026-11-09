@@ -736,6 +736,18 @@ class ChangeProposalStatus(StrEnum):
     STALE = "stale"
 
 
+class NominationStatus(StrEnum):
+    """A Family Admin nomination (ADR-0006 amendment of 9 Nov 2026, §3)."""
+
+    OPEN = "open"
+    APPROVED = "approved"
+    DECLINED_BY_OWNER = "declined_by_owner"
+    DECLINED_BY_NOMINEE = "declined_by_nominee"
+    WITHDRAWN = "withdrawn"
+    EXPIRED = "expired"
+    LAPSED = "lapsed"
+
+
 class ProposalOp(StrEnum):
     CREATE = "create"
     UPDATE = "update"
@@ -767,6 +779,14 @@ class NotificationKind(StrEnum):
     # ADR-0026 §4: an operator's decision on an entry the family offered to the common lists
     OFFER_ACCEPTED = "offer_accepted"
     OFFER_DECLINED = "offer_declined"
+    # ADR-0006 amendment of 9 Nov 2026: Family Admin nominations (subject_id = the nomination)
+    NOMINATION_CREATED = "nomination_created"
+    NOMINATION_ACCEPTED = "nomination_accepted"
+    NOMINATION_DECLINED = "nomination_declined"
+    NOMINATION_APPROVED = "nomination_approved"
+    NOMINATION_REJECTED = "nomination_rejected"
+    NOMINATION_EXPIRED = "nomination_expired"
+    NOMINATION_LAPSED = "nomination_lapsed"
 
 
 # ---- cultural depth (ADR-0026)
