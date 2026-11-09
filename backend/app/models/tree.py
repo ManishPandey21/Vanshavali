@@ -9,7 +9,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.ids import uuid7
 from app.models.base import Base, TimestampMixin, TreeScopedMixin, enum_column, tree_fk, tree_unique
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode, ReviewPolicy
+from app.models.enums import (
+    GrantPermission,
+    GrantResource,
+    NominationStatus,
+    PrivacyLevel,
+    PublicMode,
+    ReviewPolicy,
+)
 
 
 class Tree(TimestampMixin, Base):
@@ -99,3 +106,48 @@ class AccessGrant(TreeScopedMixin, Base):
     permission: Mapped[GrantPermission] = mapped_column(enum_column(GrantPermission))
     expires_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     granted_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdminNomination(TreeScopedMixin, Base):
+    """A Family Admin's nomination of a member for Family Admin (ADR-0006 amendment of 9 Nov 2026).
+
+    Never grants anything by itself: the nominee accepts, then an Owner approves through the normal
+    role-change path. The reason is visible to Owners, Family Admins and the nominee while the
+    nomination is open, and is erased when it closes; the audit log never holds it.
+    """
+
+    __tablename__ = "admin_nomination"
+    __table_args__ = (
+        tree_unique("admin_nomination"),
+        tree_fk(["nominee_membership_id"], "tree_membership", ondelete="SET NULL"),
+        CheckConstraint("char_length(reason) <= 500", name="reason_length"),
+        # at most one open nomination per nominee
+        Index(
+            "uq_admin_nomination_open_nominee",
+            "tree_id",
+            "nominee_membership_id",
+            unique=True,
+            postgresql_where="status = 'open'",
+        ),
+        Index("ix_admin_nomination_status", "tree_id", "status", "expires_at"),
+    )
+
+    nominator_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="SET NULL")
+    )
+    nominee_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    nominee_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="SET NULL")
+    )
+    reason: Mapped[str] = mapped_column(Text, default="", server_default="")
+    status: Mapped[NominationStatus] = mapped_column(
+        enum_column(NominationStatus),
+        default=NominationStatus.OPEN,
+        server_default=NominationStatus.OPEN.value,
+    )
+    expires_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+    nominee_accepted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    decided_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="SET NULL")
+    )
+    closed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))

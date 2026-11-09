@@ -16,6 +16,7 @@ erDiagram
   USER ||--o{ TREE_MEMBERSHIP : holds
   TREE ||--o{ TREE_MEMBERSHIP : grants
   TREE ||--o{ TREE_INVITATION : issues
+  TREE_MEMBERSHIP ||--o{ ADMIN_NOMINATION : "nominee (accepts; an Owner approves; ADR-0006)"
   TREE ||--o{ ACCESS_GRANT : "explicit shares"
   TREE ||--o{ PERSON : contains
 

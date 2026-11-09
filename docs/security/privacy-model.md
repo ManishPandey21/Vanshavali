@@ -270,5 +270,7 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Promotion changes what someone can see.** Approval needs the nominee's own acceptance first,
   because a Family Admin sees `PRIVATE_TREE_ADMINS` data of living relatives. `PRIVATE_SELF` and
   ADR-0027's private audiences stay closed to them.
-- **Retention of closed nominations** (and their reason text) is to be set with the implementation
-  and recorded here before code.
+- **Retention of closed nominations:** the reason text is erased the moment a nomination closes
+  (approved, declined by either side, withdrawn, expired or lapsed). The row keeps only ids, the
+  status and timestamps, so the notifications and audit events that point to it still resolve. It is
+  deleted with the tree.

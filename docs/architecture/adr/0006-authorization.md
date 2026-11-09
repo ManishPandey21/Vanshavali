@@ -83,8 +83,8 @@ Promoting a member to family admin stays the owner's decision. A workflow in whi
 *nominates* a member and the owner approves is a separate change to this ADR (tracked as an issue).
 
 ## Amendment (9 Nov 2026, **Accepted**): Family Admin nominations, approved by an Owner
-Status: **Accepted** on 9 Nov 2026 by the owner, with the decisions recorded at the end. Not built
-yet. Tracked in issue #45; threat-model entry T56.
+Status: **Accepted** on 9 Nov 2026 by the owner, with the decisions recorded at the end.
+**Implemented** (issue #45; threat-model entry T56); see "Implementation notes" at the end.
 
 ### Context
 - Owners want Family Admins to be able to **put a member forward** for Family Admin. The decision
@@ -200,3 +200,24 @@ Plus a Vitest for the nomination screens and a Playwright flow (nominate → acc
 1. **Expiry: 14 days.** The limit of 5 open nominations per tree is accepted as proposed.
 2. **Branch Admins cannot nominate.** Only a Family Admin nominates (§1 of this amendment).
 3. **The nominee sees the reason**, together with who nominated them (§7).
+
+### Implementation notes (9 Nov 2026)
+- **Code:** `backend/app/modules/trees/nominations.py`, table `admin_nomination` (migration
+  `9c4e2a7d5b18`, row-level security, a partial unique index for one open nomination per nominee),
+  routes in `trees/router.py`, the panel and nominate dialog on the Members page.
+- **Lapsing** is called from every path that changes or ends a membership: `update_member`,
+  `remove_member`, `accept_invitation` (an invitation that adds Owner or Family Admin to an existing
+  member) and closing an account. Approval re-checks the same conditions itself, so a stale
+  nomination is refused even if a hook was missed.
+- **Expiry** is applied whenever a tree's nominations are listed or created, and approval refuses an
+  expired nomination before that; there is no background job.
+- **Concurrency:** each step locks the nomination row, so of two Owners deciding at once the second
+  gets `409 nomination_closed`. Creating one locks the tree row, so the limit of 5 holds.
+- **The nominee may decline after accepting**, as long as no Owner has approved: consent can be
+  withdrawn before it takes effect.
+- **Approval of a branch-scoped nominee** clears the branch (with `clear_branch: true`) and drops a
+  Branch Admin role, which needs a branch and is covered by Family Admin.
+- **Notifications** (in-app only): Owners and the nominee on a new nomination; the nominator on
+  every outcome. Two more than §8 lists: Owners when the nominee accepts (so they know it can be
+  approved), and the nominee when an Owner decides. A withdrawal notifies nobody.
+- **The reason** is erased when a nomination closes (privacy model).

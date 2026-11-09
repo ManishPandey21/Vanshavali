@@ -259,7 +259,7 @@ export function NotificationBell({ treeId }: { treeId: string }) {
               {notes.data!.items.map((n) => (
                 <li key={n.id}>
                   <Link
-                    to={n.proposal_id ? `/t/${treeId}/review/${n.proposal_id}` : `/t/${treeId}/review`}
+                    to={n.kind.startsWith("nomination_") ? `/t/${treeId}/admin/members` : n.proposal_id ? `/t/${treeId}/review/${n.proposal_id}` : `/t/${treeId}/review`}
                     className={`block rounded px-1 py-2 text-sm hover:bg-parchment ${n.read ? "text-ink-muted" : "font-medium"}`}
                     onClick={() => {
                       if (!n.read) markRead.mutate([n.id]);

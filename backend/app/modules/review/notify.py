@@ -17,6 +17,7 @@ from sqlalchemy import func, select, update
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission, permissions_for
 from app.models import (
+    AdminNomination,
     BranchMembership,
     ChangeProposal,
     ChangeProposalItem,
@@ -39,7 +40,16 @@ TEXT = {
     NotificationKind.PROPOSAL_COMMENT: "{actor} commented on a proposed change to {person}.",
     NotificationKind.OFFER_ACCEPTED: "Your family's entry “{label}” was added to the common suggestions.",
     NotificationKind.OFFER_DECLINED: "Your family's entry “{label}” was not added to the common suggestions.",
+    # Family Admin nominations (ADR-0006 amendment of 9 Nov 2026); "{nominee}" is "you" for the nominee
+    NotificationKind.NOMINATION_CREATED: "{actor} nominated {nominee} to be a family admin.",
+    NotificationKind.NOMINATION_ACCEPTED: "{Nominee} accepted the nomination to be a family admin.",
+    NotificationKind.NOMINATION_DECLINED: "{Nominee} declined the nomination to be a family admin.",
+    NotificationKind.NOMINATION_APPROVED: "An owner approved the nomination of {nominee} to be a family admin.",
+    NotificationKind.NOMINATION_REJECTED: "An owner did not approve the nomination of {nominee} to be a family admin.",
+    NotificationKind.NOMINATION_EXPIRED: "The nomination of {nominee} to be a family admin expired.",
+    NotificationKind.NOMINATION_LAPSED: "The nomination of {nominee} to be a family admin lapsed.",
 }
+NOMINATION_KINDS = frozenset(k for k in NotificationKind if k.value.startswith("nomination_"))
 
 
 def reviewers_for(
@@ -109,8 +119,22 @@ def _text(
     ):
         term = ctx.db.get(TreeVocabularyTerm, n.subject_id)
         label = term.label if term is not None and term.tree_id == ctx.tree_id else label
+    nominee = "a member"
+    if n.kind in NOMINATION_KINDS and n.subject_id is not None:
+        nomination = ctx.db.get(AdminNomination, n.subject_id)
+        if nomination is not None and nomination.tree_id == ctx.tree_id:
+            if nomination.nominee_user_id == n.user_id:
+                nominee = "you"
+            elif nomination.nominee_user_id is not None:
+                user = ctx.db.get(User, nomination.nominee_user_id)
+                nominee = user.display_name if user is not None else nominee
     return TEXT[n.kind].format(
-        actor=actor, person=person, label=label, n=counts.get(n.proposal_id, 1) if n.proposal_id else 1
+        actor=actor,
+        person=person,
+        label=label,
+        nominee=nominee,
+        Nominee=nominee[:1].upper() + nominee[1:],
+        n=counts.get(n.proposal_id, 1) if n.proposal_id else 1,
     )
 
 
