@@ -8,7 +8,7 @@ from fastapi import APIRouter, File, Form, Query, UploadFile, status
 from app.api.deps import TreeCtx
 from app.api.schemas import Message, Page, decode_cursor, encode_cursor
 from app.core.errors import Unprocessable
-from app.models.enums import EventSignificance, LifeEventCategory, PrivacyLevel
+from app.models.enums import EventSignificance, LifeEventCategory, RecordPrivacyLevel
 from app.modules.documents.router import _parse_date, _read_capped
 from app.modules.genealogy.schemas import EventOut
 from app.modules.lifeevents import service
@@ -66,7 +66,9 @@ def upload_event_photo(
     taken_date: Annotated[str | None, Form(description="GenealogicalDate as JSON")] = None,
     is_cover: Annotated[bool, Form()] = False,
     person_ids: Annotated[list[uuid.UUID] | None, Form(description="people shown in the photo")] = None,
-    privacy_level: Annotated[PrivacyLevel | None, Form()] = None,
+    privacy_level: Annotated[RecordPrivacyLevel | None, Form()] = None,
+    audience_branch_id: Annotated[uuid.UUID | None, Form()] = None,
+    allow_download: Annotated[bool | None, Form()] = None,
 ) -> EventMediaOut:
     ids = person_ids or []
     if len(ids) > 50:
@@ -84,6 +86,8 @@ def upload_event_photo(
         is_cover=is_cover,
         person_ids=ids,
         privacy_level=privacy_level,
+        audience_branch_id=audience_branch_id,
+        allow_download=allow_download,
     )
     return _one(ctx, event_id, m.id)
 

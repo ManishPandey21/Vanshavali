@@ -21,6 +21,7 @@ import { AddPersonPage } from "./pages/tree/AddPersonPage";
 import { PersonProfilePage } from "./pages/tree/person/PersonProfilePage";
 import { TreeViewerPage } from "./pages/tree/TreeViewerPage";
 import { TraditionDetailPage, TraditionsPage } from "./pages/tree/TraditionsPage";
+import { CollectionDetailPage, CollectionsPage } from "./pages/tree/CollectionsPage";
 import { RelationshipPage } from "./pages/tree/RelationshipPage";
 import { BranchDetailPage, BranchesPage } from "./pages/tree/BranchesPages";
 import { HouseholdsPage, JointFamilyPage } from "./pages/tree/HouseholdsPages";
@@ -133,6 +134,8 @@ export default function App() {
             <Route path="households" element={<HouseholdsPage />} />
             <Route path="traditions" element={<TraditionsPage />} />
             <Route path="traditions/:entryId" element={<TraditionDetailPage />} />
+            <Route path="collections" element={<CollectionsPage />} />
+            <Route path="collections/:collectionId" element={<CollectionDetailPage />} />
             <Route path="places" element={<PlacesPage />} />
             <Route path="sources" element={<SourcesPage />} />
             <Route path="search" element={<SearchPage />} />

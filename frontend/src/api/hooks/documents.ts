@@ -70,6 +70,8 @@ export interface UploadInput {
   title: string;
   description?: string;
   privacy_level?: string;
+  audience_branch_id?: string;
+  allow_download?: boolean;
   document_date?: unknown;
   language?: string;
   issuing_authority?: string;
@@ -86,6 +88,8 @@ export function uploadFormData(input: UploadInput): FormData {
   const opt: [string, string | undefined][] = [
     ["description", input.description],
     ["privacy_level", input.privacy_level],
+    ["audience_branch_id", input.audience_branch_id],
+    ["allow_download", input.allow_download === undefined ? undefined : String(input.allow_download)],
     ["language", input.language],
     ["issuing_authority", input.issuing_authority],
     ["link_target_type", input.link_target_type],
@@ -251,3 +255,6 @@ export function useDeleteGrant(treeId: string) {
   const invalidate = useInvalidateTree(treeId);
   return useMutation({ mutationFn: (id: string) => api.del<Message>(`/trees/${treeId}/grants/${id}`), onSuccess: invalidate });
 }
+
+// Visibility & Sharing hooks live in ./sharing (shared by documents and traditions).
+export { useSharing, useSharingPreview, useUpdateSharing } from "./sharing";

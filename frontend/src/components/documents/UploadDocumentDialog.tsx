@@ -1,18 +1,23 @@
 import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Upload } from "lucide-react";
-import type { DocumentCategory, DocumentLinkTarget, DocumentOut, GenealogicalDate, PersonSummary, PrivacyLevel } from "../../api/types";
+import type { DocumentCategory, DocumentLinkTarget, DocumentOut, GenealogicalDate, PersonSummary, RecordPrivacyLevel, SharingOut, SharingUpdate } from "../../api/types";
+import { api } from "../../api/client";
 import { useUploadDocument } from "../../api/hooks/documents";
+import { useMembers } from "../../api/hooks/trees";
+import { useBranches } from "../../api/hooks/family";
+import { useMe } from "../../api/hooks/auth";
+import { RECORD_AUDIENCES, VisibilitySharing, draftProblem, type SharingDraft } from "../privacy/VisibilitySharing";
 import { useTreeCtx } from "../../lib/tree-context";
 import { emptyDate, normalizeDate, validateDate } from "../../lib/dates";
 import { DOCUMENT_CATEGORIES, VAULT_CATEGORIES } from "../../lib/documents";
 import { GenealogicalDateEditor } from "../dates/GenealogicalDateEditor";
 import { PersonPicker } from "../pickers";
-import { PRIVACY_LEVELS, hasDate } from "../person/PersonForm";
+import { hasDate } from "../person/PersonForm";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { ErrorAlert } from "../ui/feedback";
-import { Field, Select, TextArea, TextInput } from "../ui/form";
+import { Fieldset, Field, Select, TextArea, TextInput } from "../ui/form";
 import { uploadErrorMessage } from "./DocumentBits";
 
 export interface LinkTarget {
@@ -41,25 +46,40 @@ export function UploadDocumentDialog({
   title?: string;
 }) {
   const { t } = useTranslation();
-  const { treeId } = useTreeCtx();
+  const { treeId, tree } = useTreeCtx();
   const upload = useUploadDocument(treeId);
+  const members = useMembers(treeId);
+  const branches = useBranches(treeId);
+  const me = useMe();
   const fileId = useId();
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState<DocumentCategory>(initialCategory);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [authority, setAuthority] = useState("");
-  const [privacy, setPrivacy] = useState<PrivacyLevel | "">("");
+  // ADR-0027 §9: Only me for vault categories and records about a person; else the tree default
+  const [sharing, setSharing] = useState<SharingDraft | null>(null);
+  const [shareError, setShareError] = useState<unknown>(null);
   const [date, setDate] = useState<GenealogicalDate>(emptyDate());
   const [person, setPerson] = useState<PersonSummary | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const treeDefault = tree.default_person_privacy as RecordPrivacyLevel;
+  const sensitive = VAULT_CATEGORIES.has(category) || !!person || linkTarget?.type === "person";
+  const draft: SharingDraft = sharing ?? {
+    privacy_level: sensitive || !RECORD_AUDIENCES.includes(treeDefault) ? "ONLY_ME" : treeDefault,
+    audience_branch_id: null,
+    allow_download: !sensitive,
+    members: [],
+  };
+  const sharingProblem = draftProblem(draft);
   const titleMissing = !title.trim();
   const dateInvalid = hasDate(date) && Object.keys(validateDate(date)).length > 0;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!file || titleMissing || dateInvalid) return;
+    if (!file || titleMissing || dateInvalid || sharingProblem) return;
+    setShareError(null);
     const link = linkTarget ?? (person ? { type: "person" as const, id: person.id } : null);
     upload.mutate(
       {
@@ -68,13 +88,25 @@ export function UploadDocumentDialog({
         title: title.trim(),
         description: description.trim() || undefined,
         issuing_authority: authority.trim() || undefined,
-        privacy_level: privacy || undefined,
+        // Selected members are attached right after the upload; until then it is Only me
+        privacy_level: draft.privacy_level === "SELECTED_MEMBERS" ? "ONLY_ME" : draft.privacy_level,
+        audience_branch_id: draft.privacy_level === "FAMILY_BRANCH" ? (draft.audience_branch_id ?? undefined) : undefined,
+        allow_download: draft.allow_download,
         document_date: hasDate(date) ? normalizeDate(date) : undefined,
         link_target_type: link?.type,
         link_target_id: link?.id,
       },
       {
-        onSuccess: (d) => {
+        onSuccess: async (d) => {
+          if (draft.privacy_level === "SELECTED_MEMBERS") {
+            const body: SharingUpdate = { privacy_level: "SELECTED_MEMBERS", allow_download: false, members: draft.members, confirm_wider: true };
+            try {
+              await api.put<SharingOut>(`/trees/${treeId}/documents/${d.id}/sharing`, body);
+            } catch (e) {
+              setShareError(e); // the upload stays Only me: safe; the owner can share from its page
+              return;
+            }
+          }
           onUploaded?.(d);
           onClose();
         },
@@ -138,20 +170,18 @@ export function UploadDocumentDialog({
           <Field label={t("documents.title")} required error={submitted && titleMissing ? t("common.required") : null}>
             {(p) => <TextInput {...p} value={title} onChange={(e) => setTitle(e.target.value)} />}
           </Field>
-          <Field label={t("privacy.level")} hint={t("documents.privacyHint")}>
-            {(p) => (
-              <Select {...p} value={privacy} onChange={(e) => setPrivacy(e.target.value as PrivacyLevel | "")}>
-                <option value="">{t("documents.privacyDefault")}</option>
-                {PRIVACY_LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {t(`enum.privacy.${l}`)}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
           <Field label={t("documents.issuingAuthority")}>{(p) => <TextInput {...p} value={authority} onChange={(e) => setAuthority(e.target.value)} />}</Field>
         </div>
+        <Fieldset legend={t("sharing.title")} description={`${t("documents.privacyHint")} ${t("sharing.uploadNote")}`}>
+          <VisibilitySharing
+            value={draft}
+            onChange={setSharing}
+            members={members.data ?? []}
+            branches={branches.data ?? []}
+            ownMembershipId={members.data?.find((m) => m.user_id === me.data?.id)?.id ?? null}
+            showProblems={submitted}
+          />
+        </Fieldset>
         <GenealogicalDateEditor legend={t("documents.date")} value={date} onChange={setDate} showErrors={submitted && hasDate(date)} />
         <Field label={t("documents.description")}>{(p) => <TextArea {...p} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />}</Field>
         {linkTarget ? (
@@ -166,7 +196,7 @@ export function UploadDocumentDialog({
             {specific}
           </p>
         )}
-        {!specific && <ErrorAlert error={upload.error} />}
+        {!specific && <ErrorAlert error={upload.error || shareError} />}
       </form>
     </Dialog>
   );

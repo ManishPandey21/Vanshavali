@@ -73,7 +73,8 @@
     "reminders": "Reminders",
     "review": "Review",
     "traditions": "Traditions",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "collections": "Photo collections"
   },
   "auth": {
     "createAccount": "Create account",
@@ -1574,6 +1575,23 @@
       "recipe": "Recipe",
       "story": "Story",
       "other": "Other"
+    },
+    "recordPrivacy": {
+      "ONLY_ME": "Only me",
+      "SELECTED_MEMBERS": "Selected members",
+      "FAMILY_BRANCH": "Selected branch",
+      "TREE_MEMBERS": "All family members",
+      "PRIVATE_SELF": "Me and the tree owner (older setting)",
+      "PRIVATE_TREE_ADMINS": "Admins and custodians",
+      "INVITED_RESEARCHER": "Members and researchers",
+      "PUBLIC_DECEASED_ONLY": "Public",
+      "CUSTOM": "Selected members and admins (older setting)"
+    },
+    "recordPrivacyHint": {
+      "ONLY_ME": "Nobody else, whatever their role — not even tree admins.",
+      "SELECTED_MEMBERS": "Only the family members you choose below.",
+      "FAMILY_BRANCH": "Members of one family branch, and the family admins.",
+      "TREE_MEMBERS": "Everyone in this family tree except outside researchers."
     }
   },
   "documents": {
@@ -1590,12 +1608,12 @@
     "date": "Date of the document",
     "description": "Description",
     "issuingAuthority": "Issuing authority",
-    "privacyHint": "Vault categories (certificates, deeds, kundlis) are restricted to admins and custodians regardless.",
+    "privacyHint": "New certificates, deeds and kundlis, and anything about a privately kept relative, start as Only me.",
     "privacyDefault": "Default for this category",
     "linkPersonOptional": "About a person (optional)",
     "willLinkTo": "Will be linked to {{target}}.",
     "vault": "Vault",
-    "vaultHint": "Stored in the encrypted vault: only admins, document custodians and explicit grants can open the file.",
+    "vaultHint": "Stored in the encrypted vault. It starts as Only me; you choose who else can open it.",
     "scan": "Scan",
     "preview": "Preview",
     "ocr": "OCR",
@@ -2705,13 +2723,15 @@
     "inPhoto": "In the photo",
     "untag": "Remove {{name}}",
     "setCover": "Use as the cover photo",
-    "privacyInherited": "The photo gets the stricter of the event's and the person's privacy.",
+    "privacyInherited": "By default a photo is as private as the event and the people in it, and Only me when a privately kept living relative is in it.",
     "upload": "Upload photo",
     "openAlbum": "Photos of {{event}}",
     "count_one": "{{count}} photo",
     "count_other": "{{count}} photos",
     "tagged": "Tagged in other photos",
-    "openDocument": "Open in the document vault"
+    "openDocument": "Open in the document vault",
+    "chooseAudience": "Choose who can see this photo",
+    "whoCanSee": "Who can see"
   },
   "reminders": {
     "remindMe": "Remind me",
@@ -3653,7 +3673,45 @@
     "noBranch": "The whole family",
     "rationaleRequired": "Say why this change is right.",
     "reviewNotice": "Your family reviews changes to entries other people wrote. This change is sent for review.",
-    "sent": "Sent for review. The change appears once a reviewer approves it."
+    "sent": "Sent for review. The change appears once a reviewer approves it.",
+    "branchIsAudience": "Who can read it follows this branch. Change it under Visibility & sharing."
+  },
+  "sharing": {
+    "title": "Visibility & sharing",
+    "legend": "Who can see this",
+    "intro": "Choose who in the family can see this record. Only you can share it more widely.",
+    "searchMembers": "Search family members by name",
+    "noMatches": "No member matches “{{q}}”.",
+    "canView": "Can view",
+    "canDownload": "Can download",
+    "allowDownload": "Everyone who can see it may also download the original",
+    "downloadHint": "Viewing shows the preview and plays audio or video; downloading saves the original file.",
+    "branch": "Family branch",
+    "chooseBranch": "Choose a branch",
+    "whoHasAccess": "Who has access",
+    "whoHasAccessCount_one": "{{count}} person can see this",
+    "whoHasAccessCount_other": "{{count}} people can see this",
+    "access": {
+      "owner": "Owner",
+      "selected": "Selected",
+      "branch": "Branch member",
+      "family": "Family member",
+      "role": "Family admin"
+    },
+    "save": "Save sharing",
+    "saved": "Sharing updated.",
+    "confirmTitle": "Share more widely?",
+    "confirmBody_one": "{{count}} more person will be able to see or download this. Copies already downloaded cannot be recalled.",
+    "confirmBody_other": "{{count}} more people will be able to see or download this. Copies already downloaded cannot be recalled.",
+    "confirm": "Yes, share",
+    "ceiling": "Someone tagged in this record is kept private, so it can be shared no wider than “{{level}}”.",
+    "legacy": "This record uses an older setting that also lets admins or the tree owner see it. Choose a new setting to keep it to the people you pick.",
+    "readOnly": "Only the owner of this record can change who sees it.",
+    "noOwner": "The person who added this record has left the tree; it can be narrowed but not shared more widely.",
+    "uploadNote": "You can change this later from the document page.",
+    "membersRequired": "Choose at least one member.",
+    "badge": "Visible to",
+    "membersList": "Family members to share with"
   },
   "nominations": {
     "title": "Family admin nominations",
@@ -3756,5 +3814,38 @@
     "cityHint": "Tithi days depend on local sunrise; a family abroad can choose its own city.",
     "noCity": "Not chosen",
     "lunarOff": "Tithi days are switched off on this site for now."
+  },
+  "collections": {
+    "title": "Photo collections",
+    "subtitle": "Albums of family photos, shared with exactly the people you choose",
+    "new": "New collection",
+    "none": "No collections yet",
+    "noneHint": "Gather photos from the vault into a collection and choose who can see it.",
+    "newTitle": "New photo collection",
+    "newIntro": "A collection is Only me until you share it.",
+    "create": "Create collection",
+    "name": "Name",
+    "description": "Description",
+    "photosKeepTheirOwn": "Each photo keeps its own privacy: people see a photo in this collection only if they may see both.",
+    "photoCount_one": "{{count}} photo",
+    "photoCount_other": "{{count}} photos",
+    "back": "← All collections",
+    "addPhotos": "Add photos",
+    "empty": "No photos here yet",
+    "emptyHint": "Add photos you can see from the vault.",
+    "photos": "Photos in this collection",
+    "notSharedWarning_one": "{{count}} photo is kept more private than this collection: some people who see the collection will not see it.",
+    "notSharedWarning_other": "{{count}} photos are kept more private than this collection: some people who see the collection will not see them.",
+    "notSharedItem": "Not everyone who sees the collection can see this photo",
+    "removed": "Photo removed from the collection.",
+    "remove": "Remove {{name}} from the collection",
+    "added_one": "{{count}} photo added.",
+    "added_other": "{{count}} photos added.",
+    "deleteTitle": "Delete this collection?",
+    "deleteBody": "The photos stay in the vault with their own privacy.",
+    "addChosen_one": "Add {{count}} photo",
+    "addChosen_other": "Add {{count}} photos",
+    "noPhotosToAdd": "No other photos you can see.",
+    "photosToAdd": "Photos you can add"
   }
 }

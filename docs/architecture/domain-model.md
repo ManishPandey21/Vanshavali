@@ -135,6 +135,10 @@ graph LR
 | The audit log is append-only | DB trigger |
 | A life-event category refines, never replaces, the structural event type | `CATEGORY_EVENT_TYPE` (ADR-0015) |
 | An event's own privacy level gates every lookup of it (album, reminders, charts, renders) | `genealogy.service.get_event_checked` |
+| A shareable record (document, photo, recording, family tradition) has an owner membership and an audience: Only me, Selected members, Selected branch or All family members. The two private audiences admit no one by role (not owners, admins or custodians); a grant belongs to one membership and dies with it. Viewing and downloading are separate. | `document.owner_membership_id`, `access_grant.membership_id`, `authz.privacy.record_allows`, `documents.access` (ADR-0027) |
+| A record is never more visible than a protected living person tagged in it; tagging them, or making them more private, narrows it at once | `documents.sharing.enforce_ceiling` (ADR-0027 §5) |
+| An album or a standalone photo collection shows each viewer only the photos they may see (counts and cover included); a collection has its own audience and never shares its photos | `documents.access.can_view_document` on every album route (ADR-0027 §6) |
+| The owner of a document, tradition or photo collection hands it to another member only by an offer that member accepts | `pending_owner_membership_id`, `ownership.service` (ADR-0027 §2) |
 | An event photo is never more visible than its event and principal person; at most one cover per event | `lifeevents.service.inherited_privacy`, partial unique index `uq_event_media_cover` |
 | Coordinates are optional and carry a precision; restricted coordinates are coarsened for lower roles | `place.location_precision`, `place.coordinate_privacy`, `genealogy.geo` |
 | Reminders are personal and opt-in; each occurrence × lead × channel is delivered at most once | `uq_event_reminder`, `uq_notification_delivery_once` (ADR-0016) |

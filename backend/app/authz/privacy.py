@@ -3,6 +3,11 @@
 Levels are ordered from most open to most restricted:
 PUBLIC_DECEASED_ONLY ⊇ INVITED_RESEARCHER ⊇ TREE_MEMBERS ⊇ FAMILY_BRANCH ⊇ PRIVATE_TREE_ADMINS ⊇
 PRIVATE_SELF. CUSTOM = admins + explicit grants.
+
+Shareable records (documents today; ADR-0027) are evaluated by ``record_allows``: the record's owner
+always, ``ONLY_ME`` nobody else, ``SELECTED_MEMBERS`` grantees only, "Selected branch" the members of
+that branch, and every other level exactly as ``level_allows``. The two private audiences give
+**no** role-based visibility.
 """
 
 from __future__ import annotations
@@ -18,12 +23,14 @@ from app.authz.context import TreeContext
 from app.core.dates import GenealogicalDate
 from app.models import BranchMembership, Event, EventParticipant, Person
 from app.models.enums import (
+    PRIVATE_RECORD_LEVELS,
     EventType,
     GrantPermission,
     GrantResource,
     ParticipantRole,
     PrivacyLevel,
     ProfileStatus,
+    RecordPrivacyLevel,
     Role,
 )
 
@@ -200,6 +207,8 @@ def level_allows(
     grant: tuple[GrantResource, uuid.UUID] | None = None,
 ) -> bool:
     """Can the viewer see something protected at ``level`` about ``subject``?"""
+    if str(level) in {lv.value for lv in PRIVATE_RECORD_LEVELS}:
+        return False  # record-only audiences are evaluated by record_allows, never here
     level = PrivacyLevel(level)
     if ctx.public:
         return (
@@ -229,7 +238,58 @@ def level_allows(
         return bool(subject.branch_ids & ctx.viewer_branch_ids())
     if level == PrivacyLevel.TREE_MEMBERS:
         return not ctx.is_researcher_only
-    return True  # INVITED_RESEARCHER / PUBLIC_DECEASED_ONLY: any member
+    if level in (PrivacyLevel.INVITED_RESEARCHER, PrivacyLevel.PUBLIC_DECEASED_ONLY):
+        return True  # any member
+    return False  # deny by default: a level added later must be handled above
+
+
+# ---------------------------------------------------------------- shareable records (ADR-0027)
+# Openness of a record audience: higher is more restricted. Legacy levels keep their place.
+RECORD_RANK: dict[str, int] = {
+    RecordPrivacyLevel.PUBLIC_DECEASED_ONLY: 0,
+    RecordPrivacyLevel.INVITED_RESEARCHER: 1,
+    RecordPrivacyLevel.TREE_MEMBERS: 2,
+    RecordPrivacyLevel.FAMILY_BRANCH: 3,
+    RecordPrivacyLevel.PRIVATE_TREE_ADMINS: 4,
+    RecordPrivacyLevel.CUSTOM: 4,
+    RecordPrivacyLevel.SELECTED_MEMBERS: 4,
+    RecordPrivacyLevel.PRIVATE_SELF: 5,
+    RecordPrivacyLevel.ONLY_ME: 6,
+}
+
+
+def is_record_owner(ctx: TreeContext, owner_membership_id: uuid.UUID | None) -> bool:
+    """The viewer's *current* membership owns the record (a re-invited person does not)."""
+    return owner_membership_id is not None and ctx.membership_id == owner_membership_id
+
+
+def record_allows(
+    ctx: TreeContext,
+    level: RecordPrivacyLevel | PrivacyLevel | str,
+    *,
+    owner_membership_id: uuid.UUID | None,
+    audience_branch_id: uuid.UUID | None = None,
+    grant: tuple[GrantResource, uuid.UUID] | None = None,
+) -> bool:
+    """Can the viewer see a record kept at ``level``? (ADR-0027 §1)"""
+    if ctx.public or not ctx.is_member:
+        return False  # no public records in v1 (ADR-0027, open point 4)
+    if is_record_owner(ctx, owner_membership_id):
+        return True
+    level = RecordPrivacyLevel(level)
+    granted = grant is not None and ctx.has_grant(grant[0], grant[1], GrantPermission.VIEW)
+    if level == RecordPrivacyLevel.ONLY_ME:
+        return False
+    if level == RecordPrivacyLevel.SELECTED_MEMBERS:
+        return granted
+    if level == RecordPrivacyLevel.FAMILY_BRANCH and audience_branch_id is not None:
+        # ADR-0006 meaning kept: admins included (ADR-0027, open point 1)
+        return ctx.is_admin or granted or audience_branch_id in ctx.viewer_branch_ids()
+    return level_allows(ctx, PrivacyLevel(level), grant=grant)
+
+
+def is_private_record_level(level: RecordPrivacyLevel | str) -> bool:
+    return RecordPrivacyLevel(level) in PRIVATE_RECORD_LEVELS
 
 
 def can_view_person(ctx: TreeContext, subject: Subject) -> bool:

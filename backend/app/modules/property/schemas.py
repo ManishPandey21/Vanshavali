@@ -29,6 +29,7 @@ from app.models.enums import (
     PropertyClassification,
     PropertyEventType,
     PropertyType,
+    RecordPrivacyLevel,
 )
 from app.modules.genealogy.schemas import PersonSummary, ProvenanceOut
 from app.modules.property.units import AreaUnit
@@ -400,7 +401,7 @@ class DocumentRef(ApiModel):
     id: uuid.UUID
     title: str
     category: DocumentCategory
-    privacy_level: PrivacyLevel
+    privacy_level: RecordPrivacyLevel
     linked_to: DocumentLinkTarget
     linked_id: uuid.UUID
     note: str | None = None

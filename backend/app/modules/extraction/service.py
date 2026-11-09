@@ -98,6 +98,7 @@ def list_proposals(
 def reprocess(ctx: TreeContext, document_id: uuid.UUID) -> ReprocessOut:
     ctx.require(Permission.DOCUMENT_MANAGE)
     doc = _content_doc(ctx, document_id)
+    access.require_owner_if_private(ctx, doc)
     from app.modules.documents.previews import supports_preview
     from app.modules.documents.service import schedule_processing
 
@@ -131,6 +132,7 @@ def review(ctx: TreeContext, proposal_id: uuid.UUID, body: ReviewIn) -> Extracti
     ctx.require(Permission.EXTRACTION_REVIEW)
     p = lookup.get_in_tree(ctx, ExtractionProposal, proposal_id, "Proposal")
     doc = _content_doc(ctx, p.document_id)
+    access.require_owner_if_private(ctx, doc)
     if p.status != ProposalStatus.PENDING:
         raise Conflict("This proposal has already been reviewed", code="already_reviewed")
     now = dt.datetime.now(dt.UTC)

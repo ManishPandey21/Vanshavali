@@ -42,11 +42,30 @@ member's membership (ADR-0027 §3): it is deleted with it (removed, or account c
 same person again does not restore it, and it can never name a member of another tree. Privacy
 managers see, create and revoke grants only on records they can see themselves (threat T53).
 
-> **Accepted (ADR-0027), being implemented.** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
-> cannot yet be shared with chosen members only. ADR-0027 proposes two record-only audiences,
-> `ONLY_ME` and `SELECTED_MEMBERS`, with no role-based visibility; membership-bound grants; separate
-> view and download; and ceilings from consent and tagged people. The current gaps are listed in the
-> threat model, §5.
+**Shareable records (ADR-0027).** Documents, photos, recordings and family traditions take a
+record audience instead (traditions have no separate download right):
+
+| Audience (`document.privacy_level`) | Who can see it |
+|---|---|
+| `ONLY_ME` | The record's owner (their *current* membership). Nobody else, whatever their role. |
+| `SELECTED_MEMBERS` | The owner and memberships holding a grant on it. No role-based access. |
+| `FAMILY_BRANCH` + `audience_branch_id` | The owner, members of that branch, family admins (ADR-0006's meaning) and grantees. |
+| `TREE_MEMBERS` | Every member except researcher-only memberships. |
+| legacy levels | As above for people; `CUSTOM`/`PRIVATE_SELF` keep their old meaning until the owner converts them. |
+
+*View* (metadata, thumbnail, preview, playback) and *download* (the original, ZIP and video exports)
+are separate: viewers download only when `allow_download` is on or they hold a `download` grant. New
+vault documents and records tagged with a protected living person start as `ONLY_ME` without
+download. A record is never more open than any protected person tagged in it. Grants belong to one
+membership and are deleted with it; no record is public in v1.
+A photo in an event's album is never more visible than the event or a protected person in it, and
+becomes more private when the event does; each viewer sees only the album photos they may see.
+A standalone photo collection has its own audience (new collections are Only me); a viewer sees a
+photo in it only if they may see both, and sharing a collection never shares its photos.
+Ownership of a document, tradition or collection moves only when its owner offers it to another
+member and that member accepts; an offer gives no access, and a record whose owner left cannot be
+claimed by anyone. Members a private record is shared with only read it: the owner alone edits,
+withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

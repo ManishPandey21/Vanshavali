@@ -107,6 +107,16 @@ export type PublicTreeOut = S["PublicTreeOut"];
 export type Message = S["Message"];
 
 export type DocumentOut = S["DocumentOut"];
+export type RecordPrivacyLevel = S["RecordPrivacyLevel"];
+export type SharingOut = S["SharingOut"];
+export type SharingUpdate = S["SharingUpdate"];
+export type SharingMemberOut = S["SharingMemberOut"];
+export type SharingMemberIn = S["SharingMemberIn"];
+export type CollectionIn = S["CollectionIn"];
+export type CollectionOut = S["CollectionOut"];
+export type CollectionSummaryOut = S["CollectionSummaryOut"];
+export type CollectionItemOut = S["CollectionItemOut"];
+export type CollectionItemUpdate = S["CollectionItemUpdate"];
 export type DocumentUpdate = S["DocumentUpdate"];
 export type DocumentLinkIn = S["DocumentLinkIn"];
 export type DocumentLinkOut = S["DocumentLinkOut"];

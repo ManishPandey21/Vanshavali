@@ -13,9 +13,9 @@ from app.models.enums import (
     DerivativeKind,
     DocumentCategory,
     DocumentLinkTarget,
-    PrivacyLevel,
     ProcessingStatus,
     ProposalStatus,
+    RecordPrivacyLevel,
     ScanStatus,
     StorageClass,
 )
@@ -28,6 +28,10 @@ class Document(TreeScopedMixin, Base):
         # Not unique: identical files may exist independently when one is hidden from the uploader
         # (SEC-10). Duplicate uploads of *visible* files are refused in the service layer.
         Index("ix_document_tree_checksum", "tree_id", "checksum_sha256"),
+        # ADR-0027 §2: the content owner is a membership; leaving the tree orphans the record
+        tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["audience_branch_id"], "family_branch", ondelete="SET NULL"),
     )
 
     category: Mapped[DocumentCategory] = mapped_column(enum_column(DocumentCategory))
@@ -44,7 +48,14 @@ class Document(TreeScopedMixin, Base):
     language: Mapped[str | None] = mapped_column(String(16))
     script: Mapped[str | None] = mapped_column(String(20))
     issuing_authority: Mapped[str | None] = mapped_column(String(300))
-    privacy_level: Mapped[PrivacyLevel] = mapped_column(enum_column(PrivacyLevel))
+    privacy_level: Mapped[RecordPrivacyLevel] = mapped_column(enum_column(RecordPrivacyLevel, "privacylevel"))
+    # ADR-0027: who owns the record, which branch "Selected branch" means, and whether viewers may
+    # also download the original (view = metadata, thumbnail, preview, playback)
+    owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    # ADR-0027 §2: a member the owner offered the record to, until they accept or decline
+    pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    audience_branch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    allow_download: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     retention_policy: Mapped[str] = mapped_column(String(40), default="retain", server_default="retain")
     scan_status: Mapped[ScanStatus] = mapped_column(enum_column(ScanStatus), default=ScanStatus.PENDING)
     scan_engine: Mapped[str | None] = mapped_column(String(80))

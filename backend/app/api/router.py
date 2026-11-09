@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from app.modules.archive.router import router as archive_router
 from app.modules.astrology.router import router as astrology_router
 from app.modules.calendar.router import router as calendar_router
+from app.modules.collections.router import router as collections_router
 from app.modules.consent.attestation import router as attestation_router
 from app.modules.consent.claim_invites import router as claim_invites_router
 from app.modules.consent.router import router as consent_router
@@ -26,6 +27,7 @@ from app.modules.masterdata.router import router as masterdata_router
 from app.modules.merge.router import router as merge_router
 from app.modules.notifications.router import router as reminders_router
 from app.modules.notifications.router import user_router as notifications_user_router
+from app.modules.ownership.router import router as ownership_router
 from app.modules.property.router import router as property_router
 from app.modules.public.router import router as public_router
 from app.modules.render.router import files_router as render_files_router
@@ -41,6 +43,7 @@ from app.modules.visualization.router import router as visualization_router
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(trees_router)
+api_router.include_router(ownership_router)
 api_router.include_router(genealogy_router)
 api_router.include_router(smartadd_router)
 api_router.include_router(masterdata_router)
@@ -59,6 +62,7 @@ api_router.include_router(public_router)
 api_router.include_router(evidence_router)
 api_router.include_router(heritage_router)
 api_router.include_router(traditions_router)
+api_router.include_router(collections_router)
 api_router.include_router(family_router)
 api_router.include_router(search_router)
 api_router.include_router(consent_router)
