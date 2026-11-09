@@ -18262,12 +18262,35 @@
      "privacy_level": {
       "anyOf": [
        {
-        "$ref": "#/components/schemas/PrivacyLevel"
+        "$ref": "#/components/schemas/RecordPrivacyLevel"
        },
        {
         "type": "null"
        }
       ]
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "allow_download": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Allow Download"
      }
     },
     "type": "object",

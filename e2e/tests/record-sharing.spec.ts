@@ -133,3 +133,33 @@ test("a family tradition kept for Only me, then shared with one member", async (
   expect(await status(asha, base, `/trees/${treeId}/traditions/${entryId}`)).toBe(200);
   expect(await status(admin, base, `/trees/${treeId}/traditions/${entryId}`)).toBe(404);
 });
+
+test("an album photo kept for Only me is left out of the album for everyone else", async ({ browser, context, baseURL }) => {
+  const base = baseURL!;
+  const { treeId } = await registerWithTree(context, base, "Shukla parivar", "Tree Owner");
+  const uploader = await join(browser, base, context, treeId, "Uploader Mama", ["CONTRIBUTOR"]);
+  const viewer = await join(browser, base, context, treeId, "Viewer Bhai", ["VIEWER"]);
+  const nana = await api<{ id: string }>(context, "POST", `/trees/${treeId}/people`, { profile_status: "deceased", names: [{ given_name: "Ramesh", surname: "Shukla", is_preferred: true }] }, base);
+  const ev = await api<{ id: string }>(context, "POST", `/trees/${treeId}/events`, { category: "pilgrimage", title: "Kashi yatra", participants: [{ person_id: nana.id, role: "principal" }] }, base);
+
+  const page = await uploader.newPage();
+  await page.goto(`/t/${treeId}/people/${nana.id}?tab=events`);
+  await page.getByRole("article", { name: "Kashi yatra" }).getByRole("button", { name: "Photos of Kashi yatra" }).first().click();
+  const album = page.getByRole("dialog", { name: "Photos: Kashi yatra" });
+  await album.locator("input[type=file]").setInputFiles({ name: "ghat.png", mimeType: "image/png", buffer: await renderTextPng(browser, ["Ghat, 1984"]) });
+  await album.getByLabel("Caption").fill("Nana at the ghat");
+  await album.getByRole("checkbox", { name: "Choose who can see this photo" }).check();
+  await album.getByRole("radio", { name: "Only me" }).check();
+  await album.getByRole("button", { name: "Upload photo" }).click();
+  const photos = album.getByRole("list", { name: "Photos" });
+  await expect(photos).toContainText("Nana at the ghat");
+  await expect(photos).toContainText("Only me"); // the privacy badge on the photo
+  await expect(photos.getByRole("link", { name: "Who can see" })).toBeVisible();
+
+  for (const ctx of [viewer, context]) {
+    const items = await api<{ document_id: string }[]>(ctx, "GET", `/trees/${treeId}/events/${ev.id}/media`, undefined, base);
+    expect(items).toHaveLength(0);
+    const got = await api<{ media_count: number }>(ctx, "GET", `/trees/${treeId}/events/${ev.id}`, undefined, base);
+    expect(got.media_count).toBe(0);
+  }
+});

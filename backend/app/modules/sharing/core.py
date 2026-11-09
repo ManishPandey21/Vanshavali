@@ -75,6 +75,35 @@ def caps_for_people(ctx: TreeContext, person_ids: list[uuid.UUID]) -> list[Cap]:
     return [c for c in caps if c is not None]
 
 
+def event_cap(ctx: TreeContext, event: Any) -> Cap | None:
+    """The widest audience a photo in ``event``'s album may have (ADR-0027 §5.3, ADR-0015): the
+    event's own level, or None when the event has none (it then follows its people)."""
+    if event.privacy_level is None:
+        return None
+    level = PrivacyLevel(event.privacy_level)
+    if level in (PrivacyLevel.PRIVATE_SELF, PrivacyLevel.PRIVATE_TREE_ADMINS, PrivacyLevel.CUSTOM):
+        return Cap(L.SELECTED_MEMBERS)
+    if level == PrivacyLevel.FAMILY_BRANCH:
+        from app.models import EventParticipant
+        from app.models.enums import ParticipantRole
+
+        principals = list(
+            ctx.db.scalars(
+                select(EventParticipant.person_id).where(
+                    EventParticipant.tree_id == ctx.tree_id,
+                    EventParticipant.event_id == event.id,
+                    EventParticipant.role == ParticipantRole.PRINCIPAL,
+                )
+            )
+        )
+        persons = ctx.db.scalars(
+            select(Person).where(Person.tree_id == ctx.tree_id, Person.id.in_(principals))
+        ).all()
+        branches = frozenset(b for s in load_subjects(ctx, persons).values() for b in s.branch_ids)
+        return Cap(L.FAMILY_BRANCH, branches) if branches else Cap(L.SELECTED_MEMBERS)
+    return Cap(L.TREE_MEMBERS)
+
+
 def within(level: RecordPrivacyLevel | str, branch: uuid.UUID | None, caps: list[Cap]) -> bool:
     level = L(level)
     for cap in caps:
@@ -155,6 +184,13 @@ class RecordAdapter(ABC):
 
     @abstractmethod
     def linked_people(self, ctx: TreeContext) -> list[uuid.UUID]: ...
+
+    def extra_caps(self, ctx: TreeContext) -> list[Cap]:
+        """Ceilings other than linked people (e.g. the event of an album photo)."""
+        return []
+
+    def caps(self, ctx: TreeContext) -> list[Cap]:
+        return caps_for_people(ctx, self.linked_people(ctx)) + self.extra_caps(ctx)
 
     @abstractmethod
     def can_view(self, mctx: TreeContext, p: Proposal) -> bool:
@@ -244,7 +280,7 @@ def sharing_out(ctx: TreeContext, rec: RecordAdapter, p: Proposal | None = None)
     p = p or rec.current(ctx)
     editable = rec.can_edit(ctx)
     owner = rec.is_owner(ctx)
-    caps = caps_for_people(ctx, rec.linked_people(ctx))
+    caps = rec.caps(ctx)
     members: list[SharingMemberOut] = []
     people: list[SharingMemberOut] = []
     if editable:
@@ -340,7 +376,7 @@ def require_editable(ctx: TreeContext, rec: RecordAdapter) -> None:
 
 
 def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider: bool) -> None:
-    caps = caps_for_people(ctx, rec.linked_people(ctx))
+    caps = rec.caps(ctx)
     if not within(new.privacy_level, new.audience_branch_id, caps):
         raise Unprocessable(
             "A person tagged in this record is kept more private; it cannot be shared this widely",
@@ -390,7 +426,7 @@ def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider:
 
 def enforce_ceiling(ctx: TreeContext, rec: RecordAdapter, *, reason: str) -> bool:
     """Narrow the record if a linked protected person no longer allows its audience. Audited."""
-    caps = caps_for_people(ctx, rec.linked_people(ctx))
+    caps = rec.caps(ctx)
     if not caps or within(rec.level, rec.audience_branch(), caps):
         return False
     old = rec.level
@@ -450,6 +486,13 @@ def replace_grants(
                 created_by=ctx.user_id,
             )
         )
+
+
+def enforce_event_ceiling(ctx: TreeContext, event_id: uuid.UUID) -> int:
+    """After an event's privacy changed: narrow every photo in its album that is now too open."""
+    from app.modules.documents.sharing import records_in_album
+
+    return sum(enforce_ceiling(ctx, r, reason="event_privacy") for r in records_in_album(ctx, event_id))
 
 
 # ---------------------------------------------------------------- person privacy → every linked record

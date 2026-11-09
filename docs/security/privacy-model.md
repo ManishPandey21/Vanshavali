@@ -58,6 +58,8 @@ are separate: viewers download only when `allow_download` is on or they hold a `
 vault documents and records tagged with a protected living person start as `ONLY_ME` without
 download. A record is never more open than any protected person tagged in it. Grants belong to one
 membership and are deleted with it; no record is public in v1.
+A photo in an event's album is never more visible than the event or a protected person in it, and
+becomes more private when the event does; each viewer sees only the album photos they may see.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
