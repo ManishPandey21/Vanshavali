@@ -389,15 +389,19 @@ def create_grant(
     if membership_id is None:
         raise NotFound("Grants can only be given to members of this tree")
     if not manageable_grant_resources(ctx, [(resource_type, resource_id)]):
-        if not ctx.has(Permission.PRIVACY_MANAGE) and resource_type != GrantResource.DOCUMENT:
+        if not ctx.has(Permission.PRIVACY_MANAGE) and resource_type not in (
+            GrantResource.DOCUMENT,
+            GrantResource.TRADITION,
+        ):
             raise Forbidden()
         raise NotFound("Resource not found")
-    if resource_type == GrantResource.DOCUMENT:
-        from app.models import Document
+    if resource_type in (GrantResource.DOCUMENT, GrantResource.TRADITION):
+        from app.models import Document, TraditionEntry
         from app.models.enums import RecordPrivacyLevel
 
+        model = Document if resource_type == GrantResource.DOCUMENT else TraditionEntry
         level = ctx.db.scalar(
-            select(Document.privacy_level).where(Document.tree_id == ctx.tree_id, Document.id == resource_id)
+            select(model.privacy_level).where(model.tree_id == ctx.tree_id, model.id == resource_id)  # type: ignore[attr-defined]
         )
         if level == RecordPrivacyLevel.ONLY_ME:
             raise Conflict(
@@ -457,6 +461,19 @@ def manageable_grant_resources(
             for d in docs
             if can_view_document(ctx, d)
             and (is_owner(ctx, d) or (manager and not is_private_record_level(d.privacy_level)))
+        }
+    if ids := wanted.get(GrantResource.TRADITION):
+        from app.models import TraditionEntry
+        from app.modules.traditions import sharing as tsharing
+
+        entries = ctx.db.scalars(
+            select(TraditionEntry).where(TraditionEntry.tree_id == ctx.tree_id, TraditionEntry.id.in_(ids))
+        )
+        ok |= {
+            (GrantResource.TRADITION, e.id)
+            for e in entries
+            if tsharing.entry_allows(ctx, e)
+            and (tsharing.is_owner(ctx, e) or (manager and not is_private_record_level(e.privacy_level)))
         }
     if manager and (ids := wanted.get(GrantResource.PROPERTY)):
         props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))

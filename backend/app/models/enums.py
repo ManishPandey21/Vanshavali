@@ -543,6 +543,7 @@ class GrantResource(StrEnum):
     PERSON = "person"
     DOCUMENT = "document"
     PROPERTY = "property"
+    TRADITION = "tradition"  # ADR-0027: family traditions archive entries
 
 
 class JobStatus(StrEnum):

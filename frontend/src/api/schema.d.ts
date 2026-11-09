@@ -2497,6 +2497,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/traditions/{entry_id}/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sharing
+         * @description The entry's audience. Who has access is listed only to those who may change it.
+         */
+        get: operations["get_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_get"];
+        /**
+         * Update Sharing
+         * @description Change who can read the entry. Widening needs ``confirm_wider`` (409 otherwise).
+         */
+        put: operations["update_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/traditions/{entry_id}/sharing/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Sharing
+         * @description Who would have access with these settings. Changes nothing.
+         */
+        post: operations["preview_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/branches": {
         parameters: {
             query?: never;
@@ -5973,7 +6017,7 @@ export interface components {
          * GrantResource
          * @enum {string}
          */
-        GrantResource: "person" | "document" | "property";
+        GrantResource: "person" | "document" | "property" | "tradition";
         /** GraphEdge */
         GraphEdge: {
             /** Source */
@@ -10412,7 +10456,7 @@ export interface components {
             /** Branch Id */
             branch_id?: string | null;
             /** @default TREE_MEMBERS */
-            privacy_level?: components["schemas"]["PrivacyLevel"];
+            privacy_level?: components["schemas"]["RecordPrivacyLevel"];
             /**
              * Links
              * @default []
@@ -10432,7 +10476,7 @@ export interface components {
             script?: string | null;
             /** Branch Id */
             branch_id?: string | null;
-            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            privacy_level?: components["schemas"]["RecordPrivacyLevel"] | null;
             /** Links */
             links?: components["schemas"]["TraditionLinkIn"][] | null;
         };
@@ -10504,7 +10548,7 @@ export interface components {
             script: string | null;
             /** Branch Id */
             branch_id: string | null;
-            privacy_level: components["schemas"]["PrivacyLevel"];
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
             /** Author Name */
             author_name: string | null;
             /**
@@ -10544,6 +10588,16 @@ export interface components {
              * @default false
              */
             can_withdraw?: boolean;
+            /**
+             * Is Owner
+             * @default false
+             */
+            is_owner?: boolean;
+            /**
+             * Can Edit Sharing
+             * @default false
+             */
+            can_edit_sharing?: boolean;
         };
         /** TraditionRevisionOut */
         TraditionRevisionOut: {
@@ -10596,7 +10650,7 @@ export interface components {
             script: string | null;
             /** Branch Id */
             branch_id: string | null;
-            privacy_level: components["schemas"]["PrivacyLevel"];
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
             /** Author Name */
             author_name: string | null;
             /**
@@ -16847,6 +16901,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TraditionRevisionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
                 };
             };
             /** @description Validation Error */

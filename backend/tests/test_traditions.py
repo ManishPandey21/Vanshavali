@@ -114,7 +114,9 @@ def test_privacy_levels(owner, tree, member_factory):
 
 def test_links_never_widen_privacy_or_name_hidden_people(owner, tree, member_factory):
     t = tree["id"]
-    living = create_person(owner, t, "Asha", status="living", privacy_level="PRIVATE_TREE_ADMINS")
+    # deceased: hidden from viewers, but it does not cap the entry (a protected living person would
+    # narrow it, ADR-0027 §5: test_traditions_sharing.py::test_linking_a_private_living_person_narrows)
+    living = create_person(owner, t, "Asha", status="deceased", privacy_level="PRIVATE_TREE_ADMINS")
     elder = create_person(owner, t, "Kamla")
     place = owner.post(f"/trees/{t}/places", json={"canonical_name": "Banaras", "place_type": "city"}).json()
     e = _new(

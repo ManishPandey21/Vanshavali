@@ -95,3 +95,41 @@ test("a photo shared with selected members is seen only by them, everywhere", as
   await expect(confirm).toHaveCount(0);
   expect(await status(ravi, base, `/trees/${treeId}/documents/${docId}`)).toBe(200);
 });
+
+test("a family tradition kept for Only me, then shared with one member", async ({ browser, context, baseURL }) => {
+  const base = baseURL!;
+  const { treeId } = await registerWithTree(context, base, "Tiwari parivar", "Tree Owner");
+  const author = await join(browser, base, context, treeId, "Author Bua", ["CONTRIBUTOR"]);
+  const asha = await join(browser, base, context, treeId, "Asha Tiwari", ["VIEWER"]);
+  const admin = await join(browser, base, context, treeId, "Family Admin", ["FAMILY_ADMIN"]);
+
+  const page = await author.newPage();
+  await page.goto(`/t/${treeId}/traditions`);
+  await page.getByRole("button", { name: "Add a tradition" }).first().click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel(/^Title/).fill("Nani's teej songs");
+  await dialog.getByRole("radio", { name: "Only me" }).check();
+  await expect(dialog.getByRole("checkbox", { name: "Can download" })).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("heading", { name: "Nani's teej songs", level: 1 })).toBeVisible();
+  const entryId = page.url().split("/traditions/")[1].split(/[?#/]/)[0];
+
+  // the tree owner and a family admin cannot reach it by URL, list or API
+  for (const ctx of [context, admin, asha]) {
+    expect(await status(ctx, base, `/trees/${treeId}/traditions/${entryId}`)).toBe(404);
+    const listed = await api<{ items: { id: string }[] }>(ctx, "GET", `/trees/${treeId}/traditions`, undefined, base);
+    expect(listed.items.map((e) => e.id)).not.toContain(entryId);
+  }
+
+  // the author shares it with Asha; widening asks for confirmation first
+  const panel = page.getByRole("region", { name: /Visibility & sharing/ });
+  await panel.getByRole("radio", { name: "Selected members" }).check();
+  await panel.getByRole("list", { name: "Family members to share with" }).getByRole("listitem").filter({ hasText: "Asha Tiwari" }).getByRole("checkbox", { name: "Can view" }).check();
+  await expect(panel.getByTestId("sharing-audience").getByText(/Asha Tiwari · Selected/)).toBeVisible();
+  await panel.getByRole("button", { name: "Save sharing" }).click();
+  const confirm = page.getByRole("dialog", { name: "Share more widely?" });
+  await confirm.getByRole("button", { name: "Yes, share" }).click();
+  await expect(confirm).toHaveCount(0);
+  expect(await status(asha, base, `/trees/${treeId}/traditions/${entryId}`)).toBe(200);
+  expect(await status(admin, base, `/trees/${treeId}/traditions/${entryId}`)).toBe(404);
+});

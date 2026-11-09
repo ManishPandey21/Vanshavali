@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Share2 } from "lucide-react";
 import type { DocumentOut, SharingUpdate } from "../../api/types";
 import { ApiError } from "../../api/client";
-import { useSharing, useSharingPreview, useUpdateSharing } from "../../api/hooks/documents";
+import { useSharing, useSharingPreview, useUpdateSharing } from "../../api/hooks/sharing";
 import { useMembers } from "../../api/hooks/trees";
 import { useBranches } from "../../api/hooks/family";
 import { useMe } from "../../api/hooks/auth";
@@ -24,22 +24,29 @@ function toBody(d: SharingDraft, confirm = false): SharingUpdate {
   };
 }
 
-/**
- * Visibility & Sharing on a document page (ADR-0027 §9). The owner (or, for shared records, a
- * document manager narrowing it) edits a draft; the server previews exactly who would have access,
- * and asks for confirmation before anyone new can see or download the record.
- */
+/** Visibility & Sharing on a document page. */
 export function DocumentSharingPanel({ doc }: { doc: DocumentOut }) {
+  return <RecordSharingPanel path={`documents/${doc.id}`} />;
+}
+
+/**
+ * Visibility & Sharing on a record's page (ADR-0027 §9). The owner (or, for shared records, a
+ * manager narrowing it) edits a draft; the server previews exactly who would have access, and asks
+ * for confirmation before anyone new can see or download the record. `downloads` is false for
+ * records without a separate download right (traditions are text).
+ */
+export function RecordSharingPanel({ path, downloads = true }: { path: string; downloads?: boolean }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
-  const sharing = useSharing(treeId, doc.id);
+  const sharing = useSharing(treeId, path);
   const members = useMembers(treeId);
   const branches = useBranches(treeId);
   const me = useMe();
-  const save = useUpdateSharing(treeId, doc.id);
+  const save = useUpdateSharing(treeId, path);
   const [draft, setDraft] = useState<SharingDraft | null>(null);
   const [confirmCount, setConfirmCount] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
+  const headingId = `sharing-${path.replace(/[^a-z0-9-]/gi, "-")}`;
 
   useEffect(() => {
     if (sharing.data && draft === null) setDraft(draftFrom(sharing.data));
@@ -50,7 +57,7 @@ export function DocumentSharingPanel({ doc }: { doc: DocumentOut }) {
     [draft, sharing.data],
   );
   const valid = !!draft && draftProblem(draft) === null;
-  const preview = useSharingPreview(treeId, doc.id, dirty && valid && draft ? toBody(draft) : null);
+  const preview = useSharingPreview(treeId, path, dirty && valid && draft ? toBody(draft) : null);
 
   if (sharing.isLoading || !draft) return sharing.error ? <ErrorAlert error={sharing.error} /> : <Spinner />;
   const s = sharing.data!;
@@ -76,8 +83,8 @@ export function DocumentSharingPanel({ doc }: { doc: DocumentOut }) {
   const confirmError = save.error instanceof ApiError && save.error.code === "confirm_wider" ? null : save.error;
 
   return (
-    <section className="card space-y-3 p-4" aria-labelledby={`sharing-${doc.id}`}>
-      <h2 id={`sharing-${doc.id}`} className="flex flex-wrap items-center gap-2 font-display text-base font-semibold">
+    <section className="card space-y-3 p-4" aria-labelledby={headingId}>
+      <h2 id={headingId} className="flex flex-wrap items-center gap-2 font-display text-base font-semibold">
         <Share2 className="size-4 text-kumkum-700" aria-hidden /> {t("sharing.title")}
         <RecordPrivacyBadge level={s.privacy_level} />
       </h2>
@@ -99,6 +106,7 @@ export function DocumentSharingPanel({ doc }: { doc: DocumentOut }) {
             ceiling={s.ceiling}
             audience={audience}
             canWiden={s.can_widen}
+            downloads={downloads}
             showProblems={dirty}
           />
           <ErrorAlert error={confirmError || (dirty && valid ? preview.error : null)} />

@@ -42,7 +42,8 @@ member's membership (ADR-0027 §3): it is deleted with it (removed, or account c
 same person again does not restore it, and it can never name a member of another tree. Privacy
 managers see, create and revoke grants only on records they can see themselves (threat T53).
 
-**Shareable records (ADR-0027).** Documents, photos and recordings take a record audience instead:
+**Shareable records (ADR-0027).** Documents, photos, recordings and family traditions take a
+record audience instead (traditions have no separate download right):
 
 | Audience (`document.privacy_level`) | Who can see it |
 |---|---|

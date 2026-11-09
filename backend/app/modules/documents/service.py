@@ -579,7 +579,7 @@ def _change_level(ctx: TreeContext, doc: Document, level: RecordPrivacyLevel) ->
         return
     if not sharing.can_edit(ctx, doc):
         raise Forbidden("You cannot change who can see this record")
-    current = sharing._current(ctx, doc)
+    current = sharing.current(ctx, doc)
     if level in (RecordPrivacyLevel.ONLY_ME,):
         current.members = {}
     new = sharing.Proposal(

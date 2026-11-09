@@ -8,7 +8,7 @@ import uuid
 from pydantic import Field, field_validator
 
 from app.api.schemas import ApiModel
-from app.models.enums import PrivacyLevel, ReviewState, TraditionKind, TraditionLinkTarget
+from app.models.enums import RecordPrivacyLevel, ReviewState, TraditionKind, TraditionLinkTarget
 
 MAX_BODY = 50_000
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
@@ -56,7 +56,7 @@ class TraditionEntryIn(_TraditionFields):
     language: str | None = Field(default=None, pattern=r"^[a-z]{2,3}$")
     script: str | None = Field(default=None, pattern=r"^[A-Z][a-z]{3}$")
     branch_id: uuid.UUID | None = None
-    privacy_level: PrivacyLevel = PrivacyLevel.TREE_MEMBERS
+    privacy_level: RecordPrivacyLevel = RecordPrivacyLevel.TREE_MEMBERS
     links: list[TraditionLinkIn] = Field(default=[], max_length=50)
 
 
@@ -67,7 +67,7 @@ class TraditionEntryUpdate(_TraditionFields):
     language: str | None = Field(default=None, pattern=r"^[a-z]{2,3}$")
     script: str | None = Field(default=None, pattern=r"^[A-Z][a-z]{3}$")
     branch_id: uuid.UUID | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: RecordPrivacyLevel | None = None
     links: list[TraditionLinkIn] | None = Field(default=None, max_length=50)
 
 
@@ -85,7 +85,7 @@ class TraditionSummaryOut(ApiModel):
     language: str | None
     script: str | None
     branch_id: uuid.UUID | None
-    privacy_level: PrivacyLevel
+    privacy_level: RecordPrivacyLevel
     author_name: str | None
     updated_at: dt.datetime
 
@@ -101,6 +101,8 @@ class TraditionOut(TraditionSummaryOut):
     can_edit: bool = False
     edit_needs_review: bool = False
     can_withdraw: bool = False
+    is_owner: bool = False
+    can_edit_sharing: bool = False  # may open Visibility & Sharing (ADR-0027)
 
 
 class TraditionsOut(ApiModel):

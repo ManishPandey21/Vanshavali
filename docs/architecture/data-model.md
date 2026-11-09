@@ -106,7 +106,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 |---|---|---|---|
 | `membership_id` | UUID | no | → tree_membership (composite, same tree) |
 | `user_id` | UUID | no | → app_user |
-| `resource_type` | enum(person, document, property) | no |  |
+| `resource_type` | enum(person, document, property, tradition) | no |  |
 | `resource_id` | UUID | no |  |
 | `permission` | enum(view, download) | no |  |
 | `expires_at` | DATETIME | yes |  |
@@ -578,7 +578,8 @@ Constraints/indexes: `UNIQUE (tree_id, pattern, lang, branch_id)`; `UNIQUE (tree
 | `language` | VARCHAR(16) | yes |  |
 | `script` | VARCHAR(16) | yes |  |
 | `branch_id` | UUID | yes | → family_branch (composite, same tree) |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(ONLY_ME, SELECTED_MEMBERS, PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, …) | no |  |
+| `owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `search_text` | TEXT | no |  |
 | `withdrawn_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
@@ -592,7 +593,7 @@ Constraints/indexes: `UNIQUE (tree_id, pattern, lang, branch_id)`; `UNIQUE (tree
 | `review_state_by` | UUID | yes |  |
 | `review_state_at` | DATETIME | yes |  |
 
-Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tradition_entry_search_trgm (search_text)`; `INDEX ix_tradition_entry_tree_id (tree_id)`; `INDEX ix_tradition_entry_tree_kind (tree_id, kind)`
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tradition_entry_owner_membership_id (owner_membership_id)`; `INDEX ix_tradition_entry_search_trgm (search_text)`; `INDEX ix_tradition_entry_tree_id (tree_id)`; `INDEX ix_tradition_entry_tree_kind (tree_id, kind)`
 
 ### `tradition_link`
 

@@ -3663,7 +3663,8 @@
     "noBranch": "The whole family",
     "rationaleRequired": "Say why this change is right.",
     "reviewNotice": "Your family reviews changes to entries other people wrote. This change is sent for review.",
-    "sent": "Sent for review. The change appears once a reviewer approves it."
+    "sent": "Sent for review. The change appears once a reviewer approves it.",
+    "branchIsAudience": "Who can read it follows this branch. Change it under Visibility & sharing."
   },
   "sharing": {
     "title": "Visibility & sharing",
