@@ -61,3 +61,67 @@ def test_upgrade_check_downgrade_roundtrip():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{DB}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_orphaned_access_grants_are_deleted():
+    """7b3e9d2c4f61: grants left behind by removed members are deleted; members' grants stay."""
+    import uuid
+
+    db = DB + "_grants"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "6a1d9c3e5f27")
+        engine = create_engine(url)
+        tree_id, other_tree = uuid.uuid4(), uuid.uuid4()
+        member, leaver = uuid.uuid4(), uuid.uuid4()
+        doc = uuid.uuid4()
+        with engine.begin() as conn:
+            for uid, email in ((member, "m@example.com"), (leaver, "l@example.com")):
+                conn.execute(
+                    text(
+                        "INSERT INTO app_user (id, email, password_hash, display_name) "
+                        "VALUES (:id, :e, 'x', 'U')"
+                    ),
+                    {"id": uid, "e": email},
+                )
+            for tid in (tree_id, other_tree):
+                conn.execute(
+                    text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :s)"),
+                    {"id": tid, "s": str(tid)},
+                )
+            # member belongs to tree_id; leaver belongs only to other_tree
+            for mid, uid, tid in ((uuid.uuid4(), member, tree_id), (uuid.uuid4(), leaver, other_tree)):
+                conn.execute(
+                    text(
+                        "INSERT INTO tree_membership (id, tree_id, user_id, roles) "
+                        "VALUES (:id, :t, :u, ARRAY['VIEWER'])"
+                    ),
+                    {"id": mid, "t": tid, "u": uid},
+                )
+            kept, orphan = uuid.uuid4(), uuid.uuid4()
+            for gid, uid in ((kept, member), (orphan, leaver)):
+                conn.execute(
+                    text(
+                        "INSERT INTO access_grant (id, tree_id, user_id, resource_type, resource_id, permission) "
+                        "VALUES (:id, :t, :u, 'document', :r, 'view')"
+                    ),
+                    {"id": gid, "t": tree_id, "u": uid, "r": doc},
+                )
+        command.upgrade(cfg, "7b3e9d2c4f61")
+        with engine.connect() as conn:
+            ids = set(conn.execute(text("SELECT id FROM access_grant")).scalars())
+        assert ids == {kept}  # a membership in another tree does not keep a grant alive
+        command.downgrade(cfg, "6a1d9c3e5f27")  # no-op downgrade runs
+        with engine.connect() as conn:
+            assert set(conn.execute(text("SELECT id FROM access_grant")).scalars()) == {kept}
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()
