@@ -5,7 +5,7 @@ import re
 import secrets
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.authz.context import RequestInfo, TreeContext
@@ -331,6 +331,42 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
         target_id=m.id,
         details={"roles": roles, "admin_change": bool({Role(r) for r in roles} & _ADMIN_GRANTABLE)},
     )
+    delete_member_grants(
+        ctx.db, tree_id=ctx.tree_id, user_id=m.user_id, actor_user_id=ctx.user_id, membership_id=m.id
+    )
+
+
+def delete_member_grants(
+    db: Session,
+    *,
+    tree_id: uuid.UUID,
+    user_id: uuid.UUID,
+    actor_user_id: uuid.UUID | None,
+    membership_id: uuid.UUID,
+) -> int:
+    """Delete a departing member's explicit grants in one tree, so a later re-invite starts clean.
+
+    Grants are keyed by ``user_id`` (until ADR-0027 §3 binds them to the membership with ON DELETE
+    CASCADE), so without this a re-invited person would get every old grant back. Audited with a
+    count only: no resource ids or titles.
+    """
+    result = db.execute(
+        delete(AccessGrant)
+        .where(AccessGrant.tree_id == tree_id, AccessGrant.user_id == user_id)
+        .execution_options(synchronize_session=False)
+    )
+    count = int(getattr(result, "rowcount", 0) or 0)
+    if count:
+        audit.record(
+            db,
+            action="grant.cascade_removed",
+            actor_user_id=actor_user_id,
+            tree_id=tree_id,
+            target_type="membership",
+            target_id=membership_id,
+            details={"count": count},
+        )
+    return count
 
 
 def create_grant(

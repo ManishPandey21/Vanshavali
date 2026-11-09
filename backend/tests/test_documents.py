@@ -13,7 +13,7 @@ from app.core.config import get_settings
 from app.core.security import sign_payload
 from app.core.storage import ObjectExists, get_store
 from app.models import AuditEvent, Document
-from tests.conftest import new_tree, owner_session
+from tests.conftest import join_tree, new_tree, owner_session
 from tests.doc_fixtures import (
     eicar_png,
     javascript_pdf,
@@ -376,6 +376,65 @@ def test_removed_member_token_fails(owner, tree, member_factory):
     mid = next(m["id"] for m in members if m["user_id"] == viewer.user["id"])
     assert owner.delete(f"/trees/{t}/members/{mid}").status_code == 200
     assert viewer.get(url).status_code == 403
+
+
+def test_reinvited_member_does_not_get_old_grants_back(owner, tree, member_factory):
+    """Regression: grants are keyed by user_id, so removal must delete them (ADR-0027 §3 stopgap)."""
+    t = tree["id"]
+    doc = upload(owner, t, _png(), mime="image/png", privacy_level="CUSTOM").json()
+    viewer = member_factory(["VIEWER"])
+    assert viewer.get(f"/trees/{t}/documents/{doc['id']}").status_code == 404
+    g = owner.post(
+        f"/trees/{t}/grants",
+        json={
+            "user_id": viewer.user["id"],
+            "resource_type": "document",
+            "resource_id": doc["id"],
+            "permission": "view",
+        },
+    )
+    assert g.status_code == 201, g.text
+    assert viewer.get(f"/trees/{t}/documents/{doc['id']}").status_code == 200
+
+    members = owner.get(f"/trees/{t}/members").json()
+    mid = next(m["id"] for m in members if m["user_id"] == viewer.user["id"])
+    assert owner.delete(f"/trees/{t}/members/{mid}").status_code == 200
+    assert viewer.get(f"/trees/{t}/documents/{doc['id']}").status_code == 404
+    assert g.json()["id"] not in {x["id"] for x in owner.get(f"/trees/{t}/grants").json()}
+    cascade = [e for e in _audit_actions(t) if e.action == "grant.cascade_removed"]
+    assert len(cascade) == 1
+    assert cascade[0].details == {"count": 1}  # a count only: no resource ids or titles
+    assert str(cascade[0].target_id) == mid
+
+    join_tree(owner, viewer, t, ["VIEWER"])  # the same person, invited again
+    assert viewer.get(f"/trees/{t}/documents/{doc['id']}").status_code == 404
+    assert all(x["user_id"] != viewer.user["id"] for x in owner.get(f"/trees/{t}/grants").json())
+
+
+def test_removing_a_member_keeps_their_grants_in_other_trees(owner, tree, member_factory):
+    t = tree["id"]
+    other = new_tree(owner, "Other tree")
+    viewer = member_factory(["VIEWER"])
+    join_tree(owner, viewer, other["id"], ["VIEWER"])
+    grants = {}
+    for tid in (t, other["id"]):
+        doc = upload(owner, tid, _png(), mime="image/png", privacy_level="CUSTOM").json()
+        r = owner.post(
+            f"/trees/{tid}/grants",
+            json={
+                "user_id": viewer.user["id"],
+                "resource_type": "document",
+                "resource_id": doc["id"],
+                "permission": "view",
+            },
+        )
+        assert r.status_code == 201, r.text
+        grants[tid] = (doc["id"], r.json()["id"])
+    mid = next(m["id"] for m in owner.get(f"/trees/{t}/members").json() if m["user_id"] == viewer.user["id"])
+    assert owner.delete(f"/trees/{t}/members/{mid}").status_code == 200
+    other_doc, other_grant = grants[other["id"]]
+    assert viewer.get(f"/trees/{other['id']}/documents/{other_doc}").status_code == 200
+    assert other_grant in {x["id"] for x in owner.get(f"/trees/{other['id']}/grants").json()}
 
 
 # ---------------------------------------------------------------- delete / restore / links

@@ -37,7 +37,9 @@ From most open to most restricted:
 | `CUSTOM` | Admins, plus users holding an explicit `access_grant` |
 
 Explicit grants (`access_grant`, per person, document or property, with an optional expiry) raise
-visibility for one member. Documents also distinguish `view` from `download`.
+visibility for one member. Documents also distinguish `view` from `download`. A member's grants in a tree
+end when they leave it (removed, or account closed); inviting the same person again does not
+restore them (threat T53).
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
