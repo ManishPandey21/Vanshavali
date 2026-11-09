@@ -1328,7 +1328,8 @@
       "household": "गृहस्थी",
       "person": "व्यक्ति",
       "place": "स्थान",
-      "property": "संपत्ति"
+      "property": "संपत्ति",
+      "collection": "फ़ोटो संग्रह"
     },
     "matchTier": {
       "contains": "शामिल है",

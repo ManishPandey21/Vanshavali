@@ -16,7 +16,7 @@ from app.modules.search.service import match_names
 
 router = APIRouter(prefix="/trees/{tree_id}", tags=["search"])
 
-ALL_KINDS = ("person", "place", "branch", "household", "document", "property")
+ALL_KINDS = ("person", "place", "branch", "household", "document", "property", "collection")
 
 
 @router.get("/search", response_model=SearchOut)

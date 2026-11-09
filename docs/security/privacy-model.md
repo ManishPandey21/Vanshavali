@@ -62,6 +62,8 @@ A photo in an event's album is never more visible than the event or a protected 
 becomes more private when the event does; each viewer sees only the album photos they may see.
 A standalone photo collection has its own audience (new collections are Only me); a viewer sees a
 photo in it only if they may see both, and sharing a collection never shares its photos.
+Global search and the archive export follow the same rule: a collection is a hit or exported only
+for someone who may see it, and only the photos they may see are listed in it.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

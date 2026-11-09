@@ -12,8 +12,9 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission, permissions_for
@@ -403,3 +404,96 @@ def remove_item(ctx: TreeContext, collection_id: uuid.UUID, item_id: uuid.UUID) 
         target_id=c.id,
         details={"document_id": str(doc_id)},
     )
+
+
+# ---------------------------------------------------------------- search and export (increment 5)
+def _escape_like(q: str) -> str:
+    return q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def search_collections(ctx: TreeContext, q: str, limit: int) -> list[Any]:
+    """Search provider: collections whose title or description matches and that the caller may see.
+    A collection the caller may not see is never a hit, and nothing about its photos is returned."""
+    from app.modules.search.schemas import SearchHit
+
+    if ctx.public or not ctx.is_member or not q.strip():
+        return []
+    pattern = f"%{_escape_like(q.strip())}%"
+    rows = ctx.db.scalars(
+        select(PhotoCollection)
+        .where(
+            PhotoCollection.tree_id == ctx.tree_id,
+            or_(
+                PhotoCollection.title.ilike(pattern, escape="\\"),
+                PhotoCollection.description.ilike(pattern, escape="\\"),
+            ),
+        )
+        .order_by(PhotoCollection.updated_at.desc(), PhotoCollection.id)
+        .limit(limit * 3)
+    ).all()
+    hits = []
+    for c in rows:
+        if not collection_allows(ctx, c):
+            continue
+        exact = c.title.strip().lower() == q.strip().lower()
+        in_title = q.strip().lower() in c.title.lower()
+        hits.append(
+            SearchHit(
+                kind="collection",
+                id=c.id,
+                title=c.title,
+                subtitle=None,
+                score=0.75 if exact else (0.6 if in_title else 0.45),
+                match_tier="exact" if exact else "contains",
+                match_reason=(
+                    f'collection title {"is" if exact else "contains"} "{q}"'
+                    if in_title
+                    else f'collection description contains "{q}"'
+                ),
+            )
+        )
+        if len(hits) >= limit:
+            break
+    return hits
+
+
+def export_collections(ctx: TreeContext, listed_document_ids: set[str]) -> list[dict[str, Any]]:
+    """Collections for the archive export, from the exporter's view (ADR-0027 §4, §6).
+
+    Only collections the exporter may see, and in each only the photos they may see. Items refer to
+    photos by id in ``documents/index.json``; whether a photo's bytes are in the export is decided
+    there by the download rule, never here.
+    """
+    rows = [
+        c
+        for c in ctx.db.scalars(
+            select(PhotoCollection)
+            .where(PhotoCollection.tree_id == ctx.tree_id)
+            .order_by(PhotoCollection.created_at)
+        )
+        if collection_allows(ctx, c)
+    ]
+    items = _items(ctx, [c.id for c in rows])
+    by: dict[uuid.UUID, list[dict[str, Any]]] = {c.id: [] for c in rows}
+    for i, d in items:
+        by[i.collection_id].append(
+            {
+                "document_id": str(d.id),
+                "caption": i.caption,
+                "is_cover": i.is_cover,
+                "sort_order": i.sort_order,
+                "in_documents_index": str(d.id) in listed_document_ids,
+            }
+        )
+    return [
+        {
+            "id": str(c.id),
+            "title": c.title,
+            "description": c.description,
+            "privacy_level": L(c.privacy_level).value,
+            "items": by[c.id],
+            "created_at": c.created_at.isoformat(),
+            "updated_at": c.updated_at.isoformat(),
+        }
+        for c in rows
+    ]
