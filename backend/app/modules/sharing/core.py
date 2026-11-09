@@ -344,6 +344,7 @@ def proposal(ctx: TreeContext, rec: RecordAdapter, body: SharingUpdate) -> Propo
         is None
     ):
         raise NotFound("Branch not found")
+    refuse_unreadable(rec, level)
     members = _members(ctx, rec, body.members)
     if level == L.ONLY_ME and members:
         raise Unprocessable("A record kept for you only cannot be shared with members", code="only_me_record")
@@ -370,12 +371,22 @@ def _members(ctx: TreeContext, rec: RecordAdapter, rows: list[SharingMemberIn]) 
     return out
 
 
+def refuse_unreadable(rec: RecordAdapter, level: RecordPrivacyLevel) -> None:
+    """Only me on a record without an owner would leave it readable by nobody, for good. A manager
+    may narrow an orphan to a real audience, never to that (ADR-0027 §2, §10)."""
+    if level == L.ONLY_ME and rec.owner_membership_id is None:
+        raise Unprocessable(
+            "This record has no owner, so Only me would leave nobody able to read it", code="orphan_only_me"
+        )
+
+
 def require_editable(ctx: TreeContext, rec: RecordAdapter) -> None:
     if not rec.can_edit(ctx):
         raise Forbidden("You cannot change who can see this record")
 
 
 def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider: bool) -> None:
+    refuse_unreadable(rec, new.privacy_level)
     caps = rec.caps(ctx)
     if not within(new.privacy_level, new.audience_branch_id, caps):
         raise Unprocessable(
