@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: increments 1 (documents) and 2 (traditions) — see the implementation notes
+  are resolved as below) · Implementation: increments 1 (documents), 2 (traditions) and 3 (event photo albums) — see the implementation notes
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -335,3 +335,23 @@ listed in the threat model's residual risks.
 - **Tests.** `tests/test_traditions_sharing.py` (12 cases, including the migration and its
   downgrade), a component test for records without downloads, and a second Playwright test in
   `record-sharing.spec.ts`; threat model T56.
+
+## Implementation notes (9 Nov 2026, increment 3: event photo albums)
+- **Choosing at upload.** `POST /events/{id}/media` accepts the record audiences, a branch and
+  `allow_download`. Without a choice: Only me (no download) when a protected living person is in
+  the photo (the event's principal included), per §9; otherwise ADR-0015's inheritance (the
+  strictest of the tree default, the event and its principal), unchanged.
+- **The event is a ceiling (§5.3).** `core.event_cap` maps the event's level like a person's.
+  `DocumentRecord.extra_caps` adds the event of every album a photo is in, so sharing a photo wider
+  than its event is refused (`422 privacy_too_open`) at upload and later. Making an event more
+  private narrows its photos (`core.enforce_event_ceiling`, from `update_event`), as a person's
+  privacy narrows the records they are tagged in.
+- **Linking an existing photo** into an album that is more private than the photo is refused:
+  adding a photo to an album never narrows someone's photo silently; its owner narrows it first.
+- **Album × photo (§6)** was already enforced in increment 1 (listings, counts, covers through
+  `can_view_document`); tests now cover the per-viewer cover with Selected members.
+- **UI.** The album's upload form keeps the default and offers "Choose who can see this photo",
+  which opens Visibility & Sharing; each photo shows its badge and, for its owner, a "Who can see"
+  link to the photo's sharing panel.
+- **Tests.** `tests/test_album_sharing.py` (6 cases), a third Playwright test in
+  `record-sharing.spec.ts`; threat model T57.

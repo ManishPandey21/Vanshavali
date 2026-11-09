@@ -54,6 +54,10 @@ export interface PhotoUpload {
   takenYear?: number | null;
   isCover?: boolean;
   personIds?: string[];
+  /** ADR-0027: omit to keep the album default (as private as the event and the people in it) */
+  privacyLevel?: string;
+  audienceBranchId?: string | null;
+  allowDownload?: boolean;
 }
 
 export function photoFormData(input: PhotoUpload): FormData {
@@ -63,6 +67,9 @@ export function photoFormData(input: PhotoUpload): FormData {
   if (input.takenYear) fd.append("taken_date", JSON.stringify({ precision: "year_only", year: input.takenYear }));
   if (input.isCover) fd.append("is_cover", "true");
   for (const id of input.personIds ?? []) fd.append("person_ids", id);
+  if (input.privacyLevel) fd.append("privacy_level", input.privacyLevel);
+  if (input.audienceBranchId) fd.append("audience_branch_id", input.audienceBranchId);
+  if (input.allowDownload !== undefined) fd.append("allow_download", String(input.allowDownload));
   return fd;
 }
 

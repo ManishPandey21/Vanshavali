@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
-from app.models import Document, DocumentLink
+from app.models import Document, DocumentLink, Event, EventMedia
 from app.models.enums import DocumentLinkTarget, GrantResource, RecordPrivacyLevel
 from app.modules.documents import access
 from app.modules.sharing import core
@@ -42,6 +42,10 @@ class DocumentRecord(core.RecordAdapter):
 
     def linked_people(self, ctx: TreeContext) -> list[uuid.UUID]:
         return linked_people(ctx, self.id)
+
+    def extra_caps(self, ctx: TreeContext) -> list[Cap]:
+        """A photo in an event's album is never more visible than the event (ADR-0027 §5.3)."""
+        return [c for e in albums_of(ctx, self.id) if (c := core.event_cap(ctx, e)) is not None]
 
     def _copy(self, p: Proposal) -> Document:
         """An unsaved copy of the document carrying the proposed settings, for evaluation only."""
@@ -83,6 +87,35 @@ def linked_people(ctx: TreeContext, doc_id: uuid.UUID) -> list[uuid.UUID]:
             )
         )
     )
+
+
+def albums_of(ctx: TreeContext, doc_id: uuid.UUID) -> list[Event]:
+    return list(
+        ctx.db.scalars(
+            select(Event).where(
+                Event.tree_id == ctx.tree_id,
+                Event.id.in_(
+                    select(EventMedia.event_id).where(
+                        EventMedia.tree_id == ctx.tree_id, EventMedia.document_id == doc_id
+                    )
+                ),
+            )
+        )
+    )
+
+
+def records_in_album(ctx: TreeContext, event_id: uuid.UUID) -> list[DocumentRecord]:
+    docs = ctx.db.scalars(
+        select(Document).where(
+            Document.tree_id == ctx.tree_id,
+            Document.id.in_(
+                select(EventMedia.document_id).where(
+                    EventMedia.tree_id == ctx.tree_id, EventMedia.event_id == event_id
+                )
+            ),
+        )
+    ).all()
+    return [DocumentRecord(d) for d in docs]
 
 
 def records_linked_to(ctx: TreeContext, person_id: uuid.UUID) -> list[DocumentRecord]:

@@ -4303,7 +4303,11 @@ export interface components {
              * @description people shown in the photo
              */
             person_ids?: string[] | null;
-            privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            privacy_level?: components["schemas"]["RecordPrivacyLevel"] | null;
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /** Allow Download */
+            allow_download?: boolean | null;
         };
         /** Body_upload_gedcom_api_v1_trees__tree_id__imports_post */
         Body_upload_gedcom_api_v1_trees__tree_id__imports_post: {

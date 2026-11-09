@@ -2721,13 +2721,15 @@
     "inPhoto": "In the photo",
     "untag": "Remove {{name}}",
     "setCover": "Use as the cover photo",
-    "privacyInherited": "The photo gets the stricter of the event's and the person's privacy.",
+    "privacyInherited": "By default a photo is as private as the event and the people in it, and Only me when a privately kept living relative is in it.",
     "upload": "Upload photo",
     "openAlbum": "Photos of {{event}}",
     "count_one": "{{count}} photo",
     "count_other": "{{count}} photos",
     "tagged": "Tagged in other photos",
-    "openDocument": "Open in the document vault"
+    "openDocument": "Open in the document vault",
+    "chooseAudience": "Choose who can see this photo",
+    "whoCanSee": "Who can see"
   },
   "reminders": {
     "remindMe": "Remind me",

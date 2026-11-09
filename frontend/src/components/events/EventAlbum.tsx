@@ -1,7 +1,8 @@
 import { useRef, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Star, Trash2, Upload, X } from "lucide-react";
-import type { EventOut, PersonSummary } from "../../api/types";
+import type { EventOut, PersonSummary, SharingOut, SharingUpdate } from "../../api/types";
 import { useEventMedia, useRemoveEventMedia, useUpdateEventMedia, useUploadEventPhoto } from "../../api/hooks/lifeevents";
 import { eventLabel } from "../../lib/lifeEvents";
 import { PersonPicker } from "../pickers";
@@ -12,6 +13,11 @@ import { Checkbox, Field, TextInput } from "../ui/form";
 import { Badge } from "../ui/Badge";
 import { PhotoThumb } from "./PhotoThumb";
 import { RecordPrivacyBadge } from "../person/badges";
+import { VisibilitySharing, draftProblem, type SharingDraft } from "../privacy/VisibilitySharing";
+import { api } from "../../api/client";
+import { useMembers } from "../../api/hooks/trees";
+import { useBranches } from "../../api/hooks/family";
+import { useMe } from "../../api/hooks/auth";
 import { uploadErrorMessage } from "../documents/DocumentBits";
 
 /** An event's photo album: cover, captions, people in the photo, uploads (privacy inherited). */
@@ -41,7 +47,14 @@ export function EventAlbum({ treeId, event, canEdit, onClose }: { treeId: string
                     </Badge>
                   )}
                 </div>
-                <RecordPrivacyBadge level={m.document.privacy_level} />
+                <span className="flex flex-wrap items-center gap-1">
+                  <RecordPrivacyBadge level={m.document.privacy_level} />
+                  {m.document.can_edit_sharing && (
+                    <Link className="text-xs text-kumkum-800 underline" to={`/t/${treeId}/documents/${m.document_id}`}>
+                      {t("photos.whoCanSee")}
+                    </Link>
+                  )}
+                </span>
                 {m.taken_date_display && <p className="text-xs text-ink-muted">{m.taken_date_display}</p>}
                 {(m.people ?? []).length > 0 && <p className="text-xs text-ink-muted">{t("photos.inPhoto")}: {(m.people ?? []).map((p) => p.display_name).join(", ")}</p>}
                 {canEdit && (
@@ -88,16 +101,48 @@ function UploadPhotoForm({ treeId, event, onDone }: { treeId: string; event: Eve
   const [people, setPeople] = useState<PersonSummary[]>([]);
   const [picker, setPicker] = useState<PersonSummary | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [choose, setChoose] = useState(false);
+  const [sharing, setSharing] = useState<SharingDraft>({ privacy_level: "ONLY_ME", audience_branch_id: null, allow_download: false, members: [] });
+  const [shareError, setShareError] = useState<unknown>(null);
+  const members = useMembers(treeId);
+  const branches = useBranches(treeId);
+  const me = useMe();
+  const sharingProblem = choose ? draftProblem(sharing) : null;
   const yearNum = year.trim() ? Number(year) : null;
   const yearErr = year.trim() && (!Number.isInteger(yearNum) || (yearNum ?? 0) < 1 || (yearNum ?? 0) > 9999);
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (!file || yearErr) return;
+    if (!file || yearErr || sharingProblem) return;
+    setShareError(null);
     upload.mutate(
-      { file, caption: caption.trim(), takenYear: yearNum, isCover: cover, personIds: people.map((p) => p.id) },
       {
-        onSuccess: () => {
+        file,
+        caption: caption.trim(),
+        takenYear: yearNum,
+        isCover: cover,
+        personIds: people.map((p) => p.id),
+        ...(choose
+          ? {
+              // Selected members are attached right after the upload; until then it is Only me
+              privacyLevel: sharing.privacy_level === "SELECTED_MEMBERS" ? "ONLY_ME" : sharing.privacy_level,
+              audienceBranchId: sharing.privacy_level === "FAMILY_BRANCH" ? sharing.audience_branch_id : null,
+              allowDownload: sharing.allow_download,
+            }
+          : {}),
+      },
+      {
+        onSuccess: async (m) => {
+          if (choose && sharing.privacy_level === "SELECTED_MEMBERS") {
+            const body: SharingUpdate = { privacy_level: "SELECTED_MEMBERS", allow_download: false, members: sharing.members, confirm_wider: true };
+            try {
+              await api.put<SharingOut>(`/trees/${treeId}/documents/${m.document_id}/sharing`, body);
+            } catch (e) {
+              setShareError(e); // the photo stays Only me: safe; its owner can share it from its page
+              return;
+            }
+          }
+          setChoose(false);
           setFile(null);
           setCaption("");
           setYear("");
@@ -152,7 +197,18 @@ function UploadPhotoForm({ treeId, event, onDone }: { treeId: string; event: Eve
       </div>
       <Checkbox label={t("photos.setCover")} checked={cover} onChange={setCover} />
       <p className="text-xs text-ink-muted">{t("photos.privacyInherited")}</p>
-      {err ? <p role="alert" className="text-sm text-red-800">{err}</p> : <ErrorAlert error={upload.error} />}
+      <Checkbox label={t("photos.chooseAudience")} checked={choose} onChange={setChoose} />
+      {choose && (
+        <VisibilitySharing
+          value={sharing}
+          onChange={setSharing}
+          members={members.data ?? []}
+          branches={branches.data ?? []}
+          ownMembershipId={members.data?.find((x) => x.user_id === me.data?.id)?.id ?? null}
+          showProblems={submitted}
+        />
+      )}
+      {err ? <p role="alert" className="text-sm text-red-800">{err}</p> : <ErrorAlert error={upload.error || shareError} />}
       <Button type="submit" icon={<Upload className="size-4" aria-hidden />} loading={upload.isPending}>
         {t("photos.upload")}
       </Button>
