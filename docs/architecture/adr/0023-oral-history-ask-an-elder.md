@@ -1,10 +1,14 @@
 # ADR-0023: Oral history: "Ask an Elder", recorded stories, consent and transcripts
 
-- Status: **Proposed** (revised twice after the owner's reviews of 8 Nov 2026; awaiting design review) · Release: R5, phase I
+- Status: **Proposed** (revised twice after the owner's reviews of 8 Nov 2026; revision 3 of 9 Nov
+  2026 prepares it for design review: alignment with ADR-0027, the admin-access contradiction
+  resolved, interviewer-access options, and the §12 privacy/threat drafts; **not accepted**, no
+  implementation) · Release: R5, phase I
 - Relates to: ADR-0004 (document storage and the vault pipeline), ADR-0006 (privacy, field groups),
   ADR-0009 (OCR/AI output is a proposal), ADR-0011 (single-use invite links, "remove me"),
   ADR-0014 (pilot hosting and backups), ADR-0016 (notifications), ADR-0021 (proposals and family
-  review), ADR-0026 (traditions archive, whose `story` entries are text); open questions Q7 (no
+  review), ADR-0026 (traditions archive, whose `story` entries are text), **ADR-0027** (record
+  visibility and selective sharing, accepted 9 Nov 2026); open questions Q7 (no
   external AI by default) and **Q17** (voice processing, now answered by §8)
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),
   release R5, phase I. Kept in its own PR, separate from the family calendar (owner decision 1).
@@ -76,24 +80,108 @@ Voice is unlike a scanned document:
   recording can be reviewed before sending. Upload continues after a dropped connection. (Phase L
   will build on this.)
 
-### 3. Visibility: private by default, sharing is a choice
+### 3. Visibility, ownership and admin access: private by default, sharing is a choice
 Owner decision 10: a recording can stay private, and sharing it is never a condition of recording.
 
-| Visibility | Who can see the story and play the audio |
+**A story is an ADR-0027 shareable record, owned by its narrator** (revision 3; ADR-0027 §1–§2,
+§10). The interviewer is **not** an owner (see §3a).
+
+| Who | Their relation to a story |
 |---|---|
-| **Private** (default) | The narrator (if they have an account) and the interviewer. |
-| **Shared in the tree** | Members allowed by the story's privacy level (§6). Needs consent scope 4 (§4). |
+| **Narrator** (or their guardian) | **Owner.** Decides the audience, within their consent (§4). When the narrator is a tree member, the story's owner is the narrator's membership (ADR-0027 §2). When they are not, see "Narrators who are not members" below. |
+| **Interviewer** (the member who recorded or asked) | **Not an owner.** Any access they have is a separate permission the narrator gives, with its own duration and revocation. The form of that permission is **not yet decided** (§3a). |
+| **Members in the chosen audience** | Can see the story and play the audio, as ADR-0027 defines each audience. |
+| **Tree admins and owners** | No ordinary access to private stories (below). |
+| **System jobs** | Withdrawal, erasure, retention and quota run as the system, return no content to any person, and are audited as `system` (ADR-0027 §8.1). |
 
-A story is **never public** in v1, whatever the tree's public mode, as for the traditions archive.
+**Audiences** (ADR-0027 §1), each within the narrator's consent:
 
-**Administrators and private stories** (second-round owner decision 7):
-- By default, tree admins and owners see **only the tree's aggregate oral-history storage usage**.
-- Ordinary admin access exposes **no metadata** of a private story (title, narrator, dates, mentions,
-  or even its existence as a row), and no audio or transcript.
-- This is enforced on the server. Story queries filter private stories to their narrator and
-  interviewer **whatever the caller's role**. Usage is computed by an aggregate query that returns
-  totals only. Admin, audit and export screens use the same rules.
-- Withdrawal, erasure, retention and quota jobs run as system jobs, not as an admin.
+| Narrator's choice | ADR-0027 audience | Needs |
+|---|---|---|
+| **Private** (default) | `ONLY_ME`: the narrator alone (plus the interviewer only as §3a allows) | scope 1 |
+| **Shared with chosen members** | `SELECTED_MEMBERS` | scope 4 (§4); whether a narrower scope for "chosen members only" is needed is an open product decision (§14) |
+| **Shared with a branch** | `FAMILY_BRANCH` + branch | scope 4 |
+| **Shared with the family** | `TREE_MEMBERS` | scope 4 |
+
+The narrator's consent is the story's **ceiling** (ADR-0027 §5.1): without scope 4 the ceiling is
+private, and removing scope 4 narrows the story to private at once. A story is **never public** in
+v1, whatever the tree's public mode, as for the traditions archive. Tagged living people cap a
+shared story as in ADR-0027 §5.2 (and §6 below).
+
+**Administrators and private stories** (second-round owner decision 7; revision 3 resolves the
+contradiction with the old §6 in favour of this decision):
+- "Private" means the two ADR-0027 private audiences, `ONLY_ME` and `SELECTED_MEMBERS`, and also
+  every state in which a recording is restricted: **unconfirmed link recordings** (§5) and recordings
+  under a **hide-passage request** (§6).
+- Tree admins and owners receive **no ordinary access** to a private story: no audio, no transcript
+  and **no metadata** (title, narrator, dates, mentions, or even its existence as a row). By default
+  they see only the tree's aggregate oral-history storage usage.
+- Being promoted to admin, owner or custodian grants nothing (ADR-0027 §1, T54). Being in a shared
+  audience is the only way a person with an admin role sees a story, exactly like any member.
+- This is enforced on the server. Story queries filter private stories to the people §3 and §3a
+  allow **whatever the caller's role**. Usage is computed by an aggregate query that returns totals
+  only. Admin, audit (ADR-0027 §11), grant-list and export screens use the same rules.
+- The only exceptions are ADR-0027 §8's narrow, audited custodial ones: system jobs, takedown by
+  **suspension without reading** (§3b, abuse reports), and the Legacy Nominee (§10). None of them
+  gives a person the content.
+
+**Narrators who are not members** (an elder recorded through a link, or a neighbour). No tree member
+holds the narrator's ownership, so "Only me" cannot mean "a member". **Proposed for review** (not
+decided):
+- The story has no owner membership. Its owner is recorded as the **narrator reference** (a person
+  in the tree, or a name only) together with the narrator's withdrawal-code holder.
+- **"Only me" then means: nobody in the tree**, except the interviewer as §3a allows. The narrator
+  reaches their own story through a **narrator page** opened with their withdrawal code (§5): they
+  can listen, change scopes, choose an audience, name a nominee or withdraw. Nobody else can act as
+  owner on their behalf.
+- If the narrator later joins the tree (ADR-0011 claim or invitation) and their identity is
+  confirmed as the narrator, ownership moves to their new membership. Nothing is widened by the
+  move.
+- Whether a narrator page is acceptable without an account, and how the code holder is verified for
+  ownership changes, are open legal and product decisions (§14).
+
+### 3a. Interviewer access: options for review (none approved)
+The current text gave the interviewer standing access to every private story they recorded. That
+makes them a second owner without the narrator saying so, which ADR-0027's ownership model and
+owner decision 10 do not support. Revision 3 proposes the options below **for the owner to choose
+from**. None is recorded as decided; until one is chosen, nothing about interviewer access is
+implemented.
+
+Every option shares these rules:
+- The interviewer's access is a **separate permission the narrator grants**, shown in the consent
+  statement in the narrator's language, with its own yes or no.
+- It never exceeds the narrator's consent, is never wider than "listen and transcribe", and never
+  lets the interviewer change the audience, scopes or nominee.
+- The narrator (or guardian, or verified nominee) can **revoke it at any time**; revocation takes
+  effect at once like any ADR-0027 revocation (signed URLs re-checked, 5-minute lifetime).
+- Withdrawal (§9) ends it at once.
+- It is audited (granted, used, expired, revoked) without content.
+
+| Option | What the interviewer may do | Duration | Revocation and notes |
+|---|---|---|---|
+| **A. No standing access** | Nothing after sending the recording, except see that it was sent. Any later access is an explicit ADR-0027 grant from the narrator ("Selected members"), with view and transcribe as separate choices. | n/a | Strongest for the narrator. Needs a solution for **attributing link recordings** (§5), where today the asking member listens to identify the voice: either a short attribution-only window (as in C) or confirmation by the narrator only. |
+| **B. Consent scope "interviewer may listen and transcribe"** | Listen, transcribe, propose facts. | Until the transcript is reviewed, and **at most N days** (proposal: 90, matching raw-audio retention) | A new consent **scope 6**, off by default. Revocable at any time from the narrator page or account. Expiry is automatic. |
+| **C. Task-limited, time-boxed access** | Only named tasks: identify the voice (link recordings), transcribe, review the transcript. | Each task has its own window (proposal: attribution 30 days, as the existing unconfirmed-recording deletion; transcription until review or 90 days) | Granted per task in the consent step; revocable per task; ends when the task completes. More moving parts, but the narrowest standing access. |
+| **D. Standing access, as currently drafted** | Listen and transcribe for as long as the story exists. | Unlimited | Kept only for comparison. It makes the interviewer a de facto co-owner; adopting it would need the owner to confirm explicitly that this is intended and a stated way for the narrator to remove it. |
+
+Points the choice must settle (listed in §14): the default for each option, whether the interviewer
+of a **minor's** or a **guardian-consented** recording is treated differently, and what the
+interviewer sees after access ends (proposal: the story's existence and status only, as for any
+private record they no longer hold).
+
+### 3b. Abuse and legal reports about a story (proposed for review)
+Resolves the old open point 3 as a **proposal**, to be confirmed with the legal review:
+- **Who may report.** Anyone who can see the story; a person mentioned or tagged in it, through
+  their own profile; and, for a private story, only its narrator, the interviewer (if §3a gives
+  access) or a tagged person.
+- **What a report does.** It creates a case with a reference. A family admin, or the platform's
+  designated reviewer, may **suspend** the story by its case reference (ADR-0027 §8.2): it is then
+  hidden from everyone except its narrator, and processing stops. **The person who suspends sees no
+  content and no metadata beyond the case reference and the report's reason category.**
+- **Who decides.** The narrator may respond. A decision that needs someone to hear the recording
+  (for example a court order or a dispute between narrator and tagged person) goes to a process the
+  legal review defines. Until then the story stays suspended, never opened to an admin.
+- **Audit.** Report, suspension, response and outcome are audited without content.
 
 ### 4. Consent before anything is recorded
 **Scopes** are each a separate yes or no, and none is required beyond scope 1:
@@ -155,9 +243,10 @@ private again at once.
 
   A member-recorded story gets a code too, given to the narrator.
 - **Narrator attribution** (owner decision 10):
-  - A recording that arrives by link is held as **"narrator not confirmed"**. Until confirmed, only
-    the asking member can see it and play it, to identify the voice. Admins see it only in the
-    aggregate usage.
+  - A recording that arrives by link is held as **"narrator not confirmed"**. Until confirmed it is
+    private: nobody sees it except, **if the chosen §3a option allows it**, the asking member, to
+    identify the voice. Admins see it only in the aggregate usage (§3). Whether the asking member
+    may listen for attribution is part of the §3a decision.
   - Confirmation names the narrator (a person in the tree, or a name only), and records who
     confirmed it, how ("I know this voice" or "the narrator confirmed with their account") and
     when.
@@ -174,10 +263,15 @@ private again at once.
   privacy (ADR-0021).
 - **A tagged living person** can ask to be untagged, or for a passage (a time range) to be hidden.
 - **Hiding a passage** (owner decision 6):
-  - While the request is open, the **whole original recording** is restricted to the narrator,
-    the interviewer and tree admins, and the requested transcript span is hidden from everyone
-    else.
-  - Review decides between hiding the span for good, with the audio staying restricted, and
+  - While the request is open, the **whole original recording** is restricted to the narrator
+    (and to the interviewer only as §3a allows), and the requested transcript span is hidden from
+    everyone else. **Tree admins gain no access** (revision 3: the earlier text named "tree admins"
+    here, contradicting §3 and second-round owner decision 7; the decision prevails).
+  - **Who decides** the request: the narrator. When the narrator cannot (a non-member who does not
+    respond, incapacity, death without a nominee) or disputes it, the request goes to the process in
+    §3b; nobody hears the recording to decide it without that process. This is an open decision
+    (§14).
+  - The decision is either hiding the span for good, with the audio staying restricted, or
     declining the request with a reason.
   - **Silencing a passage in the audio is deferred.**
 - **Access and logging.** Media are served through short-lived signed URLs (ADR-0004), and every
@@ -223,7 +317,10 @@ loop.
 
 **Requests without verification** (second-round owner decision 3):
 - If the narrator has lost the code and has no account, and asks a tree admin, the admin must
-  verify the requester and act within **7 days**.
+  verify the requester and act within **7 days**. The admin acts **without content access**: they
+  start a withdrawal case naming the narrator, the system suspends that narrator's stories at once,
+  and the admin sees only how many stories the case covers. How the admin verifies the requester is
+  an open legal decision (§14).
 - Meanwhile the story is suspended: no processing, and no access except the narrator's.
 - This manual path never delays a verified withdrawal.
 
@@ -322,7 +419,9 @@ loop.
 ### 12. Gates before implementation
 1. This ADR completes design review and is accepted.
 2. The **privacy model (new §15) and threat model (new entries)** are written and reviewed. They
-   are prepared after the design review (owner decision 12).
+   are prepared after the design review (owner decision 12). **Drafts for review** are in
+   `docs/security/privacy-model.md` §15 and `docs/security/threat-model.md` §6 (entries OH-1 to
+   OH-14, not yet numbered as T-entries because nothing is implemented).
 3. **Before any external user records** (anyone recording through a link, or any narrator who is not
    a member), the legal review in §13 is done.
 4. STT stays off until the engine decision record (§8). External STT also needs its own reviewed
@@ -366,16 +465,21 @@ loop.
   withdrawal model. The two are linked, not merged.
 
 ## Stress test
-1. *A forwarded link is used by someone else.* The recording is "narrator not confirmed", heard only
-   by the asking member, and deleted if not confirmed in 30 days. The consent is the actual
-   speaker's.
+1. *A forwarded link is used by someone else.* The recording is "narrator not confirmed", private,
+   heard by nobody except (if the §3a option allows) the asking member, and deleted if not confirmed
+   in 30 days. The consent is the actual speaker's.
 2. *The fragment token leaks through history or a screenshot.* It is single-use, exchanged once,
    expires in 7 days if unused, and can be revoked. The cookie it yields covers only that link.
 3. *An elder speaks about a cousin's divorce.* The cousin, if tagged, raises the story's privacy and
    can ask for the passage to be hidden; the whole recording is restricted while the request is
    open.
-4. *An elder wants a recording only for their grandchild.* It stays private (scope 4 not given).
-   Admins see only the tree's aggregate usage, not the story.
+4. *An elder wants a recording only for their grandchild.* With scope 4 they choose Selected
+   members and name the grandchild; without it, it stays Only me. Admins see only the tree's
+   aggregate usage, not the story, and promotion to admin changes nothing.
+11. *An admin is asked to look into a complaint about a private story.* They can suspend it by the
+   case reference without seeing it (§3b); it is then hidden from everyone but the narrator.
+12. *The interviewer falls out with the narrator.* The narrator revokes the interviewer's access
+   from the narrator page or their account; it ends at once (§3a, whichever option is chosen).
 5. *Withdrawal arrives while a transcription is running.* The job is stopped at its next step,
    its output is discarded and access is revoked at once; erasure finishes within 24 hours. Accepted facts get tombstone citations, and facts that
    relied only on this story are flagged.
@@ -389,13 +493,53 @@ loop.
    `audio/webm`.
 10. *A child is recorded.* Only with a guardian's consent, and never through a link.
 
-## Open points for design review
-Resolved by the second-round owner decisions: the withdrawal timings (immediate effect, 24-hour
-erasure, 7-day manual follow-up), the 5-minute URLs, the 30-day and 5-day and 14-day timings, a
-single 5 GB quota including archives, and aggregate-only admin visibility. Remaining:
-1. Nominee identity checks and who reviews the evidence of death or incapacity (legal review, §13).
-2. Whether 35 days of withdrawn media in backups is acceptable, and the restore re-apply procedure
-   (legal review; the privacy model will state it).
-3. How a moderation or abuse report about a private story is handled without giving admins
-   ordinary access to it. Proposed: a narrow, audited, case-specific process, defined with the
-   privacy model.
+## 14. Decisions made and decisions still open (revision 3)
+
+**Decided by the owner** (8 Nov 2026, first and second review rounds):
+- Kept in its own PR, separate from the family calendar (1); self-hosted STT by default and
+  external STT only with tree opt-in and scope 3 (2); pilot limits and a single 5 GB per-tree quota
+  counting archives, temporary parts and derivatives (3, second-round 5); incomplete uploads expire
+  after 24 hours and unused links after 7 days (4); raw-audio retention of 30 days after review and
+  at most 90 days without archive consent (5); hide-passage restricts the whole recording, audio
+  silencing deferred (6); Legacy Nominee only, never heirs or admins by default (7); legal and
+  licensing reviews as §13 (8); engine choice deferred and manual transcription always available
+  (9); consent sequence, written consent of record, optional consent clip, fragment-token exchange,
+  withdrawal code, narrator attribution (10); immediate effect of withdrawal and the definition of
+  accepted facts (11); privacy and threat model drafted after design review (12).
+- Second round: verified withdrawals immediate, unverified ones within 7 days with suspension
+  meanwhile (3); in-flight work handling (2); 5-minute playback URLs, 30-day deletion of
+  unconfirmed recordings with a 5-day warning, 14-day warning before the 90-day maximum (3, 4);
+  nominee verification needs identity and documented authority (6); **admins see only aggregate
+  usage of private stories** (7), which revision 3 applies everywhere (§3, §6).
+- Through ADR-0027 (accepted): a story uses the record audiences, the narrator's consent and tagged
+  people are its ceiling, private audiences admit no role, grants belong to memberships, nothing is
+  public in v1.
+
+**Open product decisions** (for the owner):
+1. **Interviewer access** (§3a): option A, B, C or D, its default, duration and what the
+   interviewer sees afterwards; special handling for minors' and guardian-consented recordings.
+2. **Non-member narrators** (§3): whether the narrator page opened by the withdrawal code is the
+   narrator's way to own and manage a story, and how ownership moves when they join.
+3. Whether **"Selected members"** needs its own consent scope, narrower than scope 4.
+4. **Hide-passage decisions** when the narrator cannot or will not decide (§6).
+5. **Abuse and legal reports** (§3b): who may suspend (family admin, platform reviewer or both) and
+   the reason categories shown to them.
+6. Whether a story's audience may be widened by the narrator's **nominee** (today: never; they may
+   only narrow and withdraw).
+7. Whether members who can play a shared story may also **download** the original (ADR-0027 §4);
+   proposed default: off, the narrator may allow it.
+
+**Open legal decisions** (§13 review; none blocks a design decision, all block external recording):
+1. Consent statements and their translations; whether the consent clip is useful evidence.
+2. Withdrawal: process, timings, and how an admin verifies a requester without the code (§9).
+3. Whether 35 days of withdrawn media in Object-Locked backups is acceptable, and the restore
+   re-apply procedure (§9; privacy model §15).
+4. Third-party privacy of people mentioned and tagged, including the hide-passage process.
+5. Minors and narrators unable to consent; guardian authority.
+6. Legacy Nominee under DPDP Act Section 14: identity checks and who reviews evidence of death or
+   incapacity.
+7. The process for reports that require someone to hear a recording (§3b).
+8. Which DPDP Act and Rules provisions are in force, and from when.
+
+**Not decided here** (separate records): the STT engine and its licence (§8); audio silencing of
+passages (deferred).

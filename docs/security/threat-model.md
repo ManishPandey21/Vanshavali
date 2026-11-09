@@ -198,3 +198,26 @@ SameSite=Lax cookies apply.
 - **clamd availability:** scanning fails closed (uploads rejected while clamd is down), which trades
   availability for safety.
 - **Watermarking of downloaded documents:** DEFERRED.
+
+## 6. Proposed: oral history (ADR-0023) — DRAFT for review, not implemented
+
+> **Status: draft** for ADR-0023 §12 gate 2. ADR-0023 is *Proposed*; nothing below is implemented
+> and recording stays off. Entries are numbered OH-n, not T-n, until they are implemented and their
+> tests exist; they then move into §4 with T-numbers. "Open" refers to ADR-0023 §14.
+
+| # | STRIDE | Threat | Proposed control | Planned tests |
+|---|---|---|---|---|
+| OH-1 | I / E | **Admin or promoted member reads a private story** (audio, transcript or metadata) by role, id, URL, list, search, count, export, grant list or audit log | Stories are ADR-0027 records: `record_allows` admits no role to private audiences; story queries filter by owner and grants whatever the caller's role; aggregate-only usage; audit redaction (ADR-0027 §11) | every role × every route returns 404 / no row; promotion test; audit and grant-list redaction |
+| OH-2 | E | **Interviewer keeps or widens access** the narrator did not give | Interviewer access is a separate narrator-granted permission with duration and revocation (option **open**, ADR-0023 §3a); never changes audience, scopes or nominee; ends on withdrawal | access ends at expiry, on revocation and on withdrawal; interviewer cannot change sharing (403) |
+| OH-3 | S / I | **Recording without valid consent**, or consent claimed by someone else | Upload refused without a consent record with scope 1; consent of record names who consented and who collected it; minors only with a guardian and never by link; attribution keeps the actual speaker's consent | upload without consent → 409/422; minor via link refused; attribution change does not transfer consent |
+| OH-4 | I | **Leaked "Ask an Elder" link or withdrawal code** | Fragment token, single-use, exchanged once for a link-scoped cookie (HttpOnly, Secure, SameSite=Strict, narrow path), 7-day expiry, revocable; hashes only; rate limits; no-referrer, no third-party resources; codes ≥128 bits | replayed token fails; token absent from logs and referrers; brute-force rate limit |
+| OH-5 | I | **Signed playback URL reused** after revocation, withdrawal or by another user | URLs bound to story, tree, user and variant, ≤5 minutes, re-authorised on every fetch, `no-store` | stale URL after revoke / withdrawal / member removal → 403; other user's URL → 403 |
+| OH-6 | I / T | **Withdrawal not honoured**: processing or access continues | Immediate stop of jobs (flag checked before each step, output discarded), no new URLs, re-authorised URLs fail; erasure of every object version within 24 hours | withdrawal during a running job; all versions erased; tombstoned citations; flagged facts |
+| OH-7 | I | **Unverified withdrawal path abused** to suppress someone's story, or to make an admin read it | Admin opens a case without content access; stories suspended (not deleted) pending verification within 7 days; verification standard **open (legal)** | admin sees only the count; suspension hides from all but the narrator |
+| OH-8 | I | **Voice sent to an external service** without permission | Self-hosted by default; external only with tree opt-in and scope 3; no fallback; provider terms recorded; every call audited; deletion requested on withdrawal | no external call without both; withdrawal discards in-flight responses |
+| OH-9 | T | **Machine transcript treated as fact** | Transcripts are derivatives with origin; facts are `extraction_proposal`s reviewed under the subject's privacy (ADR-0009, ADR-0021) | no canonical write from transcription |
+| OH-10 | I | **Withdrawn media resurface after a restore** | Backups not edited, kept 35 days under Object Lock (acceptability **open, legal**); every restore replays withdrawals from an append-only log before reopening; no URLs issued for withdrawn stories | restore drill with a withdrawn test story stays erased |
+| OH-11 | I | **A tagged person's privacy breached** by a shared story | Tagged protected people cap the audience (ADR-0027 §5.2); untag and hide-passage requests; whole recording restricted to the narrator while open; arbiter when the narrator cannot decide **open** | tagging narrows; hide request restricts; admins gain nothing |
+| OH-12 | E / R | **Abuse report used to gain access**, or a takedown with no trace | Suspension by case reference without reading (ADR-0027 §8.2); decisions that need hearing the recording follow the legal process (**open**); every step audited without content | suspender sees no content/metadata; audit trail complete |
+| OH-13 | D | **Storage exhaustion** through large or abandoned uploads | 60 min / 200 MB per recording; 5 GB per tree counting parts, derivatives and archives; incomplete uploads expire after 24 hours; quota checked before upload starts | quota refusal before start; parts expire |
+| OH-14 | T | **Malicious or mislabelled media** (video in an "audio" file, polyglots) | Vault pipeline (validate, scan, immutable storage); audio-only WebM classified `audio/webm`; files with a video track refused | WebM with video refused; EICAR refused |

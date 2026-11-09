@@ -285,3 +285,123 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   (approved, declined by either side, withdrawn, expired or lapsed). The row keeps only ids, the
   status and timestamps, so the notifications and audit events that point to it still resolve. It is
   deleted with the tree.
+
+## 15. Oral history (ADR-0023) — DRAFT for review, not implemented
+
+> **Status: draft.** ADR-0023 is *Proposed*. This section is the privacy-model part of its §12 gate
+> 2, written for review. Nothing here is implemented, and recording stays off. Items marked
+> **(open)** are listed in ADR-0023 §14 and are not decisions.
+
+### 15.1 What is protected, and whose it is
+- A **story** (recording, consent clip, transcripts, mentions, and its metadata) belongs to its
+  **narrator**. It is an ADR-0027 shareable record whose owner is the narrator's membership, or,
+  for a narrator who is not a member, the narrator reference held with their withdrawal code
+  **(open: narrator page, ADR-0023 §3)**.
+- The **interviewer** is not an owner. Any access they have is a separate permission the narrator
+  grants, with a duration and revocation **(open: options A–D, ADR-0023 §3a)**.
+- **People mentioned or tagged** keep their own privacy: a tagged protected living person caps the
+  story's audience (ADR-0027 §5.2), and facts about them are proposals under their privacy
+  (ADR-0021).
+
+### 15.2 Consent
+- Nothing is recorded before **written consent of record** (statement version, scopes, who
+  consented, who collected it, time). The consent clip is optional supporting evidence.
+- Scopes, each a separate yes or no: 1 record; 2 transcribe on our servers; 3 transcribe
+  externally; 4 share in the tree; 5 keep raw audio long-term. A possible scope 6 (interviewer may
+  listen and transcribe) depends on the §3a choice **(open)**.
+- Only the narrator, their guardian or a verified nominee changes scopes; a nominee may only narrow.
+  Removing scope 4 makes the story Only me at once; removing scope 2 or 3 cancels transcription.
+- Minors: guardian consent only, never through an "Ask an Elder" link. Narrators unable to consent:
+  a named guardian and relationship. Both rules await the legal review **(open)**.
+
+### 15.3 Who can see a story
+| Audience | Who | Condition |
+|---|---|---|
+| Only me (default) | the narrator (and the interviewer only as §3a allows) | scope 1 |
+| Selected members | the narrator and the chosen memberships | scope 4 **(open: own scope?)** |
+| Selected branch | branch members and family admins (ADR-0027 meaning) | scope 4 |
+| All family members | every member except researchers | scope 4 |
+| Public | never | — |
+
+- **Admins and owners have no ordinary access** to private stories (Only me, Selected members,
+  unconfirmed link recordings, recordings under a hide-passage request): no audio, transcript or
+  metadata, not even the row's existence. They see aggregate storage only. Roles never widen a story;
+  promotion reveals nothing.
+- Every list, search, count, cover, export, grant list and audit entry uses the same rule
+  (ADR-0027 §11: entries about records the reader cannot see are redacted).
+
+### 15.4 Signed links and playback
+- Audio and transcript files are served only through **signed URLs bound to (story, tree, user,
+  variant)**, valid for **at most 5 minutes**, re-authorised on every fetch (a revoked or withdrawn
+  story fails even within the lifetime), `Cache-Control: no-store`.
+- Playback streams inline; downloading the original is a separate right (ADR-0027 §4) that is off
+  unless the narrator allows it **(open: default for oral history)**.
+- Every playback and download is audited. Logs never hold audio, transcript text, link tokens or
+  withdrawal codes.
+- "Ask an Elder" tokens travel only in the URL fragment, are exchanged once for a link-scoped
+  cookie, and are stored as hashes; withdrawal codes are stored as hashes.
+
+### 15.5 Transcription
+- Manual transcription is always available and is the only kind until an engine is approved.
+- Machine transcription runs on our servers (scope 2). An external service needs both a tree
+  opt-in with reviewed wording and scope 3; otherwise nothing leaves our servers, and a missing
+  local engine never falls back to an external one.
+- A transcript is a versioned derivative with its origin. Facts drawn from it are
+  `extraction_proposal`s citing the story and a time range, reviewed like any proposal.
+- Transcripts follow the story's audience and are erased with it.
+
+### 15.6 Withdrawal
+- **Verified** (withdrawal code, the narrator's account, or a verified nominee): takes effect at
+  once, with no person in the loop.
+- **Unverified** (lost code, no account): a family admin opens a case **without content access**;
+  the narrator's stories are suspended at once; the admin acts within 7 days. How the admin verifies
+  the requester **(open, legal)**.
+- **Immediately:** processing stops (queued jobs removed, running jobs check the flag before each
+  step and discard output, external responses discarded and deletion requested where supported,
+  uploads refused); no new signed URL; existing URLs fail on re-authorisation; the story shows as
+  "withdrawn".
+- **Within 24 hours:** hard deletion of the recording, consent clip, upload parts, derivatives,
+  every transcript version and unreviewed proposals, **including all object versions**. Kept without
+  content: the consent record, the withdrawal record and the audit entries.
+- **Accepted facts** keep a tombstone citation; facts whose only evidence was the story are flagged
+  "evidence withdrawn" for their reviewers; the narrator is told which.
+
+### 15.7 Retention
+- Raw audio without archive consent: deleted 30 days after the transcript is reviewed, and in any
+  case **90 days after upload**; warnings 14 days before where possible.
+- Archive (scope 5): raw audio kept until withdrawal; never by a member's or admin's choice.
+- Unconfirmed link recordings: deleted after **30 days**, with a 5-day warning where a verified
+  contact exists. Incomplete uploads: 24 hours. Unused links: 7 days.
+- Retention, withdrawal and quota jobs run as the system and are audited as `system`.
+
+### 15.8 Backups and restoration
+- Backups are **not edited**. The nightly object mirror and database dumps are kept 35 days under
+  Object Lock, so withdrawn media leave backups **within 35 days** of withdrawal. Whether this is
+  acceptable is a legal decision **(open)**.
+- **Every restore re-applies withdrawals before the system reopens.** Withdrawal records are kept,
+  without content, in the database and in an **append-only withdrawal log** stored separately from
+  the backups being restored; the erasure job replays every withdrawal made since the backup was
+  taken. The restore runbook and the restore drill must include this step and prove it with a
+  withdrawn test story.
+- A restored database must not reissue signed URLs or links for a withdrawn story at any point.
+
+### 15.9 Abuse and legal reports
+- **Proposed (open):** a report creates a case; a family admin or the platform's reviewer may
+  **suspend** the story by its case reference without seeing content or metadata beyond the reason
+  category; suspended stories are hidden from everyone but the narrator; any decision that needs
+  the recording to be heard follows a process set by the legal review. All steps are audited without
+  content.
+
+### 15.10 Subject rights
+- The narrator: access, scope changes, audience changes, withdrawal, nominee.
+- A tagged living person: untag, hide a passage, and "remove me" (ADR-0011) for their mentions.
+- A narrator's "remove me" covers their stories.
+- After the narrator's death: only a verified Legacy Nominee may narrow or withdraw; heirs and admins
+  gain nothing by default.
+
+### 15.11 Decided and open
+Decided items are the owner's decisions recorded in ADR-0023 §14 and the accepted ADR-0027.
+**Open** items: interviewer access (A–D), non-member narrators' ownership, a separate scope for
+Selected members, the hide-passage arbiter, abuse-report roles, the oral-history download default,
+and every legal item in ADR-0023 §14 (consent wording and translations, withdrawal verification,
+backup retention, third-party privacy, minors and guardians, nominee checks, DPDP commencement).

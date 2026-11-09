@@ -28,7 +28,7 @@ into 0003, 0009 and 0010.
 | 0019 | [Indian geography reference data (LGD) and place cascades](0019-india-geography-reference-lgd.md) | Accepted |
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |
 | 0021 | [Change proposals, family review and duplicates at entry](0021-change-proposals-family-review.md) | Accepted |
-| 0023 | [Oral history: "Ask an Elder", recorded stories, consent and transcripts](0023-oral-history-ask-an-elder.md) | Proposed (revised 8 Nov 2026; in design review) |
+| 0023 | [Oral history: "Ask an Elder", recorded stories, consent and transcripts](0023-oral-history-ask-an-elder.md) | Proposed (revision 3 of 9 Nov 2026 prepared for design review; not accepted) |
 | 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |
 | 0026 | [Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions](0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md) | Accepted |
 | 0027 | [Record visibility and selective sharing for family media and records](0027-record-visibility-and-selective-sharing.md) | Accepted (implementation in progress) |
