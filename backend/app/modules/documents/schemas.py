@@ -64,6 +64,8 @@ class DocumentOut(ApiModel):
     can_download: bool = False  # the original file and exports (ADR-0027 §4)
     is_owner: bool = False
     can_edit_sharing: bool = False
+    # false on a private record for anyone but its owner: they may read, never change (ADR-0027 §10)
+    can_change: bool = True
     variants: list[str] = []  # variants the viewer may fetch: original, preview, thumbnail, stream
     has_ocr_text: bool = False
     pending_proposals: int = 0
