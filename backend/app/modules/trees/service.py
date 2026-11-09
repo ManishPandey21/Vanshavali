@@ -4,8 +4,9 @@ import datetime as dt
 import re
 import secrets
 import uuid
+from collections.abc import Iterable
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.authz.context import RequestInfo, TreeContext
@@ -14,7 +15,7 @@ from app.core import audit
 from app.core.config import get_settings
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessable
 from app.core.security import new_token, token_hash
-from app.models import AccessGrant, FamilyBranch, Person, Tree, TreeInvitation, TreeMembership, User
+from app.models import AccessGrant, FamilyBranch, Tree, TreeInvitation, TreeMembership, User
 from app.models.enums import GrantResource, Role
 
 INVITATION_TTL_DAYS = 14
@@ -323,6 +324,7 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
             raise Conflict("A tree must keep at least one owner", code="last_owner")
     _require_manageable(ctx, m)
     roles = sorted(m.roles)
+    audit_cascaded_grants(ctx.db, tree_id=ctx.tree_id, membership_id=m.id, actor_user_id=ctx.user_id)
     ctx.db.delete(m)
     audit.log(
         ctx,
@@ -331,31 +333,25 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
         target_id=m.id,
         details={"roles": roles, "admin_change": bool({Role(r) for r in roles} & _ADMIN_GRANTABLE)},
     )
-    delete_member_grants(
-        ctx.db, tree_id=ctx.tree_id, user_id=m.user_id, actor_user_id=ctx.user_id, membership_id=m.id
-    )
 
 
-def delete_member_grants(
-    db: Session,
-    *,
-    tree_id: uuid.UUID,
-    user_id: uuid.UUID,
-    actor_user_id: uuid.UUID | None,
-    membership_id: uuid.UUID,
+def audit_cascaded_grants(
+    db: Session, *, tree_id: uuid.UUID, membership_id: uuid.UUID, actor_user_id: uuid.UUID | None
 ) -> int:
-    """Delete a departing member's explicit grants in one tree, so a later re-invite starts clean.
+    """Record how many grants go with a membership about to be deleted.
 
-    Grants are keyed by ``user_id`` (until ADR-0027 §3 binds them to the membership with ON DELETE
-    CASCADE), so without this a re-invited person would get every old grant back. Audited with a
-    count only: no resource ids or titles.
+    The grants themselves are deleted by the ``ON DELETE CASCADE`` on ``access_grant.membership_id``
+    (ADR-0027 §3). Call this before the delete. Audited with a count only: no resource ids or titles.
+    ``access_grant`` is row-level secured, so the session must be bound to ``tree_id``.
     """
-    result = db.execute(
-        delete(AccessGrant)
-        .where(AccessGrant.tree_id == tree_id, AccessGrant.user_id == user_id)
-        .execution_options(synchronize_session=False)
+    count = int(
+        db.scalar(
+            select(func.count())
+            .select_from(AccessGrant)
+            .where(AccessGrant.tree_id == tree_id, AccessGrant.membership_id == membership_id)
+        )
+        or 0
     )
-    count = int(getattr(result, "rowcount", 0) or 0)
     if count:
         audit.record(
             db,
@@ -378,16 +374,18 @@ def create_grant(
     expires_at: dt.datetime | None,
 ) -> AccessGrant:
     ctx.require(Permission.PRIVACY_MANAGE)
-    member = ctx.db.scalar(
+    membership_id = ctx.db.scalar(
         select(TreeMembership.id).where(
             TreeMembership.tree_id == ctx.tree_id, TreeMembership.user_id == user_id
         )
     )
-    if member is None:
+    if membership_id is None:
         raise NotFound("Grants can only be given to members of this tree")
-    _assert_resource_in_tree(ctx, resource_type, resource_id)
+    if not manageable_grant_resources(ctx, [(resource_type, resource_id)]):
+        raise NotFound("Resource not found")
     grant = AccessGrant(
         tree_id=ctx.tree_id,
+        membership_id=membership_id,
         user_id=user_id,
         resource_type=resource_type,
         resource_id=resource_id,
@@ -407,16 +405,34 @@ def create_grant(
     return grant
 
 
-def _assert_resource_in_tree(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUID) -> None:
-    from app.models import Document, Property
+def manageable_grant_resources(
+    ctx: TreeContext, resources: Iterable[tuple[GrantResource, uuid.UUID]]
+) -> set[tuple[GrantResource, uuid.UUID]]:
+    """The resources whose grants this caller may see, create or revoke (ADR-0027 §3, finding A7).
 
-    model = {
-        GrantResource.PERSON: Person,
-        GrantResource.DOCUMENT: Document,
-        GrantResource.PROPERTY: Property,
-    }[resource_type]
-    if ctx.db.scalar(select(model.id).where(model.tree_id == ctx.tree_id, model.id == resource_id)) is None:  # type: ignore[attr-defined]
-        raise NotFound("Resource not found")
+    ``privacy.manage`` plus the record being visible to the caller: a privacy manager is never told
+    that a record they cannot see exists, nor who may see it. Anything else is treated as absent.
+    """
+    if not ctx.has(Permission.PRIVACY_MANAGE):
+        return set()
+    from app.models import Document, Property
+    from app.modules.documents.access import can_view_document
+    from app.modules.genealogy.lookup import visible_subjects
+    from app.modules.property.service import can_view_property
+
+    wanted: dict[GrantResource, set[uuid.UUID]] = {}
+    for rt, rid in resources:
+        wanted.setdefault(GrantResource(rt), set()).add(rid)
+    ok: set[tuple[GrantResource, uuid.UUID]] = set()
+    if ids := wanted.get(GrantResource.PERSON):
+        ok |= {(GrantResource.PERSON, pid) for pid in visible_subjects(ctx, ids)}
+    if ids := wanted.get(GrantResource.DOCUMENT):
+        docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(ids)))
+        ok |= {(GrantResource.DOCUMENT, d.id) for d in docs if can_view_document(ctx, d)}
+    if ids := wanted.get(GrantResource.PROPERTY):
+        props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))
+        ok |= {(GrantResource.PROPERTY, p.id) for p in props if can_view_property(ctx, p)}
+    return ok
 
 
 def tree_permissions(membership: TreeMembership) -> list[str]:

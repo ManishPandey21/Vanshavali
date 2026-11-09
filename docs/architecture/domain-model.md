@@ -17,6 +17,7 @@ erDiagram
   TREE ||--o{ TREE_MEMBERSHIP : grants
   TREE ||--o{ TREE_INVITATION : issues
   TREE ||--o{ ACCESS_GRANT : "explicit shares"
+  TREE_MEMBERSHIP ||--o{ ACCESS_GRANT : "held by (deleted with it, ADR-0027 §3)"
   TREE ||--o{ PERSON : contains
 
   PERSON ||--o{ NAME_RECORD : "has (type, script, language)"
