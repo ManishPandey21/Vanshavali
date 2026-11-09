@@ -9798,6 +9798,186 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}/sharing": {
+   "get": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Get Sharing",
+    "description": "The entry's audience. Who has access is listed only to those who may change it.",
+    "operationId": "get_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_get",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharingOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Update Sharing",
+    "description": "Change who can read the entry. Widening needs ``confirm_wider`` (409 otherwise).",
+    "operationId": "update_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_put",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharingUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharingOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/traditions/{entry_id}/sharing/preview": {
+   "post": {
+    "tags": [
+     "traditions"
+    ],
+    "summary": "Preview Sharing",
+    "description": "Who would have access with these settings. Changes nothing.",
+    "operationId": "preview_sharing_api_v1_trees__tree_id__traditions__entry_id__sharing_preview_post",
+    "parameters": [
+     {
+      "name": "entry_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entry Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SharingUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SharingOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/branches": {
    "get": {
     "tags": [
@@ -22609,7 +22789,8 @@
     "enum": [
      "person",
      "document",
-     "property"
+     "property",
+     "tradition"
     ],
     "title": "GrantResource"
    },
@@ -36537,7 +36718,7 @@
       "title": "Branch Id"
      },
      "privacy_level": {
-      "$ref": "#/components/schemas/PrivacyLevel",
+      "$ref": "#/components/schemas/RecordPrivacyLevel",
       "default": "TREE_MEMBERS"
      },
      "links": {
@@ -36633,7 +36814,7 @@
      "privacy_level": {
       "anyOf": [
        {
-        "$ref": "#/components/schemas/PrivacyLevel"
+        "$ref": "#/components/schemas/RecordPrivacyLevel"
        },
        {
         "type": "null"
@@ -36861,7 +37042,7 @@
       "title": "Branch Id"
      },
      "privacy_level": {
-      "$ref": "#/components/schemas/PrivacyLevel"
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
      },
      "author_name": {
       "anyOf": [
@@ -36928,6 +37109,16 @@
      "can_withdraw": {
       "type": "boolean",
       "title": "Can Withdraw",
+      "default": false
+     },
+     "is_owner": {
+      "type": "boolean",
+      "title": "Is Owner",
+      "default": false
+     },
+     "can_edit_sharing": {
+      "type": "boolean",
+      "title": "Can Edit Sharing",
       "default": false
      }
     },
@@ -37091,7 +37282,7 @@
       "title": "Branch Id"
      },
      "privacy_level": {
-      "$ref": "#/components/schemas/PrivacyLevel"
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
      },
      "author_name": {
       "anyOf": [

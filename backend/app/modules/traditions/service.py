@@ -1,10 +1,11 @@
 """Family traditions archive (ADR-0026 §7): ritual guides, customs, songs, recipes and stories.
 
-* An entry has its own privacy level; linking a living person never widens it, and public
-  (deceased-only) trees never show traditions.
+* An entry is a shareable record (ADR-0027): Only me, Selected members, Selected branch or All
+  family members, owned by its author's membership. No role sees a private entry. Linking a
+  protected living person caps (and narrows) its audience; public trees never show traditions.
 * Anyone with family.write may add an entry. Editing someone else's entry follows the tree's
-  review policy like every "all" change (ADR-0021); only the author and admins may withdraw it or
-  change who can read it.
+  review policy like every "all" change (ADR-0021). Who may read it follows ADR-0027 §10: the owner
+  may change it up to the ceiling; a tree admin may only narrow an entry that is not private.
 * Every change is kept in the revision history (the same flush hook as people and facts).
 * Text is plain text with light formatting; it is never stored or rendered as HTML.
 """
@@ -20,7 +21,7 @@ from sqlalchemy import exists, select
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
-from app.core.errors import Forbidden, NotFound
+from app.core.errors import Forbidden, NotFound, Unprocessable
 from app.core.textnorm import detect_script, search_key
 from app.models import (
     FamilyBranch,
@@ -31,9 +32,17 @@ from app.models import (
     TreeMembership,
     User,
 )
-from app.models.enums import PrivacyLevel, ReviewTarget, TraditionKind, TraditionLinkTarget
+from app.models.enums import (
+    PrivacyLevel,
+    RecordPrivacyLevel,
+    ReviewTarget,
+    TraditionKind,
+    TraditionLinkTarget,
+)
 from app.modules.genealogy import lookup
 from app.modules.review import policy as review_policy
+from app.modules.sharing import core
+from app.modules.traditions import sharing as tsharing
 from app.modules.traditions.schemas import (
     TraditionEntryIn,
     TraditionEntryUpdate,
@@ -50,27 +59,23 @@ SEARCH_BODY = 20_000
 
 # ---------------------------------------------------------------- reading
 def _is_author(ctx: TreeContext, e: TraditionEntry) -> bool:
-    return ctx.user_id is not None and e.created_by == ctx.user_id
+    """The entry's owner: the author's *current* membership (a re-invited author is not)."""
+    return tsharing.is_owner(ctx, e)
 
 
 def may_read(ctx: TreeContext, e: TraditionEntry) -> bool:
-    """The entry's own privacy level, for members only; never on a public view."""
-    if ctx.public or not ctx.is_member or e.withdrawn_at is not None:
-        return False
-    if _is_author(ctx, e):
-        return True
-    level = e.privacy_level
-    if level == PrivacyLevel.PRIVATE_SELF:
-        return False
-    if ctx.is_admin:
-        return True
-    if level in (PrivacyLevel.PRIVATE_TREE_ADMINS, PrivacyLevel.CUSTOM):
-        return False
-    if level == PrivacyLevel.FAMILY_BRANCH:
-        return e.branch_id is not None and e.branch_id in ctx.viewer_branch_ids()
-    if level == PrivacyLevel.TREE_MEMBERS:
-        return not ctx.is_researcher_only
-    return True  # INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY: any member (never public in R4)
+    """The entry's audience (ADR-0027 ``record_allows``), for members only; never on a public view."""
+    return tsharing.entry_allows(ctx, e)
+
+
+def _record_level(level: PrivacyLevel | RecordPrivacyLevel | str) -> RecordPrivacyLevel:
+    """Traditions always used PRIVATE_SELF for "the author only", which is ONLY_ME (ADR-0027)."""
+    level = RecordPrivacyLevel(level)
+    if level == RecordPrivacyLevel.PRIVATE_SELF:
+        return RecordPrivacyLevel.ONLY_ME
+    if level == RecordPrivacyLevel.PUBLIC_DECEASED_ONLY:
+        raise Unprocessable("Traditions are never public", code="public_not_supported")
+    return level
 
 
 def get_entry(ctx: TreeContext, entry_id: uuid.UUID) -> TraditionEntry:
@@ -170,6 +175,8 @@ def entry_out(ctx: TreeContext, e: TraditionEntry) -> TraditionOut:
         can_edit=can_write,
         edit_needs_review=can_write and needs_review_to_edit(ctx, e),
         can_withdraw=_is_author(ctx, e) or ctx.is_admin,
+        is_owner=_is_author(ctx, e),
+        can_edit_sharing=tsharing.TraditionRecord(e).can_edit(ctx),
     )
 
 
@@ -271,6 +278,23 @@ def create_entry(ctx: TreeContext, body: TraditionEntryIn) -> TraditionEntry:
     if ctx.public or not ctx.is_member:
         raise NotFound("Tree not found")
     _check_branch(ctx, body.branch_id)
+    for w in body.links:
+        _check_link(ctx, w)  # fail before writing anything
+    level = _record_level(body.privacy_level)
+    caps = core.caps_for_people(
+        ctx, [w.target_id for w in body.links if w.target_type == TraditionLinkTarget.PERSON]
+    )
+    branch_for_level = body.branch_id if level == RecordPrivacyLevel.FAMILY_BRANCH else None
+    if not core.within(level, branch_for_level, caps):
+        if "privacy_level" in body.model_fields_set:
+            raise Unprocessable(
+                "A person linked to this entry is kept more private; it cannot be shared this widely",
+                code="privacy_too_open",
+            )
+        narrowed, narrowed_branch = core.narrowest(caps)  # the default narrows quietly
+        level = narrowed
+        if narrowed_branch is not None:
+            body.branch_id = narrowed_branch
     e = TraditionEntry(
         tree_id=ctx.tree_id,
         kind=body.kind,
@@ -279,7 +303,8 @@ def create_entry(ctx: TreeContext, body: TraditionEntryIn) -> TraditionEntry:
         language=body.language,
         script=body.script,
         branch_id=body.branch_id,
-        privacy_level=body.privacy_level,
+        privacy_level=level,
+        owner_membership_id=ctx.membership_id,
         created_by=ctx.user_id,
     )
     _index(e)
@@ -300,14 +325,35 @@ def update_entry(ctx: TreeContext, entry_id: uuid.UUID, body: TraditionEntryUpda
     if not _is_author(ctx, e):
         review_policy.require_direct(ctx, "all", [], [e])
     fields = body.model_fields_set - {"links"}
-    if (
-        "privacy_level" in fields
-        and body.privacy_level != e.privacy_level
-        and not (_is_author(ctx, e) or ctx.is_admin)
-    ):
-        raise Forbidden("Only the author or a tree admin can change who may read this")
     if "branch_id" in fields:
         _check_branch(ctx, body.branch_id)
+    # who may read it (the level, or the branch of a "Selected branch" entry) follows ADR-0027 §10
+    new_level = (
+        _record_level(body.privacy_level)
+        if "privacy_level" in fields and body.privacy_level is not None
+        else RecordPrivacyLevel(e.privacy_level)
+    )
+    new_branch = body.branch_id if "branch_id" in fields else e.branch_id
+    audience_changes = new_level != RecordPrivacyLevel(e.privacy_level) or (
+        new_level == RecordPrivacyLevel.FAMILY_BRANCH and new_branch != e.branch_id
+    )
+    if audience_changes:
+        rec = tsharing.TraditionRecord(e)
+        if not rec.can_edit(ctx):
+            raise Forbidden("Only the author or a tree admin can change who may read this")
+        current = rec.current(ctx)
+        core.apply(
+            ctx,
+            rec,
+            core.Proposal(
+                new_level,
+                new_branch if new_level == RecordPrivacyLevel.FAMILY_BRANCH else None,
+                False,
+                {} if new_level == RecordPrivacyLevel.ONLY_ME else current.members,
+            ),
+            confirm_wider=True,  # an explicit edit is the confirmation; the UI asks first
+        )
+    fields -= {"privacy_level"}
     for f in fields:
         value = getattr(body, f)
         if value is None and f in ("kind", "title", "body", "privacy_level"):
@@ -317,6 +363,8 @@ def update_entry(ctx: TreeContext, entry_id: uuid.UUID, body: TraditionEntryUpda
         _index(e)
     if body.links is not None:
         _set_links(ctx, e, body.links)
+        ctx.db.flush()
+        core.enforce_ceiling(ctx, tsharing.TraditionRecord(e), reason="link")
     e.updated_by = ctx.user_id
     e.updated_at = dt.datetime.now(dt.UTC)
     ctx.db.flush()

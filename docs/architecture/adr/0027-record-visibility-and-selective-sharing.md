@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: increment 1 (documents) — see the implementation notes
+  are resolved as below) · Implementation: increments 1 (documents) and 2 (traditions) — see the implementation notes
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -308,3 +308,30 @@ historical records, GEDCOM-imported photos and event-album photos.
 A9), standalone photo collections, takedown by suspension, ownership transfer, notifying the owner
 of an automatic narrowing, and narrowing when a profile is hidden during a claim review. These are
 listed in the threat model's residual risks.
+
+## Implementation notes (9 Nov 2026, increment 2: family traditions)
+- **Shared core.** The sharing rules moved to `app/modules/sharing/core.py` behind a small
+  `RecordAdapter` (how to evaluate a proposed setting, how to store it, which people are linked,
+  whether there is a download right). Documents (`documents/sharing.py`) and traditions
+  (`traditions/sharing.py`) are adapters; the API, the "who has access" computation, ceilings,
+  confirmation and grant replacement are one code path.
+- **Traditions are records.** `tradition_entry.privacy_level` takes `RecordPrivacyLevel`; new
+  `owner_membership_id` (backfilled from `created_by`). `traditions.may_read` is now
+  `record_allows` (finding A9 closed): the private audiences admit no role. Traditions always used
+  `PRIVATE_SELF` for *the author only*, so migration `8d2e6b4f1a37` moves those rows to `ONLY_ME` and
+  the API maps a submitted `PRIVATE_SELF` to `ONLY_ME`: nobody gained or lost access. "Selected
+  branch" is the entry's existing `branch_id`; moving a Selected-branch entry to another branch is an
+  audience change and follows §10. Entries are text: no separate download right. Never public.
+- **Grants.** `GrantResource.TRADITION`; `manageable_grant_resources` treats entries like documents
+  (owner, or a privacy manager for a shared entry); `ONLY_ME` cannot be granted directly (409).
+- **Ceilings.** People linked to an entry cap it like people tagged in a document; linking a
+  protected living person, or making a linked person more private, narrows the entry.
+- **Review.** Proposals are applied as the proposer (ADR-0021), so a proposal by a non-owner to
+  change who may read an entry fails when approved (403) and the entry is unchanged.
+- **API.** `GET|PUT /traditions/{id}/sharing`, `POST …/sharing/preview`; `TraditionOut.is_owner`,
+  `can_edit_sharing`.
+- **UI.** The tradition editor picks the audience for a new entry with Visibility & Sharing
+  (without download controls); an entry's page has the same `RecordSharingPanel` as documents.
+- **Tests.** `tests/test_traditions_sharing.py` (12 cases, including the migration and its
+  downgrade), a component test for records without downloads, and a second Playwright test in
+  `record-sharing.spec.ts`; threat model T56.

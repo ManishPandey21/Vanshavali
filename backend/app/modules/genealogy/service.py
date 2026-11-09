@@ -643,7 +643,7 @@ def set_privacy(ctx: TreeContext, subject: Subject, body: PrivacyUpdate) -> Pers
     if body.privacy_level is not None:
         person.privacy_level = body.privacy_level
         ctx.db.flush()
-        from app.modules.documents.sharing import enforce_person_ceiling
+        from app.modules.sharing.core import enforce_person_ceiling
 
         enforce_person_ceiling(ctx, person.id)  # records tagging them narrow at once (ADR-0027 §5)
     if body.field_privacy is not None:
@@ -1181,7 +1181,7 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
     person.privacy_level = PrivacyLevel.PRIVATE_TREE_ADMINS
     person.field_privacy = {}
     db.flush()
-    from app.modules.documents.sharing import enforce_person_ceiling
+    from app.modules.sharing.core import enforce_person_ceiling
 
     enforce_person_ceiling(ctx, person.id)
     audit.log(

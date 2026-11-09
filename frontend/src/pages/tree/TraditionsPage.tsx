@@ -2,7 +2,10 @@ import { Fragment, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { History, NotebookPen, Pencil, Plus, Trash2, X } from "lucide-react";
-import type { PersonSummary, PrivacyLevel, TraditionKind, TraditionOut } from "../../api/types";
+import type { PersonSummary, RecordPrivacyLevel, SharingOut, SharingUpdate, TraditionKind, TraditionOut } from "../../api/types";
+import { api } from "../../api/client";
+import { useMembers } from "../../api/hooks/trees";
+import { useMe } from "../../api/hooks/auth";
 import {
   useCreateTradition,
   useTradition,
@@ -18,8 +21,9 @@ import { Perm } from "../../lib/permissions";
 import { useDebounced } from "../../lib/useDebounced";
 import { PersonPicker } from "../../components/pickers";
 import { CitationList } from "../../components/evidence/Citations";
-import { PRIVACY_LEVELS } from "../../components/person/PersonForm";
-import { PrivacyBadge } from "../../components/person/badges";
+import { RecordPrivacyBadge } from "../../components/person/badges";
+import { RecordSharingPanel } from "../../components/privacy/RecordSharingPanel";
+import { RECORD_AUDIENCES, VisibilitySharing, draftProblem, type SharingDraft } from "../../components/privacy/VisibilitySharing";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { ConfirmDialog, Dialog } from "../../components/ui/Dialog";
@@ -113,7 +117,7 @@ export function TraditionsPage() {
   );
 }
 
-function TraditionList({ items }: { items: { id: string; title: string; kind: TraditionKind; excerpt: string; language?: string | null; author_name?: string | null; privacy_level: PrivacyLevel }[] }) {
+function TraditionList({ items }: { items: { id: string; title: string; kind: TraditionKind; excerpt: string; language?: string | null; author_name?: string | null; privacy_level: RecordPrivacyLevel }[] }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
   return (
@@ -125,7 +129,7 @@ function TraditionList({ items }: { items: { id: string; title: string; kind: Tr
               {e.title}
             </Link>
             <Badge tone="saffron">{t(`traditions.kinds.${e.kind}`)}</Badge>
-            {e.privacy_level !== "TREE_MEMBERS" && <PrivacyBadge level={e.privacy_level} />}
+            {e.privacy_level !== "TREE_MEMBERS" && <RecordPrivacyBadge level={e.privacy_level} />}
           </div>
           {e.excerpt && (
             <p className="mt-1 text-sm text-ink-muted" lang={e.language ?? undefined}>
@@ -180,7 +184,7 @@ export function TraditionDetailPage() {
       <header className="mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="saffron">{t(`traditions.kinds.${e.kind}`)}</Badge>
-          <PrivacyBadge level={e.privacy_level} />
+          <RecordPrivacyBadge level={e.privacy_level} />
           {e.review_state === "family_reviewed" && <Badge tone="green">{t("review.state.family_reviewed")}</Badge>}
         </div>
         <h1 id="tradition-title" className="mt-2 font-display text-2xl font-bold sm:text-3xl" lang={e.language ?? undefined}>
@@ -227,6 +231,11 @@ export function TraditionDetailPage() {
         )}
       </div>
       {showHistory && <TraditionHistory id={e.id} />}
+      {e.can_edit_sharing && (
+        <div className="mt-6">
+          <RecordSharingPanel path={`traditions/${e.id}`} downloads={false} />
+        </div>
+      )}
       <section className="mt-6" aria-labelledby="tradition-sources">
         <h2 id="tradition-sources" className="text-sm font-semibold">
           {t("traditions.sources")}
@@ -289,7 +298,17 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
   const [title, setTitle] = useState(entry?.title ?? "");
   const [body, setBody] = useState(entry?.body ?? "");
   const [language, setLanguage] = useState(entry?.language ?? "");
-  const [privacy, setPrivacy] = useState<PrivacyLevel>(entry?.privacy_level ?? "TREE_MEMBERS");
+  const { tree } = useTreeCtx();
+  const members = useMembers(treeId);
+  const me = useMe();
+  // ADR-0027: a new entry chooses its audience here; an existing one changes it in Visibility & Sharing
+  const [sharing, setSharing] = useState<SharingDraft>({
+    privacy_level: RECORD_AUDIENCES.includes(tree.default_person_privacy as RecordPrivacyLevel) ? (tree.default_person_privacy as RecordPrivacyLevel) : "TREE_MEMBERS",
+    audience_branch_id: null,
+    allow_download: false,
+    members: [],
+  });
+  const [shareError, setShareError] = useState<unknown>(null);
   const [branch, setBranch] = useState(entry?.branch_id ?? "");
   const [people, setPeople] = useState<{ id: string; label: string }[]>(
     (entry?.links ?? []).filter((l) => l.target_type === "person").map((l) => ({ id: l.target_id, label: l.label })),
@@ -312,10 +331,33 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
       setErr(t("traditions.tooLong"));
       return;
     }
+    if (!entry && draftProblem(sharing)) {
+      setErr(sharing.privacy_level === "FAMILY_BRANCH" ? t("sharing.chooseBranch") : t("sharing.membersRequired"));
+      return;
+    }
     setErr(null);
+    setShareError(null);
     const values = { kind, title: title.trim(), body, language: language || null, branch_id: branch || null, links };
     if (!entry) {
-      create.mutate({ ...values, privacy_level: privacy }, { onSuccess: onSaved });
+      const level = sharing.privacy_level === "SELECTED_MEMBERS" ? "ONLY_ME" : sharing.privacy_level; // members are attached next
+      const branchId = sharing.privacy_level === "FAMILY_BRANCH" ? sharing.audience_branch_id : values.branch_id;
+      create.mutate(
+        { ...values, branch_id: branchId, privacy_level: level },
+        {
+          onSuccess: async (created) => {
+            if (sharing.privacy_level === "SELECTED_MEMBERS") {
+              const share: SharingUpdate = { privacy_level: "SELECTED_MEMBERS", allow_download: false, members: sharing.members, confirm_wider: true };
+              try {
+                await api.put<SharingOut>(`/trees/${treeId}/traditions/${created.id}/sharing`, share);
+              } catch (e) {
+                setShareError(e); // the entry stays Only me: safe; its owner can share it from its page
+                return;
+              }
+            }
+            onSaved(created);
+          },
+        },
+      );
     } else if (asProposal) {
       if (!rationale.trim()) {
         setErr(t("traditions.rationaleRequired"));
@@ -326,7 +368,7 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
         { onSuccess: () => setSent(true) },
       );
     } else {
-      update.mutate({ ...values, ...(entry.can_withdraw ? { privacy_level: privacy } : {}) }, { onSuccess: onSaved });
+      update.mutate(values, { onSuccess: onSaved });
     }
   };
 
@@ -412,22 +454,9 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
             <p className="text-xs text-ink-muted">{t("traditions.peopleHint")}</p>
           </fieldset>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {(!entry || entry.can_withdraw) && (
-              <Field label={t("privacy.level")} hint={t(`enum.privacyHint.${privacy}`)}>
-                {(p) => (
-                  <Select {...p} value={privacy} onChange={(e) => setPrivacy(e.target.value as PrivacyLevel)}>
-                    {PRIVACY_LEVELS.filter((l) => l !== "PUBLIC_DECEASED_ONLY" && l !== "CUSTOM").map((l) => (
-                      <option key={l} value={l}>
-                        {t(`enum.privacy.${l}`)}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </Field>
-            )}
-            <Field label={t("traditions.branch")}>
+            <Field label={t("traditions.branch")} hint={entry?.privacy_level === "FAMILY_BRANCH" ? t("traditions.branchIsAudience") : undefined}>
               {(p) => (
-                <Select {...p} value={branch} onChange={(e) => setBranch(e.target.value)}>
+                <Select {...p} value={branch} disabled={entry?.privacy_level === "FAMILY_BRANCH"} onChange={(e) => setBranch(e.target.value)}>
                   <option value="">{t("traditions.noBranch")}</option>
                   {(branches.data ?? []).map((b) => (
                     <option key={b.id} value={b.id}>
@@ -438,6 +467,20 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
               )}
             </Field>
           </div>
+          {!entry && (
+            <fieldset className="space-y-2 rounded-lg border border-stone-200 p-3">
+              <legend className="px-1 text-sm font-semibold">{t("sharing.title")}</legend>
+              <p className="text-xs text-ink-muted">{t("sharing.uploadNote")}</p>
+              <VisibilitySharing
+                value={sharing}
+                onChange={setSharing}
+                members={members.data ?? []}
+                branches={branches.data ?? []}
+                ownMembershipId={members.data?.find((m) => m.user_id === me.data?.id)?.id ?? null}
+                downloads={false}
+              />
+            </fieldset>
+          )}
           {asProposal && (
             <Field label={t("review.rationale")} required>
               {(p) => <TextArea {...p} rows={2} value={rationale} onChange={(e) => setRationale(e.target.value)} />}
@@ -448,7 +491,7 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
               {err}
             </p>
           )}
-          <ErrorAlert error={create.error ?? update.error ?? propose.error} />
+          <ErrorAlert error={create.error ?? update.error ?? propose.error ?? shareError} />
         </form>
       )}
     </Dialog>
