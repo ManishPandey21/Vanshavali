@@ -62,6 +62,10 @@ A photo in an event's album is never more visible than the event or a protected 
 becomes more private when the event does; each viewer sees only the album photos they may see.
 A standalone photo collection has its own audience (new collections are Only me); a viewer sees a
 photo in it only if they may see both, and sharing a collection never shares its photos.
+Ownership of a document, tradition or collection moves only when its owner offers it to another
+member and that member accepts; an offer gives no access, and a record whose owner left cannot be
+claimed by anyone. Members a private record is shared with only read it: the owner alone edits,
+withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
 Global search and the archive export follow the same rule: a collection is a hit or exported only
 for someone who may see it, and only the photos they may see are listed in it.
 

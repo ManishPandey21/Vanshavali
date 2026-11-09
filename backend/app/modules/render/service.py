@@ -254,8 +254,17 @@ def _store_artifact(
 
 
 # ---------------------------------------------------------------- downloads
-def issue_download(ctx: TreeContext, job_id: uuid.UUID, artifact_id: uuid.UUID) -> tuple[str, dt.datetime]:
+def _own_job(ctx: TreeContext, job_id: uuid.UUID) -> RenderJob:
+    """Only the requester opens a render's files: it may embed their private photos (ADR-0027 §1).
+    Tree admins still see other members' jobs, but never download them."""
     job = _visible_job(ctx, job_id)
+    if job.requested_by != ctx.user_id:
+        raise NotFound("Render job not found")
+    return job
+
+
+def issue_download(ctx: TreeContext, job_id: uuid.UUID, artifact_id: uuid.UUID) -> tuple[str, dt.datetime]:
+    job = _own_job(ctx, job_id)
     art = ctx.db.scalar(
         select(RenderArtifact).where(
             RenderArtifact.tree_id == ctx.tree_id,
@@ -306,7 +315,7 @@ def read_artifact(
 ) -> tuple[RenderJob, RenderArtifact, bytes]:
     """Authorisation is evaluated again at download time."""
     try:
-        job = _visible_job(ctx, job_id)
+        job = _own_job(ctx, job_id)
     except NotFound:
         raise Forbidden("This download link is no longer valid", code="invalid_download_token")
     art = ctx.db.scalar(

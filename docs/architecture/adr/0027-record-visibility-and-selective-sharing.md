@@ -416,7 +416,26 @@ listed in the threat model's residual risks.
 - **Tests.** `tests/test_photo_collections.py` (7 cases), page tests in `CollectionsPage.test.tsx`,
   a fourth Playwright test in `record-sharing.spec.ts`; threat model T59.
 
-## Implementation notes (9 Nov 2026, increment 5: collections in search and the archive export)
+## Implementation notes (9 Nov 2026, increment 5: ownership transfer and remaining paths)
+- **Ownership transfer (§2)** for documents, tradition entries and photo collections:
+  `pending_owner_membership_id` (migration `e4b8c2d6f913`, after the photo collections). The owner
+  offers (`POST /trees/{id}/records/{type}/{rid}/ownership-offer`), the member accepts
+  (`…/accept`) or declines, the owner may cancel (`DELETE …`); `GET /trees/{id}/ownership-offers`
+  lists offers to the caller. An offer gives no access; it lapses if the member leaves (SET NULL).
+  Grants stay with the record and are managed by the new owner. Audited as
+  `record.ownership_offered`, `record.ownership_transferred`, `record.ownership_declined`,
+  `record.ownership_offer_cancelled`, without titles, and redacted like any record event. Anyone
+  but the owner or the member offered the record gets 404; an orphaned record cannot be offered or
+  claimed. There is no UI for transfers yet.
+- **Render files** open for their requester only: a render may embed the requester's private
+  photos. Tree admins still see other members' jobs.
+- **Consent evidence** is checked with document visibility, so naming a hidden document answers
+  404 like a missing one.
+- **`level_allows` denies by default:** a level no rule names admits nobody (before, it admitted
+  any member). No current level reaches that branch.
+- Tests: `tests/test_record_ownership.py`, `test_render_jobs.py`, `test_migrations.py`; threat T60.
+
+## Implementation notes (9 Nov 2026, increment 6: collections in search and the archive export)
 - **Search.** A `collection` search provider matches the title or description of the collections
   the searcher may see (`collection_allows`, so no role reaches a private one, and a private
   collection's description never produces a hit). Hits link to the collection page; the `kinds`
