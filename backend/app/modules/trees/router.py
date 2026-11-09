@@ -43,6 +43,7 @@ def _tree_out(tree: Tree, m: TreeMembership) -> TreeOut:
         update={
             "my_roles": [Role(r) for r in m.roles],
             "my_permissions": service.tree_permissions(m),
+            "my_grantable_roles": service.grantable_for(m),
             "my_branch_id": m.branch_id,
             "my_linked_person_id": m.linked_person_id,
         }
@@ -129,6 +130,7 @@ def list_members(ctx: TreeCtx) -> list[MemberOut]:
             branch_id=m.branch_id,
             linked_person_id=m.linked_person_id if m.linked_person_id in linked_visible else None,
             created_at=m.created_at,
+            can_manage=service.can_manage(ctx, m),
         )
         for m, u in rows
     ]
@@ -157,6 +159,7 @@ def update_member(membership_id: uuid.UUID, body: MemberUpdate, ctx: TreeCtx) ->
         branch_id=m.branch_id,
         linked_person_id=m.linked_person_id,
         created_at=m.created_at,
+        can_manage=service.can_manage(ctx, m),
     )
 
 

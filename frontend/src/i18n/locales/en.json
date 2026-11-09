@@ -986,7 +986,9 @@
     "wholeTree": "Whole tree",
     "you": "You",
     "linkedPerson": "Linked to person in the tree",
-    "linkedPersonHint": "Admins link members to their own profile. Members link themselves by claiming a profile."
+    "linkedPersonHint": "Admins link members to their own profile. Members link themselves by claiming a profile.",
+    "roleLocked": "Only someone who can grant this role can change it.",
+    "ownRolesLocked": "You cannot change your own roles. Ask the tree owner."
   },
   "invitations": {
     "accepted": "Accepted",
