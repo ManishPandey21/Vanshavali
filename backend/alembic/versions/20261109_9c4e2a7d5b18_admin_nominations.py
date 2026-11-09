@@ -1,7 +1,7 @@
 """admin nominations
 
 Revision ID: 9c4e2a7d5b18
-Revises: 7b3e9d2c4f61
+Revises: 9c4f2a7d1e83
 Create Date: 2026-11-09
 
 ADR-0006 amendment of 9 Nov 2026: `admin_nomination`, tree-scoped with row-level security, at most
@@ -19,7 +19,7 @@ from alembic import op
 from app.models.rls import GRANT_APP_ROLE_SQL, disable_sql, enable_sql
 
 revision: str = "9c4e2a7d5b18"
-down_revision: str | None = "7b3e9d2c4f61"
+down_revision: str | None = "9c4f2a7d1e83"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

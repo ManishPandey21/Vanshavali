@@ -410,7 +410,7 @@ def close_account(db: Session, user: User, password: str) -> None:
     from app.models import TreeMembership
     from app.models.enums import Role
     from app.modules.trees.nominations import on_member_leaving
-    from app.modules.trees.service import delete_member_grants
+    from app.modules.trees.service import audit_cascaded_grants
 
     if not verify_password(user.password_hash, password):
         raise ApiError("Password is incorrect", code="invalid_credentials", status_code=400)
@@ -437,12 +437,10 @@ def close_account(db: Session, user: User, password: str) -> None:
             target_type="membership",
             target_id=m.id,
         )
-        bind_tree(db, m.tree_id)  # access_grant is row-level secured: scope the delete to this tree
+        bind_tree(db, m.tree_id)  # access_grant is row-level secured: scope the count to this tree
         on_member_leaving(db, m.tree_id, m, user.id)
-        delete_member_grants(
-            db, tree_id=m.tree_id, user_id=user.id, actor_user_id=user.id, membership_id=m.id
-        )
-        db.delete(m)
+        audit_cascaded_grants(db, tree_id=m.tree_id, membership_id=m.id, actor_user_id=user.id)
+        db.delete(m)  # the membership's grants go with it (ON DELETE CASCADE, ADR-0027 §3)
     if memberships:
         unbind_tree(db)
     revoke_all(db, user.id)

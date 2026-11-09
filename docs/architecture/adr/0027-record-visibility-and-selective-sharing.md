@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: in progress
+  are resolved as below) · Implementation: in progress (see *Implementation status* below)
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -91,6 +91,13 @@ collection (§6). Its `privacy_level` takes one of these audiences:
   the selector says so.
 - `GET /trees/{id}/grants` returns only grants on resources the caller may manage (fixes A7). A
   record's own `GET …/sharing` returns its grants to its owner only.
+
+**Implemented (9 Nov 2026):** `membership_id` with the composite FK and cascade, backfill and
+orphan deletion (§12.2, migration `9c4f2a7d1e83`); lookups by membership; `GET /grants` (and grant
+creation and revocation) limited to records the caller may see — `privacy.manage` plus visibility
+until §2 defines a content owner. **Waits for §1/§2:** owner-only granting on `ONLY_ME` /
+`SELECTED_MEMBERS` records, `GET …/sharing`, and the new `GrantResource` values (§12.4).
+**Next release:** drop `access_grant.user_id`.
 
 ### 4. View, preview, play and download
 - **View** = metadata, thumbnail, preview, in-app playback/streaming, OCR text and confirmed

@@ -13,7 +13,7 @@ from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
 from app.models import AccessGrant, AdminNomination, AuditEvent, Tree, TreeInvitation, TreeMembership, User
-from app.models.enums import Role
+from app.models.enums import GrantResource, Role
 from app.modules.trees import nominations, service
 from app.modules.trees.schemas import (
     AuditEventOut,
@@ -283,10 +283,14 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 # ---- explicit access grants ----
 @router.get("/trees/{tree_id}/grants", response_model=list[GrantOut])
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
+    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7)."""
     ctx.require(Permission.PRIVACY_MANAGE)
+    grants = list(ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id)))
+    manageable = service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id) for g in grants])
     return [
         GrantOut.model_validate(g)
-        for g in ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id))
+        for g in grants
+        if (GrantResource(g.resource_type), g.resource_id) in manageable
     ]
 
 
@@ -304,7 +308,7 @@ def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
     g = ctx.db.scalar(
         select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
     )
-    if g is None:
+    if g is None or not service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id)]):
         raise NotFound("Grant not found")
     ctx.db.delete(g)
     audit.log(ctx, "grant.revoked", target_type=str(g.resource_type), target_id=g.resource_id)
