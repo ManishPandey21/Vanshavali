@@ -8,6 +8,11 @@
   ``property.documents`` for property categories (property custodian), or an explicit
   ``download`` grant on the document. Researchers and viewers never get vault bytes by default.
 
+* **Record audiences (ADR-0027 §1, §2):** the content owner always sees and opens the document.
+  ``ONLY_ME`` and ``SELECTED_MEMBERS`` admit only the owner and holders of a grant: no role,
+  custodian or uploader shortcut applies to them. A ``FAMILY_BRANCH`` document is shared with its
+  ``audience_branch_id``.
+
 Not visible → 404 (existence is not revealed). Visible but no content permission → 403.
 """
 
@@ -19,11 +24,12 @@ from sqlalchemy import select
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
-from app.authz.privacy import level_allows
+from app.authz.privacy import is_record_owner, level_allows
 from app.core.errors import Forbidden, NotFound
 from app.models import Document
 from app.models.enums import (
     PROPERTY_CATEGORIES,
+    RECORD_ONLY_LEVELS,
     GrantPermission,
     GrantResource,
     PrivacyLevel,
@@ -37,13 +43,31 @@ def _custodian_for(ctx: TreeContext, doc: Document) -> bool:
     return doc.category in PROPERTY_CATEGORIES and ctx.has(Permission.PROPERTY_DOCUMENTS)
 
 
+def is_owner(ctx: TreeContext, doc: Document) -> bool:
+    """The viewer is the document's content owner (ADR-0027 §2)."""
+    return is_record_owner(ctx, doc.owner_membership_id)
+
+
+def is_private(doc: Document) -> bool:
+    """``ONLY_ME`` / ``SELECTED_MEMBERS``: no role, custodian or uploader shortcut applies."""
+    return doc.privacy_level in RECORD_ONLY_LEVELS
+
+
 def can_view_document(ctx: TreeContext, doc: Document) -> bool:
     if ctx.public or not ctx.is_member:
         return False
     if doc.tree_id != ctx.tree_id:
         return False
-    if level_allows(ctx, doc.privacy_level, grant=(GrantResource.DOCUMENT, doc.id)):
+    if level_allows(
+        ctx,
+        doc.privacy_level,
+        grant=(GrantResource.DOCUMENT, doc.id),
+        owner=is_owner(ctx, doc),
+        audience_branch_id=doc.audience_branch_id,
+    ):
         return True
+    if is_private(doc):
+        return False  # owner and grantees only (ADR-0027 §1); handled above
     if doc.privacy_level == PrivacyLevel.PRIVATE_TREE_ADMINS and _custodian_for(ctx, doc):
         return True
     return ctx.user_id is not None and doc.created_by == ctx.user_id
@@ -52,9 +76,9 @@ def can_view_document(ctx: TreeContext, doc: Document) -> bool:
 def can_access_content(ctx: TreeContext, doc: Document) -> bool:
     if not can_view_document(ctx, doc):
         return False
-    if doc.storage_class != StorageClass.VAULT:
+    if doc.storage_class != StorageClass.VAULT or is_owner(ctx, doc):
         return True
-    if _custodian_for(ctx, doc):
+    if not is_private(doc) and _custodian_for(ctx, doc):
         return True
     return ctx.has_grant(GrantResource.DOCUMENT, doc.id, GrantPermission.DOWNLOAD)
 

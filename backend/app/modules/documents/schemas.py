@@ -47,6 +47,9 @@ class DocumentOut(ApiModel):
     script: str | None
     issuing_authority: str | None
     privacy_level: PrivacyLevel
+    audience_branch_id: uuid.UUID | None = None
+    owner_membership_id: uuid.UUID | None = None
+    is_owner: bool = False  # the viewer is the content owner (ADR-0027 §2)
     scan_status: ScanStatus
     page_count: int | None
     ocr_status: ProcessingStatus
@@ -71,6 +74,7 @@ class DocumentUpdate(ApiModel):
     description: str | None = Field(default=None, max_length=20000)
     category: DocumentCategory | None = None
     privacy_level: PrivacyLevel | None = None
+    audience_branch_id: uuid.UUID | None = None  # the branch a FAMILY_BRANCH document is shared with
     document_date: GenealogicalDate | None = None
     language: str | None = Field(default=None, max_length=16)
     script: str | None = Field(default=None, max_length=20)

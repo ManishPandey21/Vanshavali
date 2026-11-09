@@ -34,6 +34,7 @@ from app.models import (
 )
 from app.models.enums import (
     OWNERSHIP_INTERESTS,
+    RECORD_ONLY_LEVELS,
     CitationTarget,
     DocumentLinkTarget,
     HolderType,
@@ -367,7 +368,8 @@ class PropertySerializer:
                 if doc.deleted_at is not None:
                     continue
                 if not service.can_view_document(self.ctx, doc):
-                    hidden[link.target_id] += 1
+                    if doc.privacy_level not in RECORD_ONLY_LEVELS:  # a private record is not even counted
+                        hidden[link.target_id] += 1
                     continue
                 visible[link.target_id].append(
                     DocumentRef(

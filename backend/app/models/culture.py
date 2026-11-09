@@ -49,6 +49,8 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
     __table_args__ = (
         tree_unique("tradition_entry"),
         tree_fk(["branch_id"], "family_branch", ondelete="SET NULL"),
+        tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
         Index("ix_tradition_entry_tree_kind", "tree_id", "kind"),
         Index(
             "ix_tradition_entry_search_trgm",
@@ -69,6 +71,10 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
         default=PrivacyLevel.TREE_MEMBERS,
         server_default=PrivacyLevel.TREE_MEMBERS.value,
     )
+    # ADR-0027 §2: the content owner, and a member offered ownership who has not accepted yet.
+    # A FAMILY_BRANCH entry is shared with ``branch_id`` (its audience branch, as before).
+    owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
     withdrawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 

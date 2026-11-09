@@ -31,6 +31,7 @@ from app.modules.render.router import files_router as render_files_router
 from app.modules.render.router import router as render_router
 from app.modules.review.router import router as review_router
 from app.modules.search.router import router as search_router
+from app.modules.sharing.router import router as sharing_router
 from app.modules.smartadd.router import router as smartadd_router
 from app.modules.traditions.router import router as traditions_router
 from app.modules.translit.router import router as translit_router
@@ -40,6 +41,7 @@ from app.modules.visualization.router import router as visualization_router
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(trees_router)
+api_router.include_router(sharing_router)
 api_router.include_router(genealogy_router)
 api_router.include_router(smartadd_router)
 api_router.include_router(masterdata_router)

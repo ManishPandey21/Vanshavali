@@ -33,6 +33,7 @@ from app.models import (
     User,
 )
 from app.models.enums import (
+    RECORD_ONLY_LEVELS,
     AssertionSubject,
     ChangeProposalStatus,
     EvidenceStatus,
@@ -378,7 +379,17 @@ def people_of(ctx: TreeContext, p: ChangeProposal) -> list[uuid.UUID]:
 
 
 def may_view(ctx: TreeContext, p: ChangeProposal) -> bool:
-    """The proposer, those who may review it, and (for a challenge) members who can see the fact."""
+    """The proposer, those who may review it, and (for a challenge) members who can see the fact.
+
+    A proposal on a tradition that has since become private (ADR-0027 §1) is shown only to those
+    who may still read that tradition."""
+    if p.target_type == ReviewTarget.TRADITION and p.target_id is not None:
+        from app.models import TraditionEntry
+        from app.modules.traditions.service import may_read
+
+        entry = ctx.db.get(TraditionEntry, p.target_id)
+        if entry is not None and entry.privacy_level in RECORD_ONLY_LEVELS and not may_read(ctx, entry):
+            return False
     if ctx.user_id is not None and p.proposer_id == ctx.user_id:
         return True
     people = people_of(ctx, p)

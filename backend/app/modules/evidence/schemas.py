@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import Field
 
-from app.api.schemas import ApiModel
+from app.api.schemas import ApiModel, SharedPrivacyLevel
 from app.core.dates import GenealogicalDate
 from app.models.enums import CitationTarget, Confidence, PrivacyLevel, SourceType
 
@@ -40,7 +40,7 @@ class SourceIn(ApiModel):
     translation: str | None = Field(default=None, max_length=100000)
     notes: str | None = Field(default=None, max_length=20000)
     tradition: TraditionIn | None = None
-    privacy_level: PrivacyLevel = PrivacyLevel.TREE_MEMBERS
+    privacy_level: SharedPrivacyLevel = PrivacyLevel.TREE_MEMBERS
 
 
 class SourceUpdate(ApiModel):
@@ -57,7 +57,7 @@ class SourceUpdate(ApiModel):
     translation: str | None = None
     notes: str | None = None
     tradition: TraditionIn | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
 
 
 class SourceOut(ApiModel):
@@ -76,7 +76,7 @@ class SourceOut(ApiModel):
     translation: str | None
     notes: str | None
     tradition: dict[str, Any] | None
-    privacy_level: PrivacyLevel
+    privacy_level: SharedPrivacyLevel
     citation_count: int = 0
     created_at: dt.datetime
 

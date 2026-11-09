@@ -16,7 +16,7 @@ from sqlalchemy import delete, func, select, update
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
-from app.authz.privacy import _RANK
+from app.authz.privacy import narrowness
 from app.core import audit
 from app.core.dates import GenealogicalDate, date_to_json
 from app.core.errors import Conflict, NotFound, Unprocessable
@@ -150,7 +150,7 @@ def _strictest(*levels: PrivacyLevel | None) -> PrivacyLevel:
     for lv in levels:
         if lv is None:
             continue
-        rank = 4 if lv == PrivacyLevel.CUSTOM else _RANK[PrivacyLevel(lv)]
+        rank = narrowness(lv)
         if rank > best_rank:
             best, best_rank = PrivacyLevel(lv), rank
     return best

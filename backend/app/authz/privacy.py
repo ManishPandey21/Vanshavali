@@ -104,7 +104,25 @@ _RANK = {
     PrivacyLevel.FAMILY_BRANCH: 3,
     PrivacyLevel.PRIVATE_TREE_ADMINS: 4,
     PrivacyLevel.PRIVATE_SELF: 5,
+    # record-only audiences (ADR-0027 §1): narrower than any audience a role can see
+    PrivacyLevel.SELECTED_MEMBERS: 6,
+    PrivacyLevel.ONLY_ME: 7,
 }
+
+
+def narrowness(level: PrivacyLevel | str) -> int:
+    """How private a level is (higher = fewer viewers). CUSTOM ranks with admins-only."""
+    level = PrivacyLevel(level)
+    return 4 if level == PrivacyLevel.CUSTOM else _RANK[level]
+
+
+def is_record_owner(ctx: TreeContext, owner_membership_id: uuid.UUID | None) -> bool:
+    """Is the viewer the content owner of a shareable record (ADR-0027 §2)?"""
+    return (
+        owner_membership_id is not None
+        and ctx.membership is not None
+        and ctx.membership.id == owner_membership_id
+    )
 
 
 @dataclass
@@ -198,8 +216,16 @@ def level_allows(
     *,
     subject: Subject | None = None,
     grant: tuple[GrantResource, uuid.UUID] | None = None,
+    owner: bool = False,
+    audience_branch_id: uuid.UUID | None = None,
 ) -> bool:
-    """Can the viewer see something protected at ``level`` about ``subject``?"""
+    """Can the viewer see something protected at ``level`` about ``subject``?
+
+    For a shareable record (ADR-0027 §1), ``owner`` says whether the viewer is its content owner
+    and ``audience_branch_id`` is the branch a ``FAMILY_BRANCH`` record is shared with. The two
+    record-only levels have no role-based visibility: only the owner and, for
+    ``SELECTED_MEMBERS``, holders of an unexpired grant.
+    """
     level = PrivacyLevel(level)
     if ctx.public:
         return (
@@ -211,8 +237,12 @@ def level_allows(
         )
     if not ctx.is_member:
         return False
-    if _is_self(ctx, subject):
+    if owner or _is_self(ctx, subject):
         return True
+    if level == PrivacyLevel.ONLY_ME:
+        return False
+    if level == PrivacyLevel.SELECTED_MEMBERS:
+        return grant is not None and ctx.has_grant(grant[0], grant[1], GrantPermission.VIEW)
     if level == PrivacyLevel.CUSTOM:
         return ctx.is_admin or (grant is not None and ctx.has_grant(grant[0], grant[1], GrantPermission.VIEW))
     if level == PrivacyLevel.PRIVATE_SELF:
@@ -224,12 +254,14 @@ def level_allows(
     if level == PrivacyLevel.PRIVATE_TREE_ADMINS:
         return False
     if level == PrivacyLevel.FAMILY_BRANCH:
-        if subject is None:
-            return False
+        if subject is None:  # a record: its audience branch, if it names one
+            return audience_branch_id is not None and audience_branch_id in ctx.viewer_branch_ids()
         return bool(subject.branch_ids & ctx.viewer_branch_ids())
     if level == PrivacyLevel.TREE_MEMBERS:
         return not ctx.is_researcher_only
-    return True  # INVITED_RESEARCHER / PUBLIC_DECEASED_ONLY: any member
+    if level in (PrivacyLevel.INVITED_RESEARCHER, PrivacyLevel.PUBLIC_DECEASED_ONLY):
+        return True  # any member
+    return False  # deny by default: a level added later must be handled above
 
 
 def can_view_person(ctx: TreeContext, subject: Subject) -> bool:

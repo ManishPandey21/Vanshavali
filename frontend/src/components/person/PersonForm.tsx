@@ -30,6 +30,9 @@ export const PRIVACY_LEVELS: PrivacyLevel[] = [
   "PUBLIC_DECEASED_ONLY",
   "CUSTOM",
 ];
+// A document (a shareable record) may also be kept to its owner or chosen members (ADR-0027 §1);
+// people and field groups never take these two.
+export const RECORD_PRIVACY_LEVELS: PrivacyLevel[] = ["ONLY_ME", "SELECTED_MEMBERS", ...PRIVACY_LEVELS];
 export const SEXES: SexAtBirth[] = ["male", "female", "intersex", "unknown"];
 export const STATUSES: ProfileStatus[] = ["living", "deceased", "unknown"];
 

@@ -66,6 +66,8 @@ const privacyTone: Record<PrivacyLevel, Tone> = {
   INVITED_RESEARCHER: "blue",
   PUBLIC_DECEASED_ONLY: "green",
   CUSTOM: "violet",
+  ONLY_ME: "red",
+  SELECTED_MEMBERS: "violet",
 };
 
 export function PrivacyBadge({ level }: { level: PrivacyLevel }) {

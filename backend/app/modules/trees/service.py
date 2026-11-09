@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import re
 import secrets
 import uuid
 from collections.abc import Iterable
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -16,7 +18,7 @@ from app.core.config import get_settings
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessable
 from app.core.security import new_token, token_hash
 from app.models import AccessGrant, FamilyBranch, Tree, TreeInvitation, TreeMembership, User
-from app.models.enums import GrantResource, Role
+from app.models.enums import RECORD_ONLY_LEVELS, GrantResource, Role
 
 INVITATION_TTL_DAYS = 14
 _ADMIN_GRANTABLE = {Role.OWNER, Role.FAMILY_ADMIN}
@@ -373,7 +375,6 @@ def create_grant(
     permission: str,
     expires_at: dt.datetime | None,
 ) -> AccessGrant:
-    ctx.require(Permission.PRIVACY_MANAGE)
     membership_id = ctx.db.scalar(
         select(TreeMembership.id).where(
             TreeMembership.tree_id == ctx.tree_id, TreeMembership.user_id == user_id
@@ -408,32 +409,102 @@ def create_grant(
 def manageable_grant_resources(
     ctx: TreeContext, resources: Iterable[tuple[GrantResource, uuid.UUID]]
 ) -> set[tuple[GrantResource, uuid.UUID]]:
-    """The resources whose grants this caller may see, create or revoke (ADR-0027 §3, finding A7).
+    """The resources whose grants this caller may see, create or revoke (ADR-0027 §3, §10; A7).
 
-    ``privacy.manage`` plus the record being visible to the caller: a privacy manager is never told
-    that a record they cannot see exists, nor who may see it. Anything else is treated as absent.
+    * A shareable record (document, tradition): its content owner always; on a record-only
+      audience (``ONLY_ME`` / ``SELECTED_MEMBERS``) nobody else; otherwise ``privacy.manage`` plus
+      the record being visible to the caller.
+    * People and properties: ``privacy.manage`` plus the record being visible.
+
+    A privacy manager is never told that a record they cannot see exists, nor who may see it.
+    Anything else is treated as absent.
     """
-    if not ctx.has(Permission.PRIVACY_MANAGE):
-        return set()
-    from app.models import Document, Property
-    from app.modules.documents.access import can_view_document
+    from app.models import Document, Property, TraditionEntry
+    from app.modules.documents import access as documents
     from app.modules.genealogy.lookup import visible_subjects
     from app.modules.property.service import can_view_property
+    from app.modules.traditions.service import is_owner as owns_tradition
+    from app.modules.traditions.service import may_read
 
+    manager = ctx.has(Permission.PRIVACY_MANAGE)
     wanted: dict[GrantResource, set[uuid.UUID]] = {}
     for rt, rid in resources:
         wanted.setdefault(GrantResource(rt), set()).add(rid)
     ok: set[tuple[GrantResource, uuid.UUID]] = set()
-    if ids := wanted.get(GrantResource.PERSON):
+    if manager and (ids := wanted.get(GrantResource.PERSON)):
         ok |= {(GrantResource.PERSON, pid) for pid in visible_subjects(ctx, ids)}
-    if ids := wanted.get(GrantResource.DOCUMENT):
-        docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(ids)))
-        ok |= {(GrantResource.DOCUMENT, d.id) for d in docs if can_view_document(ctx, d)}
-    if ids := wanted.get(GrantResource.PROPERTY):
+    if manager and (ids := wanted.get(GrantResource.PROPERTY)):
         props = ctx.db.scalars(select(Property).where(Property.tree_id == ctx.tree_id, Property.id.in_(ids)))
         ok |= {(GrantResource.PROPERTY, p.id) for p in props if can_view_property(ctx, p)}
+    if ids := wanted.get(GrantResource.DOCUMENT):
+        docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(ids)))
+        ok |= {
+            (GrantResource.DOCUMENT, d.id)
+            for d in docs
+            if documents.is_owner(ctx, d)
+            or (manager and not documents.is_private(d) and documents.can_view_document(ctx, d))
+        }
+    if ids := wanted.get(GrantResource.TRADITION):
+        entries = ctx.db.scalars(
+            select(TraditionEntry).where(TraditionEntry.tree_id == ctx.tree_id, TraditionEntry.id.in_(ids))
+        )
+        ok |= {
+            (GrantResource.TRADITION, e.id)
+            for e in entries
+            if (owns_tradition(ctx, e) and e.withdrawn_at is None)
+            or (manager and e.privacy_level not in RECORD_ONLY_LEVELS and may_read(ctx, e))
+        }
     return ok
 
 
 def tree_permissions(membership: TreeMembership) -> list[str]:
     return sorted(p.value for p in permissions_for(frozenset(Role(r) for r in membership.roles)))
+
+
+# ---------------------------------------------------------------- audit of private records
+_RECORD_TARGETS = {"document": GrantResource.DOCUMENT, "tradition": GrantResource.TRADITION}
+
+
+def _record_refs(e: Any) -> list[tuple[GrantResource, uuid.UUID]]:
+    refs: list[tuple[GrantResource, uuid.UUID]] = []
+    if e.target_type in _RECORD_TARGETS and e.target_id is not None:
+        refs.append((_RECORD_TARGETS[e.target_type], e.target_id))
+    doc_id = (e.details or {}).get("document_id")
+    if doc_id:
+        with contextlib.suppress(ValueError):
+            refs.append((GrantResource.DOCUMENT, uuid.UUID(str(doc_id))))
+    return refs
+
+
+def private_record_ids(ctx: TreeContext, events: Iterable[Any]) -> set[tuple[GrantResource, uuid.UUID]]:
+    """Records named by these audit events that are private and not the viewer's own (ADR-0027 §11)."""
+    from app.authz.privacy import is_record_owner
+    from app.models import Document, TraditionEntry
+
+    refs = {r for e in events for r in _record_refs(e)}
+    out: set[tuple[GrantResource, uuid.UUID]] = set()
+    models: tuple[tuple[GrantResource, Any], ...] = (
+        (GrantResource.DOCUMENT, Document),
+        (GrantResource.TRADITION, TraditionEntry),
+    )
+    for rt, model in models:
+        ids = [rid for t, rid in refs if t == rt]
+        if not ids:
+            continue
+        rows: list[Any] = list(
+            ctx.db.scalars(
+                select(model).where(
+                    model.tree_id == ctx.tree_id,
+                    model.id.in_(ids),
+                    model.privacy_level.in_(list(RECORD_ONLY_LEVELS)),
+                )
+            )
+        )
+        for r in rows:
+            if not is_record_owner(ctx, r.owner_membership_id):
+                out.add((rt, r.id))
+    return out
+
+
+def audit_refers_to(e: Any, hidden: set[tuple[GrantResource, uuid.UUID]]) -> bool:
+    return any(r in hidden for r in _record_refs(e))

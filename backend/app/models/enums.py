@@ -25,6 +25,13 @@ class PrivacyLevel(StrEnum):
     INVITED_RESEARCHER = "INVITED_RESEARCHER"
     PUBLIC_DECEASED_ONLY = "PUBLIC_DECEASED_ONLY"
     CUSTOM = "CUSTOM"
+    # Record-only audiences (ADR-0027 §1): no role-based visibility. Never on people or field groups.
+    ONLY_ME = "ONLY_ME"
+    SELECTED_MEMBERS = "SELECTED_MEMBERS"
+
+
+# Levels only a shareable record (document, tradition entry) may hold (ADR-0027 §1).
+RECORD_ONLY_LEVELS: frozenset[PrivacyLevel] = frozenset({PrivacyLevel.ONLY_ME, PrivacyLevel.SELECTED_MEMBERS})
 
 
 class PublicMode(StrEnum):
@@ -521,6 +528,7 @@ class GrantResource(StrEnum):
     PERSON = "person"
     DOCUMENT = "document"
     PROPERTY = "property"
+    TRADITION = "tradition"
 
 
 class JobStatus(StrEnum):

@@ -14,6 +14,7 @@ from typing import Any
 
 from sqlalchemy import func, select
 
+from app.authz import records
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
@@ -69,6 +70,7 @@ METADATA_FIELDS = (
     "language",
     "script",
     "issuing_authority",
+    "audience_branch_id",
 )
 
 
@@ -104,6 +106,11 @@ def _require_upload(ctx: TreeContext, category: DocumentCategory) -> None:
 
 
 def _can_manage(ctx: TreeContext, doc: Document) -> bool:
+    """May edit this document's metadata. A record-only document is its owner's alone (ADR-0027 §10)."""
+    if access.is_owner(ctx, doc):
+        return True
+    if access.is_private(doc):
+        return False
     if ctx.has(Permission.DOCUMENT_MANAGE):
         return True
     return (
@@ -199,8 +206,10 @@ def upload(
     script: str | None = None,
     issuing_authority: str | None = None,
     link: DocumentLinkIn | None = None,
+    audience_branch_id: uuid.UUID | None = None,
 ) -> Document:
     _require_upload(ctx, category)
+    records.check_audience_branch(ctx, audience_branch_id)
     if link is not None:
         check_link_target(ctx, link.target_type, link.target_id)  # fail before storing anything
     sniffed = validate_upload(data)
@@ -265,6 +274,8 @@ def upload(
             if storage_class == StorageClass.VAULT
             else PrivacyLevel(ctx.tree.default_person_privacy)
         ),
+        audience_branch_id=audience_branch_id,
+        owner_membership_id=ctx.membership.id if ctx.membership is not None else None,
         scan_status=ScanStatus.CLEAN,
         scan_engine=result.engine,
         page_count=sniffed.page_count,
@@ -389,6 +400,7 @@ def document_out(ctx: TreeContext, doc: Document, links: list[DocumentLink] | No
             "variants": variants if content else [],
             "has_ocr_text": content and DerivativeKind.OCR_TEXT in kinds,
             "pending_proposals": pending,
+            "is_owner": access.is_owner(ctx, doc),
         }
     )
 
@@ -435,11 +447,17 @@ def _escape_like(q: str) -> str:
 
 
 # ---------------------------------------------------------------- metadata edits
+def _plain(v: Any) -> Any:
+    """A JSON-safe form of a metadata value, for snapshots and change detection."""
+    if hasattr(v, "value"):
+        return v.value
+    return str(v) if isinstance(v, uuid.UUID) else v
+
+
 def _snapshot(doc: Document) -> dict[str, Any]:
     snap: dict[str, Any] = {}
     for f in METADATA_FIELDS:
-        v = getattr(doc, f)
-        snap[f] = v.value if hasattr(v, "value") else v
+        snap[f] = _plain(getattr(doc, f))
     return snap
 
 
@@ -461,15 +479,26 @@ def update_metadata(ctx: TreeContext, document_id: uuid.UUID, body: DocumentUpda
             )
         if new_cat in PROPERTY_CATEGORIES:
             _require_upload(ctx, new_cat)
-    if "privacy_level" in changes:
-        if changes["privacy_level"] is None:
-            raise Unprocessable("privacy_level cannot be empty")
-        if not ctx.has(Permission.DOCUMENT_MANAGE):
-            raise Forbidden("Only document managers can change a document's privacy")
+    if "privacy_level" in changes and changes["privacy_level"] is None:
+        raise Unprocessable("privacy_level cannot be empty")
+    old_audience = (doc.privacy_level, doc.audience_branch_id)
+    new_level = changes.get("privacy_level", doc.privacy_level)
+    new_branch = changes.get("audience_branch_id", doc.audience_branch_id)
+    if (new_level, new_branch) != old_audience:
+        records.check_audience_branch(ctx, new_branch)
+        records.require_audience_change(
+            ctx,
+            owner=access.is_owner(ctx, doc),
+            may_manage=ctx.has(Permission.DOCUMENT_MANAGE),
+            old_level=doc.privacy_level,
+            new_level=new_level,
+            old_branch=doc.audience_branch_id,
+            new_branch=new_branch,
+        )
     if "document_date" in changes:
         changes["document_date"] = date_to_json(changes["document_date"])
     current = _snapshot(doc)
-    effective = {k: v for k, v in changes.items() if (v.value if hasattr(v, "value") else v) != current[k]}
+    effective = {k: v for k, v in changes.items() if _plain(v) != current[k]}
     if not effective:
         return doc
     ctx.db.add(
@@ -492,7 +521,22 @@ def update_metadata(ctx: TreeContext, document_id: uuid.UUID, body: DocumentUpda
         target_id=doc.id,
         details={"fields": sorted(effective), "version": doc.metadata_version},
     )
+    if (doc.privacy_level, doc.audience_branch_id) != old_audience:
+        audit_visibility_change(ctx, "document", doc.id, old_audience[0], doc.privacy_level)
     return doc
+
+
+def audit_visibility_change(
+    ctx: TreeContext, target_type: str, target_id: uuid.UUID, old: PrivacyLevel, new: PrivacyLevel
+) -> None:
+    """``record.visibility_changed`` with the old and new audience only (ADR-0027 §11)."""
+    audit.log(
+        ctx,
+        "record.visibility_changed",
+        target_type=target_type,
+        target_id=target_id,
+        details={"from": PrivacyLevel(old).value, "to": PrivacyLevel(new).value},
+    )
 
 
 def versions(ctx: TreeContext, document_id: uuid.UUID) -> list[MetadataVersionOut]:
@@ -516,9 +560,17 @@ def versions(ctx: TreeContext, document_id: uuid.UUID) -> list[MetadataVersionOu
 
 
 # ---------------------------------------------------------------- delete / restore
+def _require_delete(ctx: TreeContext, doc: Document) -> None:
+    """Managers delete shared documents; a record-only document only its owner (ADR-0027 §10)."""
+    if access.is_private(doc):
+        records.require_owner_for_private(access.is_owner(ctx, doc), doc.privacy_level)
+    else:
+        ctx.require(Permission.DOCUMENT_MANAGE)
+
+
 def delete(ctx: TreeContext, document_id: uuid.UUID) -> Document:
-    ctx.require(Permission.DOCUMENT_MANAGE)
     doc = access.get_document(ctx, document_id)
+    _require_delete(ctx, doc)
     doc.deleted_at = dt.datetime.now(dt.UTC)
     doc.deleted_by = ctx.user_id
     audit.log(ctx, "document.deleted", target_type="document", target_id=doc.id)
@@ -526,8 +578,8 @@ def delete(ctx: TreeContext, document_id: uuid.UUID) -> Document:
 
 
 def restore(ctx: TreeContext, document_id: uuid.UUID) -> Document:
-    ctx.require(Permission.DOCUMENT_MANAGE)
     doc = access.get_document(ctx, document_id, include_deleted=True)
+    _require_delete(ctx, doc)
     if doc.deleted_at is None:
         return doc
     _reject_duplicate(ctx, doc.checksum_sha256)
@@ -540,7 +592,12 @@ def restore(ctx: TreeContext, document_id: uuid.UUID) -> Document:
 # ---------------------------------------------------------------- links
 def add_link(ctx: TreeContext, document_id: uuid.UUID, body: DocumentLinkIn) -> DocumentLink:
     doc = access.get_document(ctx, document_id)
-    if not (ctx.has(Permission.DOCUMENT_UPLOAD) or ctx.has(Permission.DOCUMENT_MANAGE)):
+    records.require_owner_for_private(access.is_owner(ctx, doc), doc.privacy_level)
+    if not (
+        ctx.has(Permission.DOCUMENT_UPLOAD)
+        or ctx.has(Permission.DOCUMENT_MANAGE)
+        or access.is_owner(ctx, doc)
+    ):
         raise Forbidden()
     return _add_link(ctx, doc, body)
 
@@ -556,7 +613,12 @@ def remove_link(ctx: TreeContext, document_id: uuid.UUID, link_id: uuid.UUID) ->
     )
     if link is None:
         raise NotFound("Link not found")
-    if not (ctx.has(Permission.DOCUMENT_MANAGE) or (link.created_by and link.created_by == ctx.user_id)):
+    records.require_owner_for_private(access.is_owner(ctx, doc), doc.privacy_level)
+    if not (
+        ctx.has(Permission.DOCUMENT_MANAGE)
+        or access.is_owner(ctx, doc)
+        or (link.created_by and link.created_by == ctx.user_id)
+    ):
         raise Forbidden()
     ctx.db.delete(link)
     audit.log(

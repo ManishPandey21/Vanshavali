@@ -1048,18 +1048,22 @@
       "CUSTOM": "Custom",
       "FAMILY_BRANCH": "Family branch",
       "INVITED_RESEARCHER": "Members & researchers",
+      "ONLY_ME": "Only me",
       "PRIVATE_SELF": "Only this person",
       "PRIVATE_TREE_ADMINS": "Tree admins only",
       "PUBLIC_DECEASED_ONLY": "Public (deceased only)",
+      "SELECTED_MEMBERS": "Selected members",
       "TREE_MEMBERS": "Tree members"
     },
     "privacyHint": {
       "CUSTOM": "Tree admins plus people explicitly granted access.",
       "FAMILY_BRANCH": "Admins and members of the same family branch.",
       "INVITED_RESEARCHER": "All tree members, including invited researchers.",
+      "ONLY_ME": "Only you. Nobody else, whatever their role, unless you transfer it.",
       "PRIVATE_SELF": "Only the person (once they claim the profile) and the tree owner.",
       "PRIVATE_TREE_ADMINS": "Only the tree owner and family admins.",
       "PUBLIC_DECEASED_ONLY": "Tree members; and the public, if the tree's public view is on and the person has died.",
+      "SELECTED_MEMBERS": "You and the members you choose. Tree admins see it only if you choose them.",
       "TREE_MEMBERS": "Every tree member except invited researchers."
     },
     "publicMode": {

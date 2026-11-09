@@ -14,7 +14,7 @@ from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
 
-from app.api.schemas import ApiModel
+from app.api.schemas import ApiModel, SharedPrivacyLevel
 from app.core.dates import GenealogicalDate
 from app.models.enums import (
     Confidence,
@@ -53,7 +53,7 @@ class PropertyIn(ApiModel):
     place_id: uuid.UUID | None = None
     address_text: str | None = Field(default=None, max_length=2000)
     current_status: str | None = Field(default=None, max_length=120)
-    privacy_level: PrivacyLevel = PrivacyLevel.PRIVATE_TREE_ADMINS
+    privacy_level: SharedPrivacyLevel = PrivacyLevel.PRIVATE_TREE_ADMINS
 
 
 class PropertyUpdate(ApiModel):
@@ -64,7 +64,7 @@ class PropertyUpdate(ApiModel):
     place_id: uuid.UUID | None = None
     address_text: str | None = Field(default=None, max_length=2000)
     current_status: str | None = Field(default=None, max_length=120)
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
 
     @model_validator(mode="after")
     def _no_null_required(self) -> PropertyUpdate:
@@ -400,7 +400,7 @@ class DocumentRef(ApiModel):
     id: uuid.UUID
     title: str
     category: DocumentCategory
-    privacy_level: PrivacyLevel
+    privacy_level: SharedPrivacyLevel
     linked_to: DocumentLinkTarget
     linked_id: uuid.UUID
     note: str | None = None
@@ -450,7 +450,7 @@ class PropertyOut(LegalNoticed):
     place_name: str | None = None
     address_text: str | None
     current_status: str | None
-    privacy_level: PrivacyLevel
+    privacy_level: SharedPrivacyLevel
     parcel_count: int = 0
     can_edit: bool = False
     created_at: dt.datetime

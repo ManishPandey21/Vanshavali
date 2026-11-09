@@ -11,6 +11,7 @@ import uuid
 
 from sqlalchemy import func, select
 
+from app.authz import records
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
@@ -98,6 +99,7 @@ def list_proposals(
 def reprocess(ctx: TreeContext, document_id: uuid.UUID) -> ReprocessOut:
     ctx.require(Permission.DOCUMENT_MANAGE)
     doc = _content_doc(ctx, document_id)
+    records.require_owner_for_private(access.is_owner(ctx, doc), doc.privacy_level)
     from app.modules.documents.previews import supports_preview
     from app.modules.documents.service import schedule_processing
 
@@ -131,6 +133,7 @@ def review(ctx: TreeContext, proposal_id: uuid.UUID, body: ReviewIn) -> Extracti
     ctx.require(Permission.EXTRACTION_REVIEW)
     p = lookup.get_in_tree(ctx, ExtractionProposal, proposal_id, "Proposal")
     doc = _content_doc(ctx, p.document_id)
+    records.require_owner_for_private(access.is_owner(ctx, doc), doc.privacy_level)
     if p.status != ProposalStatus.PENDING:
         raise Conflict("This proposal has already been reviewed", code="already_reviewed")
     now = dt.datetime.now(dt.UTC)

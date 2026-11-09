@@ -7,9 +7,9 @@ from typing import Any
 
 from pydantic import Field, field_validator, model_validator
 
-from app.api.schemas import ApiModel
+from app.api.schemas import ApiModel, SharedPrivacyLevel
 from app.core.dates import GenealogicalDate, GenealogicalTime
-from app.models.enums import AstrologyProvenance, Confidence, EvidenceStatus, PrivacyLevel
+from app.models.enums import AstrologyProvenance, Confidence, EvidenceStatus
 from app.modules.astrology import vocab
 from app.modules.genealogy.schemas import ProvenanceOut
 
@@ -58,7 +58,7 @@ class _AstrologyFields(ApiModel):
     calculation_timestamp: dt.datetime | None = None
     birth_event_id: uuid.UUID | None = None
     document_id: uuid.UUID | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     notes: str | None = Field(default=None, max_length=20000)
 
     @field_validator("nakshatra")
@@ -154,7 +154,7 @@ class AstrologyOut(ApiModel):
     birth_event_id: uuid.UUID | None
     document_id: uuid.UUID | None
     is_preferred: bool
-    privacy_level: PrivacyLevel
+    privacy_level: SharedPrivacyLevel
     evidence_status: EvidenceStatus
     confidence: Confidence
     notes: str | None

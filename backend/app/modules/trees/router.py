@@ -235,8 +235,12 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 # ---- explicit access grants ----
 @router.get("/trees/{tree_id}/grants", response_model=list[GrantOut])
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
-    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7)."""
-    ctx.require(Permission.PRIVACY_MANAGE)
+    """Grants on records the caller may manage; others are not listed (ADR-0027 §3, §10, A7).
+
+    A privacy manager sees grants on records they can see (never on someone's private record); a
+    content owner sees the grants on their own records."""
+    if not ctx.is_member:
+        raise NotFound("Tree not found")
     grants = list(ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id)))
     manageable = service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id) for g in grants])
     return [
@@ -256,7 +260,6 @@ def create_grant(body: GrantCreate, ctx: TreeCtx) -> GrantOut:
 
 @router.delete("/trees/{tree_id}/grants/{grant_id}", response_model=Message)
 def delete_grant(grant_id: uuid.UUID, ctx: TreeCtx) -> Message:
-    ctx.require(Permission.PRIVACY_MANAGE)
     g = ctx.db.scalar(
         select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id, AccessGrant.id == grant_id)
     )
@@ -287,7 +290,26 @@ def list_audit(
     rows = ctx.db.execute(
         q.order_by(AuditEvent.created_at.desc(), AuditEvent.id.desc()).offset(offset).limit(limit + 1)
     ).all()
+    events = rows[:limit]
+    hidden = service.private_record_ids(ctx, [e for e, _ in events])
     items = [
-        AuditEventOut.model_validate(e).model_copy(update={"actor_name": name}) for e, name in rows[:limit]
+        _opaque(AuditEventOut.model_validate(e))
+        if service.audit_refers_to(e, hidden)
+        else AuditEventOut.model_validate(e)
+        for e, _ in events
     ]
+    items = [i.model_copy(update={"actor_name": name}) for i, (_, name) in zip(items, events, strict=True)]
     return Page(items=items, next_cursor=encode_cursor(offset + limit) if len(rows) > limit else None)
+
+
+def _opaque(e: AuditEventOut) -> AuditEventOut:
+    """An event about someone's private record, as anyone but its owner sees it (ADR-0027 §11)."""
+    return e.model_copy(
+        update={
+            "action": "private_record",
+            "target_type": "private_record",
+            "target_id": None,
+            "summary": None,
+            "details": {},
+        }
+    )

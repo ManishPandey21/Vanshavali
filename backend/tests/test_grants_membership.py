@@ -124,4 +124,5 @@ def test_grants_on_records_the_caller_cannot_see_are_not_revealed(owner, tree, m
     assert _grant(admin, t, viewer.user["id"], str(uuid.uuid4())).status_code == 404  # same answer
 
     assert hidden.json()["id"] in {g["id"] for g in owner.get(f"/trees/{t}/grants").json()}
-    assert viewer.get(f"/trees/{t}/grants").status_code == 403
+    # a member without privacy.manage sees only grants on records they own: here, none (ADR-0027 §10)
+    assert viewer.get(f"/trees/{t}/grants").json() == []

@@ -193,3 +193,80 @@ def test_access_grants_move_onto_memberships():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_record_owners_are_backfilled_and_downgrade_maps_the_new_levels():
+    """b5e8d1f3a2c6: owner from created_by while still a member; ONLY_ME/SELECTED_MEMBERS map back."""
+    import uuid
+
+    db = DB + "_record_owners"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "9c4f2a7d1e83")
+        engine = create_engine(url)
+        tree_id, member, leaver, membership = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        kept, orphan, entry = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        with engine.begin() as conn:
+            for uid, email in ((member, "m@example.com"), (leaver, "l@example.com")):
+                conn.execute(
+                    text(
+                        "INSERT INTO app_user (id, email, password_hash, display_name) VALUES (:id, :e, 'x', 'U')"
+                    ),
+                    {"id": uid, "e": email},
+                )
+            conn.execute(
+                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :s)"),
+                {"id": tree_id, "s": str(tree_id)},
+            )
+            conn.execute(
+                text(
+                    "INSERT INTO tree_membership (id, tree_id, user_id, roles) VALUES (:id, :t, :u, ARRAY['VIEWER'])"
+                ),
+                {"id": membership, "t": tree_id, "u": member},
+            )
+            for did, uid in ((kept, member), (orphan, leaver)):
+                conn.execute(
+                    text(
+                        "INSERT INTO document (id, tree_id, category, storage_class, title, original_filename,"
+                        " mime_type, size_bytes, checksum_sha256, storage_key, encryption_key_id, privacy_level,"
+                        " scan_status, ocr_status, extraction_status, preview_status, created_by)"
+                        " VALUES (:id, :t, 'photo', 'STANDARD', 'D', 'd.png', 'image/png', 1, 'x',"
+                        " :k, 'STANDARD', 'TREE_MEMBERS', 'clean', 'not_requested', 'not_requested',"
+                        " 'not_requested', :u)"
+                    ),
+                    {"id": did, "t": tree_id, "k": str(did), "u": uid},
+                )
+            conn.execute(
+                text(
+                    "INSERT INTO tradition_entry (id, tree_id, kind, title, created_by) VALUES (:id, :t, 'recipe', 'R', :u)"
+                ),
+                {"id": entry, "t": tree_id, "u": member},
+            )
+        command.upgrade(cfg, "b5e8d1f3a2c6")
+        with engine.begin() as conn:
+            owners = dict(conn.execute(text("SELECT id, owner_membership_id FROM document")).all())
+            assert owners == {kept: membership, orphan: None}
+            assert (
+                conn.execute(text("SELECT owner_membership_id FROM tradition_entry")).scalar() == membership
+            )
+            conn.execute(text("UPDATE document SET privacy_level = 'ONLY_ME' WHERE id = :id"), {"id": kept})
+            conn.execute(
+                text("UPDATE document SET privacy_level = 'SELECTED_MEMBERS' WHERE id = :id"), {"id": orphan}
+            )
+            conn.execute(text("UPDATE tradition_entry SET privacy_level = 'ONLY_ME'"))
+        command.downgrade(cfg, "9c4f2a7d1e83")
+        with engine.connect() as conn:
+            levels = dict(conn.execute(text("SELECT id, privacy_level FROM document")).all())
+            assert levels == {kept: "PRIVATE_SELF", orphan: "CUSTOM"}
+            assert conn.execute(text("SELECT privacy_level FROM tradition_entry")).scalar() == "PRIVATE_SELF"
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()

@@ -6,13 +6,12 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from app.api.schemas import ApiModel
+from app.api.schemas import ApiModel, SharedPrivacyLevel
 from app.models.enums import (
     AssertionSubject,
     Confidence,
     EvidenceStatus,
     HeritageAttribute,
-    PrivacyLevel,
     ReviewState,
     ValueStatus,
 )
@@ -28,7 +27,7 @@ class AssertionIn(ApiModel):
     evidence_status: EvidenceStatus = EvidenceStatus.USER_ASSERTION
     confidence: Confidence = Confidence.UNKNOWN
     is_preferred: bool | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     notes: str | None = Field(default=None, max_length=5000)
 
     @model_validator(mode="after")
@@ -51,7 +50,7 @@ class AssertionUpdate(ApiModel):
     evidence_status: EvidenceStatus | None = None
     confidence: Confidence | None = None
     is_preferred: bool | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     notes: str | None = None
 
 
@@ -70,7 +69,7 @@ class AssertionOut(ApiModel):
     evidence_status: EvidenceStatus
     confidence: Confidence
     is_preferred: bool
-    privacy_level: PrivacyLevel | None
+    privacy_level: SharedPrivacyLevel | None
     notes: str | None
     provenance: ProvenanceOut | None = None
     citation_count: int = 0

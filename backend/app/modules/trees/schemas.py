@@ -6,8 +6,8 @@ from typing import Any
 
 from pydantic import EmailStr, Field
 
-from app.api.schemas import ApiModel
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, PublicMode, ReviewPolicy, Role
+from app.api.schemas import ApiModel, SharedPrivacyLevel
+from app.models.enums import GrantPermission, GrantResource, PublicMode, ReviewPolicy, Role
 
 
 class TreeCreate(ApiModel):
@@ -19,7 +19,7 @@ class TreeUpdate(ApiModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=5000)
     public_mode: PublicMode | None = None
-    default_person_privacy: PrivacyLevel | None = None
+    default_person_privacy: SharedPrivacyLevel | None = None
     # the tree's default relationship words (ADR-0026 §6); null = the reader's UI language
     kinship_lang: str | None = Field(default=None, pattern=r"^[a-z]{2,3}$")
     kinship_region: str | None = Field(default=None, pattern=r"^[a-z_]{1,40}$")
@@ -31,7 +31,7 @@ class TreeOut(ApiModel):
     description: str | None
     slug: str
     public_mode: PublicMode
-    default_person_privacy: PrivacyLevel
+    default_person_privacy: SharedPrivacyLevel
     # which changes need family review (ADR-0021 §1)
     review_policy: ReviewPolicy = ReviewPolicy.OFF
     kinship_lang: str | None = None

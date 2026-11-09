@@ -61,6 +61,14 @@ SYSTEM_SOURCE_MARKER = "Vanshavali document vault"
 
 
 def can_view_source(ctx: TreeContext, s: Source) -> bool:
+    if s.document_id is not None:
+        from app.models import Document
+        from app.modules.documents import access as documents
+
+        doc = ctx.db.get(Document, s.document_id)
+        if doc is not None and doc.tree_id == ctx.tree_id and documents.is_private(doc):
+            # a private document's source (its title and id) follows the document (ADR-0027 §1)
+            return documents.can_view_document(ctx, doc)
     return level_allows(ctx, s.privacy_level)
 
 

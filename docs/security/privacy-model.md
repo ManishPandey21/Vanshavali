@@ -42,11 +42,21 @@ member's membership (ADR-0027 §3): it is deleted with it (removed, or account c
 same person again does not restore it, and it can never name a member of another tree. Privacy
 managers see, create and revoke grants only on records they can see themselves (threat T53).
 
-> **Accepted (ADR-0027), being implemented.** `CUSTOM` and `PRIVATE_SELF` include admins or the tree owner, so a record
-> cannot yet be shared with chosen members only. ADR-0027 proposes two record-only audiences,
-> `ONLY_ME` and `SELECTED_MEMBERS`, with no role-based visibility; membership-bound grants; separate
-> view and download; and ceilings from consent and tagged people. The current gaps are listed in the
-> threat model, §5.
+**Shareable records (ADR-0027 §1, §2).** Documents and tradition entries also take two
+record-only audiences, which people and field groups refuse:
+
+| Level | Who can see it |
+|---|---|
+| `ONLY_ME` | The record's content owner. Nobody else, whatever their role. |
+| `SELECTED_MEMBERS` | The content owner and members holding an unexpired grant on the record. |
+
+`FAMILY_BRANCH` on a document means the branch named in its `audience_branch_id` (plus admins and
+grantees). The **content owner** (`owner_membership_id`, initially the uploader or author) changes
+the audience, grants access and may transfer ownership to a member who accepts. Managers may only
+narrow a shared record; nobody but the owner touches a private one. If the owner leaves, a private
+record stays with its grantees and nobody can claim it. `CUSTOM` and `PRIVATE_SELF` keep their
+meaning on existing records until the owner converts them. Still to come: separate view and
+download (§4), ceilings from consent and tagged people (§5), albums (§6) and the sharing UI (§9).
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

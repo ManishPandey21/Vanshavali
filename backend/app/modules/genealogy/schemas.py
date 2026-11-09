@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
 
-from app.api.schemas import ApiModel
+from app.api.schemas import ApiModel, SharedPrivacyLevel
 from app.core.dates import GenealogicalDate, GenealogicalTime
 from app.models.enums import (
     CATEGORY_EVENT_TYPE,
@@ -21,7 +21,6 @@ from app.models.enums import (
     NameType,
     ParticipantRole,
     PlaceType,
-    PrivacyLevel,
     ProfileStatus,
     ProvenanceOrigin,
     RelationshipType,
@@ -87,7 +86,7 @@ class PlaceIn(ApiModel):
     geo_note: str | None = Field(default=None, max_length=2000)
     location_precision: LocationPrecision | None = None
     geo_confidence: Confidence = Confidence.UNKNOWN
-    coordinate_privacy: PrivacyLevel | None = None
+    coordinate_privacy: SharedPrivacyLevel | None = None
 
     @model_validator(mode="after")
     def _pair(self) -> PlaceIn:
@@ -121,7 +120,7 @@ class PlaceUpdate(ApiModel):
     geo_note: str | None = Field(default=None, max_length=2000)
     location_precision: LocationPrecision | None = None
     geo_confidence: Confidence | None = None
-    coordinate_privacy: PrivacyLevel | None = None
+    coordinate_privacy: SharedPrivacyLevel | None = None
 
 
 class PlaceOut(ApiModel):
@@ -147,7 +146,7 @@ class PlaceOut(ApiModel):
     geo_note: str | None = None
     location_precision: LocationPrecision = LocationPrecision.UNKNOWN
     geo_confidence: Confidence = Confidence.UNKNOWN
-    coordinate_privacy: PrivacyLevel | None = None
+    coordinate_privacy: SharedPrivacyLevel | None = None
     # true when the viewer gets rounded coordinates (coordinate_privacy above their access)
     coordinates_coarsened: bool = False
     hierarchy: list[str] = []
@@ -310,7 +309,7 @@ class EventIn(EventCore):
     origin_place_as_recorded: str | None = Field(default=None, max_length=500)
     reason: str | None = Field(default=None, max_length=5000)
     is_preferred: bool = True
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
 
     @model_validator(mode="after")
     def _type_or_category(self) -> EventIn:
@@ -339,7 +338,7 @@ class EventUpdate(ApiModel):
     is_preferred: bool | None = None
     evidence_status: EvidenceStatus | None = None
     confidence: Confidence | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     title: str | None = Field(default=None, max_length=300)
     category: LifeEventCategory | None = None
     significance: EventSignificance | None = None
@@ -386,7 +385,7 @@ class EventOut(ApiModel):
     category: LifeEventCategory | None = None
     significance: EventSignificance = EventSignificance.STANDARD
     location_precision: LocationPrecision | None = None
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     media_count: int = 0  # album photos the viewer may see
     cover_document_id: uuid.UUID | None = None
 
@@ -399,7 +398,7 @@ class PersonCreate(ApiModel):
     gender_identity: str | None = Field(default=None, max_length=100)
     primary_language: str | None = Field(default=None, max_length=16)
     scripts_used: list[str] = []
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     occupation: str | None = Field(default=None, max_length=200)
     notes: str | None = Field(default=None, max_length=20000)
     contact_info: str | None = Field(default=None, max_length=2000)
@@ -424,8 +423,8 @@ class PersonUpdate(ApiModel):
 
 
 class PrivacyUpdate(ApiModel):
-    privacy_level: PrivacyLevel | None = None
-    field_privacy: dict[str, PrivacyLevel | None] | None = None
+    privacy_level: SharedPrivacyLevel | None = None
+    field_privacy: dict[str, SharedPrivacyLevel | None] | None = None
 
 
 class VitalSummary(ApiModel):
@@ -454,7 +453,7 @@ class PersonSummary(ApiModel):
     death_display: str | None = None
     is_minor: bool = False
     is_protected: bool = False
-    privacy_level: PrivacyLevel | None = None
+    privacy_level: SharedPrivacyLevel | None = None
     # created by Smart Add as "unknown for now" (ADR-0020 §4): records origin, never cleared by a name
     is_provisional: bool = False
     # for provisional people only: needs_details (no name), unverified (a relationship has no

@@ -488,7 +488,10 @@ export interface paths {
         };
         /**
          * List Grants
-         * @description Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7).
+         * @description Grants on records the caller may manage; others are not listed (ADR-0027 §3, §10, A7).
+         *
+         *     A privacy manager sees grants on records they can see (never on someone's private record); a
+         *     content owner sees the grants on their own records.
          */
         get: operations["list_grants_api_v1_trees__tree_id__grants_get"];
         put?: never;
@@ -526,6 +529,87 @@ export interface paths {
         };
         /** List Audit */
         get: operations["list_audit_api_v1_trees__tree_id__audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/records/{resource_type}/{resource_id}/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sharing
+         * @description The record's audience and grants. Its content owner only; anyone else gets 404.
+         */
+        get: operations["get_sharing_api_v1_trees__tree_id__records__resource_type___resource_id__sharing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/records/{resource_type}/{resource_id}/ownership-offer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Offer Ownership
+         * @description Offer the record to another member; they become the owner when they accept.
+         */
+        post: operations["offer_ownership_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_post"];
+        /**
+         * Withdraw Ownership Offer
+         * @description The owner cancels the offer, or the member it was offered to declines it.
+         */
+        delete: operations["withdraw_ownership_offer_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/records/{resource_type}/{resource_id}/ownership-offer/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Ownership */
+        post: operations["accept_ownership_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/ownership-offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Ownership Offers
+         * @description Records whose owners offered them to the caller.
+         */
+        get: operations["my_ownership_offers_api_v1_trees__tree_id__ownership_offers_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4183,6 +4267,8 @@ export interface components {
             link_target_type?: components["schemas"]["DocumentLinkTarget"] | null;
             /** Link Target Id */
             link_target_id?: string | null;
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
         };
         /** Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post */
         Body_upload_event_photo_api_v1_trees__tree_id__events__event_id__media_post: {
@@ -5010,6 +5096,15 @@ export interface components {
             /** Issuing Authority */
             issuing_authority: string | null;
             privacy_level: components["schemas"]["PrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /** Owner Membership Id */
+            owner_membership_id?: string | null;
+            /**
+             * Is Owner
+             * @default false
+             */
+            is_owner?: boolean;
             scan_status: components["schemas"]["ScanStatus"];
             /** Page Count */
             page_count: number | null;
@@ -5092,6 +5187,8 @@ export interface components {
             description?: string | null;
             category?: components["schemas"]["DocumentCategory"] | null;
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
             document_date?: components["schemas"]["GenealogicalDate"] | null;
             /** Language */
             language?: string | null;
@@ -5786,7 +5883,7 @@ export interface components {
          * GrantResource
          * @enum {string}
          */
-        GrantResource: "person" | "document" | "property";
+        GrantResource: "person" | "document" | "property" | "tradition";
         /** GraphEdge */
         GraphEdge: {
             /** Source */
@@ -7202,6 +7299,28 @@ export interface components {
          * @enum {string}
          */
         OfferStatus: "none" | "offered" | "accepted" | "declined";
+        /** OwnershipOfferIn */
+        OwnershipOfferIn: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /**
+         * OwnershipOfferOut
+         * @description A record whose owner offered it to the viewer (ADR-0027 §2).
+         */
+        OwnershipOfferOut: {
+            resource_type: components["schemas"]["GrantResource"];
+            /**
+             * Resource Id
+             * Format: uuid
+             */
+            resource_id: string;
+            /** Title */
+            title: string;
+        };
         /** Page[AuditEventOut] */
         Page_AuditEventOut_: {
             /** Items */
@@ -8159,7 +8278,7 @@ export interface components {
          * PrivacyLevel
          * @enum {string}
          */
-        PrivacyLevel: "PRIVATE_SELF" | "PRIVATE_TREE_ADMINS" | "FAMILY_BRANCH" | "TREE_MEMBERS" | "INVITED_RESEARCHER" | "PUBLIC_DECEASED_ONLY" | "CUSTOM";
+        PrivacyLevel: "PRIVATE_SELF" | "PRIVATE_TREE_ADMINS" | "FAMILY_BRANCH" | "TREE_MEMBERS" | "INVITED_RESEARCHER" | "PUBLIC_DECEASED_ONLY" | "CUSTOM" | "ONLY_ME" | "SELECTED_MEMBERS";
         /** PrivacyUpdate */
         PrivacyUpdate: {
             privacy_level?: components["schemas"]["PrivacyLevel"] | null;
@@ -9442,6 +9561,27 @@ export interface components {
          * @enum {string}
          */
         SexAtBirth: "male" | "female" | "intersex" | "unknown";
+        /**
+         * SharingOut
+         * @description A record's audience and grants, for its content owner only (ADR-0027 §3).
+         */
+        SharingOut: {
+            resource_type: components["schemas"]["GrantResource"];
+            /**
+             * Resource Id
+             * Format: uuid
+             */
+            resource_id: string;
+            privacy_level: components["schemas"]["PrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id: string | null;
+            /** Owner Membership Id */
+            owner_membership_id: string | null;
+            /** Pending Owner Membership Id */
+            pending_owner_membership_id: string | null;
+            /** Grants */
+            grants: components["schemas"]["GrantOut"][];
+        };
         /** SiblingOut */
         SiblingOut: {
             person: components["schemas"]["PersonSummary"] | null;
@@ -10193,6 +10333,13 @@ export interface components {
              * @default false
              */
             can_withdraw?: boolean;
+            /** Owner Membership Id */
+            owner_membership_id?: string | null;
+            /**
+             * Is Owner
+             * @default false
+             */
+            is_owner?: boolean;
         };
         /** TraditionRevisionOut */
         TraditionRevisionOut: {
@@ -11750,6 +11897,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_AuditEventOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sharing_api_v1_trees__tree_id__records__resource_type___resource_id__sharing_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                resource_type: components["schemas"]["GrantResource"];
+                resource_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_ownership_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                resource_type: components["schemas"]["GrantResource"];
+                resource_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnershipOfferIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_ownership_offer_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                resource_type: components["schemas"]["GrantResource"];
+                resource_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_ownership_api_v1_trees__tree_id__records__resource_type___resource_id__ownership_offer_accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                resource_type: components["schemas"]["GrantResource"];
+                resource_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_ownership_offers_api_v1_trees__tree_id__ownership_offers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnershipOfferOut"][];
                 };
             };
             /** @description Validation Error */

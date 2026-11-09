@@ -8,7 +8,7 @@ import { emptyDate, normalizeDate, validateDate } from "../../lib/dates";
 import { DOCUMENT_CATEGORIES, VAULT_CATEGORIES } from "../../lib/documents";
 import { GenealogicalDateEditor } from "../dates/GenealogicalDateEditor";
 import { PersonPicker } from "../pickers";
-import { PRIVACY_LEVELS, hasDate } from "../person/PersonForm";
+import { RECORD_PRIVACY_LEVELS, hasDate } from "../person/PersonForm";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { ErrorAlert } from "../ui/feedback";
@@ -142,7 +142,7 @@ export function UploadDocumentDialog({
             {(p) => (
               <Select {...p} value={privacy} onChange={(e) => setPrivacy(e.target.value as PrivacyLevel | "")}>
                 <option value="">{t("documents.privacyDefault")}</option>
-                {PRIVACY_LEVELS.map((l) => (
+                {RECORD_PRIVACY_LEVELS.map((l) => (
                   <option key={l} value={l}>
                     {t(`enum.privacy.${l}`)}
                   </option>

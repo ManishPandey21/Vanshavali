@@ -28,6 +28,9 @@ class Document(TreeScopedMixin, Base):
         # Not unique: identical files may exist independently when one is hidden from the uploader
         # (SEC-10). Duplicate uploads of *visible* files are refused in the service layer.
         Index("ix_document_tree_checksum", "tree_id", "checksum_sha256"),
+        tree_fk(["audience_branch_id"], "family_branch", ondelete="SET NULL"),
+        tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
     )
 
     category: Mapped[DocumentCategory] = mapped_column(enum_column(DocumentCategory))
@@ -45,6 +48,11 @@ class Document(TreeScopedMixin, Base):
     script: Mapped[str | None] = mapped_column(String(20))
     issuing_authority: Mapped[str | None] = mapped_column(String(300))
     privacy_level: Mapped[PrivacyLevel] = mapped_column(enum_column(PrivacyLevel))
+    # ADR-0027 §1: the branch a FAMILY_BRANCH document is shared with
+    audience_branch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    # ADR-0027 §2: the content owner, and a member offered ownership who has not accepted yet
+    owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     retention_policy: Mapped[str] = mapped_column(String(40), default="retain", server_default="retain")
     scan_status: Mapped[ScanStatus] = mapped_column(enum_column(ScanStatus), default=ScanStatus.PENDING)
     scan_engine: Mapped[str | None] = mapped_column(String(80))

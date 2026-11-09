@@ -53,7 +53,7 @@ Constraints/indexes: `INDEX ix_user_session_user_active (user_id, revoked_at)`
 | `description` | TEXT | yes |  |
 | `slug` | VARCHAR(80) | no | unique |
 | `public_mode` | enum(OFF, DECEASED_ONLY) | no |  |
-| `default_person_privacy` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `default_person_privacy` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
 | `review_policy` | enum(off, structure, all) | no |  |
 | `kinship_lang` | VARCHAR(16) | yes |  |
 | `kinship_region` | VARCHAR(40) | yes |  |
@@ -106,7 +106,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 |---|---|---|---|
 | `membership_id` | UUID | no | → tree_membership (composite, same tree) |
 | `user_id` | UUID | no | → app_user |
-| `resource_type` | enum(person, document, property) | no |  |
+| `resource_type` | enum(person, document, property, tradition) | no |  |
 | `resource_id` | UUID | no |  |
 | `permission` | enum(view, download) | no |  |
 | `expires_at` | DATETIME | yes |  |
@@ -132,7 +132,7 @@ Constraints/indexes: `UNIQUE (tree_id, membership_id, resource_type, resource_id
 | `gender_identity` | VARCHAR(100) | yes |  |
 | `primary_language` | VARCHAR(16) | yes |  |
 | `scripts_used` | ARRAY | no |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
 | `field_privacy` | JSONB | no |  |
 | `claimed_by_user_id` | UUID | yes | → app_user |
 | `occupation` | VARCHAR(200) | yes |  |
@@ -260,7 +260,7 @@ Constraints/indexes: `CHECK person_a_id <> person_b_id`; `UNIQUE (tree_id, type,
 | `reason` | TEXT | yes |  |
 | `description` | TEXT | yes |  |
 | `is_preferred` | BOOLEAN | no |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | yes |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | yes |  |
 | `title` | VARCHAR(300) | yes |  |
 | `category` | enum(birth, naming_ceremony, annaprashan, mundan, upanayana, initiation, education, graduation, …) | yes |  |
 | `significance` | enum(standard, important, milestone) | no |  |
@@ -330,7 +330,7 @@ Constraints/indexes: `UNIQUE (event_id, person_id, role)`; `UNIQUE (tree_id, id)
 | `location_precision` | enum(exact, approximate, locality, district, state, country, unknown) | no |  |
 | `geo_confidence` | enum(high, medium, low, unknown) | no |  |
 | `geo_note` | TEXT | yes |  |
-| `coordinate_privacy` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | yes |  |
+| `coordinate_privacy` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -389,7 +389,7 @@ Constraints/indexes: `CHECK elder_person_id <> younger_person_id`; `UNIQUE (tree
 | `place_id` | UUID | yes | → place (composite, same tree) |
 | `value_status` | enum(known, unknown, not_applicable, withheld) | no |  |
 | `is_preferred` | BOOLEAN | no |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | yes |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | yes |  |
 | `notes` | TEXT | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
@@ -578,7 +578,9 @@ Constraints/indexes: `UNIQUE (tree_id, pattern, lang, branch_id)`; `UNIQUE (tree
 | `language` | VARCHAR(16) | yes |  |
 | `script` | VARCHAR(16) | yes |  |
 | `branch_id` | UUID | yes | → family_branch (composite, same tree) |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
+| `owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
+| `pending_owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `search_text` | TEXT | no |  |
 | `withdrawn_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
@@ -835,7 +837,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_user_notification_tree_id
 | `translation` | TEXT | yes |  |
 | `notes` | TEXT | yes |  |
 | `tradition` | JSONB | yes |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -885,7 +887,10 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_citation_target (tree_id,
 | `language` | VARCHAR(16) | yes |  |
 | `script` | VARCHAR(20) | yes |  |
 | `issuing_authority` | VARCHAR(300) | yes |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
+| `audience_branch_id` | UUID | yes | → family_branch (composite, same tree) |
+| `owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
+| `pending_owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `retention_policy` | VARCHAR(40) | no |  |
 | `scan_status` | enum(pending, clean, infected, error) | no |  |
 | `scan_engine` | VARCHAR(80) | yes |  |
@@ -1201,7 +1206,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_render_artifact_job_id (j
 | `utc_offset_minutes` | INTEGER | yes |  |
 | `calculation_timestamp` | DATETIME | yes |  |
 | `is_preferred` | BOOLEAN | no |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
 | `notes` | TEXT | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
@@ -1235,7 +1240,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_astrology_profile_person 
 | `place_id` | UUID | yes | → place (composite, same tree) |
 | `address_text` | TEXT | yes |  |
 | `current_status` | VARCHAR(120) | yes |  |
-| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
+| `privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | no |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -1422,7 +1427,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_consent_record_tree_id (t
 | `consent_language` | VARCHAR(10) | yes |  |
 | `consent_sha256` | VARCHAR(64) | yes |  |
 | `consent_at` | DATETIME | yes |  |
-| `restore_privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | yes |  |
+| `restore_privacy_level` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM, ONLY_ME, …) | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |

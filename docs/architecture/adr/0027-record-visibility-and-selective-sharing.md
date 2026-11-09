@@ -94,9 +94,8 @@ collection (§6). Its `privacy_level` takes one of these audiences:
 
 **Implemented (9 Nov 2026):** `membership_id` with the composite FK and cascade, backfill and
 orphan deletion (§12.2, migration `9c4f2a7d1e83`); lookups by membership; `GET /grants` (and grant
-creation and revocation) limited to records the caller may see — `privacy.manage` plus visibility
-until §2 defines a content owner. **Waits for §1/§2:** owner-only granting on `ONLY_ME` /
-`SELECTED_MEMBERS` records, `GET …/sharing`, and the new `GrantResource` values (§12.4).
+creation and revocation) limited to records the caller may see. With §1/§2 (below): owner-only granting on
+`ONLY_ME` / `SELECTED_MEMBERS` records, `GET …/sharing`, and the `tradition` `GrantResource`.
 **Next release:** drop `access_grant.user_id`.
 
 ### 4. View, preview, play and download
@@ -205,6 +204,39 @@ nothing; ceiling enforcement on tagging and consent; album with a restricted pho
 component tests of the selector (search, multi-select, warnings, en/hi). Playwright: upload as Only
 me → selected member sees it, another member and a family admin get "not found"; album shared with
 the family shows only permitted photos.
+
+## Implementation status (9 Nov 2026)
+**Implemented: §1, §2, §3; §10; §11 in part; migrations §12.1, §12.2, §12.3 (without
+`allow_download`) and §12.4 (`tradition` only).** Shareable records in the code today are documents
+and tradition entries; stories (ADR-0023) and collections (§6) do not exist yet.
+
+Decisions made while implementing, within the ADR:
+- **One enum, widened.** `PrivacyLevel` gains `ONLY_ME` and `SELECTED_MEMBERS`, so every column's
+  CHECK accepts them; the API refuses them (422) on everything that is not a shareable record
+  (`SharedPrivacyLevel` in `app/api/schemas.py`).
+- **`level_allows(owner=…, audience_branch_id=…)`** decides both record types; it now denies an
+  unknown level by default. `traditions.may_read` calls it (A9). Legacy meanings are kept as the
+  ADR requires: a tradition's `PRIVATE_SELF` stays author-only; nothing is converted at migration.
+- **A tradition entry's `branch_id` is its audience branch**, as before; only documents gained
+  `audience_branch_id`.
+- **Ownership transfer** uses `pending_owner_membership_id` on the record (offer, accept, decline
+  or cancel; `GET /trees/{id}/ownership-offers`), audited as `record.ownership_offered`,
+  `record.ownership_transferred`, `record.ownership_declined` / `record.ownership_offer_cancelled`.
+- **§10 "narrow"** is judged by `narrowness()` (record-only levels rank above every shared one);
+  a manager may only narrow a record on a shared audience (not legacy `CUSTOM`/`PRIVATE_SELF`, not
+  record-only); a change of branch is a different audience, so it is the owner's alone.
+- **§11:** `record.visibility_changed` records the old and new level (the counts of added and
+  removed viewers come with §9's server-computed preview). The audit API shows an event about
+  someone else's private record as an opaque `private_record` entry with no id or details.
+- **Paths closed** that the audit of the read paths found: custodian shortcuts on private records;
+  system sources of a private document (they follow the document); hidden-document counts on
+  properties; render artifacts (tree admins still see others' jobs but only the requester opens the
+  files); tradition proposals once the tradition is private; the consent evidence-document check.
+
+**Not yet:** §4 (view vs download, `allow_download`), §5 ceilings, §6 albums and collections, §7
+expiry beyond grants' own `expires_at`, §8 exceptions, §9 (the Visibility & Sharing component and
+`GET …/sharing/preview`; the upload dialog only offers the two new audiences), stories. Known
+residuals are in the threat model (T54).
 
 ## Consequences
 - One meaning per word: the private audiences are truly private, and admins are told who they

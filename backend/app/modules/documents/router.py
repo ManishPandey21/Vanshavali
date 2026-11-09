@@ -74,6 +74,7 @@ def upload_document(
     issuing_authority: Annotated[str | None, Form(max_length=300)] = None,
     link_target_type: Annotated[DocumentLinkTarget | None, Form()] = None,
     link_target_id: Annotated[uuid.UUID | None, Form()] = None,
+    audience_branch_id: Annotated[uuid.UUID | None, Form()] = None,
 ) -> DocumentOut:
     if (link_target_type is None) != (link_target_id is None):
         raise Unprocessable("link_target_type and link_target_id must be given together")
@@ -97,6 +98,7 @@ def upload_document(
         script=script,
         issuing_authority=issuing_authority,
         link=link,
+        audience_branch_id=audience_branch_id,
     )
     service.schedule_processing(ctx, doc)
     return service.document_out(ctx, doc)

@@ -17,8 +17,10 @@ from typing import Any
 
 from sqlalchemy import exists, select
 
+from app.authz import records
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
+from app.authz.privacy import is_record_owner, level_allows
 from app.core import audit
 from app.core.errors import Forbidden, NotFound
 from app.core.textnorm import detect_script, search_key
@@ -31,7 +33,14 @@ from app.models import (
     TreeMembership,
     User,
 )
-from app.models.enums import PrivacyLevel, ReviewTarget, TraditionKind, TraditionLinkTarget
+from app.models.enums import (
+    RECORD_ONLY_LEVELS,
+    GrantResource,
+    PrivacyLevel,
+    ReviewTarget,
+    TraditionKind,
+    TraditionLinkTarget,
+)
 from app.modules.genealogy import lookup
 from app.modules.review import policy as review_policy
 from app.modules.traditions.schemas import (
@@ -53,24 +62,36 @@ def _is_author(ctx: TreeContext, e: TraditionEntry) -> bool:
     return ctx.user_id is not None and e.created_by == ctx.user_id
 
 
+def is_owner(ctx: TreeContext, e: TraditionEntry) -> bool:
+    """The viewer is the entry's content owner (ADR-0027 §2)."""
+    return is_record_owner(ctx, e.owner_membership_id)
+
+
+def _may_withdraw(ctx: TreeContext, e: TraditionEntry) -> bool:
+    if e.privacy_level in RECORD_ONLY_LEVELS:
+        return is_owner(ctx, e)  # a private entry is its owner's alone (ADR-0027 §10)
+    return _is_author(ctx, e) or is_owner(ctx, e) or ctx.is_admin
+
+
 def may_read(ctx: TreeContext, e: TraditionEntry) -> bool:
-    """The entry's own privacy level, for members only; never on a public view."""
+    """The entry's own privacy level, for members only; never on a public view.
+
+    Evaluated by ``level_allows`` like any shareable record (ADR-0027 §1, A9), with the entry's
+    ``branch_id`` as its audience branch and tradition grants. Legacy levels keep their old meaning
+    here: ``PRIVATE_SELF`` is the author (or content owner) only, and the author still reads any
+    entry that is not on a record-only level.
+    """
     if ctx.public or not ctx.is_member or e.withdrawn_at is not None:
         return False
-    if _is_author(ctx, e):
-        return True
+    owner = is_owner(ctx, e)
     level = e.privacy_level
-    if level == PrivacyLevel.PRIVATE_SELF:
-        return False
-    if ctx.is_admin:
+    if level not in RECORD_ONLY_LEVELS and _is_author(ctx, e):
         return True
-    if level in (PrivacyLevel.PRIVATE_TREE_ADMINS, PrivacyLevel.CUSTOM):
-        return False
-    if level == PrivacyLevel.FAMILY_BRANCH:
-        return e.branch_id is not None and e.branch_id in ctx.viewer_branch_ids()
-    if level == PrivacyLevel.TREE_MEMBERS:
-        return not ctx.is_researcher_only
-    return True  # INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY: any member (never public in R4)
+    if level == PrivacyLevel.PRIVATE_SELF:
+        return owner
+    return level_allows(
+        ctx, level, grant=(GrantResource.TRADITION, e.id), owner=owner, audience_branch_id=e.branch_id
+    )
 
 
 def get_entry(ctx: TreeContext, entry_id: uuid.UUID) -> TraditionEntry:
@@ -153,12 +174,13 @@ def _links_of(ctx: TreeContext, entry_id: uuid.UUID) -> list[TraditionLink]:
 
 
 def needs_review_to_edit(ctx: TreeContext, e: TraditionEntry) -> bool:
-    return not _is_author(ctx, e) and review_policy.needs_review(ctx, "all", [], [e])
+    return not (_is_author(ctx, e) or is_owner(ctx, e)) and review_policy.needs_review(ctx, "all", [], [e])
 
 
 def entry_out(ctx: TreeContext, e: TraditionEntry) -> TraditionOut:
     names = _names(ctx, {e.created_by} if e.created_by else set())
     can_write = ctx.has(Permission.FAMILY_WRITE)
+    can_edit = can_write and (e.privacy_level not in RECORD_ONLY_LEVELS or is_owner(ctx, e))
     return TraditionOut(
         **_summary(e, names).model_dump(),
         body=e.body,
@@ -167,9 +189,11 @@ def entry_out(ctx: TreeContext, e: TraditionEntry) -> TraditionOut:
         review_state=e.review_state,
         created_at=e.created_at,
         created_by=e.created_by,
-        can_edit=can_write,
-        edit_needs_review=can_write and needs_review_to_edit(ctx, e),
-        can_withdraw=_is_author(ctx, e) or ctx.is_admin,
+        can_edit=can_edit,
+        edit_needs_review=can_edit and needs_review_to_edit(ctx, e),
+        can_withdraw=_may_withdraw(ctx, e),
+        owner_membership_id=e.owner_membership_id,
+        is_owner=is_owner(ctx, e),
     )
 
 
@@ -281,6 +305,7 @@ def create_entry(ctx: TreeContext, body: TraditionEntryIn) -> TraditionEntry:
         branch_id=body.branch_id,
         privacy_level=body.privacy_level,
         created_by=ctx.user_id,
+        owner_membership_id=ctx.membership.id if ctx.membership is not None else None,
     )
     _index(e)
     ctx.db.add(e)
@@ -297,17 +322,29 @@ def create_entry(ctx: TreeContext, body: TraditionEntryIn) -> TraditionEntry:
 def update_entry(ctx: TreeContext, entry_id: uuid.UUID, body: TraditionEntryUpdate) -> TraditionEntry:
     e = get_entry(ctx, entry_id)
     ctx.require(Permission.FAMILY_WRITE)
-    if not _is_author(ctx, e):
+    owner = is_owner(ctx, e)
+    records.require_owner_for_private(owner, e.privacy_level)  # grantees change nothing (§10)
+    if not (_is_author(ctx, e) or owner):
         review_policy.require_direct(ctx, "all", [], [e])
     fields = body.model_fields_set - {"links"}
-    if (
-        "privacy_level" in fields
-        and body.privacy_level != e.privacy_level
-        and not (_is_author(ctx, e) or ctx.is_admin)
-    ):
-        raise Forbidden("Only the author or a tree admin can change who may read this")
+    new_level = (
+        body.privacy_level
+        if "privacy_level" in fields and body.privacy_level is not None
+        else e.privacy_level
+    )
+    new_branch = body.branch_id if "branch_id" in fields else e.branch_id
     if "branch_id" in fields:
         _check_branch(ctx, body.branch_id)
+    records.require_audience_change(
+        ctx,
+        owner=owner,
+        may_manage=ctx.is_admin,
+        old_level=e.privacy_level,
+        new_level=new_level,
+        old_branch=e.branch_id,
+        new_branch=new_branch,
+    )
+    old_level = e.privacy_level
     for f in fields:
         value = getattr(body, f)
         if value is None and f in ("kind", "title", "body", "privacy_level"):
@@ -327,12 +364,20 @@ def update_entry(ctx: TreeContext, entry_id: uuid.UUID, body: TraditionEntryUpda
         target_id=e.id,
         details={"fields": sorted(body.model_fields_set)},
     )
+    if e.privacy_level != old_level:
+        audit.log(
+            ctx,
+            "record.visibility_changed",
+            target_type="tradition",
+            target_id=e.id,
+            details={"from": PrivacyLevel(old_level).value, "to": PrivacyLevel(e.privacy_level).value},
+        )
     return e
 
 
 def withdraw_entry(ctx: TreeContext, entry_id: uuid.UUID) -> None:
     e = get_entry(ctx, entry_id)
-    if not (_is_author(ctx, e) or ctx.is_admin):
+    if not _may_withdraw(ctx, e):
         raise Forbidden("Only the author or a tree admin can withdraw this")
     e.withdrawn_at = dt.datetime.now(dt.UTC)
     e.updated_by = ctx.user_id

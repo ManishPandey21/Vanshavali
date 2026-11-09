@@ -145,8 +145,11 @@ def test_jobs_and_artifacts_are_private_to_the_requester(owner, tree, member_fac
     assert b.get(url).status_code == 403
     assert a.get(url).status_code == 200
     assert a.get(url.replace("render-files/", "render-files/x")).status_code == 403
-    # tree admins can see every export
+    # tree admins can see every export, but only its requester opens the files: a render may embed
+    # the requester's private photos (ADR-0027 §1)
     assert owner.get(f"/trees/{tid}/render-jobs/{j['id']}").json()["mine"] is False
+    assert owner.post(f"/trees/{tid}/render-jobs/{j['id']}/artifacts/{art}/download-url").status_code == 404
+    assert owner.get(url).status_code == 403
 
 
 def test_validation_quotas_and_failures(owner, tree, stub, monkeypatch):
