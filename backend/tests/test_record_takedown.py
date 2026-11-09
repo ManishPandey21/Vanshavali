@@ -421,6 +421,23 @@ def test_lift_without_appeal_and_suspensions_of_traditions(owner, tree, member_f
     assert s["reporter"].get(f"/trees/{t}/traditions/{entry}").status_code == 200
 
 
+def test_a_suspended_record_cannot_change_owner(owner, tree, member_factory):
+    """Ownership stays put while a suspension is in effect: no new offer, no accepting an old one."""
+    s = _setup(owner, tree, member_factory)
+    t, doc = s["t"], s["doc"]
+    heir = member_factory(["CONTRIBUTOR"], name="Heir")
+    offer = f"/trees/{t}/records/document/{doc}/ownership-offer"
+    assert s["author"].post(offer, json={"user_id": heir.user["id"]}).status_code == 200
+    sid = _suspend(s["a"], t, _report(s["reporter"], t, doc).json()["id"])["id"]
+    r = heir.post(f"{offer}/accept")
+    assert r.status_code == 409 and r.json()["error"]["code"] == "record_suspended"
+    assert s["author"].delete(offer).status_code == 200  # cancelling stays possible
+    r = s["author"].post(offer, json={"user_id": heir.user["id"]})
+    assert r.status_code == 409 and r.json()["error"]["code"] == "record_suspended"
+    assert _decide(s["b"], t, sid, "lift", reason="mistaken_report").status_code == 200
+    assert s["author"].post(offer, json={"user_id": heir.user["id"]}).status_code == 200
+
+
 def test_migration_downgrade_drops_takedown_and_its_notices():
     """d9b4f2c6a713: two tables, three columns, seven kinds; the downgrade removes them."""
     db = DB + "_takedown"

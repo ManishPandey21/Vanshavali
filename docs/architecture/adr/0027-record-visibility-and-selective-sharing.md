@@ -460,7 +460,26 @@ listed in the threat model's residual risks.
 - **Tests.** `tests/test_photo_collections.py` (7 cases), page tests in `CollectionsPage.test.tsx`,
   a fourth Playwright test in `record-sharing.spec.ts`; threat model T59.
 
-## Implementation notes (9 Nov 2026, increment 5: collections in search and the archive export)
+## Implementation notes (9 Nov 2026, increment 5: ownership transfer and remaining paths)
+- **Ownership transfer (§2)** for documents, tradition entries and photo collections:
+  `pending_owner_membership_id` (migration `e4b8c2d6f913`, after the photo collections). The owner
+  offers (`POST /trees/{id}/records/{type}/{rid}/ownership-offer`), the member accepts
+  (`…/accept`) or declines, the owner may cancel (`DELETE …`); `GET /trees/{id}/ownership-offers`
+  lists offers to the caller. An offer gives no access; it lapses if the member leaves (SET NULL).
+  Grants stay with the record and are managed by the new owner. Audited as
+  `record.ownership_offered`, `record.ownership_transferred`, `record.ownership_declined`,
+  `record.ownership_offer_cancelled`, without titles, and redacted like any record event. Anyone
+  but the owner or the member offered the record gets 404; an orphaned record cannot be offered or
+  claimed. There is no UI for transfers yet.
+- **Render files** open for their requester only: a render may embed the requester's private
+  photos. Tree admins still see other members' jobs.
+- **Consent evidence** is checked with document visibility, so naming a hidden document answers
+  404 like a missing one.
+- **`level_allows` denies by default:** a level no rule names admits nobody (before, it admitted
+  any member). No current level reaches that branch.
+- Tests: `tests/test_record_ownership.py`, `test_render_jobs.py`, `test_migrations.py`; threat T60.
+
+## Implementation notes (9 Nov 2026, increment 6: collections in search and the archive export)
 - **Search.** A `collection` search provider matches the title or description of the collections
   the searcher may see (`collection_allows`, so no role reaches a private one, and a private
   collection's description never produces a hit). Hits link to the collection page; the `kinds`
@@ -474,7 +493,7 @@ listed in the threat model's residual risks.
 - **Tests.** `tests/test_collections_export_search.py` (search by role and audience, the owner's,
   the tree owner's and the author's export); threat model T59 extended.
 
-## Implementation notes (9 Nov 2026, increment 6: telling owners about automatic narrowing)
+## Implementation notes (9 Nov 2026, increment 7: telling owners about automatic narrowing)
 - **Owner notice (§5, "and tells the owner").** When `enforce_ceiling` narrows a document or a
   tradition entry (a private person tagged or made private, an album's event made private, an
   erasure, a hidden profile), the record's owner gets an in-app notice: kind `document_narrowed` or
@@ -488,12 +507,12 @@ listed in the threat model's residual risks.
   (no actor in the audit; reason `person_privacy`, the same as any privacy change, so the owner
   never learns of the request). The link holder is not a member and gains nothing. Declining the
   request restores the profile but never widens a record again; its owner decides.
-- **Migration** `c7e3a1f5b829` (after `b5c1e7a93d42`) adds the two kinds to the notification
+- **Migration** `c7e3a1f5b829` (after `e4b8c2d6f913`) adds the two kinds to the notification
   check constraint; the downgrade deletes those notices first.
 - **Tests.** `tests/test_narrowing_notices.py` (6 cases), Vitest `ReviewParts.test.tsx`; threat
   model T61.
 
-## Implementation notes (9 Nov 2026, increment 7: takedown, suspension and appeals)
+## Implementation notes (9 Nov 2026, increment 8: takedown, suspension and appeals)
 Implements "Takedown in detail" above (the owner's decisions of 9 Nov 2026); the ADR's status is
 unchanged and legal-request routing stays open.
 - **Model.** `record_report` (reference, record type and id, reason, the reporter's note, the
@@ -509,9 +528,11 @@ unchanged and legal-request routing stays open.
   on the record's own audience, as if it were not suspended.
 - **Lifting** clears `suspended_at`, then re-runs `enforce_ceiling`; grants, levels and links are
   read as they are now.
+- **Ownership** (increment 5) cannot change while a record is suspended: no new offer and no
+  accepting an earlier one (409 `record_suspended`); the owner may still cancel an offer.
 - **API.** `POST /trees/{id}/records/{type}/{id}/reports`; `GET /record-reports`,
   `POST /record-reports/{id}/dismiss`, `POST /record-reports/{id}/suspend`;
   `GET /record-suspensions` (+ `/{id}`), `POST /record-suspensions/{id}/appeal`,
   `POST /record-suspensions/{id}/decision`. Overdue appeals are escalated when suspensions are read.
 - **Not built:** a takedown screen (API and notices only), legal-request routing (open).
-- **Tests.** `tests/test_record_takedown.py` (11 cases); threat model T62.
+- **Tests.** `tests/test_record_takedown.py` (12 cases); threat model T62.

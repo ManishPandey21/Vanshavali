@@ -1,7 +1,7 @@
 """narrowing notices
 
 Revision ID: c7e3a1f5b829
-Revises: b5c1e7a93d42
+Revises: e4b8c2d6f913
 Create Date: 2026-11-09
 
 ADR-0027 §5: tell a record's owner when the record was made more private automatically. Two
@@ -15,7 +15,7 @@ from collections.abc import Sequence
 from alembic import op
 
 revision: str = "c7e3a1f5b829"
-down_revision: str | None = "b5c1e7a93d42"
+down_revision: str | None = "e4b8c2d6f913"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -141,6 +141,7 @@ graph LR
 | A record is never more visible than a protected living person tagged in it; tagging them, or making them more private, narrows it at once | `documents.sharing.enforce_ceiling` (ADR-0027 §5) |
 | A suspended record (takedown) is visible to its owner only and can only narrow; lifting it restores nothing saved before and re-checks its ceilings; the admin who suspended it decides its appeal only when no other can (and must confirm) | `*.suspended_at`, `takedown.service` (ADR-0027 §8.2) |
 | An album or a standalone photo collection shows each viewer only the photos they may see (counts and cover included); a collection has its own audience and never shares its photos | `documents.access.can_view_document` on every album route (ADR-0027 §6) |
+| The owner of a document, tradition or photo collection hands it to another member only by an offer that member accepts | `pending_owner_membership_id`, `ownership.service` (ADR-0027 §2) |
 | An event photo is never more visible than its event and principal person; at most one cover per event | `lifeevents.service.inherited_privacy`, partial unique index `uq_event_media_cover` |
 | Coordinates are optional and carry a precision; restricted coordinates are coarsened for lower roles | `place.location_precision`, `place.coordinate_privacy`, `genealogy.geo` |
 | Reminders are personal and opt-in; each occurrence × lead × channel is delivered at most once | `uq_event_reminder`, `uq_notification_delivery_once` (ADR-0016) |

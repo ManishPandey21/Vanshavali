@@ -193,3 +193,81 @@ def test_access_grants_move_onto_memberships():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_ownership_offers_column_and_downgrade():
+    """e4b8c2d6f913: pending offers on documents, traditions and collections lapse with the member."""
+    import uuid
+
+    db = DB + "_offers"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "b5c1e7a93d42")
+        engine = create_engine(url)
+        t, u1, u2, m1, m2, e = (uuid.uuid4() for _ in range(6))
+        with engine.begin() as conn:
+            for uid, email in ((u1, "a@example.com"), (u2, "b@example.com")):
+                conn.execute(
+                    text(
+                        "INSERT INTO app_user (id, email, password_hash, display_name) VALUES (:id, :e, 'x', 'U')"
+                    ),
+                    {"id": uid, "e": email},
+                )
+            conn.execute(
+                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :s)"), {"id": t, "s": str(t)}
+            )
+            for mid, uid in ((m1, u1), (m2, u2)):
+                conn.execute(
+                    text(
+                        "INSERT INTO tree_membership (id, tree_id, user_id, roles) VALUES (:id, :t, :u, ARRAY['CONTRIBUTOR'])"
+                    ),
+                    {"id": mid, "t": t, "u": uid},
+                )
+            conn.execute(
+                text(
+                    "INSERT INTO tradition_entry (id, tree_id, kind, title, privacy_level, created_by, owner_membership_id)"
+                    " VALUES (:id, :t, 'recipe', 'R', 'ONLY_ME', :u, :m)"
+                ),
+                {"id": e, "t": t, "u": u1, "m": m1},
+            )
+        command.upgrade(cfg, "e4b8c2d6f913")
+        with engine.begin() as conn:
+            for table in ("document", "tradition_entry", "photo_collection"):
+                cols = set(
+                    conn.execute(
+                        text("SELECT column_name FROM information_schema.columns WHERE table_name = :t"),
+                        {"t": table},
+                    ).scalars()
+                )
+                assert "pending_owner_membership_id" in cols, table
+            conn.execute(text("UPDATE tradition_entry SET pending_owner_membership_id = :m"), {"m": m2})
+            conn.execute(text("DELETE FROM tree_membership WHERE id = :m"), {"m": m2})  # the member leaves
+            row = conn.execute(
+                text("SELECT owner_membership_id, pending_owner_membership_id FROM tradition_entry")
+            ).one()
+            assert (row.owner_membership_id, row.pending_owner_membership_id) == (
+                m1,
+                None,
+            )  # the offer lapsed
+        command.downgrade(cfg, "b5c1e7a93d42")
+        with engine.connect() as conn:
+            for table in ("document", "tradition_entry", "photo_collection"):
+                cols = set(
+                    conn.execute(
+                        text("SELECT column_name FROM information_schema.columns WHERE table_name = :t"),
+                        {"t": table},
+                    ).scalars()
+                )
+                assert "pending_owner_membership_id" not in cols, table
+            assert conn.execute(text("SELECT owner_membership_id FROM tradition_entry")).scalar() == m1
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()

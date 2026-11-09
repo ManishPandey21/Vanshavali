@@ -580,6 +580,7 @@ Constraints/indexes: `UNIQUE (tree_id, pattern, lang, branch_id)`; `UNIQUE (tree
 | `branch_id` | UUID | yes | → family_branch (composite, same tree) |
 | `privacy_level` | enum(ONLY_ME, SELECTED_MEMBERS, PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, …) | no |  |
 | `owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
+| `pending_owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `search_text` | TEXT | no |  |
 | `withdrawn_at` | DATETIME | yes |  |
 | `suspended_at` | DATETIME | yes |  |
@@ -889,6 +890,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_citation_target (tree_id,
 | `issuing_authority` | VARCHAR(300) | yes |  |
 | `privacy_level` | enum(ONLY_ME, SELECTED_MEMBERS, PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, …) | no |  |
 | `owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
+| `pending_owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `audience_branch_id` | UUID | yes | → family_branch (composite, same tree) |
 | `allow_download` | BOOLEAN | no |  |
 | `retention_policy` | VARCHAR(40) | no |  |

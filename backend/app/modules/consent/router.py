@@ -78,9 +78,9 @@ def record_consent(person_id: uuid.UUID, body: ConsentIn, ctx: TreeCtx) -> Conse
     if not _can_manage_consent(ctx, person):
         raise Forbidden()
     if body.evidence_document_id:
-        from app.models import Document
+        from app.modules.documents.access import get_document
 
-        lookup.get_in_tree(ctx, Document, body.evidence_document_id, "Document")
+        get_document(ctx, body.evidence_document_id)  # 404 unless visible: existence is not revealed
     c = ConsentRecord(
         tree_id=ctx.tree_id,
         subject_person_id=person.id,

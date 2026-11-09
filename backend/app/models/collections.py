@@ -23,6 +23,7 @@ class PhotoCollection(TreeScopedMixin, Base):
     __table_args__ = (
         tree_unique("photo_collection"),
         tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
         tree_fk(["audience_branch_id"], "family_branch", ondelete="SET NULL"),
     )
 
@@ -34,6 +35,8 @@ class PhotoCollection(TreeScopedMixin, Base):
         server_default=RecordPrivacyLevel.ONLY_ME.value,
     )
     owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    # ADR-0027 §2: a member the owner offered the record to, until they accept or decline
+    pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     audience_branch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     # ADR-0027 §8.2: set while a takedown suspension is in effect (hidden from all but its owner)
     suspended_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
