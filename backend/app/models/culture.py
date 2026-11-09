@@ -14,7 +14,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, ReviewMixin, TreeScopedMixin, enum_column, tree_fk, tree_unique
-from app.models.enums import PrivacyLevel, TraditionKind, TraditionLinkTarget
+from app.models.enums import RecordPrivacyLevel, TraditionKind, TraditionLinkTarget
 
 
 class KinshipOverride(TreeScopedMixin, ReviewMixin, Base):
@@ -49,6 +49,9 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
     __table_args__ = (
         tree_unique("tradition_entry"),
         tree_fk(["branch_id"], "family_branch", ondelete="SET NULL"),
+        # ADR-0027 §2: the content owner, and a member offered ownership who has not accepted yet
+        tree_fk(["owner_membership_id"], "tree_membership", ondelete="SET NULL"),
+        tree_fk(["pending_owner_membership_id"], "tree_membership", ondelete="SET NULL"),
         Index("ix_tradition_entry_tree_kind", "tree_id", "kind"),
         Index(
             "ix_tradition_entry_search_trgm",
@@ -64,11 +67,15 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
     language: Mapped[str | None] = mapped_column(String(16))
     script: Mapped[str | None] = mapped_column(String(16))
     branch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    privacy_level: Mapped[PrivacyLevel] = mapped_column(
-        enum_column(PrivacyLevel, "tradition_privacy_level"),
-        default=PrivacyLevel.TREE_MEMBERS,
-        server_default=PrivacyLevel.TREE_MEMBERS.value,
+    # a shareable record (ADR-0027 §1): may also be ONLY_ME or SELECTED_MEMBERS. A FAMILY_BRANCH
+    # entry is shared with ``branch_id``.
+    privacy_level: Mapped[RecordPrivacyLevel] = mapped_column(
+        enum_column(RecordPrivacyLevel, "tradition_privacy_level"),
+        default=RecordPrivacyLevel.TREE_MEMBERS,
+        server_default=RecordPrivacyLevel.TREE_MEMBERS.value,
     )
+    owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    pending_owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
     withdrawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 

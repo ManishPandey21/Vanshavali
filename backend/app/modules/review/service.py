@@ -377,8 +377,32 @@ def people_of(ctx: TreeContext, p: ChangeProposal) -> list[uuid.UUID]:
     return sorted(people, key=str)
 
 
+def _names_a_hidden_private_tradition(ctx: TreeContext, p: ChangeProposal) -> bool:
+    """The proposal (a challenge) or one of its items targets a private tradition the viewer may not
+    read (ADR-0027 §1)."""
+    from app.authz.privacy import is_private_record_level
+    from app.models import TraditionEntry
+    from app.modules.traditions.service import may_read
+
+    ids = {
+        i.target_id for i in items_of(ctx, p.id) if i.target_type == ReviewTarget.TRADITION and i.target_id
+    }
+    if p.target_type == ReviewTarget.TRADITION and p.target_id is not None:
+        ids.add(p.target_id)
+    for tid in ids:
+        entry = ctx.db.get(TraditionEntry, tid)
+        if entry is not None and is_private_record_level(entry.privacy_level) and not may_read(ctx, entry):
+            return True
+    return False
+
+
 def may_view(ctx: TreeContext, p: ChangeProposal) -> bool:
-    """The proposer, those who may review it, and (for a challenge) members who can see the fact."""
+    """The proposer, those who may review it, and (for a challenge) members who can see the fact.
+
+    A proposal on a tradition that has since become private (ADR-0027 §1) is shown only to those
+    who may still read that tradition."""
+    if _names_a_hidden_private_tradition(ctx, p):
+        return False
     if ctx.user_id is not None and p.proposer_id == ctx.user_id:
         return True
     people = people_of(ctx, p)

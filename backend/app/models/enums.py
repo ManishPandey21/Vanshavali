@@ -543,6 +543,7 @@ class GrantResource(StrEnum):
     PERSON = "person"
     DOCUMENT = "document"
     PROPERTY = "property"
+    TRADITION = "tradition"  # ADR-0027 §12.4: tradition entries shared with selected members
 
 
 class JobStatus(StrEnum):

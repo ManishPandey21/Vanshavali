@@ -238,7 +238,9 @@ def level_allows(
         return bool(subject.branch_ids & ctx.viewer_branch_ids())
     if level == PrivacyLevel.TREE_MEMBERS:
         return not ctx.is_researcher_only
-    return True  # INVITED_RESEARCHER / PUBLIC_DECEASED_ONLY: any member
+    if level in (PrivacyLevel.INVITED_RESEARCHER, PrivacyLevel.PUBLIC_DECEASED_ONLY):
+        return True  # any member
+    return False  # deny by default: a level added later must be handled above
 
 
 # ---------------------------------------------------------------- shareable records (ADR-0027)

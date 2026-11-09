@@ -267,7 +267,12 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   word never sets anyone's sex or age. Caste, jati and religion still have no suggestion lists.
 - **Traditions have their own privacy level**, are never shown on public trees in R4, and are
   exported only as far as the exporter may see them. People linked to an entry are shown only to
-  members who may see them.
+  members who may see them. Like documents (ADR-0027), an entry can be "Only me" or "Selected
+  members" (shared through tradition grants), which no role sees; its content owner (initially the
+  author) changes and shares it, admins may only narrow a shared entry, and a legacy `PRIVATE_SELF`
+  entry stays author-only.
+- **Ownership transfer (ADR-0027 §2).** The owner of a document or tradition may offer it to another
+  member, who becomes the owner only by accepting; nobody can claim a record whose owner left.
 - **Family words stay in the family.** A tree's own kinship words are visible only inside that
   tree.
 

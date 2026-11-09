@@ -2,7 +2,7 @@ import { Fragment, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { History, NotebookPen, Pencil, Plus, Trash2, X } from "lucide-react";
-import type { PersonSummary, PrivacyLevel, TraditionKind, TraditionOut } from "../../api/types";
+import type { PersonSummary, RecordPrivacyLevel, TraditionKind, TraditionOut } from "../../api/types";
 import {
   useCreateTradition,
   useTradition,
@@ -18,8 +18,7 @@ import { Perm } from "../../lib/permissions";
 import { useDebounced } from "../../lib/useDebounced";
 import { PersonPicker } from "../../components/pickers";
 import { CitationList } from "../../components/evidence/Citations";
-import { PRIVACY_LEVELS } from "../../components/person/PersonForm";
-import { PrivacyBadge } from "../../components/person/badges";
+import { RecordPrivacyBadge } from "../../components/person/badges";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { ConfirmDialog, Dialog } from "../../components/ui/Dialog";
@@ -113,7 +112,22 @@ export function TraditionsPage() {
   );
 }
 
-function TraditionList({ items }: { items: { id: string; title: string; kind: TraditionKind; excerpt: string; language?: string | null; author_name?: string | null; privacy_level: PrivacyLevel }[] }) {
+// A tradition is a shareable record (ADR-0027): it may also be kept to its owner or chosen members.
+// Legacy levels are offered only while the entry already has one, so saving keeps it.
+const TRADITION_LEVELS: RecordPrivacyLevel[] = [
+  "ONLY_ME",
+  "SELECTED_MEMBERS",
+  "FAMILY_BRANCH",
+  "TREE_MEMBERS",
+  "INVITED_RESEARCHER",
+  "PRIVATE_TREE_ADMINS",
+];
+
+function traditionLevels(current: RecordPrivacyLevel): RecordPrivacyLevel[] {
+  return TRADITION_LEVELS.includes(current) ? TRADITION_LEVELS : [...TRADITION_LEVELS, current];
+}
+
+function TraditionList({ items }: { items: { id: string; title: string; kind: TraditionKind; excerpt: string; language?: string | null; author_name?: string | null; privacy_level: RecordPrivacyLevel }[] }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
   return (
@@ -125,7 +139,7 @@ function TraditionList({ items }: { items: { id: string; title: string; kind: Tr
               {e.title}
             </Link>
             <Badge tone="saffron">{t(`traditions.kinds.${e.kind}`)}</Badge>
-            {e.privacy_level !== "TREE_MEMBERS" && <PrivacyBadge level={e.privacy_level} />}
+            {e.privacy_level !== "TREE_MEMBERS" && <RecordPrivacyBadge level={e.privacy_level} />}
           </div>
           {e.excerpt && (
             <p className="mt-1 text-sm text-ink-muted" lang={e.language ?? undefined}>
@@ -180,7 +194,7 @@ export function TraditionDetailPage() {
       <header className="mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="saffron">{t(`traditions.kinds.${e.kind}`)}</Badge>
-          <PrivacyBadge level={e.privacy_level} />
+          <RecordPrivacyBadge level={e.privacy_level} />
           {e.review_state === "family_reviewed" && <Badge tone="green">{t("review.state.family_reviewed")}</Badge>}
         </div>
         <h1 id="tradition-title" className="mt-2 font-display text-2xl font-bold sm:text-3xl" lang={e.language ?? undefined}>
@@ -289,7 +303,7 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
   const [title, setTitle] = useState(entry?.title ?? "");
   const [body, setBody] = useState(entry?.body ?? "");
   const [language, setLanguage] = useState(entry?.language ?? "");
-  const [privacy, setPrivacy] = useState<PrivacyLevel>(entry?.privacy_level ?? "TREE_MEMBERS");
+  const [privacy, setPrivacy] = useState<RecordPrivacyLevel>(entry?.privacy_level ?? "TREE_MEMBERS");
   const [branch, setBranch] = useState(entry?.branch_id ?? "");
   const [people, setPeople] = useState<{ id: string; label: string }[]>(
     (entry?.links ?? []).filter((l) => l.target_type === "person").map((l) => ({ id: l.target_id, label: l.label })),
@@ -413,12 +427,12 @@ function TraditionEditor({ entry, onClose, onSaved }: { entry: TraditionOut | nu
           </fieldset>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(!entry || entry.can_withdraw) && (
-              <Field label={t("privacy.level")} hint={t(`enum.privacyHint.${privacy}`)}>
+              <Field label={t("privacy.level")} hint={t(`enum.recordPrivacyHint.${privacy}`)}>
                 {(p) => (
-                  <Select {...p} value={privacy} onChange={(e) => setPrivacy(e.target.value as PrivacyLevel)}>
-                    {PRIVACY_LEVELS.filter((l) => l !== "PUBLIC_DECEASED_ONLY" && l !== "CUSTOM").map((l) => (
+                  <Select {...p} value={privacy} onChange={(e) => setPrivacy(e.target.value as RecordPrivacyLevel)}>
+                    {traditionLevels(privacy).map((l) => (
                       <option key={l} value={l}>
-                        {t(`enum.privacy.${l}`)}
+                        {t(`enum.recordPrivacy.${l}`)}
                       </option>
                     ))}
                   </Select>

@@ -286,8 +286,13 @@ def accept_invitation(token: str, request: Request, user: CurrentUser, db: DbDep
 def list_grants(ctx: TreeCtx) -> list[GrantOut]:
     """Grants on records the caller may manage; others are not listed (ADR-0027 §3, A7). A record's
     owner manages the grants on it; grants on a private record are listed to its owner only."""
-    if not (ctx.has(Permission.PRIVACY_MANAGE) or ctx.has(Permission.DOCUMENT_UPLOAD)):
-        raise Forbidden()  # only privacy managers and record owners (uploaders) have grants to manage
+    if not (
+        ctx.has(Permission.PRIVACY_MANAGE)
+        or ctx.has(Permission.DOCUMENT_UPLOAD)
+        or ctx.has(Permission.FAMILY_WRITE)
+        or service.owns_a_record(ctx)
+    ):
+        raise Forbidden()  # only privacy managers and record owners have grants to manage
     grants = list(ctx.db.scalars(select(AccessGrant).where(AccessGrant.tree_id == ctx.tree_id)))
     manageable = service.manageable_grant_resources(ctx, [(g.resource_type, g.resource_id) for g in grants])
     return [
@@ -329,6 +334,21 @@ def _document_ids(item: AuditEventOut) -> set[uuid.UUID]:
     return ids
 
 
+def _hidden_traditions(ctx: TreeContext, items: list[AuditEventOut]) -> set[uuid.UUID]:
+    """Private tradition entries named by these events that the reader may not see."""
+    from app.authz.privacy import is_private_record_level
+    from app.models import TraditionEntry
+    from app.modules.traditions.service import may_read
+
+    ids = {i.target_id for i in items if i.target_type == "tradition" and i.target_id is not None}
+    if not ids:
+        return set()
+    entries = ctx.db.scalars(
+        select(TraditionEntry).where(TraditionEntry.tree_id == ctx.tree_id, TraditionEntry.id.in_(ids))
+    )
+    return {e.id for e in entries if is_private_record_level(e.privacy_level) and not may_read(ctx, e)}
+
+
 def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> list[AuditEventOut]:
     """Events about a record the reader may not see become an opaque "private record" entry with
     no id, title or details, so the audit log never reveals a private record (ADR-0027 §11)."""
@@ -336,13 +356,14 @@ def _redact_private_records(ctx: TreeContext, items: list[AuditEventOut]) -> lis
     from app.modules.documents.access import can_view_document
 
     wanted = set().union(*(_document_ids(i) for i in items)) if items else set()
-    if not wanted:
+    if not wanted and not any(i.target_type == "tradition" for i in items):
         return items
     docs = ctx.db.scalars(select(Document).where(Document.tree_id == ctx.tree_id, Document.id.in_(wanted)))
     visible = {d.id for d in docs if can_view_document(ctx, d)}
+    hidden_entries = _hidden_traditions(ctx, items)
     out = []
     for i in items:
-        if _document_ids(i) - visible:
+        if _document_ids(i) - visible or (i.target_type == "tradition" and i.target_id in hidden_entries):
             i = i.model_copy(
                 update={"target_type": "private_record", "target_id": None, "summary": None, "details": {}}
             )

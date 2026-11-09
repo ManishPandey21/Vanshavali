@@ -308,3 +308,24 @@ historical records, GEDCOM-imported photos and event-album photos.
 A9), standalone photo collections, takedown by suspension, ownership transfer, notifying the owner
 of an automatic narrowing, and narrowing when a profile is hidden during a claim review. These are
 listed in the threat model's residual risks.
+
+## Implementation notes (9 Nov 2026, increment 2: traditions and ownership transfer)
+- **Traditions (§1, §2, A9).** `tradition_entry.privacy_level` takes `RecordPrivacyLevel`;
+  `owner_membership_id` is backfilled from `created_by`. `traditions.may_read` now calls
+  `record_allows` with the entry's `branch_id` as its audience branch and a new `tradition`
+  `GrantResource` (§12.4), so "Selected members" works through `/grants`. Legacy meanings stay: a
+  tradition's `PRIVATE_SELF` is its author or owner only. Changes (`app/authz/records.py`): the
+  owner may change anything; a tree admin may only narrow an entry on a shared audience; nobody but
+  the owner edits or withdraws a private entry. Tradition events are redacted in the audit log like
+  documents, and a pending proposal on an entry made private is hidden from reviewers and proposer.
+  The sharing component (§9) is not on traditions yet: the API is.
+- **Ownership transfer (§2)**, for documents and traditions: `pending_owner_membership_id`; the owner
+  offers (`POST /trees/{id}/records/{type}/{rid}/ownership-offer`), the member accepts (`…/accept`)
+  or declines, the owner may cancel (`DELETE …`); `GET /trees/{id}/ownership-offers` lists offers to
+  the caller. Audited as `record.ownership_offered`, `record.ownership_transferred`,
+  `record.ownership_declined`, `record.ownership_offer_cancelled`, without titles. An orphaned record
+  cannot be offered by anyone.
+- **Further paths closed:** render files open for their requester only (tree admins still see the
+  jobs); the consent evidence-document check uses document visibility; `level_allows` denies an
+  unknown level by default.
+- Migration `d7a3c5e9f182`; tests `tests/test_tradition_privacy_and_ownership.py`; threat model T57.

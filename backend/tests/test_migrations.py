@@ -193,3 +193,76 @@ def test_access_grants_move_onto_memberships():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_tradition_owners_are_backfilled_and_downgrade_maps_the_new_levels():
+    """d7a3c5e9f182: owner from created_by while still a member; private levels map back on downgrade."""
+    import uuid
+
+    db = DB + "_tradition_owners"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "3f6a8c1d2e94")
+        engine = create_engine(url)
+        tree_id, member, leaver, membership = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        kept, orphan = uuid.uuid4(), uuid.uuid4()
+        with engine.begin() as conn:
+            for uid, email in ((member, "m@example.com"), (leaver, "l@example.com")):
+                conn.execute(
+                    text(
+                        "INSERT INTO app_user (id, email, password_hash, display_name) VALUES (:id, :e, 'x', 'U')"
+                    ),
+                    {"id": uid, "e": email},
+                )
+            conn.execute(
+                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :s)"),
+                {"id": tree_id, "s": str(tree_id)},
+            )
+            conn.execute(
+                text(
+                    "INSERT INTO tree_membership (id, tree_id, user_id, roles) VALUES (:id, :t, :u, ARRAY['VIEWER'])"
+                ),
+                {"id": membership, "t": tree_id, "u": member},
+            )
+            for eid, uid in ((kept, member), (orphan, leaver)):
+                conn.execute(
+                    text(
+                        "INSERT INTO tradition_entry (id, tree_id, kind, title, created_by)"
+                        " VALUES (:id, :t, 'recipe', 'R', :u)"
+                    ),
+                    {"id": eid, "t": tree_id, "u": uid},
+                )
+        command.upgrade(cfg, "d7a3c5e9f182")
+        with engine.begin() as conn:
+            owners = dict(conn.execute(text("SELECT id, owner_membership_id FROM tradition_entry")).all())
+            assert owners == {kept: membership, orphan: None}
+            conn.execute(
+                text("UPDATE tradition_entry SET privacy_level = 'ONLY_ME' WHERE id = :id"), {"id": kept}
+            )
+            conn.execute(
+                text("UPDATE tradition_entry SET privacy_level = 'SELECTED_MEMBERS' WHERE id = :id"),
+                {"id": orphan},
+            )
+            conn.execute(
+                text(
+                    "INSERT INTO access_grant (id, tree_id, membership_id, user_id, resource_type, resource_id,"
+                    " permission) VALUES (:id, :t, :m, :u, 'tradition', :r, 'view')"
+                ),
+                {"id": uuid.uuid4(), "t": tree_id, "m": membership, "u": member, "r": orphan},
+            )
+        command.downgrade(cfg, "3f6a8c1d2e94")
+        with engine.connect() as conn:
+            levels = dict(conn.execute(text("SELECT id, privacy_level FROM tradition_entry")).all())
+            assert levels == {kept: "PRIVATE_SELF", orphan: "CUSTOM"}
+            assert conn.execute(text("SELECT count(*) FROM access_grant")).scalar() == 0
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()
