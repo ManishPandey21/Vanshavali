@@ -414,28 +414,14 @@ def test_lift_without_appeal_and_suspensions_of_traditions(owner, tree, member_f
     sid = _suspend(s["a"], t, _report(s["reporter"], t, entry, kind="tradition").json()["id"])["id"]
     assert s["reporter"].get(f"/trees/{t}/traditions/{entry}").status_code == 404
     assert s["author"].get(f"/trees/{t}/traditions/{entry}").status_code == 200
+    # the audit log no longer names the suspended entry to admins, who are outside its audience now
+    audit_blob = json.dumps(s["b"].get(f"/trees/{t}/audit", params={"limit": 200}).json())
+    assert entry not in audit_blob and "Kheer" not in audit_blob
     # uphold needs an appeal; lifting a mistaken suspension does not
     assert _decide(s["b"], t, sid, "uphold").status_code == 409
     r = _decide(s["b"], t, sid, "lift", reason="mistaken_report")
     assert r.status_code == 200 and r.json()["appeal_status"] == "none"
     assert s["reporter"].get(f"/trees/{t}/traditions/{entry}").status_code == 200
-
-
-def test_a_suspended_record_cannot_change_owner(owner, tree, member_factory):
-    """Ownership stays put while a suspension is in effect: no new offer, no accepting an old one."""
-    s = _setup(owner, tree, member_factory)
-    t, doc = s["t"], s["doc"]
-    heir = member_factory(["CONTRIBUTOR"], name="Heir")
-    offer = f"/trees/{t}/records/document/{doc}/ownership-offer"
-    assert s["author"].post(offer, json={"user_id": heir.user["id"]}).status_code == 200
-    sid = _suspend(s["a"], t, _report(s["reporter"], t, doc).json()["id"])["id"]
-    r = heir.post(f"{offer}/accept")
-    assert r.status_code == 409 and r.json()["error"]["code"] == "record_suspended"
-    assert s["author"].delete(offer).status_code == 200  # cancelling stays possible
-    r = s["author"].post(offer, json={"user_id": heir.user["id"]})
-    assert r.status_code == 409 and r.json()["error"]["code"] == "record_suspended"
-    assert _decide(s["b"], t, sid, "lift", reason="mistaken_report").status_code == 200
-    assert s["author"].post(offer, json={"user_id": heir.user["id"]}).status_code == 200
 
 
 def test_migration_downgrade_drops_takedown_and_its_notices():

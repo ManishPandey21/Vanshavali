@@ -280,8 +280,29 @@ def dismiss(ctx: TreeContext, report_id: uuid.UUID, reason: DecisionReason) -> R
     return r
 
 
+def _lock_record(ctx: TreeContext, rtype: GrantResource, rid: uuid.UUID) -> Any | None:
+    """The record locked for this transaction and re-read, as ownership changes lock it too: an
+    acceptance that committed first is seen here (its new owner), and one that comes later waits and
+    then finds the offer cancelled."""
+    model = _MODELS[rtype]
+    rec = ctx.db.scalar(
+        select(model)
+        .where(model.tree_id == ctx.tree_id, model.id == rid)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if rec is None:
+        return None
+    if getattr(rec, "deleted_at", None) is not None or getattr(rec, "withdrawn_at", None) is not None:
+        return None
+    return rec
+
+
 def suspend(ctx: TreeContext, report_id: uuid.UUID) -> RecordSuspension:
-    r, rec = _open_report(ctx, report_id)
+    r, _unlocked = _open_report(ctx, report_id)
+    rec = _lock_record(ctx, r.resource_type, r.resource_id)
+    if _owns(ctx, rec):  # re-checked under the lock: the handler may have just accepted it
+        raise Forbidden("Another admin must handle a report about your own record", code="own_record")
     if rec is None:
         _close_report(ctx, r, ReportStatus.DISMISSED, DecisionReason.OWNER_CHANGED_THE_RECORD)
         ctx.db.flush()
@@ -299,6 +320,9 @@ def suspend(ctx: TreeContext, report_id: uuid.UUID) -> RecordSuspension:
     )
     ctx.db.add(s)
     rec.suspended_at = now
+    from app.modules.ownership.service import cancel_offer_for_suspension
+
+    cancel_offer_for_suspension(ctx, r.resource_type, rec)  # ADR-0027 §8.2 detail 9 (option 1)
     _close_report(ctx, r, ReportStatus.ACTIONED, DecisionReason.REPORT_CONFIRMED)
     ctx.db.flush()
     audit.log(

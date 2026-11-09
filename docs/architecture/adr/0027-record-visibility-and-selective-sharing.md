@@ -300,12 +300,16 @@ widen them.
 8. **Still open (separate decision):** routing legal requests (for example a court or police
    request about a record nobody in the tree has reported) and the legal review's role in
    deciding appeals (ADR-0023 §13). Until then, only member reports start a takedown.
-9. **Not decided (reserved by the owner): an ownership offer (§2) that exists when a record is
-   suspended.** The draft code holds one interim behaviour (see "Implemented in this draft, not
-   approved" in the increment 8 notes); it is not policy. The options under consideration:
-   - **A. Cancel the offer automatically on suspension**; a new offer is needed after a lift.
-   - **B. Pause the offer during the suspension**, and decide whether it may be accepted after a
-     lift or must be renewed.
+9. **An ownership offer (§2) that exists when a record is suspended (the owner's decision of 9 Nov
+   2026, option 1 of two considered).** The suspension **cancels any pending offer in the same
+   transaction**. While the record is suspended **no new offer and no acceptance succeeds**. After a
+   lift the old offer does not return: **the owner must make a fresh offer**. Suspension and
+   acceptance of the same record are serialised: if the acceptance completes first, the suspension
+   and its notice apply to the new owner; if the suspension completes first, the acceptance fails
+   and ownership does not move. The member it was offered to is not told and cannot tell a
+   suspension from any other missing offer (the same 404); the cancellation is audited as the
+   system, with no actor and no reason. (Option 2, pausing the offer during the suspension, was not
+   chosen.)
 
 ## Suggested cross-references for ADR-0023 (PR #42), not made here
 - §3 "Private" maps to `ONLY_ME` with two holders; "Shared in the tree" maps to the Selected
@@ -534,18 +538,20 @@ unchanged and legal-request routing stays open.
   on the record's own audience, as if it were not suspended.
 - **Lifting** clears `suspended_at`, then re-runs `enforce_ceiling`; grants, levels and links are
   read as they are now.
-- **Implemented in this draft, not approved (detail 9 above is the owner's to decide).** Ownership
-  (increment 5) cannot change while a record is suspended: no new offer and no accepting an earlier
-  one (409 `record_suspended`); the owner may still cancel an offer. An offer made before the
-  suspension is kept, so this draft behaves as option B with acceptance allowed after a lift. As
-  written it also (a) keeps listing the record's title and id in the offered member's
-  `GET /ownership-offers` during the suspension, (b) tells that member the record is suspended
-  through the 409 code, and (c) takes no lock on the record in `suspend` or `accept`, so an accept
-  racing a suspension can transfer a record that has just been suspended. These follow from the
-  interim rule and are left as they are until the decision.
+- **Offers at suspension (detail 9, option 1).** `suspend` locks the record row
+  (`SELECT … FOR UPDATE`, re-read) and, in the same transaction, clears
+  `pending_owner_membership_id` and writes `record.ownership_offer_cancelled` with no actor and
+  details `{"by": "system"}`. Every ownership change (`offer`, `accept`, cancel or decline) locks the
+  same row first, so the two are serialised by the database. A suspended record is refused a new
+  offer (409 `record_suspended`, to its owner, who knows); acceptance answers the same 404 as any
+  missing offer; `GET /ownership-offers` never lists a suspended record. The owner's suspension
+  notice says any offer was cancelled; the offered member gets no notice, as when an owner cancels.
+- **Audit of suspended traditions.** `entry_audience_allows` (the audit log's check for tradition
+  events) now also hides a suspended entry from everyone but its owner.
 - **API.** `POST /trees/{id}/records/{type}/{id}/reports`; `GET /record-reports`,
   `POST /record-reports/{id}/dismiss`, `POST /record-reports/{id}/suspend`;
   `GET /record-suspensions` (+ `/{id}`), `POST /record-suspensions/{id}/appeal`,
   `POST /record-suspensions/{id}/decision`. Overdue appeals are escalated when suspensions are read.
 - **Not built:** a takedown screen (API and notices only), legal-request routing (open).
-- **Tests.** `tests/test_record_takedown.py` (12 cases); threat model T62.
+- **Tests.** `tests/test_record_takedown.py` (11 cases) and `tests/test_takedown_ownership.py` (7
+  cases, two of them with two real database transactions in each order); threat model T62.

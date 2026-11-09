@@ -53,7 +53,7 @@ TEXT = {
     NotificationKind.TRADITION_NARROWED: "Your tradition entry {label} was made more private to protect someone linked to it.",
     # ADR-0027 §8.2 takedown; "{label}" is the report's reference, never the record
     NotificationKind.RECORD_REPORTED: "A record was reported ({label}); please review the report.",
-    NotificationKind.RECORD_SUSPENDED: "One of your records was suspended after a report ({label}). You can appeal.",
+    NotificationKind.RECORD_SUSPENDED: "One of your records was suspended after a report ({label}). You can appeal. Any offer of its ownership was cancelled; you can make a new one after the suspension is lifted.",
     NotificationKind.SUSPENSION_APPEALED: "An appeal against a suspension needs a decision ({label}).",
     NotificationKind.APPEAL_OVERDUE: "An appeal against a suspension is overdue for a decision ({label}).",
     NotificationKind.SUSPENSION_UPHELD: "The suspension of your record was upheld ({label}); it stays hidden.",

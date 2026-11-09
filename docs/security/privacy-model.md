@@ -75,6 +75,8 @@ A member may report a record they can see. A family admin may suspend it, withou
 hides it from everyone but its owner until it is lifted; the owner may appeal, and the appeal is
 decided by another admin where there is one. Lifting restores nothing saved before: the record
 follows its current audience. The owner is never told who reported it.
+A suspension cancels any offer of the record's ownership; the member it was offered to is not told
+why, and the owner must make a fresh offer after a lift.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
