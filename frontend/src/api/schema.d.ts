@@ -2654,6 +2654,148 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/records/{record_type}/{record_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Record
+         * @description Report a record you can see. Its owner is never told who reported it.
+         */
+        post: operations["report_record_api_v1_trees__tree_id__records__record_type___record_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reports
+         * @description Reports, for the members who handle them: never the record, never who reported.
+         */
+        get: operations["list_reports_api_v1_trees__tree_id__record_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-reports/{report_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Report */
+        post: operations["dismiss_report_api_v1_trees__tree_id__record_reports__report_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-reports/{report_id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend Record */
+        post: operations["suspend_record_api_v1_trees__tree_id__record_reports__report_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Suspensions */
+        get: operations["list_suspensions_api_v1_trees__tree_id__record_suspensions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions/{suspension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Suspension */
+        get: operations["get_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions/{suspension_id}/appeal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Appeal Suspension */
+        post: operations["appeal_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__appeal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions/{suspension_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Suspension */
+        post: operations["decide_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/branches": {
         parameters: {
             query?: never;
@@ -4035,6 +4177,16 @@ export interface components {
              */
             summary?: string;
         };
+        /** AppealIn */
+        AppealIn: {
+            /** Note */
+            note: string;
+        };
+        /**
+         * AppealStatus
+         * @enum {string}
+         */
+        AppealStatus: "none" | "pending" | "upheld" | "lifted";
         /**
          * AreaUnit
          * @enum {string}
@@ -5309,11 +5461,11 @@ export interface components {
          * @enum {string}
          */
         DatePrecision: "exact" | "day_unknown" | "month_unknown" | "year_only" | "circa" | "before" | "after" | "range" | "unknown";
-        /** DecisionIn */
-        DecisionIn: {
-            /** Note */
-            note?: string | null;
-        };
+        /**
+         * DecisionReason
+         * @enum {string}
+         */
+        DecisionReason: "report_confirmed" | "mistaken_report" | "not_a_takedown_matter" | "owner_changed_the_record" | "other";
         /** DeliveryOut */
         DeliveryOut: {
             /**
@@ -5373,6 +5525,14 @@ export interface components {
          * @enum {string}
          */
         DescentRule: "patrilineal" | "matrilineal" | "bilateral" | "custom";
+        /** DismissIn */
+        DismissIn: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "mistaken_report" | "not_a_takedown_matter" | "other";
+        };
         /**
          * DocumentCategory
          * @enum {string}
@@ -7616,7 +7776,7 @@ export interface components {
          * NotificationKind
          * @enum {string}
          */
-        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed" | "document_narrowed" | "tradition_narrowed";
+        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed" | "document_narrowed" | "tradition_narrowed" | "record_reported" | "record_suspended" | "suspension_appealed" | "appeal_overdue" | "suspension_upheld" | "suspension_lifted" | "report_reviewed";
         /** NotificationOut */
         NotificationOut: {
             /**
@@ -9782,6 +9942,70 @@ export interface components {
          * @enum {string}
          */
         RenderStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        /** ReportCreated */
+        ReportCreated: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reference */
+            reference: string;
+            status: components["schemas"]["ReportStatus"];
+        };
+        /** ReportIn */
+        ReportIn: {
+            reason: components["schemas"]["ReportReason"];
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+        };
+        /**
+         * ReportOut
+         * @description A report as the members who handle reports see it: never who reported, never the record.
+         */
+        ReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reference */
+            reference: string;
+            /**
+             * Resource Type
+             * @enum {string}
+             */
+            resource_type: "document" | "tradition" | "collection";
+            reason: components["schemas"]["ReportReason"];
+            /** Note */
+            note: string;
+            status: components["schemas"]["ReportStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            review_reason: components["schemas"]["DecisionReason"] | null;
+            /** Suspension Id */
+            suspension_id: string | null;
+            /** Can Act */
+            can_act: boolean;
+        };
+        /**
+         * ReportReason
+         * @enum {string}
+         */
+        ReportReason: "abuse" | "harassment" | "privacy" | "intimate" | "copyright" | "other";
+        /**
+         * ReportStatus
+         * @enum {string}
+         */
+        ReportStatus: "open" | "dismissed" | "actioned";
         /** ReprocessOut */
         ReprocessOut: {
             /**
@@ -10624,6 +10848,66 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /**
+         * SuspensionDecision
+         * @enum {string}
+         */
+        SuspensionDecision: "uphold" | "lift";
+        /** SuspensionOut */
+        SuspensionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reference */
+            reference: string;
+            /**
+             * Resource Type
+             * @enum {string}
+             */
+            resource_type: "document" | "tradition" | "collection";
+            /** Resource Id */
+            resource_id: string | null;
+            reason: components["schemas"]["ReportReason"];
+            status: components["schemas"]["SuspensionStatus"];
+            /**
+             * Suspended At
+             * Format: date-time
+             */
+            suspended_at: string;
+            appeal_status: components["schemas"]["AppealStatus"];
+            /** Appeal Note */
+            appeal_note: string;
+            /** Appealed At */
+            appealed_at: string | null;
+            /** Appeal Due At */
+            appeal_due_at: string | null;
+            /** Overdue */
+            overdue: boolean;
+            /** Escalated At */
+            escalated_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            decision_reason: components["schemas"]["DecisionReason"] | null;
+            /** Decision Note */
+            decision_note: string;
+            /** Sole Reviewer */
+            sole_reviewer: boolean;
+            /** Suspended By Name */
+            suspended_by_name?: string | null;
+            /** Decided By Name */
+            decided_by_name?: string | null;
+            /** Is Owner */
+            is_owner: boolean;
+            /** Can Decide */
+            can_decide: boolean;
+        };
+        /**
+         * SuspensionStatus
+         * @enum {string}
+         */
+        SuspensionStatus: "active" | "lifted";
         /** TaggedPerson */
         TaggedPerson: {
             /**
@@ -11313,6 +11597,26 @@ export interface components {
             vocabulary: components["schemas"]["VocabularyOut"];
             /** Items */
             items: components["schemas"]["VocabularyTermOut"][];
+        };
+        /** DecisionIn */
+        app__modules__review__schemas__DecisionIn: {
+            /** Note */
+            note?: string | null;
+        };
+        /** DecisionIn */
+        app__modules__takedown__schemas__DecisionIn: {
+            decision: components["schemas"]["SuspensionDecision"];
+            reason: components["schemas"]["DecisionReason"];
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /**
+             * Confirm Sole Reviewer
+             * @default false
+             */
+            confirm_sole_reviewer?: boolean;
         };
     };
     responses: never;
@@ -14658,7 +14962,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DecisionIn"];
+                "application/json": components["schemas"]["app__modules__review__schemas__DecisionIn"];
             };
         };
         responses: {
@@ -17621,6 +17925,277 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_record_api_v1_trees__tree_id__records__record_type___record_id__reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_type: "document" | "tradition" | "collection";
+                record_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reports_api_v1_trees__tree_id__record_reports_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_report_api_v1_trees__tree_id__record_reports__report_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DismissIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_record_api_v1_trees__tree_id__record_reports__report_id__suspend_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_suspensions_api_v1_trees__tree_id__record_suspensions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suspension_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    appeal_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__appeal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suspension_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppealIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suspension_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__takedown__schemas__DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
                 };
             };
             /** @description Validation Error */

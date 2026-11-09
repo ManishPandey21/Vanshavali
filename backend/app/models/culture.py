@@ -75,6 +75,8 @@ class TraditionEntry(TreeScopedMixin, ReviewMixin, Base):
     owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
     withdrawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    # ADR-0027 §8.2: set while a takedown suspension is in effect (hidden from all but its owner)
+    suspended_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class TraditionLink(TreeScopedMixin, Base):

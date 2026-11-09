@@ -1,7 +1,7 @@
 # ADR-0027: Record visibility and selective sharing for family media and records
 
 - Status: **Accepted** · Date: 2026-11-09 (accepted as proposed by the owner; the open points
-  are resolved as below) · Implementation: increments 1 (documents), 2 (traditions), 3 (event photo albums) and 4 (photo collections) — see the implementation notes
+  are resolved as below) · Implementation: increments 1 (documents), 2 (traditions), 3 (event photo albums) and 4 (photo collections), and later increments — see the implementation notes
 - Amends: ADR-0006 (privacy levels, grants, admin visibility), ADR-0004 (view vs download),
   ADR-0015 (album × photo, tags). Cross-references **ADR-0023** (oral history, proposed, PR #42):
   that ADR keeps its consent rules; this ADR supplies the sharing mechanics it relies on.
@@ -257,6 +257,50 @@ the family shows only permitted photos.
    already supported") the Public audience is not offered for any record until Q13 is answered and
    this ADR is amended.
 
+## Takedown in detail: reports, suspension and appeals (§8.2; owner's decisions of 9 Nov 2026)
+These detail §8.2 as the owner decided them on 9 Nov 2026. They do not change this ADR's status or
+any accepted decision: no role gains read access, and the legal review may tighten them but not
+widen them.
+
+1. **Reports.** A member who can see a record may report it (reason code and an optional note in
+   their own words, at most 500 characters). Each report gets a reference such as `R-7F3K2Q`. The
+   record's owner cannot report their own record. A member who cannot see a record cannot report it
+   (404). The reporter's identity is never shown to the record's owner, in any notice or view; the
+   admins handling reports see the reason and the note, not who reported (the audit log keeps the
+   actor for accountability, readable only by those with `audit.read`).
+2. **Suspension.** A member with the new `record.takedown` permission (owners and family admins)
+   may suspend the record a report is about, or dismiss the report as mistaken, by its reference,
+   without seeing the record. Nobody may act on a report about their own record. Suspension hides
+   the record from everyone but its owner, on every route (detail, lists, albums, collections,
+   search, export, grants, signed links), and stops it being widened: while suspended, its audience
+   can only narrow and grants can only be revoked. It changes nothing else: no level, grant or
+   link is saved, moved or removed.
+3. **Appeal.** The owner may appeal once, with a note. The suspension stays in effect while the
+   appeal is reviewed. The review is due **14 days** after the appeal.
+4. **Who decides.** A member with `record.takedown` who is not the record's owner decides: uphold
+   (the suspension stays; the appeal is closed) or lift. Where another such member exists, the
+   admin who suspended the record may not decide its appeal (403 `different_reviewer_required`).
+   **Fallback for a tree with one such admin:** that admin may decide, but must confirm it
+   explicitly (`confirm_sole_reviewer`); the decision is marked as a sole-reviewer decision in the
+   record and the audit. Lifting without an appeal (a mistaken suspension) follows the same rule.
+5. **Lifting re-evaluates; it restores nothing.** On lifting, the record is shown again under its
+   *current* audience, grants, memberships and privacy ceilings, re-checked at that moment (a
+   ceiling that narrowed during the suspension narrows the record at once). Nothing saved before
+   the suspension is restored: grants revoked and members who left during the suspension stay
+   gone, and signed links issued before it stay invalid once expired (links are short-lived and
+   re-checked at use).
+6. **Notices and records.** The owner is told of the suspension, and of the decision (upheld or
+   lifted, with its reason code and the decider's note). The reporter is told only that their
+   report was reviewed. The suspension keeps who suspended and who decided, when, the reason code,
+   whether the decider was the sole reviewer, and the notes; the audit holds ids, codes and flags
+   only, never titles, notes or content.
+7. **Deadline and escalation.** An appeal not decided by its due date is escalated once: every
+   member who may decide it, and the tree's owners, are told it is overdue. Neither the deadline
+   nor the escalation restores access; only a decision does.
+8. **Still open (separate decision):** routing legal requests (for example a court or police
+   request about a record nobody in the tree has reported) and the legal review's role in
+   deciding appeals (ADR-0023 §13). Until then, only member reports start a takedown.
+
 ## Suggested cross-references for ADR-0023 (PR #42), not made here
 - §3 "Private" maps to `ONLY_ME` with two holders; "Shared in the tree" maps to the Selected
   members / branch / all family audiences, all needing scope 4.
@@ -448,3 +492,26 @@ listed in the threat model's residual risks.
   check constraint; the downgrade deletes those notices first.
 - **Tests.** `tests/test_narrowing_notices.py` (6 cases), Vitest `ReviewParts.test.tsx`; threat
   model T61.
+
+## Implementation notes (9 Nov 2026, increment 7: takedown, suspension and appeals)
+Implements "Takedown in detail" above (the owner's decisions of 9 Nov 2026); the ADR's status is
+unchanged and legal-request routing stays open.
+- **Model.** `record_report` (reference, record type and id, reason, the reporter's note, the
+  reporter's membership, status and review) and `record_suspension` (report, record, who suspended,
+  status, appeal note, appeal and due dates, escalation, who decided, when, reason code, note,
+  `sole_reviewer`), both tree-scoped with row-level security; `suspended_at` on `document`,
+  `tradition_entry` and `photo_collection`; permission `record.takedown` (owners, family admins);
+  seven notification kinds. Migration `d9b4f2c6a713`, with a downgrade that removes them.
+- **Enforcement.** `can_view_document`, `entry_allows` and `collection_allows` check `suspended_at`
+  first (owner only), so every route that already used them (detail, lists, albums, collections,
+  search, export, signed links, sharing) follows. `core.apply` refuses widening and
+  `create_grant` refuses new grants while suspended (409 `record_suspended`); widening is judged
+  on the record's own audience, as if it were not suspended.
+- **Lifting** clears `suspended_at`, then re-runs `enforce_ceiling`; grants, levels and links are
+  read as they are now.
+- **API.** `POST /trees/{id}/records/{type}/{id}/reports`; `GET /record-reports`,
+  `POST /record-reports/{id}/dismiss`, `POST /record-reports/{id}/suspend`;
+  `GET /record-suspensions` (+ `/{id}`), `POST /record-suspensions/{id}/appeal`,
+  `POST /record-suspensions/{id}/decision`. Overdue appeals are escalated when suspensions are read.
+- **Not built:** a takedown screen (API and notices only), legal-request routing (open).
+- **Tests.** `tests/test_record_takedown.py` (11 cases); threat model T62.

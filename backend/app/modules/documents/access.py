@@ -53,6 +53,8 @@ def can_view_document(ctx: TreeContext, doc: Document) -> bool:
         return False
     if doc.tree_id != ctx.tree_id:
         return False
+    if doc.suspended_at is not None:
+        return is_owner(ctx, doc)  # ADR-0027 §8.2: a suspended record is its owner's alone
     if record_allows(
         ctx,
         doc.privacy_level,

@@ -29,6 +29,8 @@ def entry_allows(
     """Can the viewer read ``e`` (at its own level, or at a proposed one)?"""
     if ctx.public or not ctx.is_member or e.withdrawn_at is not None:
         return False
+    if e.suspended_at is not None:
+        return is_record_owner(ctx, e.owner_membership_id)  # ADR-0027 §8.2
     proposed = level is not None
     effective = RecordPrivacyLevel(level) if level is not None else RecordPrivacyLevel(e.privacy_level)
     branch = branch_id if proposed else e.branch_id

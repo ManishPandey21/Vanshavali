@@ -71,6 +71,8 @@ class Document(TreeScopedMixin, Base):
     metadata_version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     deleted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     deleted_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    # ADR-0027 §8.2: set while a takedown suspension is in effect (hidden from all but its owner)
+    suspended_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class DocumentMetadataVersion(TreeScopedMixin, Base):

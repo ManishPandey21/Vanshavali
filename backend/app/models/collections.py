@@ -7,9 +7,10 @@ an item only when they may see both the collection and the photo.
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 
-from sqlalchemy import Boolean, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -34,6 +35,8 @@ class PhotoCollection(TreeScopedMixin, Base):
     )
     owner_membership_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
     audience_branch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    # ADR-0027 §8.2: set while a takedown suspension is in effect (hidden from all but its owner)
+    suspended_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class PhotoCollectionItem(TreeScopedMixin, Base):

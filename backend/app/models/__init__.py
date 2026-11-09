@@ -47,6 +47,7 @@ from app.models.review import (
     RecordRevision,
     UserNotification,
 )
+from app.models.takedown import RecordReport, RecordSuspension
 from app.models.tree import AccessGrant, AdminNomination, Tree, TreeInvitation, TreeMembership
 from app.models.visualization import ChartPreset, RenderArtifact, RenderJob
 
@@ -107,7 +108,9 @@ __all__ = [
     "PropertyInterest",
     "ProposalCitation",
     "ProposalComment",
+    "RecordReport",
     "RecordRevision",
+    "RecordSuspension",
     "Relationship",
     "RelativeAgeOrder",
     "RenderArtifact",

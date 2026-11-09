@@ -33,6 +33,7 @@ from app.modules.render.router import router as render_router
 from app.modules.review.router import router as review_router
 from app.modules.search.router import router as search_router
 from app.modules.smartadd.router import router as smartadd_router
+from app.modules.takedown.router import router as takedown_router
 from app.modules.traditions.router import router as traditions_router
 from app.modules.translit.router import router as translit_router
 from app.modules.trees.router import router as trees_router
@@ -59,6 +60,7 @@ api_router.include_router(evidence_router)
 api_router.include_router(heritage_router)
 api_router.include_router(traditions_router)
 api_router.include_router(collections_router)
+api_router.include_router(takedown_router)
 api_router.include_router(family_router)
 api_router.include_router(search_router)
 api_router.include_router(consent_router)
