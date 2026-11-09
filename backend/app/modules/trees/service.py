@@ -5,7 +5,7 @@ import re
 import secrets
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.authz.context import RequestInfo, TreeContext
@@ -187,6 +187,52 @@ def _owner_count(db: Session, tree_id: uuid.UUID) -> int:
     )
 
 
+def grantable_roles(ctx: TreeContext) -> frozenset[Role]:
+    """The roles this caller may give or take away. Only an owner manages owner and family-admin roles;
+    a branch admin manages contributor, researcher and viewer roles in its own branch."""
+    if ctx.is_owner:
+        return frozenset(Role)
+    if ctx.is_admin:
+        return frozenset(Role) - _ADMIN_GRANTABLE
+    return frozenset(_BRANCH_ADMIN_GRANTABLE)
+
+
+def grantable_for(m: TreeMembership) -> list[Role]:
+    """What a member may grant, from their own membership (for the UI; the server re-checks)."""
+    roles = {Role(r) for r in m.roles}
+    if Role.OWNER in roles:
+        return sorted(Role)
+    if Role.FAMILY_ADMIN in roles:
+        return sorted(frozenset(Role) - _ADMIN_GRANTABLE)
+    if Permission.MEMBERS_MANAGE.value in tree_permissions(m) and m.branch_id is not None:
+        return sorted(_BRANCH_ADMIN_GRANTABLE)
+    return []
+
+
+def can_manage(ctx: TreeContext, m: TreeMembership) -> bool:
+    """Whether this caller may change or remove membership ``m`` (mirrors update/remove)."""
+    if not ctx.has(Permission.MEMBERS_MANAGE):
+        return False
+    if not ctx.is_admin and (ctx.branch_scope is None or m.branch_id != ctx.branch_scope):
+        return False
+    if Role.OWNER.value in m.roles and not ctx.is_owner:
+        return False
+    return m.user_id == ctx.user_id or {Role(r) for r in m.roles} <= grantable_roles(ctx)
+
+
+def _require_manageable(ctx: TreeContext, m: TreeMembership) -> None:
+    """A member may be changed or removed only by someone who could have granted all of its roles.
+
+    Without this, a family admin could delete another family admin's membership (taking away a role
+    only the owner may take away), and a branch admin could demote or remove a peer or a custodian.
+    """
+    held = {Role(r) for r in m.roles}
+    if m.user_id == ctx.user_id:
+        return  # own membership: role changes are refused separately; leaving is not an escalation
+    if not held <= grantable_roles(ctx):
+        raise Forbidden("You can only manage members whose roles you could grant")
+
+
 def _get_membership(ctx: TreeContext, membership_id: uuid.UUID) -> TreeMembership:
     m = ctx.db.scalar(
         select(TreeMembership).where(
@@ -214,12 +260,16 @@ def update_member(
     m = _get_membership(ctx, membership_id)
     if m.user_id == ctx.user_id and roles is not None and not ctx.is_owner:
         raise Forbidden("You cannot change your own roles")
+    _require_manageable(ctx, m)
+    previous_roles = sorted(m.roles)
     new_branch = None if clear_branch else (branch_id if branch_id is not None else m.branch_id)
     if roles is not None:
         old = {Role(r) for r in m.roles}
         new = set(roles)
         if (old ^ new) & _ADMIN_GRANTABLE and not ctx.is_owner:
             raise Forbidden("Only a tree owner can grant or remove owner/family-admin roles")
+        if not (old ^ new) <= grantable_roles(ctx):
+            raise Forbidden("You can only give or take away roles you could grant")
         added = new - old
         if added:
             _validate_roles(ctx, sorted(added), new_branch)
@@ -247,12 +297,18 @@ def update_member(
         lookup.get_person(ctx, linked_person_id)
         m.linked_person_id = linked_person_id
     ctx.db.flush()
+    admin_change = bool(({Role(r) for r in previous_roles} ^ {Role(r) for r in m.roles}) & _ADMIN_GRANTABLE)
     audit.log(
         ctx,
         "member.updated",
         target_type="membership",
         target_id=m.id,
-        details={"roles": list(m.roles), "branch_changed": clear_branch or branch_id is not None},
+        details={
+            "previous_roles": previous_roles,
+            "roles": sorted(m.roles),
+            "admin_change": admin_change,
+            "branch_changed": clear_branch or branch_id is not None,
+        },
     )
     return m
 
@@ -265,8 +321,52 @@ def remove_member(ctx: TreeContext, membership_id: uuid.UUID) -> None:
             raise Forbidden("Only an owner can remove an owner")
         if _owner_count(ctx.db, ctx.tree_id) <= 1:
             raise Conflict("A tree must keep at least one owner", code="last_owner")
+    _require_manageable(ctx, m)
+    roles = sorted(m.roles)
     ctx.db.delete(m)
-    audit.log(ctx, "member.removed", target_type="membership", target_id=m.id)
+    audit.log(
+        ctx,
+        "member.removed",
+        target_type="membership",
+        target_id=m.id,
+        details={"roles": roles, "admin_change": bool({Role(r) for r in roles} & _ADMIN_GRANTABLE)},
+    )
+    delete_member_grants(
+        ctx.db, tree_id=ctx.tree_id, user_id=m.user_id, actor_user_id=ctx.user_id, membership_id=m.id
+    )
+
+
+def delete_member_grants(
+    db: Session,
+    *,
+    tree_id: uuid.UUID,
+    user_id: uuid.UUID,
+    actor_user_id: uuid.UUID | None,
+    membership_id: uuid.UUID,
+) -> int:
+    """Delete a departing member's explicit grants in one tree, so a later re-invite starts clean.
+
+    Grants are keyed by ``user_id`` (until ADR-0027 §3 binds them to the membership with ON DELETE
+    CASCADE), so without this a re-invited person would get every old grant back. Audited with a
+    count only: no resource ids or titles.
+    """
+    result = db.execute(
+        delete(AccessGrant)
+        .where(AccessGrant.tree_id == tree_id, AccessGrant.user_id == user_id)
+        .execution_options(synchronize_session=False)
+    )
+    count = int(getattr(result, "rowcount", 0) or 0)
+    if count:
+        audit.record(
+            db,
+            action="grant.cascade_removed",
+            actor_user_id=actor_user_id,
+            tree_id=tree_id,
+            target_type="membership",
+            target_id=membership_id,
+            details={"count": count},
+        )
+    return count
 
 
 def create_grant(

@@ -39,6 +39,9 @@ class TreeOut(ApiModel):
     created_at: dt.datetime
     my_roles: list[Role] = []
     my_permissions: list[str] = []
+    # roles this member may give or take away (owner: all; family admin: all but owner and family
+    # admin; branch admin: contributor, researcher, viewer); the server re-checks every change
+    my_grantable_roles: list[Role] = []
     my_branch_id: uuid.UUID | None = None
     my_linked_person_id: uuid.UUID | None = None
 
@@ -52,6 +55,8 @@ class MemberOut(ApiModel):
     branch_id: uuid.UUID | None
     linked_person_id: uuid.UUID | None
     created_at: dt.datetime
+    # whether the caller may change or remove this membership (only roles it could grant)
+    can_manage: bool = False
 
 
 class MemberUpdate(ApiModel):

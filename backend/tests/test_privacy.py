@@ -246,6 +246,17 @@ def test_close_account(owner, tree, make_client):
     other = make_client()
     other.register(email="leaver@example.com")
     join_tree(owner, other, tree["id"], ["VIEWER"])
+    person = create_person(owner, tree["id"], "Shared", privacy_level="CUSTOM")
+    g = owner.post(
+        f"/trees/{tree['id']}/grants",
+        json={
+            "user_id": other.user["id"],
+            "resource_type": "person",
+            "resource_id": person["id"],
+            "permission": "view",
+        },
+    )
+    assert g.status_code == 201, g.text
     assert other.post("/auth/close-account", json={"password": "wrong password!"}).status_code == 400
     assert other.post("/auth/close-account", json={"password": other.user["password"]}).status_code == 200
     assert other.get("/trees").status_code == 401
@@ -257,6 +268,7 @@ def test_close_account(owner, tree, make_client):
         == 401
     )
     assert len(owner.get(f"/trees/{tree['id']}/members").json()) == 1
+    assert owner.get(f"/trees/{tree['id']}/grants").json() == []  # leaving deletes the grants too
 
 
 def test_relationship_path_does_not_identify_hidden_people(owner, tree, member_factory):

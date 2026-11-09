@@ -51,6 +51,12 @@ def bind_tree(db: Session, tree_id: uuid.UUID | str) -> None:
     db.execute(text("SELECT set_config(:k, :v, true)"), {"k": RLS_SETTING, "v": str(tree_id)})
 
 
+def unbind_tree(db: Session) -> None:
+    """Undo ``bind_tree`` for the rest of this session (row-level security sees no tree again)."""
+    db.info.pop(_TREE_KEY, None)
+    db.execute(text("SELECT set_config(:k, '', true)"), {"k": RLS_SETTING})
+
+
 @event.listens_for(Session, "after_begin")
 def _apply_tree(session: Session, transaction: Any, connection: Any) -> None:
     tree_id = session.info.get(_TREE_KEY)
