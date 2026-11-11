@@ -51,7 +51,7 @@ def register(
     gets a "someone tried to register with your email" notice instead.
     """
     email = normalise_email(email)
-    enforce(f"register:{info.ip}", 20)
+    enforce(f"register:{info.ip}", get_settings().register_rate_limit_per_minute)
     problems = password_problems(password)
     if problems:
         raise Unprocessable("; ".join(problems), code="weak_password")
