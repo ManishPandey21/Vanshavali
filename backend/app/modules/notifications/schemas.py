@@ -7,7 +7,13 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import Field, field_validator
 
 from app.api.schemas import ApiModel
-from app.models.enums import DeliveryStatus, NotificationChannel, ReminderKind, ReminderRecurrence
+from app.models.enums import (
+    DeliveryStatus,
+    NotificationChannel,
+    ReminderDateRule,
+    ReminderKind,
+    ReminderRecurrence,
+)
 
 
 def _lead(v: list[int] | None) -> list[int] | None:
@@ -74,6 +80,11 @@ class ReminderIn(ApiModel):
     event_id: uuid.UUID
     kind: ReminderKind | None = None  # default from the event type
     recurrence: ReminderRecurrence | None = None  # default from the kind
+    # ADR-0022 §5: follow the tithi instead of the Gregorian day; convention and city default to the
+    # tree's calendar settings
+    date_rule: ReminderDateRule = ReminderDateRule.SOLAR
+    convention: str | None = Field(default=None, max_length=40)
+    observance_city: str | None = Field(default=None, max_length=60)
     lead_days: list[int] | None = None  # default: the tree preference
     channels: list[NotificationChannel] | None = None  # default: the tree preference
     note: str | None = Field(default=None, max_length=300)
@@ -91,6 +102,9 @@ class ReminderIn(ApiModel):
 
 class ReminderUpdate(ApiModel):
     recurrence: ReminderRecurrence | None = None
+    date_rule: ReminderDateRule | None = None
+    convention: str | None = Field(default=None, max_length=40)
+    observance_city: str | None = Field(default=None, max_length=60)
     lead_days: list[int] | None = None
     channels: list[NotificationChannel] | None = None
     note: str | None = Field(default=None, max_length=300)
@@ -112,6 +126,9 @@ class ReminderOut(ApiModel):
     event_id: uuid.UUID
     kind: ReminderKind
     recurrence: ReminderRecurrence
+    date_rule: ReminderDateRule = ReminderDateRule.SOLAR
+    convention: str | None = None
+    observance_city: str | None = None
     lead_days: list[int]
     channels: list[NotificationChannel]
     note: str | None

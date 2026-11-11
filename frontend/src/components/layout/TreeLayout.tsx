@@ -2,7 +2,37 @@ import { NotificationBell, ProposeChangeHost } from "../review/ReviewParts";
 import { useMemo, useState, type ComponentType } from "react";
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArchiveRestore, ArrowDownUp, Bell, CalendarRange, ChartPie, ClipboardCheck, History as HistoryIcon, FileText, LandPlot, BookOpen, ClipboardList, Copy, Home, Landmark, LayoutGrid, MapPin, MoreHorizontal, Network, NotebookPen, Route, Search, Settings, ShieldCheck, UserPlus, Users, UsersRound, type LucideProps, Images } from "lucide-react";
+import {
+  ArchiveRestore,
+  ArrowDownUp,
+  Bell,
+  CalendarDays,
+  CalendarRange,
+  ChartPie,
+  ClipboardCheck,
+  History as HistoryIcon,
+  FileText,
+  LandPlot,
+  BookOpen,
+  ClipboardList,
+  Copy,
+  Home,
+  Landmark,
+  LayoutGrid,
+  MapPin,
+  MoreHorizontal,
+  Network,
+  NotebookPen,
+  Route,
+  Search,
+  Settings,
+  ShieldCheck,
+  UserPlus,
+  Users,
+  UsersRound,
+  Images,
+  type LucideProps,
+} from "lucide-react";
 import { useTree } from "../../api/hooks/trees";
 import { TreeContext, makeTreeCtx } from "../../lib/tree-context";
 import { Perm } from "../../lib/permissions";
@@ -38,6 +68,7 @@ export function TreeLayout() {
       { to: `${base}/visualizations`, label: t("nav.visualizations"), icon: ChartPie, group: "main" },
       { to: `${base}/events`, label: t("nav.events"), icon: CalendarRange, group: "main" },
       { to: `${base}/timeline`, label: t("nav.timeline"), icon: HistoryIcon, group: "main" },
+      { to: `${base}/calendar`, label: t("nav.calendar"), icon: CalendarDays, group: "main" },
       { to: `${base}/reminders`, label: t("nav.reminders"), icon: Bell, group: "main" },
       { to: `${base}/joint-family`, label: t("nav.jointFamily"), icon: LayoutGrid, group: "family" },
       { to: `${base}/branches`, label: t("nav.branches"), icon: Landmark, group: "family" },

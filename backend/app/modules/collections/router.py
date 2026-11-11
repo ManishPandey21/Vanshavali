@@ -17,10 +17,12 @@ from app.modules.collections.schemas import (
     CollectionSummaryOut,
     CollectionUpdate,
 )
+from app.modules.search import providers
 from app.modules.sharing import core
 from app.modules.sharing.schemas import SharingOut, SharingUpdate
 
 router = APIRouter(prefix="/trees/{tree_id}", tags=["collections"])
+providers.register("collection", service.search_collections)
 
 
 @router.get("/collections", response_model=list[CollectionSummaryOut])

@@ -189,6 +189,8 @@ class NotificationOut(ApiModel):
     id: uuid.UUID
     kind: NotificationKind
     proposal_id: uuid.UUID | None
+    # the record a "made more private" notice is about (ADR-0027 §5); None for other kinds
+    subject_id: uuid.UUID | None = None
     text: str  # built when read, with the reader's current permissions
     created_at: dt.datetime
     read: bool

@@ -28,7 +28,9 @@ into 0003, 0009 and 0010.
 | 0019 | [Indian geography reference data (LGD) and place cascades](0019-india-geography-reference-lgd.md) | Accepted |
 | 0020 | [Smart Add Relative, provisional people and recorded age order](0020-smart-add-relative-provisional-people-age-order.md) | Accepted |
 | 0021 | [Change proposals, family review and duplicates at entry](0021-change-proposals-family-review.md) | Accepted |
+| 0022 | [Indian family calendar: tithi dates, Punyatithi reminders, family calendar and ICS feed](0022-family-calendar-tithi-punyatithi.md) | Accepted |
 | 0025 | [Name transliteration suggestions](0025-name-transliteration-suggestions.md) | Accepted |
 | 0026 | [Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions](0026-cultural-depth-heritage-vocabularies-kinship-packs-traditions.md) | Accepted |
 | 0027 | [Record visibility and selective sharing for family media and records](0027-record-visibility-and-selective-sharing.md) | Accepted (implementation in progress) |
 | 0028 | [Super Admin master-data console: global terms published from the interface (Option B)](0028-super-admin-master-data-console.md) | Proposed |
+| 0029 | [Agent ticket factory (Infra Code Factory) for locally verified draft PRs](0029-agent-ticket-factory.md) | Proposed |

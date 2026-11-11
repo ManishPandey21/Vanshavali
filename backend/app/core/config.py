@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     # Rate limiting
     rate_limit_backend: Literal["memory", "redis"] = "memory"
     login_rate_limit_per_minute: int = 10
+    # per-IP account registrations per minute (the per-email limit, 5/hour, is fixed)
+    register_rate_limit_per_minute: int = 20
 
     # Jobs
     job_mode: Literal["sync", "rq"] = "sync"
@@ -142,6 +144,13 @@ class Settings(BaseSettings):
     masterdata_enabled: bool = True
     # Indian geography reference data (ADR-0019); false = /geo answers 404, places stay free text
     geo_enabled: bool = True
+    # Family calendar (ADR-0022). Lunar conversion and reminders stay off until the engine licence
+    # review is signed off and a convention's golden panchang table passes (§8); even when true,
+    # only conventions marked verified are offered.
+    lunar_calendar_enabled: bool = False
+    # JPL DE440s ephemeris (checked against its pinned SHA-256); fetched with
+    # `python -m app.cli.calendar fetch-ephemeris`, baked into the image by the Dockerfile
+    ephemeris_path: str = "var/ephemeris/de440s.bsp"
     tesseract_cmd: str = "tesseract"
     tesseract_languages: str = "eng+hin"
 

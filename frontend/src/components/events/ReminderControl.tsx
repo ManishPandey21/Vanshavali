@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Bell, BellRing } from "lucide-react";
-import type { EventOut, NotificationChannel, ReminderOut, ReminderRecurrence } from "../../api/types";
+import type { EventOut, GenealogicalDate, LunarDate, NotificationChannel, ReminderDateRule, ReminderOut, ReminderRecurrence } from "../../api/types";
+import { useCalendarSettings } from "../../api/hooks/calendar";
+import { lunarLabel } from "../../lib/lunar";
 import { useChannels, useCreateReminder, useDeleteReminder, useReminders, useTestReminder, useUpdateReminder } from "../../api/hooks/reminders";
 import { eventLabel } from "../../lib/lifeEvents";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { ErrorAlert, LiveRegion } from "../ui/feedback";
-import { Checkbox, Field, Fieldset, TextInput } from "../ui/form";
+import { Checkbox, Field, Fieldset, Select, TextInput } from "../ui/form";
 
 export const LEAD_PRESETS = [0, 1, 7] as const;
 const ALL_CHANNELS: NotificationChannel[] = ["email", "sms", "whatsapp"];
@@ -37,8 +39,9 @@ export function ReminderControl({ treeId, event }: { treeId: string; event: Even
 }
 
 export function ReminderDialog({ treeId, event, existing, onClose }: { treeId: string; event: EventOut; existing: ReminderOut | null; onClose: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const channels = useChannels();
+  const settings = useCalendarSettings(treeId);
   const create = useCreateReminder(treeId);
   const update = useUpdateReminder(treeId);
   const del = useDeleteReminder(treeId);
@@ -49,18 +52,33 @@ export function ReminderDialog({ treeId, event, existing, onClose }: { treeId: s
   const [chosen, setChosen] = useState<NotificationChannel[]>(existing?.channels ?? ["email"]);
   const [recurrence, setRecurrence] = useState<ReminderRecurrence>(existing?.recurrence ?? (annualByDefault ? "annual" : "none"));
   const [note, setNote] = useState(existing?.note ?? "");
+  const [dateRule, setDateRule] = useState<ReminderDateRule>(existing?.date_rule ?? "solar");
+  const [city, setCity] = useState<string>(existing?.observance_city ?? "");
   const [status, setStatus] = useState("");
+  const lunar = ((event.date as GenealogicalDate | null)?.lunar ?? null) as LunarDate | null;
+  const conv = settings.data?.conventions?.find((c) => c.key === (existing?.convention ?? settings.data?.convention));
+  // the tithi option appears only for a recorded tithi and a convention that has passed its checks (ADR-0022 §8)
+  const lunarOffered = !!lunar && !!conv?.offered;
+  const followTithi = lunarOffered && dateRule === "lunar";
   const customDays = custom
     .split(/[,\s]+/)
     .filter(Boolean)
     .map(Number);
   const customErr = customDays.some((d) => !Number.isInteger(d) || d < 0 || d > 365);
   const allLead = [...new Set([...lead, ...(customErr ? [] : customDays)])].sort((a, b) => a - b);
-  const invalid = customErr || !allLead.length || !chosen.length || allLead.length > 6;
+  const invalid = customErr || !allLead.length || !chosen.length || allLead.length > 6 || (followTithi && !city && !settings.data?.observance_city);
   const mutation = existing ? update : create;
   const save = () => {
     if (invalid) return;
-    const body = { lead_days: allLead, channels: chosen, note: note.trim() || null, recurrence };
+    const body = {
+      lead_days: allLead,
+      channels: chosen,
+      note: note.trim() || null,
+      recurrence: followTithi ? ("annual" as const) : recurrence,
+      // without an offered convention the rule is left as it is (a paused tithi reminder stays a tithi reminder)
+      ...(lunarOffered ? { date_rule: followTithi ? ("lunar" as const) : ("solar" as const) } : {}),
+      ...(followTithi ? { convention: conv!.key, observance_city: city || null } : {}),
+    };
     if (existing) update.mutate({ id: existing.id, body: { ...body, active: true } }, { onSuccess: onClose });
     else create.mutate({ event_id: event.id, ...body }, { onSuccess: onClose });
   };
@@ -107,9 +125,38 @@ export function ReminderDialog({ treeId, event, existing, onClose }: { treeId: s
           <Checkbox
             label={t("reminders.everyYear")}
             hint={annualByDefault ? t("reminders.everyYearHint") : t("reminders.onceHint")}
-            checked={recurrence === "annual"}
+            checked={recurrence === "annual" || followTithi}
+            disabled={followTithi}
             onChange={(v) => setRecurrence(v ? "annual" : "none")}
           />
+          {lunarOffered && lunar && (
+            <>
+              <Checkbox
+                label={t("reminders.followTithi", { tithi: lunarLabel(lunar, i18n.language) })}
+                hint={t("reminders.followTithiHint", { convention: conv!.label })}
+                checked={followTithi}
+                onChange={(v) => setDateRule(v ? "lunar" : "solar")}
+              />
+              {followTithi && (
+                <Field label={t("reminders.observedIn")} hint={t("reminders.observedInHint")}>
+                  {(p) => (
+                    <Select {...p} value={city} onChange={(e) => setCity(e.target.value)}>
+                      <option value="">
+                        {settings.data?.observance_city
+                          ? t("reminders.treeCity", { city: settings.data.cities.find((c) => c.key === settings.data?.observance_city)?.label ?? settings.data.observance_city })
+                          : t("reminders.chooseCity")}
+                      </option>
+                      {settings.data?.cities?.map((c) => (
+                        <option key={c.key} value={c.key}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                </Field>
+              )}
+            </>
+          )}
         </Fieldset>
         <Fieldset legend={t("reminders.channels")} description={t("reminders.channelsHint")}>
           <div className="flex flex-wrap gap-4">

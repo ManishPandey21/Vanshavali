@@ -9,7 +9,7 @@ Modular monolith (ADR-0001):
 - `backend/` — FastAPI + SQLAlchemy 2 + Alembic on PostgreSQL 16, Redis/RQ jobs (`JOB_MODE=sync`
   runs them inline). Domain modules in `backend/app/modules/*` (identity, trees, genealogy, heritage,
   family, evidence, documents, extraction, astrology, property, gedcom, merge, archive, search,
-  consent, public, smartadd, masterdata, translit, geo, review, kinship, traditions). All authorisation and field redaction live in `backend/app/authz`; the server is
+  consent, public, smartadd, masterdata, translit, geo, review, kinship, traditions, calendar). All authorisation and field redaction live in `backend/app/authz`; the server is
   the authority. API under `/api/v1`, structured errors `{error: {code, message, details}}`.
 - `frontend/` — Vite 6 + React 18 + TypeScript (strict) SPA: React Router, TanStack Query,
   i18next (`src/i18n/locales/en.json`, `hi.json`, kept key-identical by a test), Tailwind 4.
@@ -23,6 +23,10 @@ Modular monolith (ADR-0001):
 - `deploy/pilot/` — staging/pilot stack (ADR-0014: one VM with Compose + managed PostgreSQL and S3):
   Caddy edge, scripts (deploy, rollback, backup, restore), monitoring, and a staging drill. Runbooks
   in `docs/operations/`, go-live checklist in `docs/release/pilot-go-live-checklist.md`.
+- `ops/factory/` — optional local agent ticket factory integration (ADR-0029, runbook
+  `docs/operations/code-factory.md`): trusted suite wrapper, pytest kind classifier, config
+  generator. Builders it launches may not edit existing tests/snapshots, manifests, lockfiles,
+  `*.config.*` or `ops/factory/`. Visual baselines: `e2e/visual/` (`playwright.visual.config.ts`).
 - Architecture, domain model and decisions: `docs/architecture/`. Security/privacy: `docs/security/`.
 
 ## Commands

@@ -1,0 +1,6 @@
+{
+  "_readme": "Recorded sign-offs that gate computed lunar dates (ADR-0022; owner decisions of 8 Nov 2026). Empty means nothing lunar is offered. Entries are added only in a reviewed change, from signed records listed in docs/operations/family-calendar-approvals.md. Use `python -m app.cli.calendar approval-template` for the current digests; never copy them from an older entry.",
+  "licence": null,
+  "accuracy": [],
+  "activation": []
+}

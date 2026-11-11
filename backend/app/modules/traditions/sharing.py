@@ -14,7 +14,7 @@ from sqlalchemy import select
 from app.authz.context import TreeContext
 from app.authz.privacy import is_record_owner, record_allows
 from app.models import TraditionEntry, TraditionLink
-from app.models.enums import GrantResource, RecordPrivacyLevel, TraditionLinkTarget
+from app.models.enums import GrantResource, NotificationKind, RecordPrivacyLevel, TraditionLinkTarget
 from app.modules.sharing import core
 from app.modules.sharing.core import Proposal
 from app.modules.sharing.schemas import SharingOut, SharingUpdate
@@ -29,6 +29,8 @@ def entry_allows(
     """Can the viewer read ``e`` (at its own level, or at a proposed one)?"""
     if ctx.public or not ctx.is_member or e.withdrawn_at is not None:
         return False
+    if e.suspended_at is not None:
+        return is_record_owner(ctx, e.owner_membership_id)  # ADR-0027 §8.2
     proposed = level is not None
     effective = RecordPrivacyLevel(level) if level is not None else RecordPrivacyLevel(e.privacy_level)
     branch = branch_id if proposed else e.branch_id
@@ -46,6 +48,8 @@ def entry_audience_allows(ctx: TreeContext, e: TraditionEntry) -> bool:
     showing a withdrawn entry's history to those it was shared with (ADR-0027 §11)."""
     if ctx.public or not ctx.is_member:
         return False
+    if e.suspended_at is not None:
+        return is_record_owner(ctx, e.owner_membership_id)  # ADR-0027 §8.2
     return record_allows(
         ctx,
         RecordPrivacyLevel(e.privacy_level),
@@ -58,6 +62,7 @@ def entry_audience_allows(ctx: TreeContext, e: TraditionEntry) -> bool:
 class TraditionRecord(core.RecordAdapter):
     resource = GrantResource.TRADITION
     audit_type = "tradition"
+    narrowed_notice = NotificationKind.TRADITION_NARROWED
     supports_download = False
     record: TraditionEntry
 

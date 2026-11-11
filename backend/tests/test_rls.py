@@ -19,8 +19,9 @@ from tests.conftest import new_tree
 from tests.helpers import create_person
 
 # Tables with tree_id that are deliberately *not* under RLS (read before a tree is bound, or
-# append-only audit). Everything else that carries tree_id must be protected.
-NOT_RLS = {"tree_membership", "tree_invitation", "profile_claim_invite", "audit_event"}
+# append-only audit). Everything else that carries tree_id must be protected. A calendar feed is
+# resolved by its token before the tree is known (ADR-0022 §7), like an invitation.
+NOT_RLS = {"tree_membership", "tree_invitation", "profile_claim_invite", "audit_event", "calendar_feed"}
 
 
 def test_every_tree_scoped_table_is_covered():
