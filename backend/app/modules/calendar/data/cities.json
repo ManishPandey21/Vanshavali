@@ -1,0 +1,25 @@
+{
+  "source": "Approximate city-centre coordinates, rounded to 0.01°, used only to compute sunrise (ADR-0022 §4).",
+  "cities": [
+    {"key": "varanasi", "en": "Varanasi", "hi": "वाराणसी", "lat": 25.32, "lon": 82.97, "tz": "Asia/Kolkata"},
+    {"key": "delhi", "en": "Delhi", "hi": "दिल्ली", "lat": 28.61, "lon": 77.21, "tz": "Asia/Kolkata"},
+    {"key": "lucknow", "en": "Lucknow", "hi": "लखनऊ", "lat": 26.85, "lon": 80.95, "tz": "Asia/Kolkata"},
+    {"key": "patna", "en": "Patna", "hi": "पटना", "lat": 25.59, "lon": 85.14, "tz": "Asia/Kolkata"},
+    {"key": "jaipur", "en": "Jaipur", "hi": "जयपुर", "lat": 26.91, "lon": 75.79, "tz": "Asia/Kolkata"},
+    {"key": "bhopal", "en": "Bhopal", "hi": "भोपाल", "lat": 23.26, "lon": 77.41, "tz": "Asia/Kolkata"},
+    {"key": "kolkata", "en": "Kolkata", "hi": "कोलकाता", "lat": 22.57, "lon": 88.36, "tz": "Asia/Kolkata"},
+    {"key": "mumbai", "en": "Mumbai", "hi": "मुंबई", "lat": 19.08, "lon": 72.88, "tz": "Asia/Kolkata"},
+    {"key": "pune", "en": "Pune", "hi": "पुणे", "lat": 18.52, "lon": 73.86, "tz": "Asia/Kolkata"},
+    {"key": "ahmedabad", "en": "Ahmedabad", "hi": "अहमदाबाद", "lat": 23.02, "lon": 72.57, "tz": "Asia/Kolkata"},
+    {"key": "bengaluru", "en": "Bengaluru", "hi": "बेंगलुरु", "lat": 12.97, "lon": 77.59, "tz": "Asia/Kolkata"},
+    {"key": "hyderabad", "en": "Hyderabad", "hi": "हैदराबाद", "lat": 17.39, "lon": 78.49, "tz": "Asia/Kolkata"},
+    {"key": "chennai", "en": "Chennai", "hi": "चेन्नई", "lat": 13.08, "lon": 80.27, "tz": "Asia/Kolkata"},
+    {"key": "london", "en": "London", "hi": "लंदन", "lat": 51.51, "lon": -0.13, "tz": "Europe/London"},
+    {"key": "new_york", "en": "New York", "hi": "न्यूयॉर्क", "lat": 40.71, "lon": -74.01, "tz": "America/New_York"},
+    {"key": "san_francisco", "en": "San Francisco", "hi": "सैन फ़्रांसिस्को", "lat": 37.77, "lon": -122.42, "tz": "America/Los_Angeles"},
+    {"key": "toronto", "en": "Toronto", "hi": "टोरंटो", "lat": 43.65, "lon": -79.38, "tz": "America/Toronto"},
+    {"key": "dubai", "en": "Dubai", "hi": "दुबई", "lat": 25.20, "lon": 55.27, "tz": "Asia/Dubai"},
+    {"key": "singapore", "en": "Singapore", "hi": "सिंगापुर", "lat": 1.35, "lon": 103.82, "tz": "Asia/Singapore"},
+    {"key": "sydney", "en": "Sydney", "hi": "सिडनी", "lat": -33.87, "lon": 151.21, "tz": "Australia/Sydney"}
+  ]
+}

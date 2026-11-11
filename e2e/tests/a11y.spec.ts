@@ -206,6 +206,7 @@ function treePages(s: Seed): [string, string][] {
     ["life events", `${t}/events`],
     ["family timeline", `${t}/timeline`],
     ["reminders", `${t}/reminders`],
+    ["family calendar", `${t}/calendar`],
     ["search", `${t}/search?q=Ramesh`],
     ["sources", `${t}/sources`],
     ["places", `${t}/places`],

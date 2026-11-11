@@ -21,6 +21,7 @@ import logging
 import secrets
 import uuid
 from dataclasses import dataclass
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -48,6 +49,7 @@ from app.models.enums import (
     EventType,
     NotificationChannel,
     ParticipantRole,
+    ReminderDateRule,
     ReminderKind,
     ReminderRecurrence,
 )
@@ -258,15 +260,26 @@ def _visible_event(ctx: TreeContext, event_id: uuid.UUID) -> EventOut:
     return out[0]
 
 
-def _anchor(eo: EventOut, recurrence: ReminderRecurrence) -> schedule.Anchor:
+def _anchor(
+    eo: EventOut, recurrence: ReminderRecurrence, r: EventReminder | None = None
+) -> schedule.AnyAnchor:
     try:
-        return schedule.anchor_from_date(eo.date, recurrence)
+        return _anchor_raw(eo.date, recurrence, r)
     except schedule.NotSchedulable as exc:
         raise Unprocessable(str(exc), code=exc.code)
 
 
+def _anchor_raw(
+    raw: dict[str, Any] | None, recurrence: ReminderRecurrence, r: EventReminder | None
+) -> schedule.AnyAnchor:
+    """The reminder's own rule (ADR-0022 §5): the Gregorian day, or the tithi at its city."""
+    if r is None:
+        return schedule.anchor_from_date(raw, recurrence)
+    return schedule.anchor_for(raw, recurrence, r.date_rule, r.convention, r.observance_city, r.kind.value)
+
+
 def _compute_next(
-    r: EventReminder, pref: NotificationPreference, anchor: schedule.Anchor, after: dt.datetime
+    r: EventReminder, pref: NotificationPreference, anchor: schedule.AnyAnchor, after: dt.datetime
 ) -> None:
     r.next_fire_at = schedule.next_fire(
         anchor, r.recurrence, r.lead_days, pref.send_hour, pref.timezone, after
@@ -280,7 +293,7 @@ def _reschedule_all(ctx: TreeContext, pref: NotificationPreference) -> None:
         )
     ):
         try:
-            anchor = _anchor(_visible_event(ctx, r.event_id), r.recurrence)
+            anchor = _anchor(_visible_event(ctx, r.event_id), r.recurrence, r)
         except (NotFound, Unprocessable):
             r.next_fire_at = None
             continue
@@ -307,7 +320,16 @@ def create_reminder(ctx: TreeContext, body: ReminderIn) -> EventReminder:
     recurrence = body.recurrence or (
         ReminderRecurrence.ANNUAL if kind in ANNUAL_KINDS else ReminderRecurrence.NONE
     )
-    anchor = _anchor(eo, recurrence)
+    lunar = body.date_rule == ReminderDateRule.LUNAR
+    draft = EventReminder(
+        kind=kind,
+        recurrence=recurrence,
+        date_rule=body.date_rule,
+        # a lunar reminder follows the tree's convention and city unless the member chose their own
+        convention=(body.convention or ctx.tree.calendar_convention) if lunar else None,
+        observance_city=(body.observance_city or ctx.tree.observance_city) if lunar else None,
+    )
+    anchor = _anchor(eo, recurrence, draft)
     pref = _pref(ctx)
     if pref is None:
         # subscribing to a reminder is the explicit opt-in for this tree (email unless chosen)
@@ -336,6 +358,9 @@ def create_reminder(ctx: TreeContext, body: ReminderIn) -> EventReminder:
         user_id=user_id,
         kind=kind,
         recurrence=recurrence,
+        date_rule=draft.date_rule,
+        convention=draft.convention,
+        observance_city=draft.observance_city,
         lead_days=lead,
         channels=[c.value for c in channels],
         note=(body.note or "").strip() or None,
@@ -353,7 +378,13 @@ def create_reminder(ctx: TreeContext, body: ReminderIn) -> EventReminder:
         "reminder.created",
         target_type="event_reminder",
         target_id=r.id,
-        details={"event_id": str(eo.id), "kind": kind.value, "channels": r.channels, "lead_days": lead},
+        details={
+            "event_id": str(eo.id),
+            "kind": kind.value,
+            "channels": r.channels,
+            "lead_days": lead,
+            "date_rule": r.date_rule.value,
+        },
     )
     return r
 
@@ -372,8 +403,17 @@ def update_reminder(ctx: TreeContext, reminder_id: uuid.UUID, body: ReminderUpda
         r.note = (body.note or "").strip() or None
     if body.active is not None:
         r.active = body.active
+    if body.date_rule is not None:
+        r.date_rule = body.date_rule
+    if "convention" in body.model_fields_set:
+        r.convention = body.convention
+    if "observance_city" in body.model_fields_set:
+        r.observance_city = body.observance_city
+    if r.date_rule == ReminderDateRule.LUNAR:
+        r.convention = r.convention or ctx.tree.calendar_convention
+        r.observance_city = r.observance_city or ctx.tree.observance_city
     eo = _visible_event(ctx, r.event_id)
-    anchor = _anchor(eo, r.recurrence)
+    anchor = _anchor(eo, r.recurrence, r)
     pref = _pref(ctx)
     if pref is None:  # a reminder implies a preference row; recreate defaults if it was removed
         pref = NotificationPreference(
@@ -423,7 +463,7 @@ def reminder_out(ctx: TreeContext, r: EventReminder, eo: EventOut | None = None)
     nxt = None
     deliverable = True
     try:
-        nxt = schedule.next_occurrence(_anchor(eo, r.recurrence), r.recurrence, _now().date())
+        nxt = schedule.next_occurrence(_anchor(eo, r.recurrence, r), r.recurrence, _now().date())
     except Unprocessable:
         deliverable = False
     return out.model_copy(
@@ -689,7 +729,7 @@ def tick(now: dt.datetime | None = None) -> TickResult:
                     continue
                 try:
                     # the raw date is used only for timing; content is re-checked as the recipient
-                    anchor = schedule.anchor_from_date(event.date, r.recurrence)
+                    anchor = _anchor_raw(event.date, r.recurrence, r)
                 except schedule.NotSchedulable:
                     r.next_fire_at = None
                     continue
@@ -813,9 +853,10 @@ def _attempt(db: Session, d: NotificationDelivery) -> str:
     recurrence = reminder.recurrence if reminder else ReminderRecurrence.ANNUAL
     if not d.is_test:
         try:
-            schedule.anchor_from_date(eo.date, recurrence)
-        except schedule.NotSchedulable:
-            _cancel(d, "date_hidden")
+            _anchor_raw(eo.date, recurrence, reminder)
+        except schedule.NotSchedulable as exc:
+            # the date became hidden, or a lunar convention is no longer offered
+            _cancel(d, "date_hidden" if exc.code in ("date_hidden", "date_incomplete") else exc.code)
             return d.status.value
     try:
         msg = _compose(db, ctx, user, d, eo, kind, reminder)
@@ -872,6 +913,8 @@ def _compose(
             lines.append(t["nth"].format(n=nth))
         if eo.place_name or eo.place_as_recorded:
             lines.append(str(eo.place_name or eo.place_as_recorded))
+        if reminder and reminder.date_rule == ReminderDateRule.LUNAR:
+            lines.append(_lunar_basis(eo, reminder, lang))
         if reminder and reminder.note:
             lines.append(reminder.note)
         text = "\n\n".join([*lines, f"{t['open']}: {url}", t["why"].format(url=manage), "— Vanshavali"])
@@ -906,6 +949,23 @@ def _compose(
         kind="reminder",
         template_params=[f"{prefix}{kind_word}", f"{when}, {date_text}", url],
     )
+
+
+def _lunar_basis(eo: EventOut, r: EventReminder, lang: str) -> str:
+    """How a tithi date was found: the tithi, convention, rule and city (ADR-0022 §5)."""
+    from app.core.lunar import LunarDate
+    from app.modules.calendar import conventions
+
+    hi = lang.startswith("hi")
+    lunar = LunarDate.model_validate((eo.date or {})["lunar"])
+    conv = conventions.all_conventions()[str(r.convention)]
+    city = conventions.cities()[str(r.observance_city)]
+    rule = conv.rule_for(r.kind.value)
+    rule_text = {
+        "aparahna": ("afternoon rule", "अपराह्न नियम"),
+        "sunrise": ("sunrise rule", "सूर्योदय नियम"),
+    }[rule][1 if hi else 0]
+    return f"{lunar.label(lang)} · {conv.labels['hi' if hi else 'en']} · {rule_text} · {city.hi if hi else city.en}"
 
 
 # ---------------------------------------------------------------- contacts (user level)

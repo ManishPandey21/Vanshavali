@@ -1,0 +1,11 @@
+Local evaluation, NOT committed data: Rashtriya Panchang 1945 SE (PDF), 1947 SE (PDF) and 1948 SE (web) combined;
+duplicates across editions kept once (all shared rows were identical). Engine: skyfield-1.55/jplephem-2.24/de440s/lahiri-iau2006/1
+source rashtriya-panchang-1948-online: Rashtriya Panchang, 1948 Saka Era (2026-27 A.D.); official online edition, English; skipped sunrise rows: 0
+source rashtriya-panchang-1945-pdf: Rashtriya Panchang, 1945 Saka Era (2023-24 A.D.); official English edition, PDF distributed by PAC; skipped sunrise rows: 44
+source rashtriya-panchang-1947-pdf: Rashtriya Panchang, 1947 Saka Era (2025-26 A.D.); official English edition, PDF distributed by PAC; skipped sunrise rows: 30
+    ANOMALY after 2026-04-20: 31 8 20 5 54 18 22 …
+coverage: the aparahna rule for memorial days is not checked against a published observance at mumbai
+coverage: the sunrise rule for birthday days is not checked against a published observance at mumbai
+mismatch: 2026-12-09T06:22 krishna 15: month kartika != margashirsha (documented divergence, pending review)
+compared {'tithi_ends': 1144, 'sunrises': 1085, 'civil_days': 1052}; undecidable civil days 2; largest differences: tithi end 39 s, sunrise 56 s
+NOT PASSED

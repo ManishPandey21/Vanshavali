@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { DateCalendar, DatePrecision, GenealogicalDate } from "../../api/types";
 import { DATE_PRECISIONS, EDITOR_CALENDARS, datePartsFor, formatDate, monthName, validateDate } from "../../lib/dates";
 import { intOrNull } from "../ui/form";
+import { LunarDateFields } from "./LunarDateFields";
 
 /**
  * Structured genealogical date input. Only the parts the chosen precision allows are rendered
@@ -28,7 +29,8 @@ export function GenealogicalDateEditor({
   const calendar = (value.calendar ?? "gregorian") as DateCalendar;
   const parts = datePartsFor(precision);
   const errors = showErrors ? validateDate(value) : {};
-  const set = (patch: Partial<GenealogicalDate>) => onChange({ ...value, ...patch });
+  // editing the Gregorian parts by hand means they are no longer the accepted calculation
+  const set = (patch: Partial<GenealogicalDate>) => onChange({ ...value, ...patch, ...("lunar" in patch ? {} : { derived: null }) });
 
   const setPrecision = (p: DatePrecision) => {
     const allowed = datePartsFor(p);
@@ -53,7 +55,7 @@ export function GenealogicalDateEditor({
   const describe = (k: keyof typeof errors) => (errors[k] ? `${id}-${k}-err` : undefined);
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const preview = precision === "unknown" && !value.original_text ? null : formatDate(value, t, i18n.language);
+  const preview = precision === "unknown" && !value.original_text && !value.lunar ? null : formatDate(value, t, i18n.language);
 
   return (
     <fieldset className="rounded-lg border border-stone-300 p-3" data-testid={`date-editor-${id}`}>
@@ -205,6 +207,9 @@ export function GenealogicalDateEditor({
             onChange={(e) => set({ original_text: e.target.value || null })}
           />
           <p className="hint">{t("date.originalTextHint")}</p>
+        </div>
+        <div className="col-span-2 sm:col-span-4">
+          <LunarDateFields value={value} onChange={onChange} id={`${id}-lunar`} />
         </div>
       </div>
       {preview && (

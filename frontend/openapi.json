@@ -7716,6 +7716,398 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/calendar-settings": {
+   "get": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Get Calendar Settings",
+    "description": "The family's calendar convention and observance city, and what is available.",
+    "operationId": "get_calendar_settings_api_v1_trees__tree_id__calendar_settings_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CalendarSettingsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Set Calendar Settings",
+    "description": "Chosen by a tree admin; never inferred from a surname, place or community.",
+    "operationId": "set_calendar_settings_api_v1_trees__tree_id__calendar_settings_put",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CalendarSettingsIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CalendarSettingsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/calendar": {
+   "get": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Family Calendar",
+    "description": "Birthdays, anniversaries and remembrance days you may see in full, by Gregorian date and,\nfor an offered convention, by tithi.",
+    "operationId": "family_calendar_api_v1_trees__tree_id__calendar_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "from",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "date",
+       "title": "From"
+      }
+     },
+     {
+      "name": "to",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "date",
+       "title": "To"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CalendarOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/calendar/convert": {
+   "post": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Convert",
+    "description": "A suggested Gregorian date for a tithi date with a samvat year; nothing is stored.",
+    "operationId": "convert_api_v1_trees__tree_id__calendar_convert_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConvertIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConvertOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/calendar-feed": {
+   "get": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Feed Status",
+    "operationId": "feed_status_api_v1_trees__tree_id__calendar_feed_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FeedOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Create Feed",
+    "description": "Create or replace your private calendar feed; its URL is shown only now.",
+    "operationId": "create_feed_api_v1_trees__tree_id__calendar_feed_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FeedIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FeedOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Revoke Feed",
+    "operationId": "revoke_feed_api_v1_trees__tree_id__calendar_feed_delete",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FeedOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/calendar-feeds/{token}.ics": {
+   "get": {
+    "tags": [
+     "calendar"
+    ],
+    "summary": "Feed",
+    "description": "A member's calendar feed. The token is the credential; every fetch is evaluated as the member.",
+    "operationId": "feed_api_v1_calendar_feeds__token__ics_get",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "minLength": 20,
+       "maxLength": 100,
+       "pattern": "^[A-Za-z0-9_-]+$",
+       "title": "Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "text/calendar": {}
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/notification-channels": {
    "get": {
     "tags": [
@@ -20020,6 +20412,242 @@
     "type": "object",
     "title": "BranchUpdate"
    },
+   "CalendarEntryOut": {
+    "properties": {
+     "day": {
+      "type": "string",
+      "format": "date",
+      "title": "Day"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ReminderKind"
+     },
+     "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Event Id"
+     },
+     "person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "anniversary": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Anniversary"
+     },
+     "basis": {
+      "type": "string",
+      "enum": [
+       "solar",
+       "lunar"
+      ],
+      "title": "Basis"
+     },
+     "lunar_label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lunar Label"
+     },
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "rule": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "sunrise",
+         "aparahna"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rule"
+     },
+     "city": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "City"
+     }
+    },
+    "type": "object",
+    "required": [
+     "day",
+     "kind",
+     "event_id",
+     "label",
+     "basis"
+    ],
+    "title": "CalendarEntryOut"
+   },
+   "CalendarOut": {
+    "properties": {
+     "start": {
+      "type": "string",
+      "format": "date",
+      "title": "Start"
+     },
+     "end": {
+      "type": "string",
+      "format": "date",
+      "title": "End"
+     },
+     "entries": {
+      "items": {
+       "$ref": "#/components/schemas/CalendarEntryOut"
+      },
+      "type": "array",
+      "title": "Entries"
+     },
+     "lunar_unavailable": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "disabled",
+         "convention_not_offered",
+         "no_city"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lunar Unavailable"
+     }
+    },
+    "type": "object",
+    "required": [
+     "start",
+     "end",
+     "entries"
+    ],
+    "title": "CalendarOut"
+   },
+   "CalendarSettingsIn": {
+    "properties": {
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 40
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "observance_city": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observance City"
+     }
+    },
+    "type": "object",
+    "title": "CalendarSettingsIn"
+   },
+   "CalendarSettingsOut": {
+    "properties": {
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "observance_city": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observance City"
+     },
+     "conventions": {
+      "items": {
+       "$ref": "#/components/schemas/ConventionOut"
+      },
+      "type": "array",
+      "title": "Conventions"
+     },
+     "cities": {
+      "items": {
+       "$ref": "#/components/schemas/CityOut"
+      },
+      "type": "array",
+      "title": "Cities"
+     },
+     "lunar_enabled": {
+      "type": "boolean",
+      "title": "Lunar Enabled"
+     }
+    },
+    "type": "object",
+    "required": [
+     "convention",
+     "observance_city",
+     "conventions",
+     "cities",
+     "lunar_enabled"
+    ],
+    "title": "CalendarSettingsOut"
+   },
    "ChallengeIn": {
     "properties": {
      "target_type": {
@@ -20514,6 +21142,29 @@
      "tradition"
     ],
     "title": "CitationTarget"
+   },
+   "CityOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "timezone": {
+      "type": "string",
+      "title": "Timezone"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "label",
+     "timezone"
+    ],
+    "title": "CityOut"
    },
    "ClaimIn": {
     "properties": {
@@ -21811,6 +22462,116 @@
     ],
     "title": "ContactOut"
    },
+   "ConventionOut": {
+    "properties": {
+     "key": {
+      "type": "string",
+      "title": "Key"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "golden_verified": {
+      "type": "boolean",
+      "title": "Golden Verified"
+     },
+     "offered": {
+      "type": "boolean",
+      "title": "Offered"
+     }
+    },
+    "type": "object",
+    "required": [
+     "key",
+     "label",
+     "golden_verified",
+     "offered"
+    ],
+    "title": "ConventionOut"
+   },
+   "ConvertIn": {
+    "properties": {
+     "lunar": {
+      "$ref": "#/components/schemas/LunarDate"
+     },
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 40
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "observance_city": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observance City"
+     }
+    },
+    "type": "object",
+    "required": [
+     "lunar"
+    ],
+    "title": "ConvertIn"
+   },
+   "ConvertOut": {
+    "properties": {
+     "suggestion": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Suggestion"
+     },
+     "convention": {
+      "type": "string",
+      "title": "Convention"
+     },
+     "rule": {
+      "type": "string",
+      "enum": [
+       "sunrise",
+       "aparahna"
+      ],
+      "title": "Rule"
+     },
+     "city": {
+      "type": "string",
+      "title": "City"
+     },
+     "engine_version": {
+      "type": "string",
+      "title": "Engine Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "suggestion",
+     "convention",
+     "rule",
+     "city",
+     "engine_version"
+    ],
+    "title": "ConvertOut",
+    "description": "A suggestion only: nothing is stored unless the user accepts it (ADR-0022 \u00a72)."
+   },
    "DateCalendar": {
     "type": "string",
     "enum": [
@@ -21822,6 +22583,40 @@
      "other"
     ],
     "title": "DateCalendar"
+   },
+   "DateDerivation": {
+    "properties": {
+     "source": {
+      "type": "string",
+      "const": "lunar",
+      "title": "Source",
+      "default": "lunar"
+     },
+     "convention": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Convention"
+     },
+     "city": {
+      "type": "string",
+      "maxLength": 60,
+      "title": "City"
+     },
+     "engine_version": {
+      "type": "string",
+      "maxLength": 80,
+      "title": "Engine Version"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "convention",
+     "city",
+     "engine_version"
+    ],
+    "title": "DateDerivation",
+    "description": "How a Gregorian date was computed from the tithi, when a person accepted the suggestion\n(ADR-0022 \u00a72): the provenance of a calculated value, never set without that acceptance."
    },
    "DatePrecision": {
     "type": "string",
@@ -24110,6 +24905,70 @@
     ],
     "title": "FamilyOut"
    },
+   "FeedIn": {
+    "properties": {
+     "include_names": {
+      "type": "boolean",
+      "title": "Include Names",
+      "default": false
+     }
+    },
+    "type": "object",
+    "title": "FeedIn"
+   },
+   "FeedOut": {
+    "properties": {
+     "active": {
+      "type": "boolean",
+      "title": "Active"
+     },
+     "include_names": {
+      "type": "boolean",
+      "title": "Include Names",
+      "default": false
+     },
+     "created_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created At"
+     },
+     "last_used_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Used At"
+     },
+     "url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Url"
+     }
+    },
+    "type": "object",
+    "required": [
+     "active"
+    ],
+    "title": "FeedOut"
+   },
    "FieldChange": {
     "properties": {
      "field": {
@@ -24233,6 +25092,26 @@
        }
       ],
       "title": "Original Text"
+     },
+     "lunar": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/LunarDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "derived": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/DateDerivation"
+       },
+       {
+        "type": "null"
+       }
+      ]
      },
      "redacted": {
       "type": "boolean",
@@ -27529,6 +28408,65 @@
     ],
     "title": "LoginIn"
    },
+   "LunarDate": {
+    "properties": {
+     "masa": {
+      "type": "string",
+      "pattern": "^(chaitra|vaishakha|jyeshtha|ashadha|shravana|bhadrapada|ashvin|kartika|margashirsha|pausha|magha|phalguna)$",
+      "title": "Masa"
+     },
+     "paksha": {
+      "$ref": "#/components/schemas/Paksha"
+     },
+     "tithi": {
+      "type": "integer",
+      "maximum": 15.0,
+      "minimum": 1.0,
+      "title": "Tithi"
+     },
+     "is_adhik": {
+      "type": "boolean",
+      "title": "Is Adhik",
+      "default": false
+     },
+     "month_convention": {
+      "$ref": "#/components/schemas/MonthConvention"
+     },
+     "samvat": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Samvat"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 9999.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "masa",
+     "paksha",
+     "tithi",
+     "month_convention"
+    ],
+    "title": "LunarDate",
+    "description": "The lunar part of a date, as entered (stored inside the date JSON)."
+   },
    "MapOut": {
     "properties": {
      "points": {
@@ -28051,6 +28989,15 @@
      "otpauth_uri"
     ],
     "title": "MfaSetupOut"
+   },
+   "MonthConvention": {
+    "type": "string",
+    "enum": [
+     "amanta",
+     "purnimanta"
+    ],
+    "title": "MonthConvention",
+    "description": "How a lunar month is bounded: new moon to new moon, or full moon to full moon."
    },
    "NameIn": {
     "properties": {
@@ -29591,6 +30538,14 @@
      "items"
     ],
     "title": "Page[SourceOut]"
+   },
+   "Paksha": {
+    "type": "string",
+    "enum": [
+     "shukla",
+     "krishna"
+    ],
+    "title": "Paksha"
    },
    "ParcelGroupOut": {
     "properties": {
@@ -35584,6 +36539,15 @@
     ],
     "title": "RelativeOut"
    },
+   "ReminderDateRule": {
+    "type": "string",
+    "enum": [
+     "solar",
+     "lunar"
+    ],
+    "title": "ReminderDateRule",
+    "description": "Which date drives a reminder (ADR-0022 \u00a75): the Gregorian day, or the tithi."
+   },
    "ReminderIn": {
     "properties": {
      "event_id": {
@@ -35610,6 +36574,34 @@
         "type": "null"
        }
       ]
+     },
+     "date_rule": {
+      "$ref": "#/components/schemas/ReminderDateRule",
+      "default": "solar"
+     },
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 40
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "observance_city": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observance City"
      },
      "lead_days": {
       "anyOf": [
@@ -35686,6 +36678,32 @@
      },
      "recurrence": {
       "$ref": "#/components/schemas/ReminderRecurrence"
+     },
+     "date_rule": {
+      "$ref": "#/components/schemas/ReminderDateRule",
+      "default": "solar"
+     },
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "observance_city": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observance City"
      },
      "lead_days": {
       "items": {
@@ -35832,6 +36850,40 @@
         "type": "null"
        }
       ]
+     },
+     "date_rule": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ReminderDateRule"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "convention": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 40
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Convention"
+     },
+     "observance_city": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 60
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Observance City"
      },
      "lead_days": {
       "anyOf": [
@@ -36797,6 +37849,14 @@
      "REVIEWER"
     ],
     "title": "Role"
+   },
+   "Samvat": {
+    "type": "string",
+    "enum": [
+     "vikram",
+     "shaka"
+    ],
+    "title": "Samvat"
    },
    "ScanStatus": {
     "type": "string",

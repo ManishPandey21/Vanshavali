@@ -8,6 +8,11 @@ COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /usr/local/bin/uv
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
+# JPL DE440s ephemeris for the family calendar (ADR-0022 §1): fetched once per build and accepted
+# only if it matches the pinned SHA-256; its own layer, so app changes do not download it again
+COPY app/modules/calendar/ephemeris.py /tmp/ephemeris.py
+RUN python /tmp/ephemeris.py fetch /app/ephemeris/de440s.bsp && rm /tmp/ephemeris.py
+ENV VSH_EPHEMERIS_PATH=/app/ephemeris/de440s.bsp
 COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
