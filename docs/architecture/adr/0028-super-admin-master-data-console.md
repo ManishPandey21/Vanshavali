@@ -67,7 +67,7 @@
   - Two-step sign-in (TOTP) exists and is optional. When it is on, Google sign-in is refused for
     that account.
   - Nothing records whether a session was opened with the second step.
-  - `MeOut` does not expose `is_system_admin`; the frontend cannot see the flag.
+  - `UserOut` (the `/me` response) does not expose `is_system_admin`; the frontend cannot see the flag.
 - **Geography** (LGD units and PIN offices) is loaded as reviewed snapshots by an operator CLI.
   Only synthetic fixtures are committed. The importer hard-codes the licence as GODL-India
   (`geo/importer.py`, `LICENCE`) with a fixed attribution; no legal review of that is recorded.
@@ -280,7 +280,7 @@ audit logs stay with tree owners and admins (ADR-0006), and the console cannot r
   - A caller without the capability gets **404**, so the console's existence isn't revealed.
   - A holder without a valid second step gets 403 `admin_mfa_required`.
   - Writes need the CSRF header and are rate-limited.
-  - The UI only hides controls; the server decides. `MeOut` gains `platform_capabilities`, the
+  - The UI only hides controls; the server decides. `UserOut` gains `platform_capabilities`, the
     caller's own capabilities, only to show or hide the console link.
   - **Off by default.** `VSH_MASTERDATA_CONSOLE_ENABLED` defaults to `false`. It is turned on only
     once the go-live checklist records two named administrators (amendment A10).
@@ -691,7 +691,7 @@ for each increment.
 1. **Platform capability and sign-in.**
    - `platform_capability_grant` and the grant and revoke CLI.
    - The session MFA columns, the step-up endpoint and `require_platform`.
-   - `MeOut.platform_capabilities`.
+   - `UserOut.platform_capabilities`.
    - The no-tree-access tests and the import-boundary test.
    - The ADR-0006 note, the threat entry and the privacy-model section.
 2. **Read-only console.** Lists (with authority), terms and term detail; the not-found page and
