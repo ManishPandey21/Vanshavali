@@ -4,9 +4,15 @@ import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { countLaunchRetries } from "./browser.mjs";
+import { findFfprobe, probeDuration } from "./ffprobe.mjs";
 import { ROOT } from "./common.mjs";
 
 const node = process.execPath;
+// The MP4 duration check is mandatory: a missing or failing ffprobe fails the test instead of
+// skipping the check (it used to skip silently when no system ffmpeg was installed).
+const ffprobe = findFfprobe();
+if (!ffprobe) throw new Error("no working ffprobe: run npm ci (Remotion bundles one) or set FFPROBE");
+console.log(`ffprobe: ${ffprobe}`);
 execFileSync(node, [path.join(ROOT, "scripts", "bundle.mjs")], { stdio: "inherit" });
 // sample props live in TypeScript; the bundle exposes them as the compositions' defaults, so an
 // empty-ish payload would not do: build the payloads from the fixture JSON instead
@@ -41,11 +47,10 @@ for (const [composition, props] of Object.entries(fixtures)) {
   if (png.subarray(1, 4).toString() !== "PNG" || png.length < 2000) throw new Error(`${composition}: bad poster`);
   if (output === "mp4") {
     const size = statSync(result.video).size;
-    const probe = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", result.video], { encoding: "utf8" });
-    const seconds = probe.status === 0 ? Number(probe.stdout.trim()) : NaN;
+    const seconds = probeDuration(ffprobe, result.video);
     const expected = result.durationInFrames / result.fps;
     if (size < 10_000) throw new Error(`${composition}: video too small`);
-    if (!Number.isNaN(seconds) && Math.abs(seconds - expected) > 0.5) throw new Error(`${composition}: duration ${seconds} != ${expected}`);
+    if (Math.abs(seconds - expected) > 0.5) throw new Error(`${composition}: duration ${seconds} != ${expected}`);
     console.log(`ok ${composition}: poster ${png.length} B, mp4 ${size} B, ${expected.toFixed(1)} s`);
   } else {
     console.log(`ok ${composition}: poster ${png.length} B`);
