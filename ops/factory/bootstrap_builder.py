@@ -30,7 +30,6 @@ This file lives under ``ops/factory/`` (a protected path): a builder cannot chan
 from __future__ import annotations
 
 import argparse
-import contextlib
 import hashlib
 import importlib.util
 import os
@@ -205,28 +204,35 @@ def install_env(cache: Path, network_env: Path | None) -> dict[str, str]:
     return env
 
 
-def step(argv: list[str], cwd: Path, env: dict[str, str], root: Path) -> None:
+def step(argv: list[str], cwd: Path, env: dict[str, str], root: Path, timeout: int) -> None:
     if not shutil.which(argv[0], path=env.get("PATH")):
         raise BootstrapError(f"`{argv[0]}` is not on PATH (see docs/operations/code-factory.md)")
     log(f"$ (cd {cwd.relative_to(root)}) {' '.join(argv)}")
     started = time.monotonic()
-    # Own process group, so a timeout also stops install scripts the tool started.
-    proc = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL, start_new_session=True)
+    # Steps stay in the bootstrap's process group: the factory stops a builder by killing that
+    # group (SIGKILL, uncatchable), which must take running installs and their scripts with it.
+    proc = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL)
     try:
-        proc.wait(timeout=STEP_TIMEOUT)
-    except BaseException:
-        with contextlib.suppress(ProcessLookupError):
-            os.killpg(proc.pid, signal.SIGKILL)
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        log(f"FAILED: {argv[0]} timed out after {timeout}s; stopping it and its child processes")
+        log("the builder was not started; fix the host or repository, then `retry` the ticket")
+        sys.stderr.flush()
+        if os.getpgrp() == os.getpid():
+            # Started by the factory, we lead our own group: kill it whole (this process too),
+            # so install scripts the tool spawned cannot outlive the step.
+            os.killpg(os.getpgrp(), signal.SIGKILL)
+        proc.kill()  # run by hand inside someone else's group: stop only the step itself
         proc.wait()
-        if sys.exc_info()[0] is subprocess.TimeoutExpired:
-            raise BootstrapError(f"{argv[0]} timed out after {STEP_TIMEOUT}s") from None
-        raise
+        raise BootstrapError(f"{argv[0]} timed out after {timeout}s") from None
     if proc.returncode:
         raise BootstrapError(f"{argv[0]} exited {proc.returncode}")
     log(f"  ok in {time.monotonic() - started:.0f}s")
 
 
-def provision(root: Path, cache: Path, network_env: Path | None) -> dict[str, str]:
+def provision(
+    root: Path, cache: Path, network_env: Path | None, timeout: int = STEP_TIMEOUT
+) -> dict[str, str]:
     check_worktree(root)
     check_lockfiles(root)
     cache.mkdir(parents=True, exist_ok=True)
@@ -234,9 +240,9 @@ def provision(root: Path, cache: Path, network_env: Path | None) -> dict[str, st
     before = tracked_state(root)
     started = time.monotonic()
     for component, _, argv in COMPONENTS:
-        step(argv, root / component, env, root)
+        step(argv, root / component, env, root, timeout)
     # Version-matched browser for the pinned @playwright/test (cached; no download when present).
-    step(["npx", "playwright", "install", "chromium"], root / "e2e", env, root)
+    step(["npx", "playwright", "install", "chromium"], root / "e2e", env, root, timeout)
     if tracked_state(root) != before:
         raise BootstrapError("dependency installation changed tracked files in the worktree")
     log(
@@ -260,12 +266,13 @@ def main(argv: list[str] | None = None) -> int:
     sep = argv.index("--")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--cache-dir", default=str(Path.home() / ".cache" / "vanshavali-factory"))
+    p.add_argument("--step-timeout", type=int, default=STEP_TIMEOUT, help=argparse.SUPPRESS)
     p.add_argument("--network-env", help="private KEY=VALUE file of proxy/CA settings (outside the repo)")
     a = p.parse_args(argv[:sep])
     agent = argv[sep + 1 :]
     try:
         net = Path(a.network_env).expanduser() if a.network_env else None
-        env = provision(Path.cwd().resolve(), Path(a.cache_dir).expanduser().resolve(), net)
+        env = provision(Path.cwd().resolve(), Path(a.cache_dir).expanduser().resolve(), net, a.step_timeout)
     except BootstrapError as exc:
         log(f"FAILED: {exc}")
         log("the builder was not started; fix the host or repository, then `retry` the ticket")

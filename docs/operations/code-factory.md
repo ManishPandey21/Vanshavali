@@ -69,7 +69,7 @@ start through `ops/factory/bootstrap_builder.py`, owned by the controller:
 
 **Failures stop the ticket; they never widen permissions.** Any failure (missing or modified
 lockfile or install configuration, a tool missing from `PATH`, an install error, a 20-minute step
-timeout (the step's whole process group is killed), an altered worktree file, the wrong directory,
+timeout (the bootstrap kills its process group, so install scripts stop too), an altered worktree file, the wrong directory,
 an agent command that cannot start) prints `[bootstrap] FAILED: …` in the ticket's `builder.log`,
 exits non-zero before the agent starts, and the factory marks the ticket BLOCKED. Nothing falls
 back to `npm install`, skips a component, or adds a permission. Fix the cause, then `retry`.
@@ -97,7 +97,8 @@ cold checks, which run with a scrubbed environment, use the file as is.
 
 **Preflight before a retry.** To prove the host can provision a builder without spending an
 attempt, create a scratch worktree in the factory's worktrees directory and run the bootstrap with a
-harmless command in place of the agent:
+harmless command in place of the agent. Run both commands from the main checkout, with the
+`--cache-dir` (and `--network-env`, if any) you gave `configure_factory.py`:
 
 ```bash
 git worktree add --detach .git/infra-factory/worktrees/PREFLIGHT main
@@ -107,8 +108,8 @@ git worktree add --detach .git/infra-factory/worktrees/PREFLIGHT main
 REPO="$PWD"; cd .git/infra-factory/worktrees/PREFLIGHT && python3 -I "$REPO/ops/factory/bootstrap_builder.py" --cache-dir ~/.cache/vanshavali-factory -- sh -c "cd frontend && npx vitest run src/i18n"; cd "$REPO"
 ```
 
-The log must end with `dependencies ready … starting builder` and a passing test run (add the same
-`--network-env` you gave `configure_factory.py`). (Run both from the main checkout.) Remove it afterwards with
+The log must end with `dependencies ready … starting builder` and a passing test run. Remove the
+scratch worktree afterwards with
 `git worktree remove --force .git/infra-factory/worktrees/PREFLIGHT`.
 
 ## One-time setup (factory host)

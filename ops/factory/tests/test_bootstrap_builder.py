@@ -17,10 +17,12 @@ import importlib.util
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import textwrap
+import time
 import unittest
 from pathlib import Path
 
@@ -56,6 +58,7 @@ FAKE_TOOL = textwrap.dedent(
     if [ -n "$FAKE_ALLPROXY_LOG" ]; then echo "$HTTPS_PROXY|$https_proxy|$npm_config_https_proxy|$NODE_EXTRA_CA_CERTS" >> "$FAKE_ALLPROXY_LOG"; fi
     if [ "$FAKE_FAIL" = "$(basename "$0")" ]; then echo "fake failure" >&2; exit 7; fi
     if [ -n "$FAKE_TOUCH" ]; then echo changed >> "$FAKE_TOUCH"; fi
+    if [ "$FAKE_HANG" = "$(basename "$0")" ]; then sleep 300 & echo $! > "$FAKE_PIDFILE"; wait; fi
     if [ "$(basename "$0")" = npm ]; then mkdir -p node_modules && touch node_modules/.installed; fi
     if [ "$(basename "$0")" = uv ]; then mkdir -p .venv; fi
     exit 0
@@ -362,6 +365,64 @@ class BootstrapTests(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 3, proc.stderr)
         self.assertIn("[bootstrap] FAILED: cannot start the builder", proc.stderr)
+
+    def _hanging_bootstrap(self, *extra: str) -> tuple[subprocess.Popen[str], Path]:
+        """Start the bootstrap the way the factory does (own session) with `npm` hanging."""
+        wt = self.host.worktree()
+        pidfile = self.host.tmp / "grandchild.pid"
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("FAKE_", "PLAYWRIGHT_"))}
+        env.update(
+            {
+                "PATH": f"{self.host.bin}{os.pathsep}{os.environ['PATH']}",
+                "FAKE_LOG": str(self.host.calls),
+                "FAKE_AGENT_OUT": str(self.host.agent_out),
+                "FAKE_HANG": "npm",
+                "FAKE_PIDFILE": str(pidfile),
+            }
+        )
+        argv = [sys.executable, "-I", str(BOOTSTRAP), "--cache-dir", str(self.host.cache), *extra]
+        argv += ["--", sys.executable, str(self.host.agent)]
+        proc = subprocess.Popen(
+            argv, cwd=wt, env=env, stderr=subprocess.PIPE, text=True, start_new_session=True
+        )
+        deadline = time.monotonic() + 60
+        while not (pidfile.exists() and pidfile.read_text().strip()):
+            self.assertLess(time.monotonic(), deadline, "fake npm never started")
+            time.sleep(0.1)
+        return proc, pidfile
+
+    def assert_dead(self, pidfile: Path) -> None:
+        pid = int(pidfile.read_text())
+        deadline = time.monotonic() + 10
+        while True:
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return
+            # a zombie reparented to init also counts as stopped
+            stat = Path(f"/proc/{pid}/stat")
+            if stat.exists() and stat.read_text().split(") ")[-1].startswith("Z"):
+                return
+            if time.monotonic() > deadline:
+                os.kill(pid, signal.SIGKILL)
+                self.fail("an install step's child process outlived the bootstrap")
+            time.sleep(0.1)
+
+    def test_factory_kill_of_the_builder_also_stops_running_installs(self) -> None:
+        # Review finding: steps in their own session survived the factory's killpg(builder).
+        proc, pidfile = self._hanging_bootstrap()
+        os.killpg(proc.pid, signal.SIGKILL)  # what factory.py kill_tree does on timeout/SIGTERM
+        proc.communicate(timeout=30)
+        self.assert_dead(pidfile)
+        self.assertFalse(self.host.agent_started())
+
+    def test_step_timeout_stops_the_install_and_its_children(self) -> None:
+        proc, pidfile = self._hanging_bootstrap("--step-timeout", "2")
+        _, err = proc.communicate(timeout=60)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("[bootstrap] FAILED: npm timed out after 2s", err)
+        self.assert_dead(pidfile)
+        self.assertFalse(self.host.agent_started())
 
 
 def load_configure():
