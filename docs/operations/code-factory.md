@@ -58,8 +58,11 @@ machine that holds production credentials.
    ```
 
 2. Install the Superpowers plugin (provides the `test-driven-development` skill the builders
-   follow) and note the path of its `test-driven-development/SKILL.md`. See the toolkit's
-   `docs/SKILL_ROUTING.md`.
+   follow) **in the Claude profile the factory runs under**, and note the path of its
+   `test-driven-development/SKILL.md`. See the toolkit's `docs/SKILL_ROUTING.md`. Builders run as
+   headless Claude, which refuses to read files outside its worktree by path; they load the skill
+   through Claude's Skill tool instead, so the plugin must be installed and enabled, not just
+   present on disk. A stand-alone copy of the file elsewhere is not readable by builders.
 
 3. On a clean `main` checkout, initialise the ledger:
 
@@ -67,7 +70,32 @@ machine that holds production credentials.
    python3 ~/tools/infra-code-factory/factory.py init --repo . --apply
    ```
 
-4. Generate the configuration (preview first, then `--apply`). The script accepts only the
+4. **Move builder worktrees out of `.git`.** The toolkit creates each builder's worktree under
+   `.git/infra-factory/worktrees/`, and Claude Code refuses to edit any file inside a `.git`
+   directory: every Claude builder stops with its edits refused as "sensitive file" changes and
+   the ticket blocks with "Builder produced no changes". Right after `init`, before any ticket
+   runs, make that directory a symlink to one outside the repository. `init` does not create it,
+   so on a fresh setup the link is all you need:
+
+   ```bash
+   mkdir -p ~/vsh-factory-worktrees
+   ```
+
+   ```bash
+   ln -s ~/vsh-factory-worktrees .git/infra-factory/worktrees
+   ```
+
+   ```bash
+   ls -l .git/infra-factory
+   ```
+
+   The listing must show `worktrees -> /home/you/vsh-factory-worktrees`. If `ln` fails because
+   `worktrees` already exists, no ticket may be in flight: remove each worktree in it with
+   `git worktree remove <path>` (the ledger keeps their logs), run `git worktree prune`, delete the
+   now-empty directory with `rmdir .git/infra-factory/worktrees`, and run `ln` again. Never `rm -r`
+   it. Evidence and logs stay under `.git/infra-factory/`; only the checkouts move.
+
+5. Generate the configuration (preview first, then `--apply`). The script accepts only the
    reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
    pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
    the toolkit, review its diff and update `TOOLKIT_VERSION`/`TOOLKIT_SHA256` in a normal PR.
@@ -87,14 +115,14 @@ machine that holds production credentials.
    strips the environment from test runs, so the proxy/CA variables of your shell are saved to
    that private (0600) file and only those allow-listed names are read back.
 
-5. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
+6. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
    Windows render fonts differently). Look at every image before committing them:
 
    ```bash
    cd e2e && npx playwright test --config=playwright.visual.config.ts --update-snapshots
    ```
 
-6. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
+7. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
    host is set up): add the two example tickets under new ids, run, then `reject` them.
 
 ## Daily use
@@ -172,3 +200,7 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
   (`--static backend|frontend` for the preflight).
 - "Cold check modified the candidate checkout": a suite wrote an untracked, non-ignored file;
   fix the suite (via a normal PR), not the ticket.
+- "Builder produced no changes", and the builder's result says its edits were refused as
+  "sensitive file" permission prompts: the worktrees are still inside `.git` (setup step 4). Fix
+  the symlink, then `retry` the ticket. A builder that reports it could not read its skill file
+  means the Superpowers plugin is not installed in the factory's Claude profile (setup step 2).

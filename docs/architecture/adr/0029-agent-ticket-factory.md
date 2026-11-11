@@ -108,6 +108,11 @@ remain the merge gate; nothing about `main` changes.
 
 - Two tickets can be built concurrently and arrive as draft PRs with hashed, re-checkable evidence.
   READY is a *local* result: CI must still pass and a person still merges.
+- Claude Code refuses to edit files inside a `.git` directory, where the toolkit puts builder
+  worktrees, and headless Claude cannot read files outside its worktree by path. Each factory host
+  therefore symlinks `.git/infra-factory/worktrees` to a directory outside the repository, and
+  builders load the Superpowers TDD skill through the installed plugin (runbook setup steps 2
+  and 4). Found by the first live run (U02-VITALS-EDIT, attempt 1 blocked).
 - Verification is slow by design: every candidate runs the selected suites twice (one per review
   lens) in fresh checkouts, serialised on the host. A backend ticket runs the whole backend suite,
   the contract check and the full E2E suite twice.
