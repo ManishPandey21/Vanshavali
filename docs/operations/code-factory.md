@@ -127,8 +127,11 @@ machine that holds production credentials.
    ```
 
 2. Install the Superpowers plugin (provides the `test-driven-development` skill the builders
-   follow) and note the path of its `test-driven-development/SKILL.md`. See the toolkit's
-   `docs/SKILL_ROUTING.md`.
+   follow) **in the Claude profile the factory runs under**, and note the path of its
+   `test-driven-development/SKILL.md`. See the toolkit's `docs/SKILL_ROUTING.md`. Builders run as
+   headless Claude, which refuses to read files outside its worktree by path; they load the skill
+   through Claude's Skill tool instead, so the plugin must be installed and enabled, not just
+   present on disk. A stand-alone copy of the file elsewhere is not readable by builders.
 
 3. On a clean `main` checkout, initialise the ledger:
 
@@ -136,7 +139,65 @@ machine that holds production credentials.
    python3 ~/tools/infra-code-factory/factory.py init --repo . --apply
    ```
 
-4. Generate the configuration (preview first, then `--apply`). The script accepts only the
+4. **Move builder worktrees out of `.git`.** The toolkit creates each builder's worktree under
+   `.git/infra-factory/worktrees/`, and Claude Code refuses to edit any file inside a `.git`
+   directory: every Claude builder stops with its edits refused as "sensitive file" changes and
+   the ticket blocks with "Builder produced no changes". Right after `init`, before any ticket
+   runs, make that directory a symlink to one outside the repository. `init` does not create it,
+   so on a fresh setup the link is all you need:
+
+   ```bash
+   mkdir -p ~/vsh-factory-worktrees
+   ```
+
+   ```bash
+   ln -s ~/vsh-factory-worktrees .git/infra-factory/worktrees
+   ```
+
+   ```bash
+   ls -l .git/infra-factory
+   ```
+
+   The listing must show `worktrees -> /home/you/vsh-factory-worktrees`. If `ln` fails because
+   `worktrees` already exists, no ticket may be in flight: remove each worktree in it with
+   `git worktree remove <path>` (the ledger keeps their logs), run `git worktree prune`, delete the
+   now-empty directory with `rmdir .git/infra-factory/worktrees`, and run `ln` again. Never `rm -r`
+   it. Evidence and logs stay under `.git/infra-factory/`; only the checkouts move.
+
+5. **Let builders run the tests.** Builders run as headless Claude in `acceptEdits` mode, where
+   every shell command needs permission and an unanswered prompt is a refusal. Without the rules
+   below a builder cannot run a single test, so it cannot see a test fail and then pass, and its
+   mistakes only surface in cold verification (the first live ticket blocked this way). Add these
+   rules to the Claude user settings of the account the factory runs under,
+   `~/.claude/settings.json` (merge them into an existing `permissions.allow` list):
+
+   ```json
+   {
+     "permissions": {
+       "allow": [
+         "Bash(npx vitest *)",
+         "Bash(npm run lint)",
+         "Bash(npm run typecheck)",
+         "Bash(npm test *)",
+         "Bash(npx playwright test *)",
+         "Bash(npx tsc *)"
+       ]
+     }
+   }
+   ```
+
+   They allow test, lint and type-check commands only; installs, Git and everything else still
+   need a person. The rules apply to every Claude session of that account, not just builders.
+   Claude Code will not edit its own settings from inside a session, so add them yourself.
+
+   Put them in **user** settings, not in the repository's `.claude/settings.json`. Claude Code
+   ignores permission rules in a project settings file until that folder has been trusted, and
+   every builder runs in a brand-new worktree that never has been, so committed rules are
+   silently skipped ("Ignoring … permissions.allow entries … this workspace has not been
+   trusted"). On a cloud factory host, have the environment's setup script write the user
+   settings file before Claude starts.
+
+6. Generate the configuration (preview first, then `--apply`). The script accepts only the
    reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
    pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
    the toolkit, review its diff and update `TOOLKIT_VERSION`/`TOOLKIT_SHA256` in a normal PR.
@@ -156,14 +217,14 @@ machine that holds production credentials.
    strips the environment from test runs, so the proxy/CA variables of your shell are saved to
    that private (0600) file and only those allow-listed names are read back.
 
-5. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
+7. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
    Windows render fonts differently). Look at every image before committing them:
 
    ```bash
    cd e2e && npx playwright test --config=playwright.visual.config.ts --update-snapshots
    ```
 
-6. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
+8. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
    host is set up): add the two example tickets under new ids, run, then `reject` them.
 
 ## Daily use
@@ -241,6 +302,13 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
   (`--static backend|frontend` for the preflight).
 - "Cold check modified the candidate checkout": a suite wrote an untracked, non-ignored file;
   fix the suite (via a normal PR), not the ticket.
+- "Builder produced no changes", and the builder's result says its edits were refused as
+  "sensitive file" permission prompts: the worktrees are still inside `.git` (setup step 4). Fix
+  the symlink, then `retry` the ticket. A builder that reports it could not read its skill file
+  means the Superpowers plugin is not installed in the factory's Claude profile (setup step 2).
+- A builder's summary says its test commands were refused and its tests were never run: the
+  permission rules from setup step 5 are missing. Expect its new tests to fail in cold
+  verification; add the rules before retrying.
 - `builder.log` ends with `[bootstrap] FAILED: …` and the ticket is BLOCKED: dependency provisioning
   failed and the builder never started (see "Builder dependencies"). Fix the host (tool on `PATH`,
   network, cache disk space) or the lockfile on the base branch, then `retry`. Do **not** give

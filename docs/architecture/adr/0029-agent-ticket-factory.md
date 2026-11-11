@@ -108,6 +108,13 @@ remain the merge gate; nothing about `main` changes.
 
 - Two tickets can be built concurrently and arrive as draft PRs with hashed, re-checkable evidence.
   READY is a *local* result: CI must still pass and a person still merges.
+- Claude Code refuses to edit files inside a `.git` directory, where the toolkit puts builder
+  worktrees, and headless Claude cannot read files outside its worktree by path. Each factory host
+  therefore symlinks `.git/infra-factory/worktrees` to a directory outside the repository, and
+  builders load the Superpowers TDD skill through the installed plugin, and the factory account's
+  Claude settings allow test, lint and type-check commands so a builder can run its own tests
+  (runbook setup steps 2, 4 and 5). Without that last rule a builder writes tests it never ran,
+  and the first live retry blocked on one such test. Found by the first live run (U02-VITALS-EDIT, attempt 1 blocked).
 - Builders may run tests but never install packages, and a fresh builder worktree has no
   dependencies (the first live ticket, U02-VITALS-EDIT-B, blocked with a builder that could not run
   one test). Every builder therefore starts through a controller-owned bootstrap
