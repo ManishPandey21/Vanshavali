@@ -1,6 +1,7 @@
 # ADR-0028: Super Admin master-data console: global terms published from the interface (Option B)
 
-- Status: **Proposed** · Date: 2026-11-09 · Not implemented. Nothing in this ADR is built until the
+- Status: **Proposed** · Date: 2026-11-09 · Amended 2026-11-11 (amendments A1–A10, see
+  "Amendments of 11 Nov 2026" at the end) · Not implemented. Nothing in this ADR is built until the
   owner accepts it.
 - Would amend, **only once accepted**:
   - ADR-0006 §6: system administrators get a separate master-data capability.
@@ -14,16 +15,26 @@
   ADR-0019 (geography snapshots), ADR-0021 (review and revisions), ADR-0025 (transliteration
   lexicon), Q4 (caste, jati and religion), Q13 (lawful basis).
 - Prior work:
-  - PR #35 (draft) built a console on an older schema. It stays open as a reference; this ADR
-    reuses its ideas, not its code.
+  - PR #35 (draft) built a console on an older schema. The consolidation review
+    (`docs/architecture/master-data-console-consolidation.md`, PR #64) compared it with this ADR
+    file by file. This ADR reuses a named subset of #35's code (review §3), not its schema:
+    #35's migrations `7d4a2c9e1b60` and `9e3b5d7f2a14` are **discarded, not re-parented**. They
+    fork the Alembic graph, duplicate geography tables `main` already has, and encode the per-term
+    model rejected in §2. #35 stays open as a reference until the increments in the implementation
+    plan reach feature parity.
+  - PR #60 carries #35's CI commits unchanged (same patch ids) and lands on its own.
   - PR #19 (draft) is unrelated to this decision and is left untouched.
 
 ## Context
 
-### What `main` does today (verified 9 Nov 2026, `1f99b97`)
+### What `main` does today (verified 9 Nov 2026 at `1f99b97`; re-verified 11 Nov 2026 at `5913759`)
 - **Global terms live in JSON packs** (`backend/app/modules/masterdata/packs/*.json`). There are nine
   vocabularies: gotra (16 terms), kula (7), occupation (17), honorific (8), language (23, closed),
-  pravara (14 gotra links, all `draft`), and kuladevata, kuladevi and devak, which are empty.
+  pravara (14 gotra links), and kuladevata, kuladevi and devak, which are empty.
+- **Every live term is `draft`** (all 85). Family suggestions exclude only `retired` terms, unless
+  a caller asks for `reviewed` only (`masterdata/service.py`, `_global_terms`). So **`draft` terms
+  are suggested to families today**. A "not yet approved" term therefore cannot be stored as
+  `draft` (§3, amendment A6).
 - **The loader is the only writer.** `python -m app.cli.masterdata load` runs as the schema owner,
   after `alembic upgrade`, in:
   - the pilot `migrate` service (`deploy/pilot/compose.yml`);
@@ -43,8 +54,11 @@
   - Operators decide offers with `python -m app.cli.masterdata offers`. Accepting writes into the
     pack JSON, so the change then goes through code review.
 - **Grants.** The application role (`vanshavali_app`) has `SELECT, INSERT, UPDATE, DELETE` on every
-  table except the four geography tables, which `GRANT_APP_ROLE_SQL` makes read-only
-  (`app/models/rls.py`, ADR-0019 §2). That includes `vocabulary` and `vocabulary_term`.
+  table except the five in `READ_ONLY_TABLES` (`geo_snapshot`, `geo_unit`, `geo_unit_alias`,
+  `pincode_office`, `panchang_day`; `app/models/rls.py`, ADR-0019 §2). That includes `vocabulary`
+  and `vocabulary_term`.
+- **Row-level security is not FORCEd** (`app/models/rls.py`). The schema owner, and so any
+  `SECURITY DEFINER` function it owns, bypasses every tree policy (§12, §14).
 - **Administrators.**
   - `app_user.is_system_admin` is a single flag. ADR-0006 §6 limits it to health and metrics, plus
     seeing draft kinship packs.
@@ -53,8 +67,10 @@
   - Two-step sign-in (TOTP) exists and is optional. When it is on, Google sign-in is refused for
     that account.
   - Nothing records whether a session was opened with the second step.
+  - `MeOut` does not expose `is_system_admin`; the frontend cannot see the flag.
 - **Geography** (LGD units and PIN offices) is loaded as reviewed snapshots by an operator CLI.
-  Only synthetic fixtures are committed, and the licensing of the real files is still open.
+  Only synthetic fixtures are committed. The importer hard-codes the licence as GODL-India
+  (`geo/importer.py`, `LICENCE`) with a fixed attribution; no legal review of that is recorded.
 
 ### The decision asked for
 The owner chose **Option B**: authorised administrators create and change supported global terms
@@ -93,8 +109,9 @@ every category).
     over a curated term (§3).
   - Moving a vocabulary from `pack` to `database` (adoption), or back (§11), is itself a change
     that needs a second administrator's approval. It is recorded in the history.
-- Proposed first adopters: gotra, kula, kuladevata, kuladevi, devak and occupation. Honorific and
-  pravara could follow. Language stays `pack`, because it is a closed list.
+- First adopters (the owner's position, 11 Nov 2026): gotra, kula, kuladevata, kuladevi, devak and
+  occupation. Honorific and pravara stay `pack`; adopting either later needs an amendment.
+  Language stays `pack`, because it is a closed list.
 
 Per-vocabulary authority means one answer to "where is the truth for this list?". The alternative,
 a "curated" flag on each term, leaves every list half in Git and half in the database (see the
@@ -113,9 +130,9 @@ created by the console is curated from the start.
 | Pack | Database | Vocabulary authority | Loader action |
 |---|---|---|---|
 | has term, not in DB | — | `pack` | Insert (as today). |
-| has term, not in DB | — | `database` | Insert only if the code was never used. The term starts `draft`, outside suggestions, and appears in the console as a **pack proposal**. A code the console retired or reserved is never re-created; it is reported as a conflict. |
+| has term, not in DB | — | `database` | **No write to `vocabulary_term`.** Upsert a row in `vocabulary_pack_proposal`, only if the code is not used by any term, open change request or other proposal. It appears in the console as a **pack proposal** and is never suggested to families. A code the console retired or reserved is never re-created; it is reported as a conflict. |
 | has term, differs | not curated | `pack` | Update (as today). |
-| has term, differs | not curated | `database` | Report as a pack proposal; no write. |
+| has term, differs | not curated | `database` | Upsert a `vocabulary_pack_proposal` row; no write to the term. |
 | has term, differs | **curated** | either | **Never overwritten.** Reported as a conflict ("pack differs from curated term"). The console offers it as a proposed change, which goes through the normal approval. |
 | term missing | not curated | `pack` | Retire (as today). |
 | term missing | not curated | `database` | No change; reported. |
@@ -123,8 +140,17 @@ created by the console is curated from the start.
 | vocabulary metadata (description, version, source, licence) | — | `pack` | Update. |
 | vocabulary metadata | — | `database` | Keep the database values; record the pack version as `pack_version_seen`. |
 
-- **Locking.** The loader and console publication take the same transaction-scoped advisory lock,
-  so a deploy can never interleave with a publish.
+- **Pack proposals live in their own table** (`vocabulary_pack_proposal`: vocabulary, code,
+  proposed fields, pack version, first and last seen). They are never rows of `vocabulary_term`,
+  because a `draft` term is suggested to families (Context). Accepting one creates a change
+  request prefilled from it (§4). (Amendment A6.)
+- **Codes are reserved** across `vocabulary_term`, open change requests and pack proposals: a code
+  in any of them cannot be created by another path.
+- **Locking.** The loader and every definer function that writes terms take the same
+  transaction-scoped advisory lock (`pg_advisory_xact_lock` on one fixed key), **before** the
+  loader reads any term. Without that, the loader can read a term, a publication can commit, and
+  the loader's UPDATE then overwrites the published values (a lost update found in PR #35's
+  loader). A deploy can therefore never interleave with a publish.
 - **Reporting.** `--dry-run` prints the same report, including conflicts. CI fails if
   `load --dry-run` reports a conflict for a vocabulary whose authority is `pack`. That would mean a
   curated term is shadowing the pack in a pack-owned list, which should not happen.
@@ -146,8 +172,9 @@ created by the console is curated from the start.
    tables.
 
 ### 4. The change workflow
-**Change types:** create a term, edit labels, aliases, scope, attributes or source, retire,
-reactivate, merge, and adopt or release a vocabulary (§2).
+**Change types:** create a term, edit labels, aliases, scope, attributes or source, retire (with
+an optional successor), reactivate, and adopt or release a vocabulary (§2). **Merge is deferred**
+until after the first release (§10, amendment A7).
 - Each change request records the term, the term's **base revision**, the proposed values and a
   required reason.
 - At most **one open change per term**, enforced by a partial unique index.
@@ -156,10 +183,18 @@ reactivate, merge, and adopt or release a vocabulary (§2).
 `stale`.
 
 **Approval:**
-- **A second, different administrator** approves.
-- The rule is enforced in the service and by a database `CHECK (approved_by <> submitted_by)`.
-- **There is no self-approval path in the interface or the API**; §7 describes the only exception
-  and how it is kept visible.
+- **A second, different administrator** approves, always. There is no solo mode in this ADR
+  (deferred, §7).
+- The rule is enforced in the service, in the definer function (§14), and by database
+  constraints (amendment A4):
+  - `CHECK (status <> 'approved' OR (approved_by IS NOT NULL AND approved_by <> submitted_by))`.
+    A bare `approved_by <> submitted_by` is not enough: a NULL passes a CHECK.
+  - `submitted_by` is NOT NULL once a change is submitted.
+  - The user foreign keys are `ON DELETE RESTRICT`. Accounts are anonymised on closure, never
+    deleted, so this never blocks a closure.
+- **There is no self-approval path in the interface, the API or the database.**
+- With only one administrator, changes can be drafted and submitted but not published. The
+  fallback is `masterdata export` and code review (Option A).
 
 **Publication:**
 - Approval publishes in one transaction under the advisory lock.
@@ -177,10 +212,13 @@ reactivate, merge, and adopt or release a vocabulary (§2).
   - `source`: `console`, `loader` or `export_import`;
   - the change request id;
   - submitted-by and approved-by user ids;
-  - the approval mode (`second_admin`, `solo` or `loader`);
+  - the approval mode (`second_admin` or `loader`; `solo` only if solo mode is ever accepted);
   - the time.
 - **Append-only.** A trigger refuses UPDATE and DELETE, as on `audit_event`.
-- **The term itself** carries `revision`, `curated` and `replaced_by` (merges, §10).
+- **The term itself** carries `revision` and `curated`. `replaced_by` (merges, §10) comes with
+  the deferred merge change.
+- **Backfill.** The migration writes one version row per existing term (revision 1,
+  `source = loader`, the current pack version), so every term has a history from day one.
 - **Rollback of a term** means proposing a change that restores an earlier version. It is approved
   like any other change. History is never rewritten.
 
@@ -188,10 +226,13 @@ reactivate, merge, and adopt or release a vocabulary (§2).
 Every action writes an `audit_event` with `tree_id = NULL`:
 - `masterdata.change_submitted`, `…approved`, `…rejected`, `…withdrawn` and `…published`;
 - `masterdata.vocabulary_adopted` and `…released`;
-- `masterdata.solo_mode_enabled`, `…disabled` and `…solo_published`;
 - `masterdata.capability_granted` and `…revoked`;
 - `masterdata.offer_accepted` and `…declined`;
-- `masterdata.loader_conflict`.
+- `masterdata.loader_conflict`;
+- `masterdata.step_up` (a TOTP step-up for the console) and `masterdata.offer_reveal` (§12).
+
+Each definer function writes its own audit row (amendment A3), so an action recorded in the
+version history always has an audit event, whatever the service layer does.
 
 **`details`** holds vocabulary keys, term codes, change ids, the names of changed fields and the
 approval mode. Global term labels are public reference data and may be included.
@@ -211,6 +252,9 @@ audit logs stay with tree owners and admins (ADR-0006), and the console cannot r
   flag.
   - Grants and revocations are made **only by the operator CLI**, as the schema owner, and are
     audited.
+  - **`platform_capability_grant` is read-only to the application role** (it joins
+    `READ_ONLY_TABLES`). Otherwise an injection anywhere in the API could grant the capability to
+    itself (amendment A2).
   - The demo seeder never grants it.
   - The CLI refuses an account without a verified email and two-step sign-in.
 - **Named accounts only.**
@@ -218,40 +262,36 @@ audit logs stay with tree owners and admins (ADR-0006), and the console cannot r
   - Shared or role mailboxes (for example `admin@`, `ops@`, `info@`) are refused by the CLI. They
     are listed in a configurable deny-list.
   - The pilot runbook forbids shared credentials.
-- **Two-step sign-in is required.**
-  - `user_session` gains `mfa_verified_at`, set only when the session was opened with a password
-    plus TOTP.
-  - Every console request needs a session with it set, opened within the last 12 hours.
-  - Approve, publish, adopt and every solo action need a TOTP code entered in the last 15 minutes
-    (step-up).
+- **Two-step sign-in is required, per session** (amendment A5).
+  - `user_session` gains `mfa_verified_at` and `mfa_step_up_at`.
+  - `mfa_verified_at` is set only when the session was opened with a password plus TOTP. Google
+    sessions never set it.
+  - A session qualifies only if `mfa_verified_at` is within the last 12 hours **and**
+    `mfa_verified_at >= app_user.mfa_enabled_at`. The second test means that turning two-step
+    sign-in off and on again (a new secret) disqualifies every older session.
+  - Every console write needs `mfa_step_up_at` within the last 15 minutes. It is set by
+    `POST /api/v1/auth/step-up {code}`, which shares the login TOTP rate limit and is audited.
   - Turning off two-step sign-in removes console access at once, because it is checked on every
     request rather than cached.
+  - Password change and reset must revoke the account's other sessions. The first increment adds
+    a test for that, and the fix if it is missing.
 - **Server-side authorisation.**
   - Every `/api/v1/admin/master-data/*` route depends on `require_platform(MASTER_DATA_ADMIN)`.
   - A caller without the capability gets **404**, so the console's existence isn't revealed.
   - A holder without a valid second step gets 403 `admin_mfa_required`.
   - Writes need the CSRF header and are rate-limited.
-  - The UI only hides controls; the server decides.
-- **Single-admin installation (separate, auditable option).** Until a second administrator exists,
-  a change cannot be approved. That is the default and recommended state. For a one-admin pilot,
-  the owner may turn on **solo mode**, which is deliberately *not* self-approval in the normal flow:
-  - **Turning it on or off** is an operator CLI command run on the server as the schema owner. It
-    records who ran it, the reason and an expiry of at most 90 days. It is never available in the
-    web interface.
-  - **It switches itself off** as soon as two administrators hold the capability, and when it
-    expires.
-  - **A solo publication**:
-    - waits at least **24 hours** after submission;
-    - then needs the same administrator to confirm, with a fresh TOTP code and a typed
-      confirmation;
-    - is recorded with `approval_mode = solo`, in the version history and in a
-      `masterdata.solo_published` audit event.
-  - **Visibility.** While solo mode is on, the console shows a permanent banner. Every
-    solo-published term is listed under "Published without a second reviewer". When a second
-    administrator joins, that list becomes their first review queue: each item is confirmed or
-    reverted by an ordinary approved change.
-  - **Alternative for the owner to weigh:** no solo mode at all. A one-admin installation then
-    drafts in the console, and the operator publishes by CLI, as in Option A.
+  - The UI only hides controls; the server decides. `MeOut` gains `platform_capabilities`, the
+    caller's own capabilities, only to show or hide the console link.
+  - **Off by default.** `VSH_MASTERDATA_CONSOLE_ENABLED` defaults to `false`. It is turned on only
+    once the go-live checklist records two named administrators (amendment A10).
+- **Single-admin installation: no solo mode (deferred).** The owner's position (11 Nov 2026) is
+  two named administrators for every publication. Solo mode, its table (`masterdata_solo_mode`),
+  its audit events and `approval_mode = solo` are **not** part of this decision.
+  - A one-admin installation drafts and submits in the console. Publication waits for a second
+    administrator, or the operator exports the change and publishes it by code review (Option A).
+  - The earlier design (an operator CLI switch of at most 90 days, a 24-hour wait, a fresh TOTP,
+    a permanent banner and a "published without a second reviewer" list) is kept in the
+    alternatives below. Adopting it later needs an amendment to this ADR.
 
 ### 8. No access to family trees
 The capability is a platform permission and grants **no tree permission of any kind**.
@@ -259,6 +299,9 @@ The capability is a platform permission and grants **no tree permission of any k
   nothing from tree-scoped tables.
 - **No tree code.** Console code may not import tree-scoped models or tree services. A new test
   will check this by parsing the console module's imports; no such test exists yet.
+- **The definer functions are the only way across.** They run as the schema owner and RLS is not
+  FORCEd, so they see every tree. The offer functions in §12 are therefore cross-tenant by design
+  and are hardened as such (amendment A8).
 - **Same tree rules as everyone.** An administrator with the capability gets the same 404 as any
   non-member on every `/trees/{id}` route. Their own family memberships work as for anyone, and
   nothing more.
@@ -276,7 +319,12 @@ One validator serves both pack files and console changes. It extends `loader.val
   - English and Hindi labels are required.
   - Text is normalised to NFC and length-limited (labels 200, aliases 200 each, at most 20
     aliases).
-  - Refused: control characters, bidirectional overrides, HTML and markup.
+  - Refused: control characters, bidirectional overrides, HTML and markup. Reuse `main`'s
+    `geo/formats.py` `clean_text`, which already refuses Cc and Cf characters except ZWJ and ZWNJ
+    (needed for Indic scripts). PR #35's label check collapsed whitespace only, so RLO and
+    zero-width characters passed.
+  - Attribute keys come from a fixed list per vocabulary (for example `temple` for kuladevata),
+    never free keys.
 - **Duplicates.** None within a vocabulary across scripts and spellings (`match.same_value`, the
   same check offers use). A near-duplicate is shown as a warning, and the approver sees it.
 - **Structure.**
@@ -289,8 +337,10 @@ One validator serves both pack files and console changes. It extends `loader.val
   - five or more digits in a row;
   - `@` handles;
   - words such as "family of", "s/o" and "d/o".
-- **Category guard.** The vocabulary key must be one of those §13 marks console-editable. A request
-  naming any other key is refused with 404, so it cannot be used to create a list.
+- **Category guard.** The vocabulary key must be one of those §13 marks console-editable: gotra,
+  kula, kuladevata, kuladevi, devak and occupation. The allow-list lives in code **and** is
+  repeated inside the definer functions. A request naming any other key is refused with 404, so it
+  cannot be used to create a list or to adopt a code-controlled one.
 - **No automatic checking for prohibited content.** No validator can reliably spot a caste or
   religion category disguised as a gotra. That is what the second administrator is for, and the
   approval screen asks the question explicitly.
@@ -298,9 +348,10 @@ One validator serves both pack files and console changes. It extends `loader.val
 ### 10. Retirement, merging and stored values
 - **Retiring** hides a term from suggestions. Stored references keep resolving, because records
   store the label and the code (ADR-0018 §6). Reactivation is an ordinary change.
-- **Merging** two terms retires one with `replaced_by` pointing at the other. Search then returns
-  one result. **Stored family values are never rewritten**: a family that picked the retired code
-  keeps its label and code.
+- **Merging** (deferred, amendment A7) will retire one term with `replaced_by` pointing at the
+  other, so search returns one result. Until then, retirement with an optional successor covers
+  duplicates. **Stored family values are never rewritten**, by either: a family that picked the
+  retired code keeps its label and code.
 - **Nothing is ever deleted through the console**, and codes are never reused.
 
 ### 11. Rollback
@@ -313,13 +364,17 @@ One validator serves both pack files and console changes. It extends `loader.val
   After that the loader owns it again. Releasing never re-applies an old pack over curated terms
   by itself. To do that, the operator runs `load --adopt-pack <key>`, which shows a diff and needs
   `--confirm`.
-- **Switching the console off:** `VSH_MASTERDATA_CONSOLE_ENABLED=false` makes every console route
-  answer 404. Published terms stay, and families see no change. `VSH_MASTERDATA_ENABLED=false`
+- **Switching the console off:** `VSH_MASTERDATA_CONSOLE_ENABLED=false` (the default, §7) makes
+  every console route answer 404. Published terms stay, and families see no change. `VSH_MASTERDATA_ENABLED=false`
   still turns suggestions off altogether (ADR-0018 §7).
 - **Migration downgrade:**
   - It drops the new tables and columns. Every term row and every published value stays in
     `vocabulary_term`.
   - It refuses to run while a change is `submitted`.
+  - It refuses to run while any term is `curated`, unless the operator passes
+    `-x masterdata_exported=1`. After the downgrade the loader owns every list again and would
+    overwrite curated values (the defect in PR #35's downgrade).
+  - It restores the application role's write grants.
   - The runbook requires a `masterdata export` first, because the downgrade loses the version
     history.
 
@@ -338,10 +393,17 @@ One validator serves both pack files and console changes. It extends `loader.val
 - the **free-text note** (below);
 - any record that uses the entry.
 
-**How the console reads and decides offers:**
+**How the console reads and decides offers** (a later increment, after publication works;
+amendment A8):
 - The tree-scoped table is read through a `SECURITY DEFINER` function owned by the schema owner.
-  It returns only those columns, has a pinned `search_path`, and the application role may only
-  EXECUTE it.
+  Because RLS is not FORCEd, this function can see every tree: it is a cross-tenant read and is
+  hardened as one.
+  - It takes **no tree id** argument and returns only the columns above, for rows with
+    `offer_status = 'offered'`.
+  - It is paginated, has a pinned `search_path`, and the application role may only EXECUTE it.
+  - Every call is audited.
+  - Tests prove it returns no other column or row, and that a non-holder cannot reach it through
+    the API.
 - Accepting or declining goes through a second definer function. It sets `offer_status` and
   `promoted_code` and writes the in-app notification to the offerer, inside that tree.
 - So console code never binds a tree.
@@ -373,16 +435,17 @@ Kinds of data:
 
 | Category | Kind | Source of truth under this ADR | Console | Approval | Notes |
 |---|---|---|---|---|---|
-| **Geography (LGD units)** | X | Activated LGD snapshot (ADR-0019) | Read-only. No term edits. Snapshot staging stays in the operator CLI. | — | **No official data is imported until its source and licence are resolved** by the owner. Only synthetic fixtures today. |
+| **Geography (LGD units)** | X | Activated LGD snapshot (ADR-0019) | Read-only. No term edits. Snapshot staging stays in the operator CLI. | — | **No official data is imported until the owner records a licence and attribution review.** Only synthetic fixtures today. Each snapshot will store its own licence and attribution, and the importer will refuse non-fixture files until the review is recorded (geography increment). |
 | **Geography aliases** | R (curated) | `geo/aliases.json`, by code review | Read-only (could adopt later by its own ADR) | — | Never a family's spelling. |
 | **PIN codes (India Post)** | X | Activated snapshot | Read-only | — | Same licensing gate. A PIN suggests a district and state, never a village or a person's address. |
-| **Gotra** | R | `database` once adopted | Create, edit, retire, merge; offers | Second admin | No inference: a gotra never implies community, region, religion or pravara (ADR-0026 §3). |
+| **Gotra** | R | `database` once adopted | Create, edit, retire; offers later; merge later | Second admin | No inference: a gotra never implies community, region, religion or pravara (ADR-0026 §3). |
 | **Kula / vamsha** | R | `database` once adopted | As gotra | Second admin | |
 | **Kuladevata, Kuladevi** | R | `database` once adopted | As gotra, with an optional temple attribute | Second admin | The lists start empty and grow from offers. |
 | **Devak** | R | `database` once adopted | As gotra | Second admin | |
 | **Pravara (gotra links)** | R (sourced links) | `pack` at first | Read-only at first; later edit with a required source and reviewer | Second admin | A link is suggested only when `reviewed` with a cited source. Never filled in from a gotra. |
-| **Occupation, Honorific** | R | `database` once adopted | Create, edit, retire | Second admin | Fields stay free text. |
-| **Language** | C (closed list of 23) | `pack` | Labels only, after adoption; no additions | Second admin | `allows_custom = false`. |
+| **Occupation** | R | `database` once adopted | Create, edit, retire | Second admin | Fields stay free text. |
+| **Honorific** | R | `pack` at first | Read-only | — | Not in the first set; adoption later needs an amendment. |
+| **Language** | C (closed list of 23) | `pack` | Read-only | Code review | `allows_custom = false`. Not console-editable, not even labels. |
 | **Rashi** | C (12, closed, astronomical) | `astrology/vocab.py` | **Read-only** | Code review | Used for validation and calculation. An edit could break both. |
 | **Nakshatra** | C (27, closed) | `astrology/vocab.py` | **Read-only** | Code review | As rashi. |
 | Tithi, paksha, ayanamsha | C | `astrology/vocab.py` | Read-only | Code review | |
@@ -396,7 +459,9 @@ Kinds of data:
 - **Adding a category or changing its kind** is a code change with an ADR. The console cannot do
   either.
 - PR #35's proposed ADR-0018 amendment 2 (optional religion and community suggestions) is **not**
-  adopted here. If wanted, it needs its own decision under Q4.
+  adopted here. Nor are #35's `religion_community` pack category and its "planned" console card.
+  Religion, community and caste remain optional personal fields: no global list, no inference, no
+  mandatory value. If wanted, a list needs its own decision under Q4.
 
 ### 14. The application's database write privileges
 **Investigation (9 Nov 2026, on `main`):**
@@ -416,54 +481,83 @@ Kinds of data:
     the table owner.
   - Under Option B, revoking alone would **block console publication**, because the API connects
     as the application role. A path for publication is therefore needed.
-- **Recommendation (proposed, not implemented):**
-  - Make `vocabulary`, `vocabulary_term`, `vocabulary_term_version` and the change-request tables
-    **read-only to the application role**. They join `READ_ONLY_TABLES`.
-  - Publish only through a few `SECURITY DEFINER` functions owned by the schema owner, with a
-    pinned `search_path`, that the application role may EXECUTE: `masterdata_publish_change`,
-    `masterdata_submit_change`, `masterdata_decide_offer`, and the two offer projections in §12.
-  - These functions repeat the essential checks inside the database:
-    - the approver differs from the author, unless the solo-mode row is active and 24 hours have
-      passed;
+- **Decision (owner's position, 11 Nov 2026; amendments A2 and A3):**
+  - **Read-only to the application role** (all join `READ_ONLY_TABLES`): `vocabulary`,
+    `vocabulary_term`, `vocabulary_term_version`, `vocabulary_change_request`,
+    `vocabulary_pack_proposal` and `platform_capability_grant`. `tree_vocabulary_term` stays
+    writable.
+  - **The complete function set**, all `SECURITY DEFINER`, owned by the schema owner:
+    - `masterdata_save_draft` (create or edit one's own draft);
+    - `masterdata_submit`;
+    - `masterdata_withdraw` (author only);
+    - `masterdata_reject` (not the author; reason required);
+    - `masterdata_approve_publish`;
+    - `masterdata_set_authority` (adopt or release; itself an approved change);
+    - later, with offers: `masterdata_offer_projection` and `masterdata_decide_offer`.
+  - **Each function:**
+    - `SET search_path = pg_catalog, public, pg_temp` (`pg_temp` last, so a temporary table or
+      function can never shadow a real one); no dynamic SQL;
+    - `REVOKE EXECUTE … FROM PUBLIC`, then `GRANT EXECUTE` to the application role only;
+    - takes the advisory lock (§3) before it writes a term;
+    - writes its own `audit_event` row (`tree_id NULL`).
+  - **Checks repeated inside the database:**
+    - the approver differs from the author (there is no solo exception);
     - the base revision matches;
     - the vocabulary's authority is `database`;
+    - the vocabulary key is on the allow-list (§9);
     - nothing is ever deleted;
-    - every change writes a version row.
+    - every published change writes a version row.
+  - **A migration test** asserts, for each function: `prosecdef`, the pinned `search_path` in
+    `proconfig`, the owner, and that only the application role may EXECUTE it. A second test shows
+    that a shadow function in a temporary schema does not change its behaviour.
 - **What this buys:** a bug or an injection anywhere else in the API can no longer rewrite, delete
   or truncate the global lists, or skip the version history. Self-approval and deletion are refused
   even if the service layer is wrong.
 - **What it does not buy:** the database cannot verify *who* the user is. Someone who fully
   controls the API process can still call the functions with forged user ids. Named accounts,
-  two-step sign-in, the audit trail and the "published without a second reviewer" list are the
-  controls for that.
+  per-session two-step sign-in, the audit trail, the version history and `masterdata export`
+  before each deploy are the controls for that.
+- **What it costs:** the definer functions are themselves attack surface. They stay few and
+  small, and each has direct-call negative tests (threats section).
 - **The alternative,** a second login role only for the console, adds a credential that sits in
   the same process. It gains little over definer functions and complicates deployment.
 
-## Threats and tests to write before code (threat T63)
+## Threats and tests to write before code (threat ID allocated at merge)
 Each of these becomes a test in the implementation PRs:
+The threat ID is the next free one when the first implementation increment merges. PR #62
+already claims T63, so this is T64 if #62 lands first (amendment A9).
+
 - **Privilege.**
-  - A non-holder gets 404 on every console route.
+  - A non-holder gets 404 on every console route, parametrised over all routes.
   - A holder without a second-step session gets 403.
+  - A session older than 12 hours gets 403.
+  - A session opened before two-step sign-in was turned off and on again gets 403.
+  - A write with a step-up older than 15 minutes gets 403.
   - A holder whose two-step sign-in was turned off loses access on the next request.
+  - A revoked grant loses access on the next request.
   - A Google-only session never qualifies.
+  - The application role cannot write `platform_capability_grant` by direct SQL.
+  - The grant CLI refuses an unverified email, an account without TOTP, and deny-listed mailboxes.
 - **No tree access.**
   - A capability holder gets 404 on every `/trees/{id}` route of a tree they are not in. This
     reuses the parametrised route test.
   - Console handlers never bind a tree.
   - The new import-boundary test passes.
-- **Self-approval.** Refused by the service and by the database CHECK and the definer function.
-  Solo publication before 24 hours, without a fresh TOTP, or with solo mode off is refused.
-  Solo mode switches off when a second admin is granted.
+- **Self-approval.** Refused by the service, by the definer function called directly, and by
+  the database CHECK, including with a NULL approver.
 - **Concurrency.**
   - Two approvals of the same change: exactly one publishes.
   - A stale base revision returns 409.
-  - A loader run during a publish is serialised by the advisory lock.
+  - A loader run during a publish is serialised by the advisory lock. The test runs both in two
+    connections with a barrier and checks the published values survive.
 - **Loader.**
   - Curated terms are never overwritten, retired or re-created, in each row of the §3 table.
-  - Pack proposals are not suggested.
+  - Pack proposals are never returned by any family-facing `/vocabularies` route.
+  - Curated values survive a deploy: publish, run `alembic upgrade head` and `load`, and the value
+    is unchanged.
   - CI fails on a conflict in a `pack` vocabulary.
 - **Upgrade.** A migration round trip keeps curated, retired and proposed terms. The downgrade is
-  refused while a change is submitted.
+  refused while a change is submitted, and while a term is curated without the export flag.
 - **History and audit.**
   - Version rows cannot be updated or deleted.
   - Every publish has a version row and an audit event.
@@ -476,31 +570,42 @@ Each of these becomes a test in the implementation PRs:
 - **Validation.** Every rule in §9 has a negative test, including bidirectional and control
   characters, phone and email patterns, "Unknown" terms, closed-list growth, a pravara link without
   a source, and a non-editable vocabulary key.
-- **Grants (if §14 is accepted).**
-  - The application role cannot INSERT, UPDATE, DELETE or TRUNCATE the master-data tables.
-  - The definer functions refuse self-approval and deletion even when called directly.
+- **Grants.**
+  - The application role cannot INSERT, UPDATE, DELETE or TRUNCATE any table listed in §14.
+  - The definer functions refuse self-approval, deletion, a non-allow-listed key and a `pack`
+    vocabulary even when called directly.
+  - The function attribute test and the `search_path` shadowing test from §14 pass.
 - **E2E.** An admin signs in with two-step sign-in, drafts a term, and a second admin approves it.
   A family then sees the suggestion without a deploy, and a family member gets 404 on the console.
 
-The threat model (T63) and the privacy model (an "administrators and global lists" section) are
-updated in the first implementation PR, not by this proposal.
+The threat model (with the ID allocated at merge) and the privacy model (an "administrators and
+global lists" section) are updated in the first implementation PR, not by this proposal.
 
 ## Consequences
-- **One migration, with a downgrade:**
-  - `vocabulary.authority` and `pack_version_seen`;
-  - `vocabulary_term.revision`, `curated` and `replaced_by`;
-  - `vocabulary_term_version`, `vocabulary_change_request`, `platform_capability_grant` and
-    `masterdata_solo_mode`;
-  - `user_session.mfa_verified_at`;
-  - the definer functions and the grant changes, if §14 is accepted.
+- **Two migrations, each with a downgrade, chained to `main`'s head at the time** (never to PR
+  #35's revisions):
+  - **Identity** (first increment): `platform_capability_grant` (read-only to the application
+    role), `user_session.mfa_verified_at` and `mfa_step_up_at`. Existing sessions get NULL and so
+    do not qualify.
+  - **Master data** (third increment), purely additive:
+    - `vocabulary.authority` (default `pack`) and `pack_version_seen`;
+    - `vocabulary_term.revision` (default 1) and `curated` (default false);
+    - `vocabulary_term_version` with its append-only trigger and the backfill (§5);
+    - `vocabulary_change_request` and `vocabulary_pack_proposal`;
+    - the definer functions and the grant changes (§14).
+  - Term rows, codes and labels are not touched, so every stored family reference keeps
+    resolving. Adoption of the six lists is an approved change after the deploy, not part of the
+    migration.
 - **Loader:** it gains the curated rules, the reporting and the history writes.
 - **New CLI commands:**
   - `masterdata export`;
   - `masterdata grant` and `revoke`;
-  - `masterdata solo on` and `off`;
   - `load --adopt-pack`.
-- **Frontend:** `/admin/master-data`, with lists, terms, history, the change queue, the offers queue
-  and the solo banner. It is accessible, works at 390 px and is marked up for Indic scripts.
+- **Frontend:** `/admin/master-data`, with lists (showing each list's authority), terms, history,
+  the change queue and, later, the offers queue. A 404 shows a not-found page; a 403
+  `admin_mfa_required` shows a step-up prompt. It is accessible, works at 390 px (cards instead of
+  a wide table) and is marked up for Indic scripts. PR #35's layout, term table, editor, history
+  view and diff are adapted; its self-publish queue is not.
 - **Operations:**
   - granting the capability and enrolling a second administrator join the go-live checklist;
   - `masterdata export` joins the release runbook.
@@ -510,7 +615,15 @@ updated in the first implementation PR, not by this proposal.
   the only truth and needs no in-app approval. **Not chosen by the owner**, because every change
   needs a deployment. It remains the fallback for a single-admin installation (§7).
 - **Database publication without a second administrator.** Rejected. One compromised or mistaken
-  account would change suggestions for every family at once.
+  account would change suggestions for every family at once. This includes PR #35's optional
+  four-eyes setting, which was off by default.
+- **Solo mode** (an operator CLI switch of at most 90 days; solo publication after 24 hours with a
+  fresh TOTP and a typed confirmation; a permanent banner; a "published without a second
+  reviewer" list that becomes the second admin's first review queue). **Deferred** by the owner on
+  11 Nov 2026. It can be reconsidered by amendment.
+- **Pack proposals stored as `draft` terms.** Rejected: `draft` terms are suggested to families.
+- **Per-session MFA checked only against "MFA is on" for the account** (PR #35). Rejected: a session
+  opened before the account enrolled, or before a secret was replaced, would qualify.
 - **A "curated" flag on each term, without per-vocabulary authority.** Rejected. Each list would be
   split between Git and the database, and nobody could say where its truth lives.
 - **The loader overwrites the database, as today.** Rejected for Option B: every deploy would undo
@@ -525,9 +638,8 @@ updated in the first implementation PR, not by this proposal.
 ## Stress test
 1. *Can a deploy undo an approved change?* No. Curated terms are never written by the loader, and
    conflicts are reported (§3).
-2. *Can one administrator publish alone?* Not in the normal flow. Only in solo mode, which an
-   operator turns on from the server. Solo publication waits 24 hours, needs a fresh second step,
-   and is listed for later review (§7).
+2. *Can one administrator publish alone?* No. The service, the definer function and a NULL-safe
+   CHECK all refuse it, and there is no solo mode (§4, §7, §14).
 3. *Can a console admin read a family's tree?* No. There is no tree permission or tree binding,
    and the same 404 applies (§8). Offers come through a narrow projection (§12).
 4. *Can an offer reveal which family uses a deity?* Reviewers never see the tree, the offerer, the
@@ -542,33 +654,67 @@ updated in the first implementation PR, not by this proposal.
 8. *How do we get back to Git as the truth?* Export, commit and release the vocabulary (§11).
 9. *Is official geography data loaded through this?* No. It stays read-only and gated on licensing
    (§13).
+10. *Can a pack proposal reach families before approval?* No. Proposals live in their own table,
+    never in `vocabulary_term` (§3).
+11. *Can a bug or injection in the API grant itself the console?* No. The grant table is read-only
+    to the application role, and only the owner CLI writes it (§7, §14).
+12. *Can the offer projection leak another family's data?* It can see every tree, because RLS is not
+    FORCEd. It takes no tree id, returns only the reviewed columns of offered rows, and is tested
+    and audited as a cross-tenant read (§12).
 
 ## Open decisions for the owner
-1. **Solo mode.** Accept it as specified (24-hour wait, at most 90 days, switched on by an operator
-   CLI), change the numbers, or choose "no solo mode, CLI publication" instead (§7).
-2. **The offer note.** Keep it hidden from the console only (proposed), or also stop collecting it
-   for new offers, which amends ADR-0026 §4 (§12).
-3. **Database privileges.** Accept §14 (read-only tables plus definer functions), or keep today's
-   grants and rely on the service layer.
-4. **First vocabularies to adopt** (proposed: gotra, kula, kuladevata, kuladevi, devak, occupation).
-5. **Licensing of LGD and India Post data.** This is unchanged and still blocks any real geography
-   import.
+Positions the owner set out on 11 Nov 2026, now written into this ADR (it stays **Proposed** until
+the owner accepts it as a whole):
+- Solo mode: **deferred**; two named administrators for every publication (§7).
+- Offer notes: **never shown** to global reviewers (§12).
+- Database privileges: **§14 accepted**, with the read-only list and function set above.
+- First vocabularies: **gotra, kula, kuladevata, kuladevi, devak and occupation** (§13).
+- Controlled enums, Rashi, Nakshatra and roles stay in code; religion, community and caste get no
+  global list (§13).
+- LGD and India Post data need a recorded licence and attribution review before any real import
+  (§13).
 
-## Implementation plan (each a draft PR; none merged without the owner's approval)
+Still open:
+1. **Accept this ADR**, as amended.
+2. **The offer note.** Also stop collecting it for new offers? That amends ADR-0026 §4.
+3. **The two named administrators** for go-live.
+4. **Who records the licence review** for real LGD and India Post files.
+5. **Geography snapshot approval over HTTP** (PR #35 had one). Recommended: stay on the operator
+   CLI; moving it needs its own ADR.
+
+## Implementation plan (each a draft PR from `main`; none merged without the owner's approval)
+The consolidation review (PR #64, §8 and §9) gives the reused PR #35 files and the acceptance tests
+for each increment.
+
+0. **Before code.** Land PR #60 (CI) on its own. Accept this ADR. Add the "amended by ADR-0028"
+   notes to ADR-0006, ADR-0018 and ADR-0026 in a separate change.
 1. **Platform capability and sign-in.**
-   - `platform_capability_grant`, `mfa_verified_at`, the step-up, the grant and revoke CLI, and
-     the no-tree-access tests.
-   - The ADR-0006 note, threat T63 and the privacy-model section.
-2. **Read-only console.** Lists, terms, history, the master-data audit log, and offers through the
-   projection.
-3. **History and loader.**
-   - `authority`, `curated`, `vocabulary_term_version`, the loader rules, `export` and the
-     upgrade tests.
-   - If §14 is accepted: the grant changes and the definer functions.
-4. **Change requests.** Second-admin approval, validation, retirement, merging and rollback.
-5. **Solo mode,** if accepted.
-6. **Offers in the console.** Prefilled change requests, screening and audited reveal.
-7. **E2E specs and the runbook and go-live checklist updates.**
+   - `platform_capability_grant` and the grant and revoke CLI.
+   - The session MFA columns, the step-up endpoint and `require_platform`.
+   - `MeOut.platform_capabilities`.
+   - The no-tree-access tests and the import-boundary test.
+   - The ADR-0006 note, the threat entry and the privacy-model section.
+2. **Read-only console.** Lists (with authority), terms and term detail; the not-found page and
+   step-up prompt; the 390 px card layout. Adapted from PR #35's console pages.
+3. **Loader, history and database restrictions.**
+   - The master-data migration (Consequences) and the version backfill.
+   - The loader rules, the advisory lock and the `load --dry-run` CI gate.
+   - `export` and `load --adopt-pack`.
+   - The read-only grants and the definer functions.
+   - The history view.
+4. **Second-administrator review and publication.**
+   - Draft, submit, approve (second admin, step-up), reject, withdraw and stale.
+   - The §9 validator, retirement and reactivation, and rollback by change.
+   - Adoption of the six lists.
+   - A two-administrator e2e spec.
+   - The runbook and go-live checklist updates.
+5. **Geography snapshot administration on ADR-0019's infrastructure.**
+   - Per-snapshot licence and attribution, and the licence-review gate.
+   - PR #35's importer hardening: NUL and empty files refused, a row cap, capped error lists, and
+     formula neutralising in the CSV change report.
+   - Read-only snapshot status in the console.
+6. **Later, each by amendment or its own PR:** offers in the console (§12), merge (§10), and solo
+   mode if it is ever accepted.
 
 ## Implementation notes
 ### 9 Nov 2026: the §14 experiment
@@ -602,3 +748,22 @@ PostgreSQL 16. None of it was committed.
 - Not covered by this run:
   - the e2e suite;
   - a pilot `migrate` run. Its loader uses the owner URL, so it is expected to be unaffected.
+
+## Amendments of 11 Nov 2026
+Made after the consolidation review of PR #35 against this ADR (PR #64,
+`docs/architecture/master-data-console-consolidation.md`), and after re-checking `main` at
+`5913759`. The status stays **Proposed**.
+
+| # | Amendment | Where |
+|---|---|---|
+| A1 | Context re-verified at `5913759`: five read-only tables, RLS not FORCEd, all terms `draft` and suggested, licence hard-coded. PR #35's migrations discarded, not re-parented. | Header, Context |
+| A2 | `platform_capability_grant` and every new master-data table are read-only to the application role. | §7, §14 |
+| A3 | The complete definer-function set, each pinned, locked, audited and attribute-tested. | §6, §14 |
+| A4 | NULL-safe approval CHECK, `submitted_by` NOT NULL once submitted, user FKs `ON DELETE RESTRICT`. | §4 |
+| A5 | Per-session MFA: `mfa_verified_at` compared with `mfa_enabled_at`, a 15-minute step-up column and endpoint, password change revokes other sessions. | §7 |
+| A6 | Pack proposals live in `vocabulary_pack_proposal`, never as `draft` terms; codes reserved across terms, requests and proposals; advisory lock taken before the loader reads. | §3 |
+| A7 | Merge and `replaced_by` deferred; retirement with a successor covers the first release. | §4, §5, §10 |
+| A8 | The offer projection is treated as a cross-tenant read: no tree id, fixed columns, audited, tested; offers come in a later increment. | §8, §12 |
+| A9 | The threat ID is allocated at merge (PR #62 holds T63). | Threats |
+| A10 | `VSH_MASTERDATA_CONSOLE_ENABLED` defaults to `false` until two named administrators are recorded. | §7, §11 |
+| — | The owner's positions of 11 Nov 2026: solo mode deferred; offer notes hidden; §14 accepted; the six first vocabularies; honorific and language stay `pack`; no religion, community or caste lists; geography licence review before real data. | §7, §12, §13, §14, Open decisions |
