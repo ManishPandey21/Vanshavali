@@ -8,7 +8,7 @@ fresh reviewers attest to the exact candidate and evidence, and publishes **draf
 merges or deploys: CI and a person still decide. Everything here runs on *your* computer.
 
 ```
-ticket JSON ─► factory run ─► builder (worktree) ─► one candidate commit
+ticket JSON ─► factory run ─► dependency bootstrap ─► builder (worktree) ─► one candidate commit
                                    │ scope + "don't weaken tests" guard
                                    ▼
           cold checkout A ── preflight + required suites ──► reviewer: standards ─┐
@@ -21,6 +21,8 @@ ticket JSON ─► factory run ─► builder (worktree) ─► one candidate co
 
 | Path | Purpose |
 |---|---|
+| `ops/factory/bootstrap_builder.py` | Controller-owned step every builder starts through: installs dependencies from the committed lockfiles, then starts the agent |
+| `ops/factory/tests/` | Regression tests for the factory tooling (`make factory-test`; run in CI) |
 | `ops/factory/run_suite.py` | Trusted wrapper: installs deps in the cold checkout, provisions a private DB/ports, runs one suite, writes JUnit |
 | `ops/factory/pytest_kinds.py` | pytest plugin splitting the backend suite into unit / api / integration / migration |
 | `ops/factory/configure_factory.py` | Generates the git-ignored `.infra-factory/config.json` for your machine |
@@ -42,6 +44,48 @@ Chosen from the ticket's `paths` (ADR-0029 §5):
 
 Every run also executes the preflight: ruff, ruff format, mypy, eslint, tsc and the Vite build.
 A suite passes only with ≥ 1 test, 0 failures and **0 skips**.
+
+## Builder dependencies (bootstrap)
+
+Builders may run tests but may **never** install packages: their Claude permissions allow test,
+lint and type-check commands only. A builder worktree is a fresh `git worktree` with no
+`node_modules` or `.venv`, so the factory provisions it *before* the builder starts.
+`configure_factory.py` makes every builder command (frontend, backend, critical; Claude or Codex)
+start through `ops/factory/bootstrap_builder.py`, owned by the controller:
+
+1. It refuses to run anywhere but the top level of a linked worktree inside
+   `.git/infra-factory/worktrees` (the symlink target counts).
+2. It checks that `backend/uv.lock`, `frontend/package-lock.json` and `e2e/package-lock.json` are
+   committed and unmodified.
+3. It runs `uv sync --frozen`, `npm ci` (frontend, e2e) and `npx playwright install chromium`, with
+   the same download caches as the cold checks (`--cache-dir`). `npm ci` always replaces
+   `node_modules`, so a stale or partial install from an earlier run is never trusted.
+4. It checks that no tracked file changed, writes `dependencies ready … starting builder` to the
+   builder log, and then `exec`s the unchanged agent command. Only `PLAYWRIGHT_BROWSERS_PATH` is
+   pointed at the cached browsers.
+
+**Failures stop the ticket; they never widen permissions.** Any failure (missing or modified
+lockfile, a tool missing from `PATH`, an install error or a 20-minute step timeout, a changed tracked file,
+the wrong directory) prints `[bootstrap] FAILED: …` in the ticket's `builder.log`, exits non-zero
+before the agent starts, and the factory marks the ticket BLOCKED. Nothing falls back to
+`npm install`, skips a component, or adds a permission. Fix the cause, then `retry`.
+
+**Retry and worktrees.** `retry` only sets a BLOCKED ticket back to PENDING. The next `run` creates
+a **new** worktree and branch from the base (`<ticket>-<timestamp>`) and starts its builder there;
+the previous worktree is passed to the builder as a read-only reference and is never reused or
+installed into. Because the bootstrap runs inside the builder command, it provisions whichever
+worktree the builder is given, new or reused; dependencies installed in another worktree are never
+relied on. Leftover worktrees can be removed with `git worktree remove` once you no longer need
+them (their logs stay in the ledger).
+
+**Boundaries.** The installs run with the factory process's own rights (the same OS account; see
+the toolkit's `AUDIT.md`), from lockfiles committed on the base branch. A ticket cannot change them:
+lockfiles, manifests and `ops/factory/` are refused in builder diffs. Cold checks still install
+their own dependencies in fresh checkouts and never use the builder's. Reviewers get no bootstrap.
+The bootstrap time counts towards the builder's `timeout_seconds`. With `--network-env`, the
+builder already inherits the factory's live environment, so the saved file only fills in proxy/CA
+settings that are not set; the cold checks, which run with a scrubbed environment, use the file as
+is.
 
 ## One-time setup (factory host)
 
@@ -172,3 +216,14 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
   (`--static backend|frontend` for the preflight).
 - "Cold check modified the candidate checkout": a suite wrote an untracked, non-ignored file;
   fix the suite (via a normal PR), not the ticket.
+- `builder.log` ends with `[bootstrap] FAILED: …` and the ticket is BLOCKED: dependency provisioning
+  failed and the builder never started (see "Builder dependencies"). Fix the host (tool on `PATH`,
+  network, cache disk space) or the lockfile on the base branch, then `retry`. Do **not** give
+  builders install permissions instead.
+- Downloads fail with `ECONNREFUSED` to a local proxy port in cold checks: the proxy settings saved
+  in `--network-env` are stale (a local proxy restarted on another port). Re-run
+  `configure_factory.py … --network-env FILE --capture-network-env --apply` from a shell that has
+  the current settings.
+- A builder reports it could not run tests because dependencies are missing: the configuration was
+  generated before the bootstrap existed. Re-run `configure_factory.py … --apply` from an
+  up-to-date `main`; every builder `argv` must start with `bootstrap_builder.py`.

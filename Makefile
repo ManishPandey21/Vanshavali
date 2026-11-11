@@ -1,5 +1,5 @@
 # Developer shortcuts. See README.md for the full setup.
-.PHONY: backend-install backend-test backend-lint migrate seed api frontend-install frontend-test frontend-build e2e a11y check
+.PHONY: backend-install backend-test backend-lint factory-test migrate seed api frontend-install frontend-test frontend-build e2e a11y check
 
 backend-install:
 	cd backend && uv sync
@@ -36,4 +36,9 @@ e2e:
 a11y:
 	cd e2e && npx playwright test a11y
 
-check: backend-lint backend-test frontend-test frontend-build
+# Agent ticket factory tooling (ops/factory): lint + regression tests, no database needed.
+factory-test:
+	cd backend && uv run ruff check --config pyproject.toml ../ops/factory && uv run ruff format --check --config pyproject.toml ../ops/factory
+	python3 -m unittest discover -s ops/factory/tests
+
+check: backend-lint backend-test factory-test frontend-test frontend-build
