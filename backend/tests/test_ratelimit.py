@@ -101,3 +101,4 @@ def test_production_uses_the_real_clock():
     assert _MemoryLimiter().clock is time.time
     assert _RedisLimiter("redis://unused", client=fakeredis.FakeRedis()).clock is time.time
     assert get_settings().login_rate_limit_per_minute == 10  # thresholds unchanged
+    assert get_settings().register_rate_limit_per_minute == 20
