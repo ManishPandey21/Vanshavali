@@ -8,7 +8,7 @@ fresh reviewers attest to the exact candidate and evidence, and publishes **draf
 merges or deploys: CI and a person still decide. Everything here runs on *your* computer.
 
 ```
-ticket JSON ─► factory run ─► builder (worktree) ─► one candidate commit
+ticket JSON ─► factory run ─► dependency bootstrap ─► builder (worktree) ─► one candidate commit
                                    │ scope + "don't weaken tests" guard
                                    ▼
           cold checkout A ── preflight + required suites ──► reviewer: standards ─┐
@@ -21,6 +21,8 @@ ticket JSON ─► factory run ─► builder (worktree) ─► one candidate co
 
 | Path | Purpose |
 |---|---|
+| `ops/factory/bootstrap_builder.py` | Controller-owned step every builder starts through: installs dependencies from the committed lockfiles, then starts the agent |
+| `ops/factory/tests/` | Regression tests for the factory tooling (`make factory-test`; run in CI) |
 | `ops/factory/run_suite.py` | Trusted wrapper: installs deps in the cold checkout, provisions a private DB/ports, runs one suite, writes JUnit |
 | `ops/factory/pytest_kinds.py` | pytest plugin splitting the backend suite into unit / api / integration / migration |
 | `ops/factory/configure_factory.py` | Generates the git-ignored `.infra-factory/config.json` for your machine |
@@ -43,6 +45,73 @@ Chosen from the ticket's `paths` (ADR-0029 §5):
 Every run also executes the preflight: ruff, ruff format, mypy, eslint, tsc and the Vite build.
 A suite passes only with ≥ 1 test, 0 failures and **0 skips**.
 
+## Builder dependencies (bootstrap)
+
+Builders may run tests but may **never** install packages: their Claude permissions allow test,
+lint and type-check commands only. A builder worktree is a fresh `git worktree` with no
+`node_modules` or `.venv`, so the factory provisions it *before* the builder starts.
+`configure_factory.py` makes every builder command (frontend, backend, critical; Claude or Codex)
+start through `ops/factory/bootstrap_builder.py`, owned by the controller:
+
+1. It refuses to run anywhere but the top level of a linked worktree inside
+   `.git/infra-factory/worktrees` (the symlink target counts).
+2. It checks that `backend/uv.lock`, `frontend/package-lock.json` and `e2e/package-lock.json` are
+   byte-identical to the committed versions (by content hash, so index flags such as
+   `--assume-unchanged` cannot hide a change), and that any install configuration present
+   (`.npmrc`, `uv.toml`, `backend/.python-version`) is committed and unmodified too.
+3. It runs `uv sync --frozen`, `npm ci` (frontend, e2e) and `npx playwright install chromium`, with
+   the same download caches as the cold checks (`--cache-dir`). `npm ci` always replaces
+   `node_modules`, so a stale or partial install from an earlier run is never trusted.
+4. It checks that no changed or untracked file in the worktree was altered (by content, so a second
+   edit to an already-modified file in a reused worktree is caught), writes `dependencies ready … starting builder` to the
+   builder log, and then `exec`s the unchanged agent command. Only `PLAYWRIGHT_BROWSERS_PATH` is
+   pointed at the cached browsers.
+
+**Failures stop the ticket; they never widen permissions.** Any failure (missing or modified
+lockfile or install configuration, a tool missing from `PATH`, an install error, a 20-minute step
+timeout (the bootstrap kills its process group, so install scripts stop too), an altered worktree file, the wrong directory,
+an agent command that cannot start) prints `[bootstrap] FAILED: …` in the ticket's `builder.log`,
+exits non-zero before the agent starts, and the factory marks the ticket BLOCKED. Nothing falls
+back to `npm install`, skips a component, or adds a permission. Fix the cause, then `retry`.
+**Each failed bootstrap uses one of the ticket's three attempts** (the factory counts the attempt
+before the builder command runs), so check the host before retrying: a preflight on a scratch
+worktree is described below.
+
+**Retry and worktrees.** `retry` only sets a BLOCKED ticket back to PENDING. The next `run` creates
+a **new** worktree and branch from the base (`<ticket>-<timestamp>`) and starts its builder there;
+the previous worktree is passed to the builder as a read-only reference and is never reused or
+installed into. Because the bootstrap runs inside the builder command, it provisions whichever
+worktree the builder is given, new or reused; dependencies installed in another worktree are never
+relied on. Leftover worktrees can be removed with `git worktree remove` once you no longer need
+them (their logs stay in the ledger).
+
+**Boundaries.** The installs run with the factory process's own rights (the same OS account; see
+the toolkit's `AUDIT.md`), from lockfiles committed on the base branch. A ticket cannot change them:
+lockfiles, manifests and `ops/factory/` are refused in builder diffs. Cold checks still install
+their own dependencies in fresh checkouts and never use the builder's. Reviewers get no bootstrap.
+The bootstrap time counts towards the builder's `timeout_seconds`. With `--network-env`, the
+builder already inherits the factory's live environment, which wins: if any proxy variable is set
+live, **no** proxy setting is taken from the saved file (mixing would let npm or Playwright pick a
+stale `npm_config_*` or lowercase value); CA settings from the file only fill in what is unset. The
+cold checks, which run with a scrubbed environment, use the file as is.
+
+**Preflight before a retry.** To prove the host can provision a builder without spending an
+attempt, create a scratch worktree in the factory's worktrees directory and run the bootstrap with a
+harmless command in place of the agent. Run both commands from the main checkout, with the
+`--cache-dir` (and `--network-env`, if any) you gave `configure_factory.py`:
+
+```bash
+git worktree add --detach .git/infra-factory/worktrees/PREFLIGHT main
+```
+
+```bash
+REPO="$PWD"; cd .git/infra-factory/worktrees/PREFLIGHT && python3 -I "$REPO/ops/factory/bootstrap_builder.py" --cache-dir ~/.cache/vanshavali-factory -- sh -c "cd frontend && npx vitest run src/i18n"; cd "$REPO"
+```
+
+The log must end with `dependencies ready … starting builder` and a passing test run. Remove the
+scratch worktree afterwards with
+`git worktree remove --force .git/infra-factory/worktrees/PREFLIGHT`.
+
 ## One-time setup (factory host)
 
 Host requirements: Git, Python ≥ 3.10, [uv](https://docs.astral.sh/uv/), Node 22 + npm, Tesseract
@@ -58,8 +127,11 @@ machine that holds production credentials.
    ```
 
 2. Install the Superpowers plugin (provides the `test-driven-development` skill the builders
-   follow) and note the path of its `test-driven-development/SKILL.md`. See the toolkit's
-   `docs/SKILL_ROUTING.md`.
+   follow) **in the Claude profile the factory runs under**, and note the path of its
+   `test-driven-development/SKILL.md`. See the toolkit's `docs/SKILL_ROUTING.md`. Builders run as
+   headless Claude, which refuses to read files outside its worktree by path; they load the skill
+   through Claude's Skill tool instead, so the plugin must be installed and enabled, not just
+   present on disk. A stand-alone copy of the file elsewhere is not readable by builders.
 
 3. On a clean `main` checkout, initialise the ledger:
 
@@ -67,7 +139,65 @@ machine that holds production credentials.
    python3 ~/tools/infra-code-factory/factory.py init --repo . --apply
    ```
 
-4. Generate the configuration (preview first, then `--apply`). The script accepts only the
+4. **Move builder worktrees out of `.git`.** The toolkit creates each builder's worktree under
+   `.git/infra-factory/worktrees/`, and Claude Code refuses to edit any file inside a `.git`
+   directory: every Claude builder stops with its edits refused as "sensitive file" changes and
+   the ticket blocks with "Builder produced no changes". Right after `init`, before any ticket
+   runs, make that directory a symlink to one outside the repository. `init` does not create it,
+   so on a fresh setup the link is all you need:
+
+   ```bash
+   mkdir -p ~/vsh-factory-worktrees
+   ```
+
+   ```bash
+   ln -s ~/vsh-factory-worktrees .git/infra-factory/worktrees
+   ```
+
+   ```bash
+   ls -l .git/infra-factory
+   ```
+
+   The listing must show `worktrees -> /home/you/vsh-factory-worktrees`. If `ln` fails because
+   `worktrees` already exists, no ticket may be in flight: remove each worktree in it with
+   `git worktree remove <path>` (the ledger keeps their logs), run `git worktree prune`, delete the
+   now-empty directory with `rmdir .git/infra-factory/worktrees`, and run `ln` again. Never `rm -r`
+   it. Evidence and logs stay under `.git/infra-factory/`; only the checkouts move.
+
+5. **Let builders run the tests.** Builders run as headless Claude in `acceptEdits` mode, where
+   every shell command needs permission and an unanswered prompt is a refusal. Without the rules
+   below a builder cannot run a single test, so it cannot see a test fail and then pass, and its
+   mistakes only surface in cold verification (the first live ticket blocked this way). Add these
+   rules to the Claude user settings of the account the factory runs under,
+   `~/.claude/settings.json` (merge them into an existing `permissions.allow` list):
+
+   ```json
+   {
+     "permissions": {
+       "allow": [
+         "Bash(npx vitest *)",
+         "Bash(npm run lint)",
+         "Bash(npm run typecheck)",
+         "Bash(npm test *)",
+         "Bash(npx playwright test *)",
+         "Bash(npx tsc *)"
+       ]
+     }
+   }
+   ```
+
+   They allow test, lint and type-check commands only; installs, Git and everything else still
+   need a person. The rules apply to every Claude session of that account, not just builders.
+   Claude Code will not edit its own settings from inside a session, so add them yourself.
+
+   Put them in **user** settings, not in the repository's `.claude/settings.json`. Claude Code
+   ignores permission rules in a project settings file until that folder has been trusted, and
+   every builder runs in a brand-new worktree that never has been, so committed rules are
+   silently skipped ("Ignoring … permissions.allow entries … this workspace has not been
+   trusted"). On a cloud factory host, have the environment's setup script write the user
+   settings file before Claude starts.
+
+6. Generate the configuration (preview first, then `--apply`). The script accepts only the
    reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
    pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
    the toolkit, review its diff and update `TOOLKIT_VERSION`/`TOOLKIT_SHA256` in a normal PR.
@@ -87,14 +217,14 @@ machine that holds production credentials.
    strips the environment from test runs, so the proxy/CA variables of your shell are saved to
    that private (0600) file and only those allow-listed names are read back.
 
-5. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
+7. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
    Windows render fonts differently). Look at every image before committing them:
 
    ```bash
    cd e2e && npx playwright test --config=playwright.visual.config.ts --update-snapshots
    ```
 
-6. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
+8. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
    host is set up): add the two example tickets under new ids, run, then `reject` them.
 
 ## Daily use
@@ -172,3 +302,21 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
   (`--static backend|frontend` for the preflight).
 - "Cold check modified the candidate checkout": a suite wrote an untracked, non-ignored file;
   fix the suite (via a normal PR), not the ticket.
+- "Builder produced no changes", and the builder's result says its edits were refused as
+  "sensitive file" permission prompts: the worktrees are still inside `.git` (setup step 4). Fix
+  the symlink, then `retry` the ticket. A builder that reports it could not read its skill file
+  means the Superpowers plugin is not installed in the factory's Claude profile (setup step 2).
+- A builder's summary says its test commands were refused and its tests were never run: the
+  permission rules from setup step 5 are missing. Expect its new tests to fail in cold
+  verification; add the rules before retrying.
+- `builder.log` ends with `[bootstrap] FAILED: …` and the ticket is BLOCKED: dependency provisioning
+  failed and the builder never started (see "Builder dependencies"). Fix the host (tool on `PATH`,
+  network, cache disk space) or the lockfile on the base branch, then `retry`. Do **not** give
+  builders install permissions instead.
+- Downloads fail with `ECONNREFUSED` to a local proxy port in cold checks: the proxy settings saved
+  in `--network-env` are stale (a local proxy restarted on another port). Re-run
+  `configure_factory.py … --network-env FILE --capture-network-env --apply` from a shell that has
+  the current settings.
+- A builder reports it could not run tests because dependencies are missing: the configuration was
+  generated before the bootstrap existed. Re-run `configure_factory.py … --apply` from an
+  up-to-date `main`; every builder `argv` must start with `bootstrap_builder.py`.

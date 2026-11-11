@@ -53,6 +53,11 @@ jobs:
         run: uv run ruff check app tests && uv run ruff format --check app tests
       - name: Type check
         run: uv run mypy app
+      - name: Factory tooling (ops/factory, ADR-0029)
+        run: |
+          uv run ruff check --config pyproject.toml ../ops/factory
+          uv run ruff format --check --config pyproject.toml ../ops/factory
+          uv run python -m unittest discover -s ../ops/factory/tests -v
       - name: Tests (unit, integration, authz, privacy, migrations)
         env:
           VSH_TEST_ADMIN_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres

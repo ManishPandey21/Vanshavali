@@ -43,30 +43,49 @@ def test_admission_control_sheds_excess_quickly_and_spares_health(monkeypatch):
     import threading
     import time
 
+    # The slow request holds its slot until the test releases it (capped at HOLD_S). The shed
+    # request must come back after about admission_wait_s; if admission control waited for the
+    # slot instead, it would take at least HOLD_S. The bound sits between the two with wide
+    # margins either side, so it does not depend on runner speed (a fixed 0.6 s bound with a
+    # 1 s slow request flaked on shared CI runners).
+    HOLD_S = 5.0
+    WAIT_S = 0.1
+    SHED_BOUND_S = WAIT_S + 1.5  # admission_wait_s plus scheduling/TestClient overhead
+    assert SHED_BOUND_S < HOLD_S / 2
+
     s = get_settings()
     monkeypatch.setattr(s, "max_inflight_requests", 1)
-    monkeypatch.setattr(s, "admission_wait_s", 0.1)
+    monkeypatch.setattr(s, "admission_wait_s", WAIT_S)
     app = create_app()
+    holding = threading.Event()
+    release = threading.Event()
 
     @app.get(f"{s.api_prefix}/__test/slow")
     async def _slow() -> dict[str, str]:
-        await asyncio.sleep(1.0)
+        holding.set()
+        await asyncio.to_thread(release.wait, HOLD_S)
         return {"ok": "yes"}
 
-    client = TestClient(app)
-    first: dict[str, int] = {}
-    t = threading.Thread(
-        target=lambda: first.update(code=client.get(f"{s.api_prefix}/__test/slow").status_code)
-    )
-    t.start()
-    time.sleep(0.3)  # the first request now holds the only slot
-    t0 = time.perf_counter()
-    shed = client.get(f"{s.api_prefix}/__test/slow")
-    waited = time.perf_counter() - t0
-    assert shed.status_code == 503 and shed.json()["error"]["code"] == "server_busy"
-    assert shed.headers["retry-after"] == "2"
-    assert waited < 0.6  # shed after admission_wait_s, not after the slow request finished
-    assert client.get(f"{s.api_prefix}/health").status_code == 200  # probes are never shed
-    t.join()
-    assert first["code"] == 200
-    assert client.get(f"{s.api_prefix}/__test/slow").status_code == 200  # the slot was released
+    # One event loop for all requests (as in a real worker): without the context manager each
+    # request gets its own loop, and a slot waiter would never be woken by a release.
+    with TestClient(app) as client:
+        first: dict[str, int] = {}
+        t = threading.Thread(
+            target=lambda: first.update(code=client.get(f"{s.api_prefix}/__test/slow").status_code)
+        )
+        t.start()
+        try:
+            assert holding.wait(HOLD_S)  # the first request now holds the only slot
+            t0 = time.perf_counter()
+            shed = client.get(f"{s.api_prefix}/__test/slow")
+            waited = time.perf_counter() - t0
+            assert shed.status_code == 503 and shed.json()["error"]["code"] == "server_busy"
+            assert shed.headers["retry-after"] == "2"
+            # shed after admission_wait_s, not after the slow request finished
+            assert WAIT_S <= waited < SHED_BOUND_S
+            assert client.get(f"{s.api_prefix}/health").status_code == 200  # probes are never shed
+        finally:
+            release.set()
+            t.join()
+        assert first["code"] == 200
+        assert client.get(f"{s.api_prefix}/__test/slow").status_code == 200  # the slot was released
