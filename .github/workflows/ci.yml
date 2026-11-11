@@ -131,7 +131,9 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: renderer/package-lock.json
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      # No system ffmpeg: Remotion renders with its own FFmpeg build, and the smoke test checks MP4
+      # durations with the ffprobe from that same package (renderer/scripts/ffprobe.mjs). The
+      # apt-get install that used to be here hung for 30 minutes on a slow Ubuntu mirror (Nov 2026).
       - run: cd renderer && npm ci && npm run typecheck && npm test
       - uses: astral-sh/setup-uv@v6
         with:

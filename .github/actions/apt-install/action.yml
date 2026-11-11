@@ -11,10 +11,18 @@ runs:
   steps:
     - id: key
       shell: bash
+      # inputs reach the shell through the environment, never by template expansion into the script
+      env:
+        PACKAGES: ${{ inputs.packages }}
       run: |
+        # package names only: refuse anything else before it reaches a cache key or apt
+        if ! [[ "$PACKAGES" =~ ^[[:space:]]*[a-z0-9][a-z0-9.+-]*([[:space:]]+[a-z0-9][a-z0-9.+-]*)*[[:space:]]*$ ]]; then
+          echo "apt-install: invalid package list" >&2
+          exit 2
+        fi
         # one cache per runner image and package list; ImageVersion changes weekly, which also
         # keeps the cached packages current
-        pkgs=$(echo "${{ inputs.packages }}" | tr -s ' ' '\n' | sort | tr '\n' ' ')
+        pkgs=$(echo "$PACKAGES" | tr -s ' ' '\n' | sort | tr '\n' ' ')
         echo "key=apt-debs-${ImageOS:-local}-${ImageVersion:-0}-$(echo "$pkgs" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
         echo "dir=${RUNNER_TEMP:-/tmp}/apt-debs" >> "$GITHUB_OUTPUT"
     - id: restore
@@ -23,7 +31,13 @@ runs:
         path: ${{ steps.key.outputs.dir }}
         key: ${{ steps.key.outputs.key }}
     - shell: bash
-      run: '"${{ github.action_path }}/apt-install.sh" "${{ steps.key.outputs.dir }}" ${{ inputs.packages }}'
+      env:
+        PACKAGES: ${{ inputs.packages }}
+        DEB_DIR: ${{ steps.key.outputs.dir }}
+        SCRIPT: ${{ github.action_path }}/apt-install.sh
+      run: |
+        read -r -a pkgs <<< "$PACKAGES"
+        "$SCRIPT" "$DEB_DIR" "${pkgs[@]}"
     - if: steps.restore.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
