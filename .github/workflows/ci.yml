@@ -42,6 +42,13 @@ jobs:
           python-version: "3.11"
           enable-cache: true
       - run: uv sync --frozen
+      - name: Calendar ephemeris cache (ADR-0022; the pinned file is checksum-verified on fetch)
+        uses: actions/cache@v4
+        with:
+          path: backend/var/ephemeris
+          key: ephemeris-de440s-c1c7feeab882263f
+      - name: Calendar ephemeris (JPL DE440s)
+        run: uv run python -m app.cli.calendar fetch-ephemeris
       - name: Lint
         run: uv run ruff check app tests && uv run ruff format --check app tests
       - name: Type check
@@ -49,6 +56,8 @@ jobs:
       - name: Tests (unit, integration, authz, privacy, migrations)
         env:
           VSH_TEST_ADMIN_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres
+          # the calendar engine tests must run here, never skip
+          VSH_REQUIRE_EPHEMERIS: "1"
         run: uv run pytest -q --cov=app --cov-report=term-missing:skip-covered
       - name: Migrations from a clean database (upgrade, model drift check, downgrade, upgrade)
         env:

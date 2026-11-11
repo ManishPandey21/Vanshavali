@@ -12,6 +12,17 @@
 > managed PostgreSQL and S3. The provider account and the RPO/RTO targets still need the owner's
 > confirmation. The proposed targets, and the drill that measures them, are in
 > `docs/operations/backup-restore-runbook.md`.
+>
+> **Update (8 Nov 2026, R5):** ADR-0022 answers Q16 (Skyfield + JPL DE440s, MIT licensed, no
+> AGPL) and the tithi part of Q6 (purnimanta and amanta; regional solar calendars later). Two
+> things were the owner's, and were decided the same day:
+> - a qualified licensing reviewer signs off the evidence the team prepares, and the product owner
+>   approves activation;
+> - the Rashtriya Panchang (IMD/PAC) is the primary reference, with supplementary sources for
+>   conventions and observance rules;
+> - developers enter source-attributed golden data, reviewed by an independent panchang reviewer.
+>
+> Nothing is computed until the gates pass. See `docs/operations/family-calendar-approvals.md`.
 
 These came out of a grill-me style review at project start. Each one blocks or shapes an ADR.
 Record the owner's answer here and update the ADR it affects.

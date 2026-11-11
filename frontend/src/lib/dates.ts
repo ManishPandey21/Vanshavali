@@ -11,6 +11,7 @@
  */
 import type { TFunction } from "i18next";
 import type { DateCalendar, DatePrecision, GenealogicalDate, GenealogicalTime, TimePrecision, TimeSource } from "../api/types";
+import { lunarLabel } from "./lunar";
 
 export const DATE_PRECISIONS: DatePrecision[] = [
   "exact",
@@ -213,7 +214,10 @@ export function formatDate(d: GenealogicalDate | Record<string, unknown> | null 
   if (!d) return t("date.display.unknown");
   const g = d as GenealogicalDate;
   const p = g.precision ?? "exact";
+  // a tithi date as the family gives it (ADR-0022 §2); a redacted date never carries one
+  const tithi = g.lunar ? lunarLabel(g.lunar, lang) : null;
   if (p === "unknown" || g.year == null) {
+    if (tithi) return tithi;
     return g.original_text ? t("date.display.asRecorded", { text: g.original_text }) : t("date.display.unknown");
   }
   const base = core(g.year, g.month, p === "month_unknown" ? null : g.day, g.calendar, lang);
@@ -241,6 +245,7 @@ export function formatDate(d: GenealogicalDate | Record<string, unknown> | null 
       text = base;
   }
   if (g.calendar && g.calendar !== "gregorian") text = `${text} (${t(`enum.calendar.${g.calendar}`)})`;
+  if (tithi) text = `${text} · ${tithi}`;
   return text;
 }
 
