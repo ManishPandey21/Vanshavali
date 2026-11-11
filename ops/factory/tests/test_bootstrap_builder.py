@@ -12,7 +12,6 @@ Run from the repository root: ``python3 -m unittest discover -s ops/factory/test
 # ruff: noqa: S101, S603, S607  (test code; same waiver as backend/tests in pyproject.toml)
 from __future__ import annotations
 
-import argparse
 import importlib.util
 import json
 import os
@@ -448,22 +447,20 @@ class ConfigureTests(unittest.TestCase):
         shutil.rmtree(self._tmp, ignore_errors=True)
 
     def build(self, providers: str, network_env: Path | None = None) -> dict:
-        args = argparse.Namespace(
-            toolkit=self.toolkit,
-            tdd_skill=self.skill,
-            providers=providers,
-            codex_model="m-codex",
-            claude_builder_model="m-build",
-            claude_review_model="m-review",
-            base_ref="main",
-            cache_dir=Path(self._tmp) / "cache",
-            pg_admin_url="postgresql+psycopg://u:p@localhost:5432/postgres",
-            network_env=network_env,
-            capture_network_env=False,
-            python="/usr/bin/python3",
-            apply=False,
-        )
-        return self.cf.build(args)
+        argv = [
+            "--toolkit", str(self.toolkit),
+            "--tdd-skill", str(self.skill),
+            "--providers", providers,
+            "--codex-model", "m-codex",
+            "--claude-builder-model", "claude-build-1-0",
+            "--claude-review-model", "claude-review-1-0",
+            "--cache-dir", str(Path(self._tmp) / "cache"),
+            "--pg-admin-url", "postgresql+psycopg://u:p@localhost:5432/postgres",
+            "--python", "/usr/bin/python3",
+        ]  # fmt: skip
+        if network_env:
+            argv += ["--network-env", str(network_env)]
+        return self.cf.build(self.cf.parser().parse_args(argv))
 
     def test_every_builder_command_runs_the_bootstrap_first_and_reviewers_do_not(self) -> None:
         for providers in ("claude", "mixed"):

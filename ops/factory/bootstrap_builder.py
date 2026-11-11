@@ -10,7 +10,7 @@ the agent exists:
     python3 -I ops/factory/bootstrap_builder.py --cache-dir DIR [--network-env FILE] -- AGENT_ARGV...
 
 1. Refuses to run anywhere but the top level of a factory builder worktree (a linked Git worktree
-   under ``<git-common-dir>/infra-factory/worktrees``, following the symlink the runbook asks for).
+   under ``<git-common-dir>/infra-factory/worktrees``; a factory clone has a separate Git directory).
 2. Checks every lockfile it installs from is committed and unmodified.
 3. Installs from those lockfiles only: ``uv sync --frozen`` (backend), ``npm ci`` (frontend, e2e)
    and the Playwright Chromium matching the pinned ``@playwright/test``. ``npm ci`` always replaces

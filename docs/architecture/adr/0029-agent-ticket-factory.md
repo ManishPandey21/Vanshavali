@@ -3,7 +3,8 @@
 - Status: **Proposed** · Date: 2026-11-11
 - Relates to: CLAUDE.md working rules 1, 5, 8 (explore first; security-sensitive changes; testing),
   the CI workflow (`.github/workflows/ci.yml`), ADR-0022 (ephemeris), ADR-0017 (Remotion renders).
-- Tooling: [Infra Code Factory 0.3.3](../../operations/code-factory.md) — a standalone, stdlib-only
+- Amended: 2026-11-11 — toolkit upgraded to 0.5.0 (see [Amendment 1](#amendment-1-toolkit-050)).
+- Tooling: [Infra Code Factory 0.5.0](../../operations/code-factory.md) — a standalone, stdlib-only
   Python toolkit kept **outside** this repository.
 
 ## Context
@@ -42,7 +43,7 @@ remain the merge gate; nothing about `main` changes.
 1. **Toolkit outside the repo, integration inside it.** The toolkit is extracted to a tools
    directory; the config generator accepts only the reviewed release, by SHA-256 of its runtime
    files pinned in `ops/factory/configure_factory.py` (the archive's own `SHA256SUMS` sits next to
-   the code it describes, and 0.3.3 shipped a stale one). The repository carries only the integration in
+   the code it describes, and the 0.3.3 archive shipped a stale one). The repository carries only the integration in
    `ops/factory/`: the suite wrapper, a pytest classification plugin and a config generator. The
    generated `.infra-factory/config.json` holds machine-specific absolute paths and is git-ignored.
 2. **Map real suites onto the toolkit's kinds** (`ops/factory/run_suite.py`), each runnable in a
@@ -108,6 +109,14 @@ remain the merge gate; nothing about `main` changes.
 
 - Two tickets can be built concurrently and arrive as draft PRs with hashed, re-checkable evidence.
   READY is a *local* result: CI must still pass and a person still merges.
+- Claude Code refuses to edit files inside a `.git` directory, where the toolkit puts builder
+  worktrees, and headless Claude cannot read files outside its worktree by path. Each factory host
+  therefore runs the factory from a clone with a separate Git directory (Amendment 1; the original
+  workaround symlinked `.git/infra-factory/worktrees` out of the repository), and
+  builders load the Superpowers TDD skill through the installed plugin, and the factory account's
+  Claude settings allow test, lint and type-check commands so a builder can run its own tests
+  (runbook setup steps 2, 4 and 5). Without that last rule a builder writes tests it never ran,
+  and the first live retry blocked on one such test. Found by the first live run (U02-VITALS-EDIT, attempt 1 blocked).
 - Builders may run tests but never install packages, and a fresh builder worktree has no
   dependencies (the first live ticket, U02-VITALS-EDIT-B, blocked with a builder that could not run
   one test). Every builder therefore starts through a controller-owned bootstrap
@@ -139,3 +148,44 @@ remain the merge gate; nothing about `main` changes.
   unit tests miss.
 - **Classify backend tests by a hand-maintained file list.** Rejected: new test files would be
   silently unclassified; the fixture/source-based rule covers every collected test.
+
+## Amendment 1: toolkit 0.5.0
+
+Date 2026-11-11. The integration moves from 0.3.3 to Infra Code Factory 0.5.0 plus its unreleased
+local-pilot hardening (Code-factory commit `a780fce`). Everything above still holds except where
+this section says otherwise.
+
+1. **Pinning.** 0.5.0 splits the controller into several modules (`review_policy`, `repair`,
+   `check_paths`, `path_safety`, `ticket_controls`, `egm`, ...). Every module the controller loads and
+   the dashboard assets are pinned by SHA-256 in `configure_factory.py`, not only the five 0.3.3 files.
+2. **Strict model routing.** Every agent command uses `agent_bridge.py --strict-routing`: a pinned
+   full model id, an explicit effort, no fallback, and refusal unless the requested model served the
+   run (routing evidence is kept in the ledger). The generator assumes no model ids; aliases are
+   refused. Builders keep routing by the ticket's layer (`frontend`/`backend`/`critical`); the
+   toolkit's complexity tiers are deliberately not configured, so the two providers keep their
+   decision-9 split. Critical tickets escalate both review lenses to `reviewer_*_critical`.
+3. **Specialist reviews.** `REVIEW_POLICY` adds four diff-selected lenses mapped to CLAUDE.md:
+   `security` (rule 5), `data` (rules 3–4), `provenance` (rule 7) and `frontend` (rule 9). Standards
+   and spec remain mandatory. Each selected lens re-runs the selected suites in its own cold checkout,
+   so security-relevant tickets cost one more verification pass.
+4. **Independent risk gate.** A `risk_assessor` rates every passing candidate; the policy floors are
+   high for authz, identity, consent, public, sharing, property, storage/security core, migrations,
+   `deploy/` and `.github/`, medium for the rest of `backend/` and `e2e/`, and critical for
+   `role: critical`. High and critical candidates wait in AWAITING_HUMAN until a person runs
+   `factory.py approve` for that exact candidate and risk digest. This is a local operator attestation
+   in front of, not instead of, CI and branch protection.
+5. **Bounded repair** is enabled with `max_repairs: 2`, so retries and repairs share the existing
+   budget of three attempts. GitHub-sourced repair is off unless the operator allowlists workflow ids
+   (`--ci-workflow-id`); the repository is fixed to `ManishPandey21/Vanshavali`.
+6. **Factory clone layout.** 0.5.0 refuses symlinks on cold-checkout paths, which breaks the
+   symlinked-`worktrees` workaround above. Factory hosts now use a clone made with
+   `git clone --separate-git-dir`, so the state directory has no `.git` component and no symlink.
+   The generator refuses `--apply` on any other layout. The Vite `fs.deny` override of decision 10
+   is no longer needed on such a host but stays: it is inert outside `VSH_FACTORY_COLD=1`.
+7. **Check argv.** 0.5.0 protects every in-repository path named in a check command. The preflight
+   argument is therefore `backend-preflight`/`frontend-preflight`, not the bare directory name, which
+   would have frozen `backend/` and `frontend/` for every ticket. A test asserts that only
+   `ops/factory/run_suite.py` is referenced.
+8. **Not adopted:** the EGM design workflow stays opt-in (`--egm`); the dashboard and `events` are
+   read-only operator tools. The trust limits in the toolkit's `AUDIT.md` (same-account execution is
+   not a sandbox, unsigned local evidence, no automatic merge or revert) are unchanged.
