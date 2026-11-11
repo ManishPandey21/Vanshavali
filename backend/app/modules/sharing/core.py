@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -27,8 +29,15 @@ from app.authz.permissions import permissions_for
 from app.authz.privacy import RECORD_RANK, Subject, is_private_record_level, is_record_owner, load_subjects
 from app.core import audit
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
-from app.models import AccessGrant, FamilyBranch, Person, TreeMembership, User
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, RecordPrivacyLevel, Role
+from app.models import AccessGrant, FamilyBranch, Person, TreeMembership, User, UserNotification
+from app.models.enums import (
+    GrantPermission,
+    GrantResource,
+    NotificationKind,
+    PrivacyLevel,
+    RecordPrivacyLevel,
+    Role,
+)
 from app.modules.sharing.schemas import (
     SharingCeilingOut,
     SharingMemberIn,
@@ -160,6 +169,8 @@ class RecordAdapter(ABC):
     resource: GrantResource
     audit_type: str
     supports_download: bool = True
+    # the owner is told when the record is narrowed automatically (ADR-0027 §5); None = never narrowed
+    narrowed_notice: NotificationKind | None = None
 
     def __init__(self, record: Any) -> None:
         self.record = record
@@ -171,6 +182,11 @@ class RecordAdapter(ABC):
     @property
     def owner_membership_id(self) -> uuid.UUID | None:
         return self.record.owner_membership_id  # type: ignore[no-any-return]
+
+    @property
+    def suspended(self) -> bool:
+        """Under a takedown suspension (ADR-0027 §8.2)?"""
+        return getattr(self.record, "suspended_at", None) is not None
 
     @property
     def level(self) -> RecordPrivacyLevel:
@@ -385,6 +401,19 @@ def require_editable(ctx: TreeContext, rec: RecordAdapter) -> None:
         raise Forbidden("You cannot change who can see this record")
 
 
+@contextmanager
+def _as_if_not_suspended(rec: RecordAdapter) -> Iterator[None]:
+    held = getattr(rec.record, "suspended_at", None)
+    if held is None:
+        yield
+        return
+    rec.record.suspended_at = None
+    try:
+        yield
+    finally:
+        rec.record.suspended_at = held
+
+
 def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider: bool) -> None:
     refuse_unreadable(rec, new.privacy_level)
     caps = rec.caps(ctx)
@@ -395,10 +424,15 @@ def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider:
             details={"ceiling": c.model_dump(mode="json") if (c := ceiling_out(caps)) else None},
         )
     old = rec.current(ctx)
-    before, after = audience(ctx, rec, old), audience(ctx, rec, new)
+    with ctx.db.no_autoflush, _as_if_not_suspended(rec):
+        # widening is judged on the record's own audience, which a suspension does not change
+        before, after = audience(ctx, rec, old), audience(ctx, rec, new)
     added = set(after.viewers) - set(before.viewers)
     added_dl = after.downloaders - before.downloaders
     # widening = anyone new can see or download; narrowing is open to managers (ADR-0027 §10)
+    if (added or added_dl) and rec.suspended:
+        # ADR-0027 §8.2: while suspended, the audience only narrows (a lift must not reveal more)
+        raise Conflict("This record is suspended; it cannot be shared more widely", code="record_suspended")
     if not rec.is_owner(ctx) and (added or added_dl):
         raise Forbidden("Only the record's owner can share it more widely", code="owner_only_widening")
     if (added or added_dl) and not confirm_wider:
@@ -451,7 +485,38 @@ def enforce_ceiling(ctx: TreeContext, rec: RecordAdapter, *, reason: str) -> boo
         target_id=rec.id,
         details={"from": old.value, "to": level.value, "reason": reason},
     )
+    _tell_owner(ctx, rec)
     return True
+
+
+def _tell_owner(ctx: TreeContext, rec: RecordAdapter) -> None:
+    """Tell the owner their record was made more private (ADR-0027 §5). Ids and a kind only; the
+    actor is never named (it may be a person asking to be removed, or a system job). One unread
+    notice per record is enough."""
+    if rec.narrowed_notice is None or rec.owner_membership_id is None:
+        return
+    owner = ctx.db.get(TreeMembership, rec.owner_membership_id)
+    if owner is None or owner.tree_id != ctx.tree_id or owner.user_id == ctx.user_id:
+        return  # the owner left, or narrowed it themselves
+    unread = ctx.db.scalar(
+        select(UserNotification.id).where(
+            UserNotification.tree_id == ctx.tree_id,
+            UserNotification.user_id == owner.user_id,
+            UserNotification.kind == rec.narrowed_notice,
+            UserNotification.subject_id == rec.id,
+            UserNotification.read_at.is_(None),
+        )
+    )
+    if unread is None:
+        ctx.db.add(
+            UserNotification(
+                tree_id=ctx.tree_id,
+                user_id=owner.user_id,
+                kind=rec.narrowed_notice,
+                subject_id=rec.id,
+                created_by=ctx.user_id,
+            )
+        )
 
 
 def replace_grants(

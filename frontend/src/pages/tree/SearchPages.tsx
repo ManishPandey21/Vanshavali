@@ -13,7 +13,7 @@ import { EmptyState, ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../c
 import { PersonBadges, PersonLink } from "../../components/person/badges";
 import { Badge } from "../../components/ui/Badge";
 
-const KINDS = ["person", "place", "branch", "household", "document", "property"] as const;
+const KINDS = ["person", "place", "branch", "household", "document", "property", "collection"] as const;
 
 function hitHref(treeId: string, h: SearchHit): string | null {
   switch (h.kind) {
@@ -25,6 +25,8 @@ function hitHref(treeId: string, h: SearchHit): string | null {
       return `/t/${treeId}/households?open=${h.id}`;
     case "place":
       return `/t/${treeId}/places`;
+    case "collection":
+      return `/t/${treeId}/collections/${h.id}`;
     default:
       return null; // documents / property screens are not part of this SPA release
   }

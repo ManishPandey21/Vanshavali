@@ -19,6 +19,8 @@ erDiagram
   TREE_MEMBERSHIP ||--o{ ADMIN_NOMINATION : "nominee (accepts; an Owner approves; ADR-0006)"
   TREE ||--o{ ACCESS_GRANT : "explicit shares"
   TREE_MEMBERSHIP ||--o{ ACCESS_GRANT : "held by (deleted with it, ADR-0027 §3)"
+  TREE_MEMBERSHIP ||--o{ RECORD_REPORT : "reports a record it can see (never shown to the owner)"
+  RECORD_REPORT ||--o| RECORD_SUSPENSION : "may lead to (ADR-0027 §8.2)"
   TREE ||--o{ PERSON : contains
 
   PERSON ||--o{ NAME_RECORD : "has (type, script, language)"
@@ -138,6 +140,7 @@ graph LR
 | An event's own privacy level gates every lookup of it (album, reminders, charts, renders) | `genealogy.service.get_event_checked` |
 | A shareable record (document, photo, recording, family tradition) has an owner membership and an audience: Only me, Selected members, Selected branch or All family members. The two private audiences admit no one by role (not owners, admins or custodians); a grant belongs to one membership and dies with it. Viewing and downloading are separate. | `document.owner_membership_id`, `access_grant.membership_id`, `authz.privacy.record_allows`, `documents.access` (ADR-0027) |
 | A record is never more visible than a protected living person tagged in it; tagging them, or making them more private, narrows it at once | `documents.sharing.enforce_ceiling` (ADR-0027 §5) |
+| A suspended record (takedown) is visible to its owner only and can only narrow; lifting it restores nothing saved before and re-checks its ceilings; the admin who suspended it decides its appeal only when no other can (and must confirm) | `*.suspended_at`, `takedown.service` (ADR-0027 §8.2) |
 | An album or a standalone photo collection shows each viewer only the photos they may see (counts and cover included); a collection has its own audience and never shares its photos | `documents.access.can_view_document` on every album route (ADR-0027 §6) |
 | The owner of a document, tradition or photo collection hands it to another member only by an offer that member accepts | `pending_owner_membership_id`, `ownership.service` (ADR-0027 §2) |
 | An event photo is never more visible than its event and principal person; at most one cover per event | `lifeevents.service.inherited_privacy`, partial unique index `uq_event_media_cover` |

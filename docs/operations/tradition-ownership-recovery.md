@@ -25,7 +25,7 @@ release runbook calls this the normal rollback).
 | Upgrade to `8d2e6b4f1a37` (already merged) | Adds owner (backfilled from `created_by` where a membership exists); `PRIVATE_SELF` → `ONLY_ME` | Same readers at migration time. Authors removed and re-invited **before** the upgrade are backfilled as owners through their *new* membership (see decision D2) | Not in effect |
 | Upgrade to `f2a9c4e7d815` | Leftover `PRIVATE_SELF` → `ONLY_ME`; trigger installed | Narrowing only | Trigger yes; narrowing is kept on downgrade |
 | Re-run upgrade (retry after failure) | Idempotent (`UPDATE … WHERE`, `CREATE OR REPLACE`, `DROP TRIGGER IF EXISTS`); one transaction | None | — |
-| Downgrade to `7b2e4d9a1c63` / `e4b8c2d6f913` / `b5c1e7a93d42` / `8d2e6b4f1a37` | Drops the trigger (and the family calendar / pending offers / collections per those migrations) | Pending offers are lost (they give no access). Calendar and collections: see their migrations | Yes, re-upgrade |
+| Downgrade to `d9b4f2c6a713` / `c7e3a1f5b829` / `7b2e4d9a1c63` / `e4b8c2d6f913` / `b5c1e7a93d42` / `8d2e6b4f1a37` | Drops the trigger (and takedown reports / narrowing notices / the family calendar / pending offers / collections per those migrations) | Pending offers are lost (they give no access). Takedown, notices, calendar and collections: see their migrations | Yes, re-upgrade |
 | Downgrade below `8d2e6b4f1a37` with any of: tradition grants, Selected members entries, orphaned Only me entries, an orphan whose author is a member again, an owner who is not the author | **Refused before any change** (RuntimeError, counts only) | None | — |
 | Downgrade below `8d2e6b4f1a37` with none of those | Owners dropped; `ONLY_ME` → `PRIVATE_SELF` | Unchanged: every Only me entry is owned by its own author's membership, which old code matches by user id | Re-upgrade restores owners (same memberships) |
 | Downgrade with a relative target (`-1`) or `base` | Guard evaluates as if it reaches `8d2e6b4f1a37` (fail closed) | — | Use an explicit revision id |
@@ -37,7 +37,7 @@ release runbook calls this the normal rollback).
 1. [ ] Review and approve this PR, including decisions D1–D5 below (or explicitly defer them).
 2. [ ] Confirm the release notes say: application rollback below #51 makes traditions unavailable
        (fail-closed) in trees with private entries; roll forward instead.
-3. [ ] Staging: `deploy.sh <sha>` (pre-deploy backup runs; migrations: `… → e4b8c2d6f913 → 7b2e4d9a1c63 → f2a9c4e7d815`).
+3. [ ] Staging: `deploy.sh <sha>` (pre-deploy backup runs; migrations: `… → 7b2e4d9a1c63 → c7e3a1f5b829 → d9b4f2c6a713 → f2a9c4e7d815`).
 4. [ ] Staging: `SELECT count(*) FROM pg_trigger WHERE tgname = 'tradition_entry_record_owner'` = 1.
 5. [ ] Staging: run the inventory (section 5) **read-only** with the owner's approval; record the
        counts only. Expect `legacy_private_self` = 0.

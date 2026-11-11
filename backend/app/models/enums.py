@@ -810,6 +810,58 @@ class NotificationKind(StrEnum):
     NOMINATION_REJECTED = "nomination_rejected"
     NOMINATION_EXPIRED = "nomination_expired"
     NOMINATION_LAPSED = "nomination_lapsed"
+    # ADR-0027 §5: a record was made more private automatically (subject_id = the record)
+    DOCUMENT_NARROWED = "document_narrowed"
+    TRADITION_NARROWED = "tradition_narrowed"
+    # ADR-0027 §8.2 takedown: subject_id = the suspension (or the report, for REPORT_REVIEWED)
+    RECORD_REPORTED = "record_reported"  # to members who may act on it
+    RECORD_SUSPENDED = "record_suspended"
+    SUSPENSION_APPEALED = "suspension_appealed"
+    APPEAL_OVERDUE = "appeal_overdue"
+    SUSPENSION_UPHELD = "suspension_upheld"
+    SUSPENSION_LIFTED = "suspension_lifted"
+    REPORT_REVIEWED = "report_reviewed"
+
+
+# ---- takedown of shareable records (ADR-0027 §8.2)
+class ReportReason(StrEnum):
+    ABUSE = "abuse"
+    HARASSMENT = "harassment"
+    PRIVACY = "privacy"  # shows someone who did not agree to it
+    INTIMATE = "intimate"  # intimate or sexual content
+    COPYRIGHT = "copyright"
+    OTHER = "other"
+
+
+class ReportStatus(StrEnum):
+    OPEN = "open"
+    DISMISSED = "dismissed"  # mistaken or not a takedown matter; the record is untouched
+    ACTIONED = "actioned"  # a suspension was made
+
+
+class SuspensionStatus(StrEnum):
+    ACTIVE = "active"  # includes "upheld": the suspension stays in effect
+    LIFTED = "lifted"
+
+
+class AppealStatus(StrEnum):
+    NONE = "none"
+    PENDING = "pending"
+    UPHELD = "upheld"
+    LIFTED = "lifted"
+
+
+class SuspensionDecision(StrEnum):
+    UPHOLD = "uphold"
+    LIFT = "lift"
+
+
+class DecisionReason(StrEnum):
+    REPORT_CONFIRMED = "report_confirmed"
+    MISTAKEN_REPORT = "mistaken_report"
+    NOT_A_TAKEDOWN_MATTER = "not_a_takedown_matter"
+    OWNER_CHANGED_THE_RECORD = "owner_changed_the_record"
+    OTHER = "other"
 
 
 # ---- cultural depth (ADR-0026)

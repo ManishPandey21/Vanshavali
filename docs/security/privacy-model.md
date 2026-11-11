@@ -69,6 +69,17 @@ would leave it readable by nobody). Older application code (after a rollback) ca
 tradition as the tree owner's `PRIVATE_SELF`: the database stores it as Only me for its author. A
 schema downgrade that would widen or discard access to traditions is refused. Members a private record is shared with only read it: the owner alone edits,
 withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
+Global search and the archive export follow the same rule: a collection is a hit or exported only
+for someone who may see it, and only the photos they may see are listed in it.
+When a record is made more private automatically, its owner is told in the app (which record, never
+who caused it or why). A profile hidden after a "remove me" request through a claim link narrows the
+records tagging it at once; declining the request never widens them again.
+A member may report a record they can see. A family admin may suspend it, without seeing it, which
+hides it from everyone but its owner until it is lifted; the owner may appeal, and the appeal is
+decided by another admin where there is one. Lifting restores nothing saved before: the record
+follows its current audience. The owner is never told who reported it.
+A suspension cancels any offer of the record's ownership; the member it was offered to is not told
+why, and the owner must make a fresh offer after a lift.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

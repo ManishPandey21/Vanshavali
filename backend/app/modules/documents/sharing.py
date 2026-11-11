@@ -13,7 +13,7 @@ from sqlalchemy import select
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.models import Document, DocumentLink, Event, EventMedia
-from app.models.enums import DocumentLinkTarget, GrantResource, RecordPrivacyLevel
+from app.models.enums import DocumentLinkTarget, GrantResource, NotificationKind, RecordPrivacyLevel
 from app.modules.documents import access
 from app.modules.sharing import core
 from app.modules.sharing.core import (  # noqa: F401  (re-exported for callers)
@@ -31,6 +31,7 @@ from app.modules.sharing.schemas import SharingOut, SharingUpdate
 class DocumentRecord(core.RecordAdapter):
     resource = GrantResource.DOCUMENT
     audit_type = "document"
+    narrowed_notice = NotificationKind.DOCUMENT_NARROWED
     supports_download = True
     record: Document
 
