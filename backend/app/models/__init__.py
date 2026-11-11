@@ -29,7 +29,15 @@ from app.models.genealogy import (
 )
 from app.models.geo import GeoSnapshot, GeoUnit, GeoUnitAlias, PincodeOffice
 from app.models.heritage import Assertion
-from app.models.identity import AuthToken, AuthTokenPurpose, ExternalIdentity, User, UserSession
+from app.models.identity import (
+    AuthToken,
+    AuthTokenPurpose,
+    ExternalIdentity,
+    PlatformCapability,
+    PlatformCapabilityGrant,
+    User,
+    UserSession,
+)
 from app.models.importexport import ExportJob, GedcomExtension, ImportJob
 from app.models.masterdata import TreeVocabularyTerm, Vocabulary, VocabularyTerm
 from app.models.notifications import (
@@ -103,6 +111,8 @@ __all__ = [
     "PhotoCollectionItem",
     "PincodeOffice",
     "Place",
+    "PlatformCapability",
+    "PlatformCapabilityGrant",
     "ProfileClaim",
     "ProfileClaimInvite",
     "Property",

@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import hmac
 import uuid
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, Path, Request
@@ -12,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.authz.context import RequestInfo, TreeContext, load_public_context, load_tree_context
+from app.authz.platform import PlatformCapability, require_platform
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.errors import ApiError, Unauthorized
@@ -112,3 +114,41 @@ def public_context(request: Request, db: DbDep, slug: Annotated[str, Path()]) ->
 
 
 PublicCtx = Annotated[TreeContext, Depends(public_context)]
+
+
+@dataclass
+class PlatformContext:
+    """A request by a holder of a platform capability (ADR-0028 §7). It carries no tree: platform
+    handlers never bind ``app.tree_id``, so row-level security hides every family's data from them."""
+
+    db: Session
+    user: User
+    session: UserSession
+    request: RequestInfo
+
+    @property
+    def user_id(self) -> uuid.UUID:
+        return self.user.id
+
+
+def _platform(request: Request, db: Session, user: User, *, write: bool) -> PlatformContext:
+    sid = getattr(request.state, "session_id", None)
+    sess = db.get(UserSession, sid) if sid is not None else None
+    require_platform(db, user, sess, PlatformCapability.MASTER_DATA_ADMIN, write=write)
+    if sess is None:  # unreachable: require_platform refuses a request without its session
+        raise Unauthorized()
+    return PlatformContext(db=db, user=user, session=sess, request=request_info(request))
+
+
+def master_data_admin(request: Request, db: DbDep, user: CurrentUser) -> PlatformContext:
+    """Read access to the master-data console: capability + a fresh two-step session."""
+    return _platform(request, db, user, write=False)
+
+
+def master_data_admin_write(request: Request, db: DbDep, user: CurrentUser) -> PlatformContext:
+    """Write access to the master-data console: as for reads, plus a TOTP step-up (ADR-0028 §7)."""
+    return _platform(request, db, user, write=True)
+
+
+MasterDataAdmin = Annotated[PlatformContext, Depends(master_data_admin)]
+MasterDataAdminWrite = Annotated[PlatformContext, Depends(master_data_admin_write)]

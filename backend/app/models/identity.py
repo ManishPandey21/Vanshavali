@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from enum import StrEnum
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -77,6 +77,11 @@ class UserSession(Base):
     revoked_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     ip: Mapped[str | None] = mapped_column(String(64))
     user_agent: Mapped[str | None] = mapped_column(String(400))
+    # ADR-0028 §7: set only when this session was opened with password + TOTP (never by Google or
+    # an email link), and when the holder last re-entered a TOTP code (step-up). Platform
+    # capabilities check both on every request; nothing else reads them.
+    mfa_verified_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    mfa_step_up_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class AuthTokenPurpose(StrEnum):
@@ -99,3 +104,45 @@ class AuthToken(Base):
     expires_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PlatformCapability(StrEnum):
+    """Platform permissions held outside any family tree (ADR-0028 §7). Deny by default."""
+
+    MASTER_DATA_ADMIN = "master_data.admin"
+
+
+class PlatformCapabilityGrant(Base):
+    """One named person holding one platform capability (ADR-0028 §7).
+
+    Written only by the operator CLI as the schema owner; read-only to the application role
+    (``READ_ONLY_TABLES``), so nothing reachable from the API can grant a capability. Grants are
+    never deleted: revocation sets ``revoked_at`` and keeps the record.
+    """
+
+    __tablename__ = "platform_capability_grant"
+    __table_args__ = (
+        Index(
+            "uq_platform_capability_grant_active",
+            "user_id",
+            "capability",
+            unique=True,
+            postgresql_where=text("revoked_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid7)
+    # RESTRICT: accounts are anonymised on closure, never deleted, so the grant history stays whole
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("app_user.id", ondelete="RESTRICT"), index=True
+    )
+    capability: Mapped[PlatformCapability] = mapped_column(enum_column(PlatformCapability))
+    # the person behind the account (named accounts only) and why they hold it
+    holder_name: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(Text)
+    # the operator who ran the CLI (free text: the CLI runs on the server, outside any web session)
+    granted_by: Mapped[str] = mapped_column(String(200))
+    granted_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    revoked_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_by: Mapped[str | None] = mapped_column(String(200))
+    revoke_reason: Mapped[str | None] = mapped_column(Text)

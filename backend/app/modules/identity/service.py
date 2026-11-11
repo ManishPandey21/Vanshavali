@@ -267,6 +267,41 @@ def authenticate(
     return user
 
 
+def step_up(db: Session, user: User, sess: UserSession, code: str, info: RequestInfo) -> dt.datetime:
+    """Re-check a TOTP code on the current session and record when (ADR-0028 §7, step-up).
+
+    Shares the sign-in TOTP rate limit. It never upgrades a session that was not opened with TOTP:
+    such a session still fails ``mfa_verified_at`` and the holder must sign in again.
+    """
+    if user.mfa_enabled_at is None:
+        raise ApiError("Two-factor authentication is not enabled", code="mfa_not_enabled", status_code=400)
+    enforce(f"mfa:{user.id}", 10)
+    if not totp.verify(mfa_secret(user), code):
+        audit.record_detached(
+            action="user.mfa_failed",
+            actor_user_id=user.id,
+            target_type="user",
+            target_id=user.id,
+            details={"step_up": True},
+            ip=info.ip,
+            user_agent=info.user_agent,
+        )
+        # 400, not 401: the session is still valid; a 401 would read as "signed out" to the client
+        raise ApiError("Invalid authentication code", code="mfa_invalid", status_code=400)
+    now = dt.datetime.now(dt.UTC)
+    sess.mfa_step_up_at = now
+    audit.record(
+        db,
+        action="user.mfa_step_up",
+        actor_user_id=user.id,
+        target_type="user",
+        target_id=user.id,
+        ip=info.ip,
+        user_agent=info.user_agent,
+    )
+    return now
+
+
 def mfa_secret(user: User) -> str:
     if user.mfa_secret_enc is None:
         raise ApiError("Two-factor authentication is not set up", code="mfa_not_started", status_code=400)
@@ -303,8 +338,16 @@ def mfa_disable(db: Session, user: User, password: str, code: str) -> None:
 
 
 def start_session(
-    db: Session, user: User, response: Response, info: RequestInfo, *, method: str | None = None
+    db: Session,
+    user: User,
+    response: Response,
+    info: RequestInfo,
+    *,
+    method: str | None = None,
+    mfa_verified: bool = False,
 ) -> UserSession:
+    """Open a session. ``mfa_verified`` only when the caller checked a TOTP code for this sign-in
+    (password login with two-step on); email links and Google never set it (ADR-0028 §7)."""
     s = get_settings()
     now = dt.datetime.now(dt.UTC)
     token = new_token()
@@ -315,6 +358,7 @@ def start_session(
         absolute_expires_at=now + dt.timedelta(days=s.session_absolute_days),
         ip=info.ip,
         user_agent=(info.user_agent or "")[:400] or None,
+        mfa_verified_at=now if mfa_verified else None,
     )
     db.add(sess)
     db.flush()
