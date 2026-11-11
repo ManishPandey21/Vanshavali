@@ -41,11 +41,11 @@ TOOLKIT_VERSION = "0.3.4"
 # ops/factory/toolkit/; `ops/factory/toolkit_release.py build` reproduces it and checks these hashes.
 # Upgrading the toolkit = review its diff, then update these hashes in a reviewed PR.
 TOOLKIT_SHA256 = {
-    "factory.py": "27bb5b036b519b2b21abeead6185ecaca20f3d2d12d5df98c4219ee2555f5a1b",
+    "factory.py": "dc40d73519fe93ae7da3abbe719527f92b536c3f7332e0fd3e5a9c7ba9e3edee",
     "verification_policy.py": "a984427a17e4e3636fe2a3bf054d9da7b226058d55e5d7f0bfbc2617fdabfcd6",
     "cold_workspace.py": "2f687c221d1b0226b5a9c3976967cba367bd7df2e2edb53fa80b31f1c3fa0faf",
     "test_report.py": "192b01fb39c01fda0a384d165df31c4a070a7d37347d2b4c9f2d50dabc9b67da",
-    "agent_bridge.py": "1ae9b3b8c5107e6deeb77cc8b0158402d311cdadeff6df44735a4aaab2eba541",
+    "agent_bridge.py": "b969e2076af0aba9e3f22b577bf89604f4d4183a2865e4b38693234212300722",
 }
 TOOLKIT_FILES = tuple(TOOLKIT_SHA256)
 
@@ -191,6 +191,9 @@ MIXED = {"builder_routine": "medium", "reviewer_standards": "high"}
 LEGACY_ROLES = {"frontend": "builder_routine", "backend": "builder_routine", "critical": "builder_critical"}
 NODE_MAJOR = 22  # .github/workflows/ci.yml
 MIN_FREE_GB = 5.0
+# One builder command covers install, agent, gate and repair rounds; reviewers get the same limit.
+TIMEOUT_SECONDS = 5400
+GATE = REPO / "ops" / "factory" / "changed_test_gate.py"
 
 
 def parse_route(text: str) -> tuple[str, tuple[str, str, str]]:
@@ -336,6 +339,11 @@ def build(a: argparse.Namespace) -> dict:
         f"{MIN_FREE_GB:g}",
         "--node-major",
         str(NODE_MAJOR),
+        # an argv path, so the factory hashes it with the other tools for the whole run
+        "--gate-module",
+        str(GATE),
+        "--budget-seconds",
+        str(TIMEOUT_SECONDS - 300),
     ]
     commands = {role: agent(python, toolkit, role, route, skill, boot) for role, route in routes.items()}
     for legacy, role in LEGACY_ROLES.items():
@@ -348,7 +356,7 @@ def build(a: argparse.Namespace) -> dict:
         "version": 1,
         "base_ref": a.base_ref,
         "max_parallel": 2,
-        "timeout_seconds": 3600,
+        "timeout_seconds": TIMEOUT_SECONDS,
         "checks": [static("backend"), static("frontend")],
         "protected_paths": PROTECTED_PATHS,
         "verification": {

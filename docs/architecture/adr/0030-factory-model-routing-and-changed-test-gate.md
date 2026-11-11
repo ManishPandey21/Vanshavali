@@ -69,9 +69,12 @@ reported only the requested model in `modelUsage`; a nonexistent model fails wit
 4. **Changed-test gate** (`ops/factory/changed_test_gate.py`, run by `bootstrap_builder.py --gate`):
    after the builder exits and before the controller commits, the controller runs every test file
    the builder created or changed, and every test file the ticket declares, in the builder's
-   worktree (vitest, targeted Playwright with its own backend/SPA/database on private ports,
-   pytest with a private database), with JUnit evidence. Pass = exit 0, ≥ 1 test, no failure, error
-   or skip. A declared test that was not written, or a test file with no trusted runner, fails. A
+   changes — in a **fresh controller-provisioned worktree** holding exactly those changes, never the
+   builder's tree (so ignored files it left cannot decide the result), one file per run with
+   runners that never install (vitest, targeted Playwright with its own backend/SPA/database on
+   private ports, pytest with a private database), with JUnit evidence. Pass = exit 0, ≥ 1 test from
+   that file, no failure, error or skip. Manifest, harness, tool-config and existing-test edits, and
+   agent configuration files the builder wrote, are refused before anything runs. A declared test that was not written, or a test file with no trusted runner, fails. A
    failure goes back to the builder with the controller's own output for at most `--repair-rounds`
    (default 1) more turns in the **same attempt** with the same model and effort; then the attempt
    blocks before cold review. The gate may not change the candidate (content-hash check). The
@@ -79,13 +82,22 @@ reported only the requested model in `modelUsage`; a nonexistent model fails wit
 
 5. **Attempt history survives replacement tickets** (toolkit 0.3.4): a ticket may declare
    `supersedes: [ids]`; it inherits the highest attempt count and closes those tickets (REJECTED,
-   history kept). Adding a ticket with the same paths as an unfinished ticket that has used attempts
-   is refused unless it declares `supersedes`; an exhausted history cannot be renamed.
+   history kept). A ticket sharing at least half the paths of an unfinished ticket that has used
+   attempts is refused unless it declares `supersedes` or a recorded `unrelated_to` reason; an
+   exhausted history cannot be renamed. Conversely, host/account refusals (exit 75: dependency
+   install, host checks, a model/effort the bridge refuses) block **without** charging an attempt;
+   an agent cannot produce that exit code itself.
 
 6. **Reproducible toolkit release**: the toolkit stays outside the repository, but its upgrade is
    reviewed here as a patch against the pinned 0.3.3 archive (SHA-256 `1247c45b…`).
    `ops/factory/toolkit_release.py build` reproduces 0.3.4 and checks the runtime pins and a manifest
    that must list exactly the files present; `verify` checks an installed copy.
+
+7. **Independent architecture review.** The change was reviewed at Fable 5.2 / high effort before
+   merge. Its findings (effort side channels via per-model caps, settings `env` blocks and thinking
+   variables; the gate trusting the builder's tree; per-runner instead of per-file results; an
+   evadable rename rule; attempts burnt by infrastructure; repair-round evidence not recorded) are
+   fixed in this change, each with a regression test.
 
 ## Consequences
 

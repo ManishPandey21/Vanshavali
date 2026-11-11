@@ -5,13 +5,15 @@ A builder's statement that its tests pass is not evidence. After the builder exi
 controller commits its work, the controller itself runs every test file the builder created or
 changed, plus every test file the ticket declares, in the builder's own worktree:
 
-    frontend/**/*.test.ts(x)       npx vitest run <files>                      (frontend/)
-    e2e/tests/**/*.spec.ts         npx playwright test <files>                 (e2e/, real backend + SPA)
-    e2e/visual/**/*.spec.ts        npx playwright test --config=playwright.visual.config.ts <files>
-    backend/tests/**/test_*.py     uv run pytest <files>                       (backend/, private database)
+    frontend/**/*.test.ts(x)       npx --no-install vitest run <file>           (frontend/)
+    e2e/tests/**/*.spec.ts         npx --no-install playwright test <file>      (e2e/, real backend + SPA)
+    e2e/visual/**/*.spec.ts        the same with --config=playwright.visual.config.ts
+    backend/tests/**/test_*.py     uv run --frozen --no-sync pytest <file>      (backend/, private database)
 
-Each run writes JUnit; it passes only with exit code 0, at least one test, and no failure, error or
-skip (the cold-check rule). A declared test file that does not exist, or a changed test file with no
+It runs in a fresh copy of the builder's changes that the controller provisioned itself (see
+``bootstrap_builder.py``), one file per run, so each file must yield its own JUnit with at least one
+test, exit code 0 and no failure, error or skip (the cold-check rule). Runners never install or
+download anything. A declared test file that does not exist, or a changed test file with no
 trusted runner, fails the gate. The gate must not change the candidate: tracked and untracked
 files are compared by content before and after. Evidence (commands, exit codes, counts, log and
 JUnit hashes) is written beside the builder result. Cold verification is unchanged and still runs
@@ -87,6 +89,16 @@ def changed_files(root: Path) -> list[str]:
     return sorted(files)
 
 
+SAFE_PATH = re.compile(r"[A-Za-z0-9._/@+-]+")
+
+
+def safe_path(path: str) -> bool:
+    """A test path that cannot be read as a runner option or split by a shell."""
+    return bool(SAFE_PATH.fullmatch(path)) and not any(
+        part.startswith("-") for part in PurePosixPath(path).parts
+    )
+
+
 def plan(root: Path, ticket: dict[str, Any]) -> tuple[dict[str, list[str]], list[str]]:
     """{runner: [files]} to execute, and declared test files that are missing."""
     declared = [p for p in ticket["paths"] if isinstance(p, str) and is_test_file(p)]
@@ -138,6 +150,7 @@ def command(
         rel = [str(PurePosixPath(f).relative_to("frontend")) for f in files]
         argv = [
             "npx",
+            "--no-install",
             "vitest",
             "run",
             "--reporter=default",
@@ -156,7 +169,7 @@ def command(
             "VSH_E2E_WEB_PORT": str(port + 1),
             "PLAYWRIGHT_JUNIT_OUTPUT_FILE": str(junit),
         }
-        argv = ["npx", "playwright", "test", "--reporter=list,junit", "--trace=off"]
+        argv = ["npx", "--no-install", "playwright", "test", "--reporter=list,junit", "--trace=off"]
         if runner == "playwright-visual":
             argv.append("--config=playwright.visual.config.ts")
         return argv + rel, root / "e2e", env
@@ -167,7 +180,18 @@ def command(
             "VSH_TEST_DB_NAME": f"vsh_factory_{ns}_gate_pytest",
             "VSH_REQUIRE_EPHEMERIS": "1",
         }
-        argv = ["uv", "run", "pytest", "-q", "-p", "no:cacheprovider", f"--junitxml={junit}", *rel]
+        argv = [
+            "uv",
+            "run",
+            "--frozen",
+            "--no-sync",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            f"--junitxml={junit}",
+            *rel,
+        ]
         return argv, root / "backend", env
     raise GateError(f"no trusted runner for {runner}")
 
@@ -193,48 +217,61 @@ def run_gate(
         "declared_missing": missing,
         "runs": [],
     }
+    n = 0
     for runner, files in groups.items():
-        run: dict[str, Any] = {"runner": runner, "files": files}
-        result["runs"].append(run)
-        if runner == "unsupported":
-            run.update(passed=False, reason="no trusted runner for these test files")
-            continue
-        junit = out_dir / f"{label}-{runner}.junit.xml"
-        log = out_dir / f"{label}-{runner}.log"
-        for stale in (junit, log):
-            if stale.exists() or stale.is_symlink():
-                raise GateError(f"stale gate output {stale.name}; refusing to reuse evidence")
-        try:
-            prepare(runner)
-            argv, cwd, extra = command(runner, files, root, junit, ctx)
-            env = dict(ctx.env)
-            env.update(extra)
-            run["argv"] = argv
-            run["exit_code"] = execute(argv, cwd, env, log)
-        except GateError as exc:
-            run.update(passed=False, reason=str(exc))
-            continue
-        counts = junit_counts(junit)
-        run.update(
-            counts=counts, log=str(log), log_sha256=sha256(log), junit=str(junit), junit_sha256=sha256(junit)
-        )
-        reasons = []
-        if run["exit_code"] != 0:
-            reasons.append(f"exit code {run['exit_code']}")
-        if counts is None:
-            reasons.append("no JUnit report")
-        else:
-            if counts["tests"] < 1:
-                reasons.append("no tests ran")
-            for key in ("failures", "errors", "skipped"):
-                if counts[key]:
-                    reasons.append(f"{counts[key]} {key}")
-        run["passed"] = not reasons
-        if reasons:
-            run["reason"] = ", ".join(reasons)
+        for path in files:  # one run per file: each file must produce its own tests
+            n += 1
+            run: dict[str, Any] = {"runner": runner, "files": [path]}
+            result["runs"].append(run)
+            if runner == "unsupported":
+                run.update(passed=False, reason="no trusted runner for this test file")
+                continue
+            if not safe_path(path):
+                run.update(passed=False, reason="unsafe test file name (could be read as a runner option)")
+                continue
+            junit = out_dir / f"{label}-{n}-{runner}.junit.xml"
+            log = out_dir / f"{label}-{n}-{runner}.log"
+            for stale in (junit, log):
+                if stale.exists() or stale.is_symlink():
+                    raise GateError(f"stale gate output {stale.name}; refusing to reuse evidence")
+            try:
+                prepare(runner)
+                argv, cwd, extra = command(runner, [path], root, junit, ctx)
+                env = dict(ctx.env)
+                env.update(extra)
+                run["argv"] = argv
+                run["exit_code"] = execute(argv, cwd, env, log)
+            except GateError as exc:
+                run.update(passed=False, reason=str(exc))
+                continue
+            counts = junit_counts(junit)
+            run.update(
+                counts=counts,
+                log=str(log),
+                log_sha256=sha256(log),
+                junit=str(junit),
+                junit_sha256=sha256(junit),
+            )
+            reasons = []
+            if run["exit_code"] != 0:
+                reasons.append(f"exit code {run['exit_code']}")
+            if counts is None:
+                reasons.append("no JUnit report")
+            else:
+                if counts["tests"] < 1:
+                    reasons.append("no tests ran from this file")
+                for key in ("failures", "errors", "skipped"):
+                    if counts[key]:
+                        reasons.append(f"{counts[key]} {key}")
+            run["passed"] = not reasons
+            if reasons:
+                run["reason"] = ", ".join(reasons)
     result["finished_at"] = time.time()
     result["passed"] = not missing and all(r["passed"] for r in result["runs"])
     result["tested_files"] = sorted(f for r in result["runs"] for f in r["files"])
+    # Zero changed or declared tests passes (cold verification still runs every suite); it is
+    # recorded so routing_report and reviewers can see a ticket that added no tests.
+    result["no_tests"] = not result["runs"] and not missing
     return result
 
 

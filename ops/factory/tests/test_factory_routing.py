@@ -113,12 +113,28 @@ class RoutingConfigTests(unittest.TestCase):
             argv = commands[role]["argv"]
             sep = argv.index("--")
             self.assertEqual(argv[:3], ["/usr/bin/python3", "-I", str(BOOTSTRAP)], role)
-            for flag in ("--gate", "--node-major", "--min-free-gb", "--repair-rounds", "--pg-admin-url"):
+            for flag in (
+                "--gate",
+                "--node-major",
+                "--min-free-gb",
+                "--repair-rounds",
+                "--pg-admin-url",
+                "--budget-seconds",
+            ):
                 self.assertIn(flag, argv[:sep], role)
+            self.assertEqual(
+                argv[argv.index("--gate-module") + 1], str(BOOTSTRAP.with_name("changed_test_gate.py"))
+            )
             self.assertEqual(argv[sep + 2], str(self.toolkit / "agent_bridge.py"), role)
         for role in ("reviewer_standards", "reviewer_spec", "reviewer_spec_critical"):
             self.assertNotIn(str(BOOTSTRAP), commands[role]["argv"], role)
             self.assertEqual(self.flag(commands[role]["argv"], "--mode"), "reviewer")
+
+    def test_one_builder_command_has_time_for_a_repair_round(self) -> None:
+        config = self.build()
+        argv = config["commands"]["builder_routine"]["argv"]
+        self.assertEqual(config["timeout_seconds"], 5400)
+        self.assertLess(float(argv[argv.index("--budget-seconds") + 1]), config["timeout_seconds"])
 
     def test_legacy_roles_alias_the_routing_tiers(self) -> None:
         commands = self.build()["commands"]
@@ -301,6 +317,13 @@ class ToolkitReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(self.tr.ReleaseError, "mismatch .*README.md"):
             self.tr.verify(out, self.pins)
 
+    def test_verify_refuses_bytecode_that_could_shadow_reviewed_source(self) -> None:
+        out = self.build()
+        (out / "__pycache__").mkdir()
+        (out / "__pycache__" / "factory.cpython-311.pyc").write_bytes(b"planted")
+        with self.assertRaisesRegex(self.tr.ReleaseError, "compiled bytecode"):
+            self.tr.verify(out, self.pins)
+
     def test_verify_refuses_unlisted_and_missing_files(self) -> None:
         out = self.build()
         (out / "extra.py").write_text("planted\n")
@@ -385,6 +408,7 @@ class RoutingReportTests(unittest.TestCase):
                 ("BLOCKED", "claude-sonnet-5-5", 120),
             )
             self.assertEqual(row["gate"], {"outcome": "passed", "rounds": 2, "repairs_used": 1})
+            self.assertEqual(row["builder"]["repair_turns"], 0)
             self.assertEqual(row["cold_failed"], ["frontend-e2e"])
             text = rr.summary(rows)
             self.assertIn("| claude-sonnet-5-5 | medium | 1 | 0 | 0 | 1 | 1 | 0.50 | 120 |", text)

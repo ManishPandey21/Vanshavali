@@ -10,7 +10,7 @@ those two and checks every hash; ``verify`` checks an extracted toolkit director
     python3 ops/factory/toolkit_release.py build --archive ~/Downloads/infra-code-factory-v0.3.3.zip --out ~/tools/infra-code-factory-0.3.4
     python3 ops/factory/toolkit_release.py verify --toolkit ~/tools/infra-code-factory-0.3.4
 
-A toolkit passes only if its SHA256SUMS lists exactly the files present (ignoring ``__pycache__``),
+A toolkit passes only if its SHA256SUMS lists exactly the files present (and no bytecode),
 every listed hash matches, and its runtime files match ``TOOLKIT_SHA256`` in configure_factory.py.
 
 About 0.3.3's own manifest: it is the 0.3.1 list. Its four mismatches (CHANGELOG.md, README.md,
@@ -72,7 +72,13 @@ def tree_files(root: Path) -> list[str]:
     files = []
     for path in sorted(root.rglob("*")):
         rel = path.relative_to(root)
-        if "__pycache__" in rel.parts or path.is_dir():
+        if "__pycache__" in rel.parts or path.suffix in (".pyc", ".pyo"):
+            # Python may load cached bytecode instead of the reviewed source
+            raise ReleaseError(
+                f"{rel} is compiled bytecode; remove it (find DIR -name __pycache__ -exec rm -rf {{}} +) "
+                "and run the toolkit with PYTHONDONTWRITEBYTECODE=1"
+            )
+        if path.is_dir():
             continue
         if path.is_symlink():
             raise ReleaseError(f"{rel} is a symlink; a release contains regular files only")

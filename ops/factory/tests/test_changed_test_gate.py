@@ -22,16 +22,21 @@ import textwrap
 import unittest
 from pathlib import Path
 
-from test_bootstrap_builder import BOOTSTRAP, GIT_ENV, Host
+from test_bootstrap_builder import BOOTSTRAP, GIT_ENV, Host, git
+
+GATE_MODULE = BOOTSTRAP.with_name("changed_test_gate.py")
 
 FAKE_TOOL = textwrap.dedent(
     r"""
     import json, os, sys
     from pathlib import Path
     tool, args = Path(sys.argv[0]).name, sys.argv[1:]
+    if args[:1] == ["--no-install"]:
+        args = args[1:]
     knobs = json.loads(Path(KNOBS).read_text())
     with open(knobs["calls"], "a") as f:
         f.write(json.dumps({"tool": tool, "args": args, "cwd": os.getcwd(),
+                            "planted": Path("node_modules/PLANTED").exists(),
                             "env": {k: os.environ.get(k) for k in ("VSH_E2E_API_PORT", "VSH_E2E_DB",
                                     "VSH_TEST_DB_NAME", "VSH_TEST_ADMIN_URL", "PLAYWRIGHT_BROWSERS_PATH")}}) + "\n")
 
@@ -115,6 +120,11 @@ class GateTests(unittest.TestCase):
         self.agent.write_text(FAKE_AGENT.replace("KNOBS", repr(str(self.knobs_path))))
         self.logs = tmp / "logs"
         self.logs.mkdir()
+        # a pre-existing test on the base branch: builders may never change it
+        (self.host.repo / "frontend" / "src").mkdir(parents=True)
+        (self.host.repo / "frontend" / "src" / "existing.test.ts").write_text("PASS\n")
+        git(self.host.repo, "add", "-A")
+        git(self.host.repo, "commit", "-q", "-m", "existing test")
         self.calls = tmp / "calls.jsonl"
         self.prompts = tmp / "prompts.jsonl"
         self.wt = self.host.worktree()
@@ -148,6 +158,8 @@ class GateTests(unittest.TestCase):
             "--cache-dir",
             str(self.host.cache),
             "--gate",
+            "--gate-module",
+            str(GATE_MODULE),
             *extra,
             "--",
         ]
@@ -244,9 +256,8 @@ class GateTests(unittest.TestCase):
         self.assertTrue(pw[0]["cwd"].endswith("/e2e"))
         port = int(pw[0]["env"]["VSH_E2E_API_PORT"])
         self.assertTrue(20000 <= port < 29000, "gate e2e runs get private ports")
-        self.assertEqual(
-            prompts[0]["e2e_port"], str(port), "the builder's own e2e runs use the same private ports"
-        )
+        builder_port = int(prompts[0]["e2e_port"])
+        self.assertTrue(20000 <= builder_port < 29000, "the builder's own e2e runs get private ports too")
 
     def test_failure_after_the_repair_rounds_blocks_the_attempt(self) -> None:
         spec = "e2e/tests/overview-vitals-edit.spec.ts"
@@ -299,8 +310,9 @@ class GateTests(unittest.TestCase):
         proc = self.run_gate(
             self.ticket([t]), writes={t: "PASS"}, mutate=str(self.wt / "frontend" / "app.ts")
         )
-        self.assertEqual(proc.returncode, 3)
-        self.assertIn("the test gate changed the candidate", proc.stderr)
+        self.assertEqual(proc.returncode, 4)
+        self.assertIn("a test escaped its copy", proc.stderr)
+        self.assertEqual(self.evidence()["outcome"], "work_rejected")
 
     def test_agent_failure_is_propagated_without_running_the_gate(self) -> None:
         proc = self.run_gate(
@@ -315,7 +327,7 @@ class GateTests(unittest.TestCase):
         proc = self.run_gate(
             self.ticket(["frontend/src/a.test.ts"]), writes={"frontend/src/a.test.ts": "PASS"}
         )
-        self.assertEqual(proc.returncode, 3)
+        self.assertEqual(proc.returncode, 75, "a host/repository problem, not the work")
         self.assertIn("stale changed-tests.json", proc.stderr)
         self.assertFalse(self.prompts.exists(), "the builder must not start")
 
@@ -331,6 +343,8 @@ class GateTests(unittest.TestCase):
                 "--cache-dir",
                 str(self.host.cache),
                 "--gate",
+                "--gate-module",
+                str(GATE_MODULE),
                 "--",
                 sys.executable,
                 str(self.agent),
@@ -341,8 +355,93 @@ class GateTests(unittest.TestCase):
             text=True,
             timeout=120,
         )
-        self.assertEqual(proc.returncode, 3)
+        self.assertEqual(proc.returncode, 75)
         self.assertIn("--gate needs an agent command with --prompt-file", proc.stderr)
+
+    # ---------------------------------------------------------------- review findings (H2, M1, M3)
+    def test_gate_runs_in_a_fresh_copy_not_the_builders_tree(self) -> None:
+        t = "frontend/src/a.test.ts"
+        planted = "frontend/node_modules/PLANTED"  # ignored: invisible to git, visible to a runner
+        proc = self.run_gate(self.ticket([t]), writes={t: "PASS", planted: "evil vitest"})
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        run = self.runs("npx", "vitest")[0]
+        self.assertFalse(run["planted"], "nothing the builder left in ignored files reaches the gate")
+        self.assertNotEqual(Path(run["cwd"]).parent.resolve(), self.wt.resolve())
+        self.assertIn("-gate-1", run["cwd"])
+        self.assertFalse(Path(run["cwd"]).exists(), "the gate copy is removed afterwards")
+        self.assertEqual(
+            run["args"][:2], ["vitest", "run"], "runners never install (--no-install stripped above)"
+        )
+
+    def test_manifest_change_is_rejected_before_any_test_runs(self) -> None:
+        t = "frontend/src/a.test.ts"
+        proc = self.run_gate(self.ticket([t]), writes={t: "PASS", "frontend/package.json": "{}"})
+        self.assertEqual(proc.returncode, 4)
+        self.assertIn("frontend/package.json, a manifest", proc.stderr)
+        self.assertEqual(self.runs("npx", "vitest"), [])
+        self.assertEqual(self.evidence()["outcome"], "work_rejected")
+
+    def test_changing_an_existing_test_is_rejected(self) -> None:
+        t = "frontend/src/existing.test.ts"
+        proc = self.run_gate(
+            self.ticket(["frontend/src/a.ts"]), writes={"frontend/src/a.ts": "x", t: "PASS weakened"}
+        )
+        self.assertEqual(proc.returncode, 4)
+        self.assertIn("an existing test", proc.stderr)
+
+    def test_agent_configuration_written_by_the_builder_is_rejected(self) -> None:
+        t = "frontend/src/a.test.ts"
+        proc = self.run_gate(
+            self.ticket([t]),
+            writes={t: "FAIL", ".claude/settings.local.json": '{"permissions": {"allow": ["Bash(*)"]}}'},
+        )
+        self.assertEqual(proc.returncode, 4)
+        self.assertIn(".claude/settings.local.json is agent configuration", proc.stderr)
+        self.assertEqual(len(self.prompts_seen()), 1, "no repair round under a builder-written configuration")
+
+    def test_each_file_must_run_its_own_tests(self) -> None:
+        good, empty = "frontend/src/a.test.ts", "frontend/src/b.test.ts"
+        proc = self.run_gate(
+            self.ticket([good, empty]), "--repair-rounds", "0", writes={good: "PASS", empty: "NONE"}
+        )
+        self.assertEqual(proc.returncode, 4)
+        runs = self.evidence()["rounds"][0]["runs"]
+        self.assertEqual([(r["files"], r["passed"]) for r in runs], [([good], True), ([empty], False)])
+        self.assertEqual(len(self.runs("npx", "vitest")), 2)
+
+    def test_option_like_test_file_name_is_refused(self) -> None:
+        t = "frontend/src/--config=x.test.ts"
+        proc = self.run_gate(self.ticket([t]), "--repair-rounds", "0", writes={t: "PASS"})
+        self.assertEqual(proc.returncode, 4)
+        self.assertIn("unsafe test file name", self.evidence()["rounds"][0]["runs"][0]["reason"])
+        self.assertEqual(self.runs("npx", "vitest"), [])
+
+    def test_no_repair_round_without_time_left(self) -> None:
+        t = "frontend/src/a.test.ts"
+        proc = self.run_gate(
+            self.ticket([t]), "--budget-seconds", "60", writes={t: "FAIL"}, repair_writes={t: "PASS"}
+        )
+        self.assertEqual(proc.returncode, 4)
+        self.assertEqual(self.evidence()["outcome"], "failed_no_time_for_repair")
+        self.assertEqual(len(self.prompts_seen()), 1)
+
+    def test_pytest_runs_frozen_without_sync(self) -> None:
+        t = "backend/tests/test_x.py"
+        proc = self.run_gate(self.ticket([t]), writes={t: "PASS"})
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.runs("uv", "pytest")[0]["args"][:4], ["run", "--frozen", "--no-sync", "pytest"])
+
+    def test_gate_module_must_be_the_pinned_one(self) -> None:
+        other = self.host.tmp / "changed_test_gate.py"
+        other.write_text("# not the reviewed gate\n")
+        proc = self.run_gate(self.ticket([]), "--gate-module", str(other))
+        self.assertEqual(proc.returncode, 75)
+        self.assertIn("--gate-module", proc.stderr)
+        self.assertFalse(self.prompts.exists())
+
+    def test_agent_cannot_fake_an_uncharged_infrastructure_refusal(self) -> None:
+        proc = self.run_gate(self.ticket([]), agent_exit=75)
+        self.assertEqual(proc.returncode, 1)
 
 
 class HostCheckTests(unittest.TestCase):

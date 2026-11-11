@@ -49,6 +49,17 @@ def routing(path: Path) -> dict[str, Any]:
     }
 
 
+def builder_routing(logs: Path) -> dict[str, Any]:
+    """The first builder turn's routing, with cost/tokens/duration summed over its repair rounds."""
+    first = routing(logs / "builder-result.routing.json")
+    repairs = [routing(p) for p in sorted(logs.glob("builder-result.repair-*.routing.json"))]
+    for r in repairs:
+        for key in ("cost_usd", "tokens", "duration_ms"):
+            first[key] = (first.get(key) or 0) + (r.get(key) or 0)
+    first["repair_turns"] = len(repairs)
+    return first
+
+
 def attempts(repo: Path) -> list[dict[str, Any]]:
     home = repo / ".git" / "infra-factory"
     ledger = home / "ledger.sqlite3"
@@ -101,7 +112,7 @@ def attempts(repo: Path) -> list[dict[str, Any]]:
                 "logs": str(logs),
                 "outcome": end["state"] if end else "IN FLIGHT",
                 "error": (end_details.get("error") or "")[:300],
-                "builder": routing(logs / "builder-result.routing.json"),
+                "builder": builder_routing(logs),
                 "gate": {
                     "outcome": gate.get("outcome", "not run"),
                     "rounds": len(gate.get("rounds") or []),

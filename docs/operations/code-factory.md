@@ -163,9 +163,21 @@ Sonnet/medium; complex ones passing first time on Sonnet), in a reviewed PR that
 ## Changed-test gate
 
 A builder's statement that its tests pass is not evidence. With `--gate` (always written by
-`configure_factory.py`), after the builder stops and **before the controller commits**, the
-controller runs in the builder's worktree every test file the builder created or changed and every
-test file listed in the ticket's `paths`:
+`configure_factory.py`), after the builder stops and **before the controller commits**:
+
+1. Agent configuration (`.claude/`, `.mcp.json`, `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md`) must be
+   exactly what is committed, ignored files included; this is also checked before every agent turn.
+2. Changes the factory would reject anyway are refused before anything from them runs: manifests and
+   lockfiles, `*.config.*`, `tsconfig*.json`, `.gitignore`, the test harness, and any edit to an
+   existing test.
+3. The controller creates a **fresh worktree** at the base with exactly the builder's changed and new
+   files, installs dependencies there itself, and runs each test file below **one file per run**,
+   with runners that never install anything (`npx --no-install`, `uv run --frozen --no-sync`).
+   Nothing the builder left in ignored files (`node_modules`, `.venv`, `.env`) affects the result.
+   The copy is removed afterwards.
+
+Test files run: every one the builder created or changed, and every one listed in the ticket's
+`paths`:
 
 | Test file | Command (in) |
 |---|---|
@@ -174,11 +186,21 @@ test file listed in the ticket's `paths`:
 | `e2e/visual/**/*.spec.ts` | the same with `--config=playwright.visual.config.ts` |
 | `backend/tests/**/test_*.py` | `uv run pytest <files>` (backend/; private database, ephemeris, Tesseract) |
 
-A run passes with exit 0, at least one test and no failure, error or skip. A declared test file
-that was not written, or a test file with no trusted runner (e.g. `renderer/`), fails. On failure
+Each file passes with exit 0, at least one test **from that file** and no failure, error or skip. A
+declared test file that was not written, a test file with no trusted runner (e.g. `renderer/`) or a
+file name a runner could read as an option fails. A ticket with no new or declared tests passes the
+gate with `no_tests: true` recorded (cold verification still runs every suite). On failure
 the builder gets the controller's output (the end of the runner log) for `--repair-rounds` more
 turns (default 1) within **the same attempt**, then the attempt blocks with
-`[bootstrap] FAILED: new or changed tests did not pass under the controller`. Evidence:
+`[bootstrap] FAILED: new or changed tests did not pass under the controller`. A repair round is not
+started with less than 15 minutes left of the builder command's limit (`timeout_seconds`, 5400 s for
+install, builder, gate and repair together).
+
+**Which failures cost an attempt.** Work failures (the gate, a rejected change, a failing builder)
+exit 4 or the agent's own code and are charged. Host or account refusals before or around the agent
+(dependency install, host checks, a model or effort the bridge refuses) exit **75**: the ticket blocks
+with `InfraRefusal (attempt not charged)`. Neither the bridge nor the bootstrap ever passes an agent's
+own exit 75 through. Evidence:
 `changed-tests.json` plus `changed-tests-N-<runner>.log`/`.junit.xml` in the ticket's log
 directory. The gate never edits the candidate (checked by content hash) and does not replace cold
 verification, which still runs every selected suite twice.
@@ -312,9 +334,11 @@ toolkit's `docs/HARDENING_SETUP.md`.
 - **List every test file in `paths`.** The changed-test gate runs each declared test file and fails
   the attempt if one was not written. Name tests where their runner expects them (table above).
 - **Replacing a blocked ticket** (re-scoped, corrected): give it a new id **and**
-  `"supersedes": ["OLD-ID"]`. It inherits the old ticket's attempts and closes it; a ticket with the
-  same paths as an unfinished ticket that has used attempts is refused without `supersedes`, and a
-  ticket that used all three attempts cannot be renamed into a new budget.
+  `"supersedes": ["OLD-ID"]`. It inherits the old ticket's attempts and closes it. A ticket sharing
+  at least half of the paths of an unfinished ticket that has used attempts is refused without
+  `supersedes`; adding or dropping a path does not make it new. A ticket that used all three
+  attempts cannot be renamed into a new budget: the work needs re-scoping by a person. Work that
+  really is different declares `"unrelated_to": {"OLD-ID": "<reason>"}`, which the ledger records.
 
 ## What the evidence does and does not mean
 
