@@ -29,6 +29,8 @@ class Permission(StrEnum):
     GEDCOM_EXPORT = "gedcom.export"
     AUDIT_READ = "audit.read"
     CHANGE_REVIEW = "change.review"  # decide proposed changes and challenges (ADR-0021 §4)
+    # suspend a reported record, or decide its appeal, without seeing it (ADR-0027 §8.2)
+    RECORD_TAKEDOWN = "record.takedown"
 
 
 P = Permission

@@ -57,6 +57,8 @@ RLS_TABLES: tuple[str, ...] = (
     "person",
     "photo_collection",
     "photo_collection_item",
+    "record_report",
+    "record_suspension",
     "place",
     "profile_claim",
     "property",

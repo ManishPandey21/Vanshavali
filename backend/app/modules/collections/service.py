@@ -58,6 +58,8 @@ def collection_allows(
     """Can the viewer see the collection (at its own setting, or at a proposed one)?"""
     if ctx.public or not ctx.is_member or c.tree_id != ctx.tree_id:
         return False
+    if c.suspended_at is not None:
+        return is_record_owner(ctx, c.owner_membership_id)  # ADR-0027 §8.2
     proposed = level is not None
     effective = L(level) if level is not None else L(c.privacy_level)
     branch = branch_id if proposed else c.audience_branch_id

@@ -585,6 +585,7 @@ Constraints/indexes: `UNIQUE (tree_id, pattern, lang, branch_id)`; `UNIQUE (tree
 | `pending_owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `search_text` | TEXT | no |  |
 | `withdrawn_at` | DATETIME | yes |  |
+| `suspended_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -906,6 +907,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_citation_target (tree_id,
 | `metadata_version` | INTEGER | no |  |
 | `deleted_at` | DATETIME | yes |  |
 | `deleted_by` | UUID | yes |  |
+| `suspended_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -1584,3 +1586,5 @@ Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `IN
 - `panchang_day`
 - `photo_collection`
 - `photo_collection_item`
+- `record_report`
+- `record_suspension`

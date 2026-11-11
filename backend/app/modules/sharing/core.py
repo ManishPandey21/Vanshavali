@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -180,6 +182,11 @@ class RecordAdapter(ABC):
     @property
     def owner_membership_id(self) -> uuid.UUID | None:
         return self.record.owner_membership_id  # type: ignore[no-any-return]
+
+    @property
+    def suspended(self) -> bool:
+        """Under a takedown suspension (ADR-0027 §8.2)?"""
+        return getattr(self.record, "suspended_at", None) is not None
 
     @property
     def level(self) -> RecordPrivacyLevel:
@@ -384,6 +391,19 @@ def require_editable(ctx: TreeContext, rec: RecordAdapter) -> None:
         raise Forbidden("You cannot change who can see this record")
 
 
+@contextmanager
+def _as_if_not_suspended(rec: RecordAdapter) -> Iterator[None]:
+    held = getattr(rec.record, "suspended_at", None)
+    if held is None:
+        yield
+        return
+    rec.record.suspended_at = None
+    try:
+        yield
+    finally:
+        rec.record.suspended_at = held
+
+
 def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider: bool) -> None:
     caps = rec.caps(ctx)
     if not within(new.privacy_level, new.audience_branch_id, caps):
@@ -393,10 +413,15 @@ def apply(ctx: TreeContext, rec: RecordAdapter, new: Proposal, *, confirm_wider:
             details={"ceiling": c.model_dump(mode="json") if (c := ceiling_out(caps)) else None},
         )
     old = rec.current(ctx)
-    before, after = audience(ctx, rec, old), audience(ctx, rec, new)
+    with ctx.db.no_autoflush, _as_if_not_suspended(rec):
+        # widening is judged on the record's own audience, which a suspension does not change
+        before, after = audience(ctx, rec, old), audience(ctx, rec, new)
     added = set(after.viewers) - set(before.viewers)
     added_dl = after.downloaders - before.downloaders
     # widening = anyone new can see or download; narrowing is open to managers (ADR-0027 §10)
+    if (added or added_dl) and rec.suspended:
+        # ADR-0027 §8.2: while suspended, the audience only narrows (a lift must not reveal more)
+        raise Conflict("This record is suspended; it cannot be shared more widely", code="record_suspended")
     if not rec.is_owner(ctx) and (added or added_dl):
         raise Forbidden("Only the record's owner can share it more widely", code="owner_only_widening")
     if (added or added_dl) and not confirm_wider:
