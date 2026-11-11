@@ -48,6 +48,8 @@ export default defineConfig({
         VSH_LOGIN_RATE_LIMIT_PER_MINUTE: "1000",
         // every spec registers fresh accounts from 127.0.0.1; a fast host exceeds 20/minute
         VSH_REGISTER_RATE_LIMIT_PER_MINUTE: "1000",
+        // ...and verifies each one (POST /auth/verify-email shares the per-IP token limit, 30/minute)
+        VSH_TOKEN_RATE_LIMIT_PER_MINUTE: "1000",
         VSH_JOB_MODE: "sync",
         VSH_STORAGE_BACKEND: "local",
         VSH_STORAGE_LOCAL_PATH: `${process.cwd()}/.e2e-storage`,
