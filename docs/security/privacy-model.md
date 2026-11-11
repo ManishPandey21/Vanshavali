@@ -66,6 +66,8 @@ Ownership of a document, tradition or collection moves only when its owner offer
 member and that member accepts; an offer gives no access, and a record whose owner left cannot be
 claimed by anyone. Members a private record is shared with only read it: the owner alone edits,
 withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
+Global search and the archive export follow the same rule: a collection is a hit or exported only
+for someone who may see it, and only the photos they may see are listed in it.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override

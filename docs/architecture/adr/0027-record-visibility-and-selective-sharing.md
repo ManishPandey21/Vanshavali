@@ -435,3 +435,16 @@ listed in the threat model's residual risks.
   any member). No current level reaches that branch.
 - Tests: `tests/test_record_ownership.py`, `test_render_jobs.py`, `test_migrations.py`; threat T60.
 
+## Implementation notes (9 Nov 2026, increment 6: collections in search and the archive export)
+- **Search.** A `collection` search provider matches the title or description of the collections
+  the searcher may see (`collection_allows`, so no role reaches a private one, and a private
+  collection's description never produces a hit). Hits link to the collection page; the `kinds`
+  filter and the search page offer "Photo collection".
+- **Archive export.** `collections/index.json` lists the exporter's view: only collections they may
+  see and, inside each, only photos they may see (`can_view_document` per photo), with caption,
+  cover and order. Photos are referenced by document id; `in_documents_index` says whether that
+  photo is in `documents/index.json` of the same export. The manifest counts collections. No new
+  bytes are exported: a photo's file is still included only under the document rules.
+- **No schema change**, no migration.
+- **Tests.** `tests/test_collections_export_search.py` (search by role and audience, the owner's,
+  the tree owner's and the author's export); threat model T59 extended.

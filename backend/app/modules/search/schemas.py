@@ -7,7 +7,7 @@ from app.modules.genealogy.schemas import PersonSummary
 
 
 class SearchHit(ApiModel):
-    kind: str  # person | place | document | property | branch | household
+    kind: str  # person | place | document | property | branch | household | collection
     id: uuid.UUID
     title: str
     subtitle: str | None = None

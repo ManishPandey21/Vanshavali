@@ -1329,7 +1329,8 @@
       "household": "Household",
       "person": "Person",
       "place": "Place",
-      "property": "Property"
+      "property": "Property",
+      "collection": "Photo collection"
     },
     "matchTier": {
       "contains": "contains",
