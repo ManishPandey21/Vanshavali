@@ -121,6 +121,13 @@ machine that holds production credentials.
    need a person. The rules apply to every Claude session of that account, not just builders.
    Claude Code will not edit its own settings from inside a session, so add them yourself.
 
+   Put them in **user** settings, not in the repository's `.claude/settings.json`. Claude Code
+   ignores permission rules in a project settings file until that folder has been trusted, and
+   every builder runs in a brand-new worktree that never has been, so committed rules are
+   silently skipped ("Ignoring … permissions.allow entries … this workspace has not been
+   trusted"). On a cloud factory host, have the environment's setup script write the user
+   settings file before Claude starts.
+
 6. Generate the configuration (preview first, then `--apply`). The script accepts only the
    reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
    pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
