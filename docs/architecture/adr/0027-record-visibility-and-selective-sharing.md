@@ -583,6 +583,8 @@ in this follow-up only enforces what §2, §3 and §10 already say, plus fail-cl
   before `f2a9c4e7d815` (D3); whether a refused downgrade may ever be overridden (D4, recommended:
   no — restore from backup instead). Admin reassignment or admin read access to orphans is **not**
   proposed (§8).
-- **Same shape elsewhere, not changed here:** documents (`3f6a8c1d2e94`) and photo collections
-  (`b5c1e7a93d42`) have unguarded lossy downgrades, and documents written by pre-ADR-0027 code are
-  ownerless.
+- **Same shape elsewhere:** the lossy downgrades of documents (`3f6a8c1d2e94`), photo collections
+  (`b5c1e7a93d42`) and takedown (`d9b4f2c6a713`, which would make every suspended record readable
+  again) are guarded by `a4d7e2c9b153` the same way (shared helper `app/core/downgrade_guard.py`,
+  counts only, fail closed, no override; threat T64). Documents written by pre-ADR-0027 code are
+  still ownerless.
