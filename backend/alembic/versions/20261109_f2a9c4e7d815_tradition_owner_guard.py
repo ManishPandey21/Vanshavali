@@ -1,7 +1,7 @@
 """tradition ownership: safe writes from older code and a guarded downgrade (ADR-0027 increment 2)
 
 Revision ID: f2a9c4e7d815
-Revises: e4b8c2d6f913
+Revises: 7b2e4d9a1c63
 Create Date: 2026-11-09
 
 Follow-up to 8d2e6b4f1a37 (PR #51), which stays unchanged because it may already be applied.
@@ -40,7 +40,7 @@ from sqlalchemy import text
 from alembic import op
 
 revision: str = "f2a9c4e7d815"
-down_revision: str | None = "e4b8c2d6f913"
+down_revision: str | None = "7b2e4d9a1c63"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

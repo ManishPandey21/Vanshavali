@@ -4,6 +4,7 @@ from app.models import rls as _rls
 from app.models.astrology import AstrologyProfile
 from app.models.audit import AuditEvent
 from app.models.base import Base
+from app.models.calendar import CalendarFeed, PanchangDay
 from app.models.collections import PhotoCollection, PhotoCollectionItem
 from app.models.culture import KinshipOverride, TraditionEntry, TraditionLink
 from app.models.documents import (
@@ -62,6 +63,7 @@ __all__ = [
     "AuthTokenPurpose",
     "Base",
     "BranchMembership",
+    "CalendarFeed",
     "ChangeProposal",
     "ChangeProposalItem",
     "ChartPreset",
@@ -94,6 +96,7 @@ __all__ = [
     "NotificationContact",
     "NotificationDelivery",
     "NotificationPreference",
+    "PanchangDay",
     "Person",
     "PhotoCollection",
     "PhotoCollectionItem",

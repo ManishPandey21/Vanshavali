@@ -73,6 +73,7 @@
     "reminders": "Reminders",
     "review": "Review",
     "traditions": "Traditions",
+    "calendar": "Calendar",
     "collections": "Photo collections"
   },
   "auth": {
@@ -2828,7 +2829,13 @@
       "no_verified_contact": "No confirmed phone number",
       "event_deleted": "The event was deleted",
       "recipient_inactive": "Account inactive"
-    }
+    },
+    "followTithi": "Follow the tithi ({{tithi}})",
+    "followTithiHint": "Remind me on the day this tithi falls each year ({{convention}}), not the same Gregorian date.",
+    "observedIn": "Observed in",
+    "observedInHint": "The city whose sunrise decides the day.",
+    "treeCity": "Family's city ({{city}})",
+    "chooseCity": "Choose a city"
   },
   "render": {
     "title": "Animated video",
@@ -3739,6 +3746,74 @@
     "withdrawnDone": "Nomination withdrawn.",
     "approvedDone": "{{name}} is now a family admin.",
     "rejectedDone": "The nomination was not approved."
+  },
+  "lunar": {
+    "add": "Add the tithi (Hindu calendar date)",
+    "legend": "Tithi date",
+    "hint": "As the family remembers it. It is kept as written and never changed by a conversion.",
+    "masa": "Month (masa)",
+    "paksha": "Fortnight (paksha)",
+    "tithi": "Tithi",
+    "monthConvention": "Month system",
+    "purnimanta": "Purnimanta (month ends at full moon)",
+    "amanta": "Amanta (month ends at new moon)",
+    "adhik": "Adhik (extra) month",
+    "samvat": "Era (samvat)",
+    "samvatUnknown": "Year not known",
+    "vikram": "Vikram Samvat",
+    "shaka": "Shaka Samvat",
+    "samvatYear": "Samvat year",
+    "remove": "Remove the tithi",
+    "convert": "Find the Gregorian date",
+    "convertNeedsYear": "Add the samvat and year to find the Gregorian date.",
+    "suggestion": "Suggested: {{date}} ({{convention}}, sunrise in {{city}}). Check it before you use it.",
+    "accept": "Use this date"
+  },
+  "calendar": {
+    "title": "Family calendar",
+    "subtitle": "Birthdays, anniversaries and remembrance days you can see, by date and by tithi.",
+    "earlier": "Earlier",
+    "later": "Later",
+    "empty": "Nothing in these months",
+    "emptyHint": "Dates appear here when events have a full date, or a tithi the family's calendar can follow.",
+    "solar": "By date",
+    "basis": {
+      "sunrise": "Tithi at sunrise · {{convention}} · {{city}}",
+      "aparahna": "Tithi in the afternoon (aparahna) · {{convention}} · {{city}}"
+    },
+    "unavailable": {
+      "disabled": "Tithi days are not shown yet: the calendar engine has not been switched on for this site.",
+      "convention_not_offered": "Tithi days are not shown: the family's month system has not passed its accuracy checks yet.",
+      "no_city": "Tithi days are not shown: choose the city whose sunrise decides them."
+    },
+    "openSettings": "Open tree settings",
+    "feedTitle": "Add to your calendar app",
+    "feedHint": "A private link your phone or computer calendar can subscribe to. It shows only what you can see here. By default entries say only \"Family birthday\" or \"Remembrance day\", without names.",
+    "feedActive": "You have a calendar link, made on {{date}}.",
+    "feedWithNames": "It includes names.",
+    "feedMinimal": "It does not include names.",
+    "feedUrl": "Your calendar link",
+    "feedUrlOnce": "Copy it now: it is shown only once. Anyone with the link can read this calendar, so keep it private.",
+    "copy": "Copy",
+    "copied": "Link copied",
+    "copyFailed": "Could not copy; select the link and copy it yourself.",
+    "includeNames": "Include names and tithis in the link",
+    "includeNamesHint": "Your calendar app's provider will then see the names of your relatives.",
+    "createFeed": "Make a calendar link",
+    "replaceFeed": "Make a new link (the old one stops working)",
+    "revokeFeed": "Turn off the link",
+    "feedCreated": "Calendar link made",
+    "feedRevoked": "Calendar link turned off",
+    "settingsTitle": "Family calendar",
+    "settingsHint": "The month system the family follows and the city whose sunrise decides tithi days. Each person's reminder can use a different city.",
+    "convention": "Month system",
+    "noConvention": "Not chosen",
+    "notVerified": "not yet checked",
+    "notOfferedHint": "This month system has not passed its accuracy checks yet, so tithi days are not computed with it.",
+    "city": "Observance city",
+    "cityHint": "Tithi days depend on local sunrise; a family abroad can choose its own city.",
+    "noCity": "Not chosen",
+    "lunarOff": "Tithi days are switched off on this site for now."
   },
   "collections": {
     "title": "Photo collections",
