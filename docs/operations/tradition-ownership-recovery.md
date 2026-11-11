@@ -100,3 +100,8 @@ and **has not been run anywhere else**. Deciding what to do about any category i
 - Documents and photo collections have the same downgrade shape (`3f6a8c1d2e94`, `b5c1e7a93d42`:
   grants deleted, Selected members → `CUSTOM`) and are not guarded here; documents written by
   pre-ADR-0027 code after a rollback are ownerless. Proposed as a separate change.
+- Any downgrade below `d9b4f2c6a713` (takedown) drops `suspended_at` on documents, traditions and
+  photo collections, so every suspended record becomes readable again by its normal audience. That
+  downgrade is not guarded either, and the guard here does not count suspensions. Until it is, do
+  not downgrade below `d9b4f2c6a713` while `record_suspension` has an `active` row. Proposed as a
+  separate change.
