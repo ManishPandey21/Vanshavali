@@ -108,6 +108,10 @@ and **has not been run anywhere else**. Deciding what to do about any category i
 - The guards protect downgrades that start at or above `a4d7e2c9b153` (documents, collections,
   takedown) and `f2a9c4e7d815` (traditions). A database still below them is protected only by the
   docstrings of `3f6a8c1d2e94`, `b5c1e7a93d42`, `d9b4f2c6a713` and `8d2e6b4f1a37`.
+- The guards are migrations themselves: a downgrade that stops at or below one removes it. Going
+  down in steps (first to `8d2e6b4f1a37`, which is allowed, then further) is therefore not checked
+  on the second step. Never downgrade in steps below a guard; always give the final target in one
+  run from head.
 - The takedown downgrade also drops open reports and the history of lifted suspensions. They give
   no access, so they are not counted; take a backup first if they matter.
 - Any document grant blocks the documents downgrade, even on a `CUSTOM` document that the older

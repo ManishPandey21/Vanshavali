@@ -327,9 +327,9 @@ def test_a_downgrade_that_stops_exactly_at_the_tradition_revision_is_allowed():
             ids = _seed(conn)
             _entry(conn, ids, "SELECTED_MEMBERS", ids["m_author"])
         command.downgrade(cfg, "8d2e6b4f1a37")
+        command.upgrade(cfg, "head")  # below the guards nothing is checked (runbook section 7)
         with pytest.raises(RuntimeError, match="lossy downgrade refused"):
             command.downgrade(cfg, "3f6a8c1d2e94")
-        command.upgrade(cfg, "head")
         engine.dispose()
     finally:
         _drop(admin, url)
