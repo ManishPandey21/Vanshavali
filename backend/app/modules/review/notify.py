@@ -48,7 +48,30 @@ TEXT = {
     NotificationKind.NOMINATION_REJECTED: "An owner did not approve the nomination of {nominee} to be a family admin.",
     NotificationKind.NOMINATION_EXPIRED: "The nomination of {nominee} to be a family admin expired.",
     NotificationKind.NOMINATION_LAPSED: "The nomination of {nominee} to be a family admin lapsed.",
+    # ADR-0027 §5: the owner's record was narrowed because someone or an event linked to it is private
+    NotificationKind.DOCUMENT_NARROWED: "Your document {label} was made more private to protect someone linked to it.",
+    NotificationKind.TRADITION_NARROWED: "Your tradition entry {label} was made more private to protect someone linked to it.",
+    # ADR-0027 §8.2 takedown; "{label}" is the report's reference, never the record
+    NotificationKind.RECORD_REPORTED: "A record was reported ({label}); please review the report.",
+    NotificationKind.RECORD_SUSPENDED: "One of your records was suspended after a report ({label}). You can appeal. Any offer of its ownership was cancelled; you can make a new one after the suspension is lifted.",
+    NotificationKind.SUSPENSION_APPEALED: "An appeal against a suspension needs a decision ({label}).",
+    NotificationKind.APPEAL_OVERDUE: "An appeal against a suspension is overdue for a decision ({label}).",
+    NotificationKind.SUSPENSION_UPHELD: "The suspension of your record was upheld ({label}); it stays hidden.",
+    NotificationKind.SUSPENSION_LIFTED: "The suspension of your record was lifted ({label}).",
+    NotificationKind.REPORT_REVIEWED: "Your report {label} was reviewed.",
 }
+TAKEDOWN_KINDS = frozenset(
+    {
+        NotificationKind.RECORD_REPORTED,
+        NotificationKind.RECORD_SUSPENDED,
+        NotificationKind.SUSPENSION_APPEALED,
+        NotificationKind.APPEAL_OVERDUE,
+        NotificationKind.SUSPENSION_UPHELD,
+        NotificationKind.SUSPENSION_LIFTED,
+        NotificationKind.REPORT_REVIEWED,
+    }
+)
+NARROWED_KINDS = frozenset({NotificationKind.DOCUMENT_NARROWED, NotificationKind.TRADITION_NARROWED})
 NOMINATION_KINDS = frozenset(k for k in NotificationKind if k.value.startswith("nomination_"))
 
 
@@ -119,6 +142,10 @@ def _text(
     ):
         term = ctx.db.get(TreeVocabularyTerm, n.subject_id)
         label = term.label if term is not None and term.tree_id == ctx.tree_id else label
+    if n.kind in NARROWED_KINDS:
+        label = _record_label(ctx, n)
+    if n.kind in TAKEDOWN_KINDS:
+        label = _report_reference(ctx, n)
     nominee = "a member"
     if n.kind in NOMINATION_KINDS and n.subject_id is not None:
         nomination = ctx.db.get(AdminNomination, n.subject_id)
@@ -136,6 +163,51 @@ def _text(
         Nominee=nominee[:1].upper() + nominee[1:],
         n=counts.get(n.proposal_id, 1) if n.proposal_id else 1,
     )
+
+
+def _record_label(ctx: TreeContext, n: UserNotification) -> str:
+    """The record's title, quoted, only while the reader may still see it."""
+    from app.models import Document, TraditionEntry
+    from app.modules.documents.access import can_view_document
+    from app.modules.traditions.sharing import entry_allows
+
+    if n.subject_id is None:
+        return "(no longer available)"
+    if n.kind == NotificationKind.DOCUMENT_NARROWED:
+        doc = ctx.db.get(Document, n.subject_id)
+        if (
+            doc is not None
+            and doc.tree_id == ctx.tree_id
+            and doc.deleted_at is None
+            and can_view_document(ctx, doc)
+        ):
+            return f"“{doc.title}”"
+    else:
+        entry = ctx.db.get(TraditionEntry, n.subject_id)
+        if entry is not None and entry.tree_id == ctx.tree_id and entry_allows(ctx, entry):
+            return f"“{entry.title}”"
+    return "(no longer available)"
+
+
+def _report_reference(ctx: TreeContext, n: UserNotification) -> str:
+    """The report's reference: the subject is the report, or the suspension it led to."""
+    from app.models import RecordReport, RecordSuspension
+
+    if n.subject_id is None:
+        return "a report"
+    report_id = n.subject_id
+    if n.kind not in (NotificationKind.RECORD_REPORTED, NotificationKind.REPORT_REVIEWED):
+        susp = ctx.db.get(RecordSuspension, n.subject_id)
+        if susp is None or susp.tree_id != ctx.tree_id:
+            return "a report"
+        report_id = susp.report_id
+    rep = ctx.db.get(RecordReport, report_id)
+    return rep.reference if rep is not None and rep.tree_id == ctx.tree_id else "a report"
+
+
+def subject_for(ctx: TreeContext, n: UserNotification) -> uuid.UUID | None:
+    """The record a narrowing notice links to; other kinds expose no subject."""
+    return n.subject_id if n.kind in NARROWED_KINDS else None
 
 
 def list_for(ctx: TreeContext, offset: int, limit: int) -> tuple[list[dict[str, Any]], int, bool]:
@@ -206,6 +278,7 @@ def list_for(ctx: TreeContext, offset: int, limit: int) -> tuple[list[dict[str, 
             "id": n.id,
             "kind": n.kind,
             "proposal_id": n.proposal_id,
+            "subject_id": subject_for(ctx, n),
             "text": _text(ctx, n, proposals, counts, names, family_records),
             "created_at": n.created_at,
             "read": n.read_at is not None,

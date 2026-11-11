@@ -1977,6 +1977,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/calendar-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Calendar Settings
+         * @description The family's calendar convention and observance city, and what is available.
+         */
+        get: operations["get_calendar_settings_api_v1_trees__tree_id__calendar_settings_get"];
+        /**
+         * Set Calendar Settings
+         * @description Chosen by a tree admin; never inferred from a surname, place or community.
+         */
+        put: operations["set_calendar_settings_api_v1_trees__tree_id__calendar_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Family Calendar
+         * @description Birthdays, anniversaries and remembrance days you may see in full, by Gregorian date and,
+         *     for an offered convention, by tithi.
+         */
+        get: operations["family_calendar_api_v1_trees__tree_id__calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/calendar/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert
+         * @description A suggested Gregorian date for a tithi date with a samvat year; nothing is stored.
+         */
+        post: operations["convert_api_v1_trees__tree_id__calendar_convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/calendar-feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feed Status */
+        get: operations["feed_status_api_v1_trees__tree_id__calendar_feed_get"];
+        put?: never;
+        /**
+         * Create Feed
+         * @description Create or replace your private calendar feed; its URL is shown only now.
+         */
+        post: operations["create_feed_api_v1_trees__tree_id__calendar_feed_post"];
+        /** Revoke Feed */
+        delete: operations["revoke_feed_api_v1_trees__tree_id__calendar_feed_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar-feeds/{token}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Feed
+         * @description A member's calendar feed. The token is the credential; every fetch is evaluated as the member.
+         */
+        get: operations["feed_api_v1_calendar_feeds__token__ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notification-channels": {
         parameters: {
             query?: never;
@@ -2709,6 +2816,148 @@ export interface paths {
         put?: never;
         /** Preview Sharing */
         post: operations["preview_sharing_api_v1_trees__tree_id__collections__collection_id__sharing_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/records/{record_type}/{record_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Record
+         * @description Report a record you can see. Its owner is never told who reported it.
+         */
+        post: operations["report_record_api_v1_trees__tree_id__records__record_type___record_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reports
+         * @description Reports, for the members who handle them: never the record, never who reported.
+         */
+        get: operations["list_reports_api_v1_trees__tree_id__record_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-reports/{report_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Report */
+        post: operations["dismiss_report_api_v1_trees__tree_id__record_reports__report_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-reports/{report_id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend Record */
+        post: operations["suspend_record_api_v1_trees__tree_id__record_reports__report_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Suspensions */
+        get: operations["list_suspensions_api_v1_trees__tree_id__record_suspensions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions/{suspension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Suspension */
+        get: operations["get_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions/{suspension_id}/appeal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Appeal Suspension */
+        post: operations["appeal_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__appeal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/record-suspensions/{suspension_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Suspension */
+        post: operations["decide_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__decision_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4096,6 +4345,16 @@ export interface components {
              */
             summary?: string;
         };
+        /** AppealIn */
+        AppealIn: {
+            /** Note */
+            note: string;
+        };
+        /**
+         * AppealStatus
+         * @enum {string}
+         */
+        AppealStatus: "none" | "pending" | "upheld" | "lifted";
         /**
          * AreaUnit
          * @enum {string}
@@ -4709,6 +4968,76 @@ export interface components {
             parent_branch_id?: string | null;
             descent_rule?: components["schemas"]["DescentRule"] | null;
         };
+        /** CalendarEntryOut */
+        CalendarEntryOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            kind: components["schemas"]["ReminderKind"];
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Person Id */
+            person_id?: string | null;
+            /** Label */
+            label: string;
+            /** Anniversary */
+            anniversary?: number | null;
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "solar" | "lunar";
+            /** Lunar Label */
+            lunar_label?: string | null;
+            /** Convention */
+            convention?: string | null;
+            /** Rule */
+            rule?: ("sunrise" | "aparahna") | null;
+            /** City */
+            city?: string | null;
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Entries */
+            entries: components["schemas"]["CalendarEntryOut"][];
+            /** Lunar Unavailable */
+            lunar_unavailable?: ("disabled" | "convention_not_offered" | "no_city") | null;
+        };
+        /** CalendarSettingsIn */
+        CalendarSettingsIn: {
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
+        };
+        /** CalendarSettingsOut */
+        CalendarSettingsOut: {
+            /** Convention */
+            convention: string | null;
+            /** Observance City */
+            observance_city: string | null;
+            /** Conventions */
+            conventions: components["schemas"]["ConventionOut"][];
+            /** Cities */
+            cities: components["schemas"]["CityOut"][];
+            /** Lunar Enabled */
+            lunar_enabled: boolean;
+        };
         /** ChallengeIn */
         ChallengeIn: {
             target_type: components["schemas"]["ReviewTarget"];
@@ -4880,6 +5209,15 @@ export interface components {
          * @enum {string}
          */
         CitationTarget: "person" | "name_record" | "event" | "relationship" | "assertion" | "astrology_profile" | "property" | "land_parcel" | "property_interest" | "property_event" | "household" | "tradition";
+        /** CityOut */
+        CityOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Timezone */
+            timezone: string;
+        };
         /** ClaimIn */
         ClaimIn: {
             /** Message */
@@ -5360,21 +5698,78 @@ export interface components {
              */
             created_at: string;
         };
+        /** ConventionOut */
+        ConventionOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Golden Verified */
+            golden_verified: boolean;
+            /** Offered */
+            offered: boolean;
+        };
+        /** ConvertIn */
+        ConvertIn: {
+            lunar: components["schemas"]["LunarDate"];
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
+        };
+        /**
+         * ConvertOut
+         * @description A suggestion only: nothing is stored unless the user accepts it (ADR-0022 §2).
+         */
+        ConvertOut: {
+            /** Suggestion */
+            suggestion: string | null;
+            /** Convention */
+            convention: string;
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "sunrise" | "aparahna";
+            /** City */
+            city: string;
+            /** Engine Version */
+            engine_version: string;
+        };
         /**
          * DateCalendar
          * @enum {string}
          */
         DateCalendar: "gregorian" | "julian" | "vikram_samvat" | "shaka" | "hijri" | "other";
         /**
+         * DateDerivation
+         * @description How a Gregorian date was computed from the tithi, when a person accepted the suggestion
+         *     (ADR-0022 §2): the provenance of a calculated value, never set without that acceptance.
+         */
+        DateDerivation: {
+            /**
+             * Source
+             * @default lunar
+             * @constant
+             */
+            source?: "lunar";
+            /** Convention */
+            convention: string;
+            /** City */
+            city: string;
+            /** Engine Version */
+            engine_version: string;
+        };
+        /**
          * DatePrecision
          * @enum {string}
          */
         DatePrecision: "exact" | "day_unknown" | "month_unknown" | "year_only" | "circa" | "before" | "after" | "range" | "unknown";
-        /** DecisionIn */
-        DecisionIn: {
-            /** Note */
-            note?: string | null;
-        };
+        /**
+         * DecisionReason
+         * @enum {string}
+         */
+        DecisionReason: "report_confirmed" | "mistaken_report" | "not_a_takedown_matter" | "owner_changed_the_record" | "other";
         /** DeliveryOut */
         DeliveryOut: {
             /**
@@ -5434,6 +5829,14 @@ export interface components {
          * @enum {string}
          */
         DescentRule: "patrilineal" | "matrilineal" | "bilateral" | "custom";
+        /** DismissIn */
+        DismissIn: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "mistaken_report" | "not_a_takedown_matter" | "other";
+        };
         /**
          * DocumentCategory
          * @enum {string}
@@ -6043,6 +6446,30 @@ export interface components {
             /** Siblings */
             siblings: components["schemas"]["SiblingOut"][];
         };
+        /** FeedIn */
+        FeedIn: {
+            /**
+             * Include Names
+             * @default false
+             */
+            include_names?: boolean;
+        };
+        /** FeedOut */
+        FeedOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Include Names
+             * @default false
+             */
+            include_names?: boolean;
+            /** Created At */
+            created_at?: string | null;
+            /** Last Used At */
+            last_used_at?: string | null;
+            /** Url */
+            url?: string | null;
+        };
         /** FieldChange */
         FieldChange: {
             /** Field */
@@ -6077,6 +6504,8 @@ export interface components {
             end_day?: number | null;
             /** Original Text */
             original_text?: string | null;
+            lunar?: components["schemas"]["LunarDate"] | null;
+            derived?: components["schemas"]["DateDerivation"] | null;
             /**
              * Redacted
              * @default false
@@ -7232,6 +7661,26 @@ export interface components {
             /** Mfa Code */
             mfa_code?: string | null;
         };
+        /**
+         * LunarDate
+         * @description The lunar part of a date, as entered (stored inside the date JSON).
+         */
+        LunarDate: {
+            /** Masa */
+            masa: string;
+            paksha: components["schemas"]["Paksha"];
+            /** Tithi */
+            tithi: number;
+            /**
+             * Is Adhik
+             * @default false
+             */
+            is_adhik?: boolean;
+            month_convention: components["schemas"]["MonthConvention"];
+            samvat?: components["schemas"]["Samvat"] | null;
+            /** Year */
+            year?: number | null;
+        };
         /** MapOut */
         MapOut: {
             /** Points */
@@ -7435,6 +7884,12 @@ export interface components {
             /** Otpauth Uri */
             otpauth_uri: string;
         };
+        /**
+         * MonthConvention
+         * @description How a lunar month is bounded: new moon to new moon, or full moon to full moon.
+         * @enum {string}
+         */
+        MonthConvention: "amanta" | "purnimanta";
         /** NameIn */
         NameIn: {
             /** @default birth */
@@ -7677,7 +8132,7 @@ export interface components {
          * NotificationKind
          * @enum {string}
          */
-        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed";
+        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed" | "document_narrowed" | "tradition_narrowed" | "record_reported" | "record_suspended" | "suspension_appealed" | "appeal_overdue" | "suspension_upheld" | "suspension_lifted" | "report_reviewed";
         /** NotificationOut */
         NotificationOut: {
             /**
@@ -7688,6 +8143,8 @@ export interface components {
             kind: components["schemas"]["NotificationKind"];
             /** Proposal Id */
             proposal_id: string | null;
+            /** Subject Id */
+            subject_id?: string | null;
             /** Text */
             text: string;
             /**
@@ -7898,6 +8355,11 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /**
+         * Paksha
+         * @enum {string}
+         */
+        Paksha: "shukla" | "krishna";
         /** ParcelGroupOut */
         ParcelGroupOut: {
             parent: components["schemas"]["ParcelRef"];
@@ -9643,6 +10105,12 @@ export interface components {
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
         };
+        /**
+         * ReminderDateRule
+         * @description Which date drives a reminder (ADR-0022 §5): the Gregorian day, or the tithi.
+         * @enum {string}
+         */
+        ReminderDateRule: "solar" | "lunar";
         /** ReminderIn */
         ReminderIn: {
             /**
@@ -9652,6 +10120,12 @@ export interface components {
             event_id: string;
             kind?: components["schemas"]["ReminderKind"] | null;
             recurrence?: components["schemas"]["ReminderRecurrence"] | null;
+            /** @default solar */
+            date_rule?: components["schemas"]["ReminderDateRule"];
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
             /** Lead Days */
             lead_days?: number[] | null;
             /** Channels */
@@ -9678,6 +10152,12 @@ export interface components {
             event_id: string;
             kind: components["schemas"]["ReminderKind"];
             recurrence: components["schemas"]["ReminderRecurrence"];
+            /** @default solar */
+            date_rule?: components["schemas"]["ReminderDateRule"];
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
             /** Lead Days */
             lead_days: number[];
             /** Channels */
@@ -9717,6 +10197,11 @@ export interface components {
         /** ReminderUpdate */
         ReminderUpdate: {
             recurrence?: components["schemas"]["ReminderRecurrence"] | null;
+            date_rule?: components["schemas"]["ReminderDateRule"] | null;
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
             /** Lead Days */
             lead_days?: number[] | null;
             /** Channels */
@@ -9879,6 +10364,70 @@ export interface components {
          * @enum {string}
          */
         RenderStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        /** ReportCreated */
+        ReportCreated: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reference */
+            reference: string;
+            status: components["schemas"]["ReportStatus"];
+        };
+        /** ReportIn */
+        ReportIn: {
+            reason: components["schemas"]["ReportReason"];
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+        };
+        /**
+         * ReportOut
+         * @description A report as the members who handle reports see it: never who reported, never the record.
+         */
+        ReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reference */
+            reference: string;
+            /**
+             * Resource Type
+             * @enum {string}
+             */
+            resource_type: "document" | "tradition" | "collection";
+            reason: components["schemas"]["ReportReason"];
+            /** Note */
+            note: string;
+            status: components["schemas"]["ReportStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            review_reason: components["schemas"]["DecisionReason"] | null;
+            /** Suspension Id */
+            suspension_id: string | null;
+            /** Can Act */
+            can_act: boolean;
+        };
+        /**
+         * ReportReason
+         * @enum {string}
+         */
+        ReportReason: "abuse" | "harassment" | "privacy" | "intimate" | "copyright" | "other";
+        /**
+         * ReportStatus
+         * @enum {string}
+         */
+        ReportStatus: "open" | "dismissed" | "actioned";
         /** ReprocessOut */
         ReprocessOut: {
             /**
@@ -10020,6 +10569,11 @@ export interface components {
          * @enum {string}
          */
         Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN" | "REVIEWER";
+        /**
+         * Samvat
+         * @enum {string}
+         */
+        Samvat: "vikram" | "shaka";
         /**
          * ScanStatus
          * @enum {string}
@@ -10721,6 +11275,66 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /**
+         * SuspensionDecision
+         * @enum {string}
+         */
+        SuspensionDecision: "uphold" | "lift";
+        /** SuspensionOut */
+        SuspensionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reference */
+            reference: string;
+            /**
+             * Resource Type
+             * @enum {string}
+             */
+            resource_type: "document" | "tradition" | "collection";
+            /** Resource Id */
+            resource_id: string | null;
+            reason: components["schemas"]["ReportReason"];
+            status: components["schemas"]["SuspensionStatus"];
+            /**
+             * Suspended At
+             * Format: date-time
+             */
+            suspended_at: string;
+            appeal_status: components["schemas"]["AppealStatus"];
+            /** Appeal Note */
+            appeal_note: string;
+            /** Appealed At */
+            appealed_at: string | null;
+            /** Appeal Due At */
+            appeal_due_at: string | null;
+            /** Overdue */
+            overdue: boolean;
+            /** Escalated At */
+            escalated_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            decision_reason: components["schemas"]["DecisionReason"] | null;
+            /** Decision Note */
+            decision_note: string;
+            /** Sole Reviewer */
+            sole_reviewer: boolean;
+            /** Suspended By Name */
+            suspended_by_name?: string | null;
+            /** Decided By Name */
+            decided_by_name?: string | null;
+            /** Is Owner */
+            is_owner: boolean;
+            /** Can Decide */
+            can_decide: boolean;
+        };
+        /**
+         * SuspensionStatus
+         * @enum {string}
+         */
+        SuspensionStatus: "active" | "lifted";
         /** TaggedPerson */
         TaggedPerson: {
             /**
@@ -11410,6 +12024,26 @@ export interface components {
             vocabulary: components["schemas"]["VocabularyOut"];
             /** Items */
             items: components["schemas"]["VocabularyTermOut"][];
+        };
+        /** DecisionIn */
+        app__modules__review__schemas__DecisionIn: {
+            /** Note */
+            note?: string | null;
+        };
+        /** DecisionIn */
+        app__modules__takedown__schemas__DecisionIn: {
+            decision: components["schemas"]["SuspensionDecision"];
+            reason: components["schemas"]["DecisionReason"];
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /**
+             * Confirm Sole Reviewer
+             * @default false
+             */
+            confirm_sole_reviewer?: boolean;
         };
     };
     responses: never;
@@ -14889,7 +15523,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DecisionIn"];
+                "application/json": components["schemas"]["app__modules__review__schemas__DecisionIn"];
             };
         };
         responses: {
@@ -15881,6 +16515,269 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_DeliveryOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_calendar_settings_api_v1_trees__tree_id__calendar_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_calendar_settings_api_v1_trees__tree_id__calendar_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    family_calendar_api_v1_trees__tree_id__calendar_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    convert_api_v1_trees__tree_id__calendar_convert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConvertIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConvertOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feed_status_api_v1_trees__tree_id__calendar_feed_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_feed_api_v1_trees__tree_id__calendar_feed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_feed_api_v1_trees__tree_id__calendar_feed_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feed_api_v1_calendar_feeds__token__ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": unknown;
                 };
             };
             /** @description Validation Error */
@@ -17852,6 +18749,277 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_record_api_v1_trees__tree_id__records__record_type___record_id__reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_type: "document" | "tradition" | "collection";
+                record_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reports_api_v1_trees__tree_id__record_reports_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_report_api_v1_trees__tree_id__record_reports__report_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DismissIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_record_api_v1_trees__tree_id__record_reports__report_id__suspend_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_suspensions_api_v1_trees__tree_id__record_suspensions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suspension_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    appeal_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__appeal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suspension_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppealIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_suspension_api_v1_trees__tree_id__record_suspensions__suspension_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                suspension_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__takedown__schemas__DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuspensionOut"];
                 };
             };
             /** @description Validation Error */

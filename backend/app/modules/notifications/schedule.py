@@ -5,6 +5,10 @@
 * A one-time reminder needs a full Gregorian date.
 * A fire time is ``send_hour:00`` local time on ``occurrence - lead_days``, converted to UTC with the
   recipient's IANA time zone (so DST zones are handled by ``zoneinfo``).
+* A lunar reminder (ADR-0022 §5) follows the event's tithi: its occurrences are the civil days the
+  calendar engine finds under the reminder's convention at its observance city. It is annual only,
+  and only for a convention offered at the observance city (licence signed off, accuracy approved
+  by an independent reviewer, activated by the product owner: see `calendar.conventions`).
 """
 
 from __future__ import annotations
@@ -17,7 +21,8 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from app.core.dates import DateCalendar, DatePrecision
-from app.models.enums import ReminderRecurrence
+from app.core.lunar import LunarDate
+from app.models.enums import ReminderDateRule, ReminderRecurrence
 
 
 class NotSchedulable(ValueError):
@@ -33,6 +38,26 @@ class Anchor:
     month: int
     day: int
     year: int | None  # known for one-time reminders and for "Nth anniversary" wording
+
+
+@dataclass(frozen=True)
+class LunarAnchor:
+    """A tithi anniversary, observed under ``convention`` in ``city`` (ADR-0022 §5)."""
+
+    lunar: LunarDate
+    convention: str
+    city: str
+    kind: str
+    year: int | None = None  # the Gregorian year of the event, when known: never fire before it
+
+    def dates(self, start: dt.date, end: dt.date) -> list[dt.date]:
+        from app.modules.calendar import observance
+
+        days = observance.cached_days(self.lunar, self.convention, self.kind, self.city, start, end)
+        return [d for d in days if self.year is None or d.year >= self.year]
+
+
+AnyAnchor = Anchor | LunarAnchor
 
 
 @dataclass(frozen=True)
@@ -62,6 +87,45 @@ def anchor_from_date(raw: dict[str, Any] | None, recurrence: ReminderRecurrence)
     return Anchor(month=int(month), day=int(day), year=int(year) if year else None)
 
 
+def anchor_for(
+    raw: dict[str, Any] | None,
+    recurrence: ReminderRecurrence,
+    date_rule: ReminderDateRule = ReminderDateRule.SOLAR,
+    convention: str | None = None,
+    city: str | None = None,
+    kind: str = "default",
+) -> AnyAnchor:
+    """The anchor for a reminder: the Gregorian day and month, or the visible tithi."""
+    if date_rule != ReminderDateRule.LUNAR:
+        return anchor_from_date(raw, recurrence)
+    from app.modules.calendar import conventions
+
+    if not raw:
+        raise NotSchedulable("date_unknown", "This event has no date to remind about")
+    if raw.get("redacted"):
+        raise NotSchedulable("date_hidden", "You cannot see this event's full date")
+    lunar = raw.get("lunar")
+    if not lunar:
+        raise NotSchedulable("no_lunar_date", "This event has no tithi date")
+    if recurrence != ReminderRecurrence.ANNUAL:
+        raise NotSchedulable("lunar_annual_only", "A tithi reminder repeats every year")
+    if not convention:
+        raise NotSchedulable("convention_required", "Choose the calendar convention the family follows")
+    if not city or city not in conventions.cities():
+        raise NotSchedulable("observance_place_required", "Choose the city where the day is observed")
+    if not conventions.offered(convention, city):
+        raise NotSchedulable(
+            "lunar_not_available",
+            "Tithi reminders are not available yet for this convention and city (ADR-0022 §8)",
+        )
+    year = raw.get("year") if raw.get("calendar", "gregorian") == "gregorian" else None
+    return LunarAnchor(LunarDate.model_validate(lunar), str(convention), city, kind, year)
+
+
+def _lunar_window(anchor: LunarAnchor, around: dt.datetime) -> list[dt.date]:
+    return anchor.dates(dt.date(around.year - 1, 1, 1), dt.date(around.year + 1, 12, 31))
+
+
 def occurrence_in(anchor: Anchor, year: int) -> dt.date:
     day = anchor.day
     if anchor.month == 2 and day == 29 and not calendar.isleap(year):
@@ -76,7 +140,7 @@ def fire_time(occurrence: dt.date, lead_days: int, send_hour: int, tz: str) -> d
 
 
 def fires(
-    anchor: Anchor,
+    anchor: AnyAnchor,
     recurrence: ReminderRecurrence,
     lead_days: Iterable[int],
     send_hour: int,
@@ -84,7 +148,9 @@ def fires(
     around: dt.datetime,
 ) -> Iterator[Fire]:
     """Every fire within about a year either side of ``around`` (sorted)."""
-    if recurrence == ReminderRecurrence.ANNUAL:
+    if isinstance(anchor, LunarAnchor):
+        occurrences = _lunar_window(anchor, around)
+    elif recurrence == ReminderRecurrence.ANNUAL:
         years = range(around.year - 1, around.year + 2)
         # never before the event itself (no "birthday" before someone was born)
         occurrences = [occurrence_in(anchor, y) for y in years if anchor.year is None or y >= anchor.year]
@@ -101,7 +167,7 @@ def fires(
 
 
 def next_fire(
-    anchor: Anchor,
+    anchor: AnyAnchor,
     recurrence: ReminderRecurrence,
     lead_days: Iterable[int],
     send_hour: int,
@@ -115,7 +181,7 @@ def next_fire(
 
 
 def due_fires(
-    anchor: Anchor,
+    anchor: AnyAnchor,
     recurrence: ReminderRecurrence,
     lead_days: Iterable[int],
     send_hour: int,
@@ -130,7 +196,10 @@ def due_fires(
     ]
 
 
-def next_occurrence(anchor: Anchor, recurrence: ReminderRecurrence, today: dt.date) -> dt.date | None:
+def next_occurrence(anchor: AnyAnchor, recurrence: ReminderRecurrence, today: dt.date) -> dt.date | None:
+    if isinstance(anchor, LunarAnchor):
+        found = anchor.dates(today, today + dt.timedelta(days=400))
+        return found[0] if found else None
     if recurrence == ReminderRecurrence.ANNUAL:
         occ = occurrence_in(anchor, today.year)
         return occ if occ >= today else occurrence_in(anchor, today.year + 1)

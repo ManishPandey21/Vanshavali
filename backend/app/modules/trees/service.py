@@ -406,9 +406,17 @@ def create_grant(
             GrantResource.TRADITION: TraditionEntry,
             GrantResource.COLLECTION: PhotoCollection,
         }[resource_type]
-        level = ctx.db.scalar(
-            select(model.privacy_level).where(model.tree_id == ctx.tree_id, model.id == resource_id)  # type: ignore[attr-defined]
-        )
+        row = ctx.db.execute(
+            select(model.privacy_level, model.suspended_at).where(  # type: ignore[attr-defined]
+                model.tree_id == ctx.tree_id, model.id == resource_id
+            )
+        ).first()
+        level = row[0] if row else None
+        if row is not None and row[1] is not None:
+            # ADR-0027 §8.2: a suspended record only narrows; nobody is added while it is suspended
+            raise Conflict(
+                "This record is suspended; it cannot be shared with anyone new", code="record_suspended"
+            )
         if level == RecordPrivacyLevel.ONLY_ME:
             raise Conflict(
                 "This record is kept for its owner only; choose Selected members to share it",

@@ -55,6 +55,8 @@ Constraints/indexes: `INDEX ix_user_session_user_active (user_id, revoked_at)`
 | `public_mode` | enum(OFF, DECEASED_ONLY) | no |  |
 | `default_person_privacy` | enum(PRIVATE_SELF, PRIVATE_TREE_ADMINS, FAMILY_BRANCH, TREE_MEMBERS, INVITED_RESEARCHER, PUBLIC_DECEASED_ONLY, CUSTOM) | no |  |
 | `review_policy` | enum(off, structure, all) | no |  |
+| `calendar_convention` | VARCHAR(40) | yes |  |
+| `observance_city` | VARCHAR(60) | yes |  |
 | `kinship_lang` | VARCHAR(16) | yes |  |
 | `kinship_region` | VARCHAR(40) | yes |  |
 | `created_by` | UUID | yes | → app_user |
@@ -583,6 +585,7 @@ Constraints/indexes: `UNIQUE (tree_id, pattern, lang, branch_id)`; `UNIQUE (tree
 | `pending_owner_membership_id` | UUID | yes | → tree_membership (composite, same tree) |
 | `search_text` | TEXT | no |  |
 | `withdrawn_at` | DATETIME | yes |  |
+| `suspended_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -904,6 +907,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_citation_target (tree_id,
 | `metadata_version` | INTEGER | no |  |
 | `deleted_at` | DATETIME | yes |  |
 | `deleted_by` | UUID | yes |  |
+| `suspended_at` | DATETIME | yes |  |
 | `id` | UUID | no | PK |
 | `tree_id` | UUID | no | → tree |
 | `created_by` | UUID | yes | → app_user |
@@ -1049,6 +1053,9 @@ Constraints/indexes: `UNIQUE (tree_id, user_id)`; `UNIQUE (tree_id, id)`; `INDEX
 | `lead_days` | ARRAY | no |  |
 | `channels` | ARRAY | no |  |
 | `note` | VARCHAR(300) | yes |  |
+| `date_rule` | enum(solar, lunar) | no |  |
+| `convention` | VARCHAR(40) | yes |  |
+| `observance_city` | VARCHAR(60) | yes |  |
 | `active` | BOOLEAN | no |  |
 | `next_fire_at` | DATETIME | yes |  |
 | `last_fired_at` | DATETIME | yes |  |
@@ -1574,6 +1581,10 @@ Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `IN
 
 - `admin_nomination`
 - `auth_token`
+- `calendar_feed`
 - `external_identity`
+- `panchang_day`
 - `photo_collection`
 - `photo_collection_item`
+- `record_report`
+- `record_suspension`

@@ -10,6 +10,7 @@ Layout::
       property/properties.json          (only with property.read)
       documents/index.json
       documents/<id>/<filename>          (content the exporter may download; vault only when requested)
+      collections/index.json             (photo collections the exporter may see; photos by document id)
       source-index.csv
       checksums.sha256
       README.txt
@@ -242,6 +243,13 @@ def build_archive(
             included += 1
         doc_index.append(entry)
     files["documents/index.json"] = _json(doc_index)
+
+    # --- photo collections: only those the exporter may see, and in each only their visible photos
+    from app.modules.collections.service import export_collections
+
+    collections_out = export_collections(ctx, {e["id"] for e in doc_index})
+    files["collections/index.json"] = _json(collections_out)
+    counts["collections"] = len(collections_out)
     counts.update(documents_listed=len(doc_index), documents_included=included)
 
     # --- source index CSV
@@ -284,6 +292,7 @@ def build_archive(
         "genealogy/canonical-data.json richer canonical data (names, qualified dates, heritage claims, provenance)\n"
         "property/properties.json      property register, interests and timelines (not a legal title opinion)\n"
         "documents/                    original files you were permitted to export, plus index.json\n"
+        "collections/index.json        photo collections you may see; photos are listed by document id\n"
         "checksums.sha256              verify with: sha256sum -c checksums.sha256\n\n"
         + lgd_note
         + "This export reflects what the exporting user was allowed to see. It may contain personal data:\n"

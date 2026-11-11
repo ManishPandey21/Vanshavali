@@ -66,6 +66,17 @@ Ownership of a document, tradition or collection moves only when its owner offer
 member and that member accepts; an offer gives no access, and a record whose owner left cannot be
 claimed by anyone. Members a private record is shared with only read it: the owner alone edits,
 withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
+Global search and the archive export follow the same rule: a collection is a hit or exported only
+for someone who may see it, and only the photos they may see are listed in it.
+When a record is made more private automatically, its owner is told in the app (which record, never
+who caused it or why). A profile hidden after a "remove me" request through a claim link narrows the
+records tagging it at once; declining the request never widens them again.
+A member may report a record they can see. A family admin may suspend it, without seeing it, which
+hides it from everyone but its owner until it is lifted; the owner may appeal, and the appeal is
+decided by another admin where there is one. Lifting restores nothing saved before: the record
+follows its current audience. The owner is never told who reported it.
+A suspension cancels any offer of the record's ownership; the member it was offered to is not told
+why, and the owner must make a fresh offer after a lift.
 
 ## 3. Field groups and defaults
 A person's fields belong to groups. Each group resolves to a level: first a per-person override
@@ -279,6 +290,22 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   members who may see them.
 - **Family words stay in the family.** A tree's own kinship words are visible only inside that
   tree.
+
+## 14. Family calendar, lunar dates and the calendar feed (ADR-0022)
+
+- **Lunar dates are dates.** A tithi date follows the same visibility as the solar date it sits
+  beside: for a living person, the birth-date field groups decide who sees it, on the profile, the
+  calendar page, the feed and in reminders.
+- **Nothing is computed into a record.** A Gregorian date found from a tithi (or the reverse) is a
+  suggestion; it is stored only when a person accepts it, with a `derived` note (the convention,
+  city and engine version). A redacted (year-only) date drops the tithi and that note with the day.
+- **The calendar feed is the member's, and minimal.** One per member and tree, behind a revocable
+  random token stored hashed. Each fetch is evaluated as that member at that moment, so leaving
+  the tree empties it. By default it carries only the kind of day ("Punyatithi", "Birthday") and a
+  link, because calendar apps are third-party services; names are an explicit opt-in per feed.
+- **Observance places** are public city coordinates from a fixed list (v1; tree places have no time
+  zone yet), used only to compute sunrise and keyed at ~11 km. Cached calendar days (`panchang_day`) contain no family data.
+- **No convention is inferred** from a surname, a place or a community; a person chooses it.
 
 
 ## Family Admin nominations (ADR-0006 amendment, 9 Nov 2026)

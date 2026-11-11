@@ -226,6 +226,24 @@ def _live_person(db: DbDep, inv: ProfileClaimInvite) -> Person:
     return person
 
 
+def _narrow_linked_records(db: DbDep, tree_id: uuid.UUID, person_id: uuid.UUID) -> None:
+    """A hidden profile narrows the records linked to it at once, like any privacy change
+    (ADR-0027 §5). Done as the system: the link holder is not a member and gains nothing; owners are
+    told their record was made more private, never why or by whom. Declining the request restores
+    the profile but never widens a record again; its owner decides."""
+    from app.authz.context import TreeContext
+    from app.modules.sharing.core import enforce_person_ceiling
+
+    tree = db.get(Tree, tree_id)
+    if tree is None:  # _live_person checked it
+        return
+    db.flush()
+    system = TreeContext(
+        db=db, tree=tree, user=None, membership=None, roles=frozenset(), permissions=frozenset()
+    )
+    enforce_person_ceiling(system, person_id)
+
+
 def _gone(inv: ProfileClaimInvite, user: User) -> None:
     """Used (by someone else) or expired links reveal nothing about the tree or the person."""
     state = _state(inv)
@@ -382,6 +400,8 @@ def request_removal(token: str, body: RemovalRequestIn, user: CurrentUser, db: D
         created_by=user.id,
     )
     db.add(claim)
+    if restore is not None:
+        _narrow_linked_records(db, inv.tree_id, person.id)
     # nobody else can claim the profile through another link while the request is open
     for other in db.scalars(
         select(ProfileClaimInvite).where(

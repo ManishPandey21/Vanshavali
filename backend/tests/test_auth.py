@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.core.db import get_sessionmaker
 from app.models import AuditEvent, User, UserSession
 
@@ -73,6 +74,21 @@ def test_login_rate_limited(client, make_client):
     # the rate-limit clock is pinned (conftest), so all 12 fall in one window: exactly the configured
     # 10 attempts per email are answered, then every further attempt is refused
     assert [r.status_code for r in responses] == [401] * 10 + [429] * 2
+    assert responses[-1].json()["error"]["code"] == "rate_limited"
+
+
+def test_registration_rate_limited_per_ip(make_client, monkeypatch):
+    # the per-IP registration limit is a setting (default 20/minute; E2E raises it) and is enforced
+    monkeypatch.setattr(get_settings(), "register_rate_limit_per_minute", 3)
+    anon = make_client()
+    responses = [
+        anon.post(
+            "/auth/register",
+            json={"email": f"burst{i}@example.com", "password": "correct horse battery", "display_name": "B"},
+        )
+        for i in range(5)
+    ]
+    assert [r.status_code for r in responses] == [202] * 3 + [429] * 2
     assert responses[-1].json()["error"]["code"] == "rate_limited"
 
 

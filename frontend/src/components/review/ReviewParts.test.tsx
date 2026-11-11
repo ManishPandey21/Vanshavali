@@ -5,7 +5,7 @@ import { Route, Routes } from "react-router-dom";
 import { jsonResponse, renderWithProviders } from "../../test/utils";
 import { ApiError } from "../../api/client";
 import { orPropose, reviewBus } from "../../lib/reviewBus";
-import { ChallengeButton, DuplicatePanel, NotificationBell, ProposeChangeHost, ReviewBadge, formatValue } from "./ReviewParts";
+import { ChallengeButton, DuplicatePanel, NotificationBell, ProposeChangeHost, notificationHref, ReviewBadge, formatValue } from "./ReviewParts";
 import { ReviewPage } from "../../pages/tree/ReviewPage";
 
 type Call = { url: string; init?: RequestInit };
@@ -86,6 +86,16 @@ describe("notifications", () => {
     expect(link).toHaveAttribute("href", "/t/tree-1/review/p1");
     await userEvent.click(link);
     await waitFor(() => expect(calls.some((c) => c.url.endsWith("/inbox/read") && body(c).ids[0] === "n1")).toBe(true));
+  });
+});
+
+describe("notification links", () => {
+  it("opens the record a made-more-private notice is about", () => {
+    const base = { proposal_id: null, subject_id: "d1" };
+    expect(notificationHref("tree-1", { ...base, kind: "document_narrowed" })).toBe("/t/tree-1/documents/d1");
+    expect(notificationHref("tree-1", { ...base, kind: "tradition_narrowed" })).toBe("/t/tree-1/traditions/d1");
+    expect(notificationHref("tree-1", { ...base, kind: "document_narrowed", subject_id: null })).toBe("/t/tree-1/review");
+    expect(notificationHref("tree-1", { kind: "proposal_accepted", proposal_id: "p1", subject_id: null })).toBe("/t/tree-1/review/p1");
   });
 });
 

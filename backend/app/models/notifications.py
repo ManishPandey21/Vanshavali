@@ -22,7 +22,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.ids import uuid7
 from app.models.base import Base, TreeScopedMixin, enum_column, tree_fk, tree_unique
-from app.models.enums import DeliveryStatus, NotificationChannel, ReminderKind, ReminderRecurrence
+from app.models.enums import (
+    DeliveryStatus,
+    NotificationChannel,
+    ReminderDateRule,
+    ReminderKind,
+    ReminderRecurrence,
+)
 
 
 class NotificationContact(Base):
@@ -88,6 +94,14 @@ class EventReminder(TreeScopedMixin, Base):
     lead_days: Mapped[list[int]] = mapped_column(ARRAY(Integer), default=lambda: [0], server_default="{0}")
     channels: Mapped[list[str]] = mapped_column(ARRAY(String(20)), default=list, server_default="{}")
     note: Mapped[str | None] = mapped_column(String(300))
+    # ADR-0022 §5: a lunar reminder follows the event's tithi, under a convention, at a place
+    date_rule: Mapped[ReminderDateRule] = mapped_column(
+        enum_column(ReminderDateRule),
+        default=ReminderDateRule.SOLAR,
+        server_default=ReminderDateRule.SOLAR.value,
+    )
+    convention: Mapped[str | None] = mapped_column(String(40))
+    observance_city: Mapped[str | None] = mapped_column(String(60))
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     next_fire_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     last_fired_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))

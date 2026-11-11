@@ -9,8 +9,11 @@ from __future__ import annotations
 import calendar as _cal
 import datetime as dt
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.core.lunar import LunarDate
 
 
 class DateCalendar(StrEnum):
@@ -56,6 +59,18 @@ class TimeSource(StrEnum):
 _YEAR_OFFSETS = {DateCalendar.VIKRAM_SAMVAT: -57, DateCalendar.SHAKA: 78}
 
 
+class DateDerivation(BaseModel):
+    """How a Gregorian date was computed from the tithi, when a person accepted the suggestion
+    (ADR-0022 §2): the provenance of a calculated value, never set without that acceptance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: Literal["lunar"] = "lunar"
+    convention: str = Field(max_length=40)
+    city: str = Field(max_length=60)
+    engine_version: str = Field(max_length=80)
+
+
 class GenealogicalDate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -68,6 +83,9 @@ class GenealogicalDate(BaseModel):
     end_month: int | None = Field(default=None, ge=1, le=12)
     end_day: int | None = Field(default=None, ge=1, le=31)
     original_text: str | None = Field(default=None, max_length=500)
+    # a tithi date as the family gives it (ADR-0022 §2); never derived from the Gregorian fields
+    lunar: LunarDate | None = None
+    derived: DateDerivation | None = None
     redacted: bool = False
 
     @model_validator(mode="after")
@@ -137,7 +155,7 @@ class GenealogicalDate(BaseModel):
     def display(self) -> str:
         """Human readable; always shows qualifiers so approximations never look exact."""
         if self.precision == DatePrecision.UNKNOWN or self.year is None:
-            return "unknown"
+            return self.lunar.label() if self.lunar else "unknown"
         parts = [str(self.year)]
         if self.month:
             parts.append(f"{self.month:02d}")
@@ -158,7 +176,8 @@ class GenealogicalDate(BaseModel):
                 )
             )
             return f"between {base} and {end}{cal}"
-        return f"{prefix}{base}{cal}"
+        lunar = f" ({self.lunar.label()})" if self.lunar else ""
+        return f"{prefix}{base}{cal}{lunar}"
 
     def year_only(self) -> GenealogicalDate:
         """Redacted form used for protected living-person dates (PRS §6)."""

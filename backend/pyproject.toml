@@ -24,6 +24,8 @@ dependencies = [
   "pypdfium2>=4.30",
   "jellyfish>=1.1",
   "indic-transliteration>=2.3",
+  "skyfield==1.55",
+  "jplephem==2.24",
 ]
 
 [dependency-groups]
