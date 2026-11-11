@@ -108,6 +108,12 @@ remain the merge gate; nothing about `main` changes.
 
 - Two tickets can be built concurrently and arrive as draft PRs with hashed, re-checkable evidence.
   READY is a *local* result: CI must still pass and a person still merges.
+- Builders may run tests but never install packages, and a fresh builder worktree has no
+  dependencies (the first live ticket, U02-VITALS-EDIT-B, blocked with a builder that could not run
+  one test). Every builder therefore starts through a controller-owned bootstrap
+  (`ops/factory/bootstrap_builder.py`): it installs from the committed lockfiles only, fails closed
+  before the agent starts, and never widens the builder's permissions. Retries build in a new
+  worktree, which the bootstrap provisions like any other. See the runbook's "Builder dependencies".
 - Verification is slow by design: every candidate runs the selected suites twice (one per review
   lens) in fresh checkouts, serialised on the host. A backend ticket runs the whole backend suite,
   the contract check and the full E2E suite twice.
