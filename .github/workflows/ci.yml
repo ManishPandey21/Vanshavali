@@ -172,13 +172,14 @@ jobs:
           name: playwright-report
           path: e2e/playwright-report
       # Screenshot comparison of the public screens (ADR-0029): landing page in English and Hindi and
-      # the auth forms, desktop and phone, zero differing pixels. Baselines: e2e/visual/__screenshots__/linux.
-      # An intended visual change updates them in the same PR:
-      #   cd e2e && npx playwright test --config=playwright.visual.config.ts --update-snapshots
+      # the auth forms, desktop and phone, zero differing pixels, against baselines rendered by this
+      # runner (e2e/visual/__screenshots__/ci-ubuntu-24.04). An intended visual change updates them in
+      # the same PR from this job's visual-regression-diffs artifact (see playwright.visual.config.ts).
       - name: Playwright (visual regression)
         if: ${{ !cancelled() }}
         env:
           VSH_E2E_ADMIN_URL: postgresql+psycopg://vanshavali:vanshavali@localhost:5432/postgres
+          VSH_VISUAL_BASELINES: ci-ubuntu-24.04
         run: cd e2e && npx playwright test --config=playwright.visual.config.ts
       - uses: actions/upload-artifact@v4
         if: failure()
