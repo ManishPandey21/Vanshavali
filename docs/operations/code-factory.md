@@ -95,7 +95,33 @@ machine that holds production credentials.
    now-empty directory with `rmdir .git/infra-factory/worktrees`, and run `ln` again. Never `rm -r`
    it. Evidence and logs stay under `.git/infra-factory/`; only the checkouts move.
 
-5. Generate the configuration (preview first, then `--apply`). The script accepts only the
+5. **Let builders run the tests.** Builders run as headless Claude in `acceptEdits` mode, where
+   every shell command needs permission and an unanswered prompt is a refusal. Without the rules
+   below a builder cannot run a single test, so it cannot see a test fail and then pass, and its
+   mistakes only surface in cold verification (the first live ticket blocked this way). Add these
+   rules to the Claude user settings of the account the factory runs under,
+   `~/.claude/settings.json` (merge them into an existing `permissions.allow` list):
+
+   ```json
+   {
+     "permissions": {
+       "allow": [
+         "Bash(npx vitest *)",
+         "Bash(npm run lint)",
+         "Bash(npm run typecheck)",
+         "Bash(npm test *)",
+         "Bash(npx playwright test *)",
+         "Bash(npx tsc *)"
+       ]
+     }
+   }
+   ```
+
+   They allow test, lint and type-check commands only; installs, Git and everything else still
+   need a person. The rules apply to every Claude session of that account, not just builders.
+   Claude Code will not edit its own settings from inside a session, so add them yourself.
+
+6. Generate the configuration (preview first, then `--apply`). The script accepts only the
    reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
    pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
    the toolkit, review its diff and update `TOOLKIT_VERSION`/`TOOLKIT_SHA256` in a normal PR.
@@ -115,14 +141,14 @@ machine that holds production credentials.
    strips the environment from test runs, so the proxy/CA variables of your shell are saved to
    that private (0600) file and only those allow-listed names are read back.
 
-6. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
+7. Record visual baselines **for your platform** once (Linux baselines are committed; macOS and
    Windows render fonts differently). Look at every image before committing them:
 
    ```bash
    cd e2e && npx playwright test --config=playwright.visual.config.ts --update-snapshots
    ```
 
-7. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
+8. Optional dry run of every suite on `main`, exactly as the factory would (slow; it proves the
    host is set up): add the two example tickets under new ids, run, then `reject` them.
 
 ## Daily use
@@ -204,3 +230,6 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
   "sensitive file" permission prompts: the worktrees are still inside `.git` (setup step 4). Fix
   the symlink, then `retry` the ticket. A builder that reports it could not read its skill file
   means the Superpowers plugin is not installed in the factory's Claude profile (setup step 2).
+- A builder's summary says its test commands were refused and its tests were never run: the
+  permission rules from setup step 5 are missing. Expect its new tests to fail in cold
+  verification; add the rules before retrying.

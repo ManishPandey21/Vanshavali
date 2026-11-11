@@ -111,8 +111,10 @@ remain the merge gate; nothing about `main` changes.
 - Claude Code refuses to edit files inside a `.git` directory, where the toolkit puts builder
   worktrees, and headless Claude cannot read files outside its worktree by path. Each factory host
   therefore symlinks `.git/infra-factory/worktrees` to a directory outside the repository, and
-  builders load the Superpowers TDD skill through the installed plugin (runbook setup steps 2
-  and 4). Found by the first live run (U02-VITALS-EDIT, attempt 1 blocked).
+  builders load the Superpowers TDD skill through the installed plugin, and the factory account's
+  Claude settings allow test, lint and type-check commands so a builder can run its own tests
+  (runbook setup steps 2, 4 and 5). Without that last rule a builder writes tests it never ran,
+  and the first live retry blocked on one such test. Found by the first live run (U02-VITALS-EDIT, attempt 1 blocked).
 - Verification is slow by design: every candidate runs the selected suites twice (one per review
   lens) in fresh checkouts, serialised on the host. A backend ticket runs the whole backend suite,
   the contract check and the full E2E suite twice.
