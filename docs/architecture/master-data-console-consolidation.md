@@ -11,15 +11,15 @@
 
 | Item | Value |
 |---|---|
-| `main` | `5913759`. Alembic: one head, `d9b4f2c6a713`, linear chain. CI for `2da39a9` green; `5913759` was running at the time of writing. |
-| PR #35 `claude/dreamy-rubin-yqdy2k` | Head `dc7b617`, base `c86c203`, **113 commits behind `main`**, `mergeable_state: dirty`. 80 files, +16 845/−4 880. No CI on the head; last green run was `e315e71` (7 Nov). |
-| PR #61 `claude/confident-ptolemy-hzgaey` | Head `c0787e9`, base `1f99b97`, 40 behind. **Docs only**: `adr/0028-…md` (604 lines) and an index row. CI green on the head. |
-| PR #60 `claude/ci-apt-hardening` | `b103fef`, `331a83a`. **Patch-identical** (`git patch-id --stable`) to #35's `94661b3` and `dc7b617`. |
+| `main` | `5913759`. Alembic: one head, `d9b4f2c6a713` (one past merge revision, `f0a1b2c3d4e5`). CI for `2da39a9` green; `5913759` was running at the time of writing. |
+| PR #35 `claude/dreamy-rubin-yqdy2k` | Head `dc7b617`, base `c86c203`, **113 commits behind `main` at `5913759`** (124 at `3cb12f9`), `mergeable_state: dirty`. 80 files, +16 845/−4 880. No CI on the head; last green run was `e315e71` (7 Nov). |
+| PR #61 `claude/confident-ptolemy-hzgaey` | Head at review time `c0787e9` (604 lines); amended on 11 Nov with A1–A10 (`178c474`, 769 lines) and since merged with `main`. **Docs only**: `adr/0028-…md` and an index row. |
+| PR #60 `claude/ci-apt-hardening` | Commits `b103fef`, `331a83a` (branch since merged with `main` and hardened). **Patch-identical** (`git patch-id --stable`) to #35's `94661b3` and `dc7b617`. |
 | PR #62 `claude/tradition-ownership-…` | Head `b7193b7`, 7 behind. Migration `f2a9c4e7d815` → `d9b4f2c6a713` (one head). Claims threat **T63**. Does not touch master data. CI green. |
 | PR #19 (draft, Oct) | An older "vocabularies in the database (ADR-0019)" proposal. It is superseded by ADR-0018 and ADR-0019 on `main` and is out of scope here. |
 | Master data on `main` | Nine JSON packs. Every live term is `draft` (85 terms: gotra 16, kula 7, occupation 17, honorific 8, language 23, pravara 14; devak, kuladevata and kuladevi are empty). The loader (`masterdata/loader.py`) is the only writer and runs as the schema owner. Offers are decided by an operator CLI (`masterdata/curation.py`) that writes pack JSON, so changes go through code review (ADR-0026 §4). |
 | Grants on `main` | `vanshavali_app` has full DML on everything except `READ_ONLY_TABLES` = `geo_snapshot`, `geo_unit`, `geo_unit_alias`, `pincode_office`, **`panchang_day`** (`models/rls.py:102`). ADR-0028 says "four geography tables"; that text is stale. RLS policies are **not FORCEd** (`rls.py:9`), so the schema owner bypasses them. |
-| Identity on `main` | `app_user.is_system_admin` is a single flag (seeded for `superadmin@example.com` in dev/test). TOTP is account-level (`mfa_enabled_at`). `user_session` has **no** MFA column. `MeOut` does not expose `is_system_admin`. |
+| Identity on `main` | `app_user.is_system_admin` is a single flag (seeded for `superadmin@example.com` in dev/test). TOTP is account-level (`mfa_enabled_at`). `user_session` has **no** MFA column. `UserOut` (the `/me` response) does not expose `is_system_admin`. |
 | ADR numbers on `main` | 0026 = cultural depth (accepted), 0027 = record sharing, 0029 = agent factory. 0028 is free and reserved by #61. |
 | Threat IDs on `main` | T44 = geography, T45 = change proposals, max = T62. #62 takes T63. |
 
@@ -48,7 +48,7 @@ with what ADR-0028 specifies.
 | 9 | UI, accessibility, Hindi | `/admin/master-data`: dashboard, term table, editor with live duplicate check, lifecycle dialog, history, pending queue. Strong basics (`aria-describedby`/`aria-invalid`, captions, live regions, `lang` on Hindi inputs, en/hi parity). Gaps: §4 F9. | Lists, terms, history, change queue, offers queue, 390 px, Indic markup. | **Adapt** (per-file list in §3). |
 | 10 | Geography | Second, incompatible implementation: per-snapshot copies, 9 levels, HTTP four-eyes snapshot admin. | Geography read-only in the console; snapshots stay with the ADR-0019 operator CLI; licensing gate. | **Already in `main`** (ADR-0019, `8e4a1f6c2b37`). Port only importer hardening and per-snapshot licence fields (§3). |
 | 11 | Migrations and rollback | `7d4a2c9e1b60` and `9e3b5d7f2a14` fork from `5c2d8e1f7a90`. The `7d4a…` downgrade turns curated terms back into pack terms, so **the next load overwrites them**. | One new migration on `main`'s head. The downgrade keeps term rows, refuses while a change is submitted, and requires `export` first. | **Discard both #35 migrations** (§5). |
-| 12 | Tests and performance | 41 backend (`test_masterdata_admin.py`), 5 Vitest, 1 e2e (single admin self-publishes). `list_terms` filters in Python with offset cursors (fine at ≤ a few hundred terms per list). | Test list in "Threats and tests"; no performance numbers. | **Adapt** about 14 of the 20 test functions (§3). Add the ADR-0028 negatives (§9). |
+| 12 | Tests and performance | 41 backend (`test_masterdata_admin.py`), 5 Vitest, 1 e2e (single admin self-publishes). `list_terms` filters in Python with offset cursors (fine at ≤ a few hundred terms per list). | Test list in "Threats and tests"; no performance numbers. | **Adapt** 15 of the 20 test functions, rewrite 2 and delete 1 (§3). Add the ADR-0028 negatives (§9). |
 
 ## 3. Feature-reuse matrix (exact files)
 
@@ -66,12 +66,12 @@ Paths are in PR #35 unless they start with `main:`.
 | `backend/app/modules/masterdata/admin.py` | **Adapt** | Reuse `_validate`, `_check_reference`, `find_similar` (built on `main`'s `match.same_value`), `_snapshot`, the `base_revision` checks, row locks, `list_terms` and `_changes_out`. Remove `publish=true` on propose and self-publish. Writes become calls to the definer functions. |
 | `backend/app/modules/masterdata/admin_router.py` | **Adapt** | Same route layout. Add `/submit`, `/approve` (step-up), `/history` and `/offers`. Remove publish-on-create. |
 | `backend/app/modules/masterdata/admin_schemas.py` | **Adapt** | Good field limits and http(s)-only `source_url`. Replace `_clean` with `main:backend/app/modules/geo/formats.py:clean_text` (NFC, refuses Cc and Cf/bidi except ZWJ/ZWNJ). Add markup and personal-data screening, closed attribute keys, and the no-"Unknown" rule (ADR-0028 §9). |
-| `backend/app/modules/masterdata/loader.py` (diff) | **Replace** | ADR-0028 §3 rules, the advisory lock and history writes. Port the "kept/conflict" report line. |
+| `backend/app/modules/masterdata/loader.py` (diff) | **Replace** | ADR-0028 §3 rules, the advisory lock and history writes. Port the "kept" report line (#35 has no conflict line; add one). |
 | `backend/app/modules/masterdata/packs/*.json` (`category`, `fixed_membership`) | **Discard** | Not needed under per-vocabulary authority. |
 | `backend/alembic/versions/20261105_7d4a2c9e1b60_master_data_admin_console.py` | **Discard** | Wrong parent. Encodes the per-term model. The downgrade silently loses curation (F7). Replaced by one new migration on `main`'s head. |
 | `backend/alembic/versions/20261106_9e3b5d7f2a14_geography_reference.py` | **Discard** | Duplicates tables `main` already has with an incompatible model. |
 | `backend/app/models/geo.py`, `modules/geo/{router,service,schemas}.py`, `cli/geo.py` | **Already in `main`** | `main`'s versioned model is accepted ADR-0019. |
-| `backend/app/modules/geo/importer.py` | **Discard, port hardening** | Port to `main:modules/geo/formats.py`/`importer.py`: NUL/binary and empty-file refusal (`importer.py:131-145`), `MAX_ROWS` (`:51,159`), capped error lists (`:54,82-97`). |
+| `backend/app/modules/geo/importer.py` | **Discard, port hardening** | Port to `main:modules/geo/formats.py`/`importer.py`: NUL/binary and empty-file refusal (`importer.py:131-145`), `MAX_ROWS` (`:51,159`), capped error lists (`:54,82-97`; `main` already caps problem lists at 50, `importer.py:238,333`, so only the NUL/empty/`MAX_ROWS` checks are missing). |
 | `backend/app/modules/geo/admin.py`, `admin_router.py` | **Discard for now** | HTTP snapshot approval contradicts `main`'s read-only geo grants and ADR-0019's CLI activation. Revisit only through a new ADR (§8, increment 5). |
 | `backend/tests/test_masterdata_admin.py` | **Adapt** | Reuse: ordinary users 404 (:95), CSRF (:111), lists only vocabularies (:120), no tree access (:142), reaches users without deploy (:171), drafts invisible (:203), stale edits (:267, :292), loader never overwrites (:308), duplicates (:327), retired values readable (:346), malicious input (:444), parent active (:458), pagination (:471), one open change (:510). Rewrite: MFA (:102) and four-eyes (:243). Delete: fixed sets (:408). |
 | `backend/tests/test_geo.py`, `tests/fixtures/geo/*` | **Adapt (3 tests)** | Port the NUL/empty/row-cap tests onto `main`'s importer. The rest are model-specific. |
@@ -85,7 +85,7 @@ Paths are in PR #35 unless they start with `main:`.
 | `frontend/src/pages/admin/MasterData.test.tsx` | **Adapt** | Reuse the fetch-stub harness and fixtures. Rewrite the gating and publish-now scenarios. |
 | `frontend/src/api/hooks/masterDataAdmin.ts` | **Adapt** | Query keys and invalidation match `main`. Endpoints change. |
 | `frontend/src/api/types.ts`, `openapi.json`, `schema.d.ts` | **Replace** | Regenerate (`npm run gen:api`). |
-| `frontend/src/App.tsx`, `components/layout/AppShell.tsx` | **Adapt** | Small diffs. The nav link needs a server-provided flag such as `MeOut.platform_capabilities`; that list holds only the caller's own capabilities, and only hides the link. |
+| `frontend/src/App.tsx`, `components/layout/AppShell.tsx` | **Adapt** | Small diffs. The nav link needs a server-provided flag such as `UserOut.platform_capabilities`; that list holds only the caller's own capabilities, and only hides the link. |
 | `frontend/src/i18n/locales/{en,hi}.json` (`mdAdmin.*`) | **Adapt** | 161 keys with parity and good translations. Rename the publish/status keys; add queue, approve, step-up and history keys. Drop the `geo*`, `geoAdmin` and planned keys. |
 | `frontend/src/components/geo/PlaceCascade.tsx` (+test), `api/hooks/geo.ts` | **Already in `main`** | API-incompatible with `main` (`code`/`path` vs `lgd_code`/`ancestors`). |
 | `frontend/src/pages/admin/GeoSnapshotsPage.tsx` | **Discard for now** | Depends on the HTTP geo admin. |
@@ -142,7 +142,7 @@ Paths are in PR #35 unless they start with `main:`.
   - Developers who did must first `alembic downgrade 5c2d8e1f7a90` on the #35 checkout, or reset the database.
 - **F8 — Process: document collisions.**
   - #35 reuses ADR-0026 (taken by cultural depth) and ADR-0019 (a conflicting second file), and threats T44/T45 (taken).
-  - It marks its own ADR-0018 amendment "Accepted".
+  - It marks its own ADR-0018 amendment "Accepted", and also its own ADR-0026 (console) and ADR-0019 files "Accepted" (status lines and README rows; the ADR-0019 line cites an owner go-ahead to start a phase). Both numbers collide with different accepted ADRs on `main`.
   - ADR-0028 and #62 both claim T63.
 
 **Defects in ADR-0028 as written (found by stress-testing against `main`)**
@@ -205,12 +205,12 @@ Paths are in PR #35 unless they start with `main:`.
 
 | Decision | Verdict | Stress-test notes |
 |---|---|---|
-| Two named admins; defer solo mode | **Accept** | With one admin, the console can draft but not publish. The fallback is `export` → code review (Option A). Go-live of publication needs a second enrolled admin. Remove solo mode, `masterdata_solo_mode` and `approval_mode=solo` from the first migration; add them later by amendment if ever wanted. Residual risk is two colluding admins, mitigated by the audit, the version history and `export` before each deploy. |
-| Offer notes never shown to global reviewers | **Accept** | Also recommend stopping collection of the note (ADR-0026 §4 amendment, a separate owner decision). Offers in the console are a later increment (6), not needed for the first publication. |
-| Vocabulary tables read-only to the app role; restricted definer functions | **Accept with A2–A4** | Definer functions are themselves attack surface. Keep them few, owner-owned, `SET search_path = pg_catalog, public, pg_temp` (pg_temp last), `REVOKE EXECUTE … FROM PUBLIC`, no dynamic SQL. A migration test asserts `prosecdef`, `proconfig`, owner and grants. |
-| Initial set: Gotra, Kula, Kuladevata, Kuladevi, Devak, Occupation | **Accept** | Three of these lists are empty, so adoption is trivial. Gotra (16) and kula (7) adopt their current pack rows as revision 1, `curated=false`. |
-| Controlled enums, Rashi, Nakshatra, roles stay in code | **Accept** | Enforced three ways: the code allow-list, the definer-function allow-list, and a test that every `vocabulary` key outside the list refuses adoption. |
-| Religion, community, caste: optional personal fields; no global or inferred lists | **Accept** | Reject #35's ADR-0018 amendment 2, its `religion_community` category and its "planned" card. |
+| Two named admins; defer solo mode | **Recommend: accept** | With one admin, the console can draft but not publish. The fallback is `export` → code review (Option A). Go-live of publication needs a second enrolled admin. Remove solo mode, `masterdata_solo_mode` and `approval_mode=solo` from the first migration; add them later by amendment if ever wanted. Residual risk is two colluding admins, mitigated by the audit, the version history and `export` before each deploy. |
+| Offer notes never shown to global reviewers | **Recommend: accept** | Also recommend stopping collection of the note (ADR-0026 §4 amendment, a separate owner decision). Offers in the console are a later increment (6), not needed for the first publication. |
+| Vocabulary tables read-only to the app role; restricted definer functions | **Recommend: accept with A2–A4** | Definer functions are themselves attack surface. Keep them few, owner-owned, `SET search_path = pg_catalog, public, pg_temp` (pg_temp last), `REVOKE EXECUTE … FROM PUBLIC`, no dynamic SQL. A migration test asserts `prosecdef`, `proconfig`, owner and grants. |
+| Initial set: Gotra, Kula, Kuladevata, Kuladevi, Devak, Occupation | **Recommend: accept** | Three of these lists are empty, so adoption is trivial. Gotra (16), kula (7) and occupation (17) adopt their current pack rows as revision 1, `curated=false`. |
+| Controlled enums, Rashi, Nakshatra, roles stay in code | **Recommend: accept** | Enforced three ways: the code allow-list, the definer-function allow-list, and a test that every `vocabulary` key outside the list refuses adoption. |
+| Religion, community, caste: optional personal fields; no global or inferred lists | **Recommend: accept** | Reject #35's ADR-0018 amendment 2, its `religion_community` category and its "planned" card. |
 | LGD and India Post need licensing and attribution review before real import | **Accept, with a gap** | `main` hard-codes `LICENCE = "GODL-India"` (`geo/importer.py:54`) and a constant attribution. Record licence and attribution per snapshot at staging (port the idea from #35). Refuse non-fixture files until the owner's review is recorded (increment 5). |
 
 **Amendments required before acceptance.**
@@ -286,7 +286,7 @@ Each increment is a draft PR from `main`, merged only with the owner's approval,
 | # | Branch (suggested) | Scope | Reuses from #35 |
 |---|---|---|---|
 | 0 | — | Land **#60** (CI) on its own. Accept **ADR-0028 + §6 amendments** (update #61). Add "amended by ADR-0028" notes to ADR-0006/0018/0026 in a separate change. | — |
-| 1 | `claude/md-console-1-capability` | `platform_capability_grant` and CLI `grant/revoke` (verified email, TOTP, role-mailbox deny-list); session MFA columns, set at login; step-up endpoint; `require_platform`; `MeOut.platform_capabilities`; import-boundary test; threat ID; privacy-model section. | `authz/platform.py`, `AdminContext` |
+| 1 | `claude/md-console-1-capability` | `platform_capability_grant` and CLI `grant/revoke` (verified email, TOTP, role-mailbox deny-list); session MFA columns, set at login; step-up endpoint; `require_platform`; `UserOut.platform_capabilities`; import-boundary test; threat ID; privacy-model section. | `authz/platform.py`, `AdminContext` |
 | 2 | `claude/md-console-2-catalogue` | Read-only console: vocabularies (with authority badge), terms, term detail; not-found page; 403 step-up prompt; card list at 390 px. | `MasterDataPages.tsx` (layout, dashboard, table, pager), hooks, i18n keys |
 | 3 | `claude/md-console-3-loader-history` | Migration from §7.3; loader rules and advisory lock; `export`, `adopt-pack`, `--dry-run` CI gate; version history view; read-only grants and definer functions (no publish yet). | Loader "kept" report, `revision` |
 | 4 | `claude/md-console-4-review-publish` | Change requests: draft, submit, approve (second admin, step-up), reject, withdraw, stale; validator (`clean_text` + ADR §9); retire and reactivate; rollback-by-change; adoption of the six lists; two-admin e2e. | `admin.py` validation and concurrency, `TermEditor.tsx`, `ChangeDiff`, `test_masterdata_admin.py` (adapted), e2e scaffolding |
@@ -380,3 +380,25 @@ Every increment must pass `make check`, the Alembic round trip (`upgrade head �
 3. Name the two initial administrators for go-live.
 4. Licence review for real LGD and India Post files, and who records it.
 5. Should geography snapshot approval ever move to HTTP? It needs a new ADR; the recommendation is to stay on the CLI.
+
+## Addendum: re-check of 11 Nov 2026 at `3cb12f9` (integration audit)
+- `main` changed only in the agent ticket factory, CI and an overload test since `5913759`; the
+  findings above still hold. ADR-0028 has since been amended with A1–A10 (#61); F9a–F9f describe
+  the text **before** those amendments.
+- "Recommend: accept" in §6 is this review's recommendation, not a status. ADR-0028 stays
+  **Proposed** until the owner accepts it.
+- Draft PR #67 (increment 1) uses T64 and migration `e7c2a9f4b310`, which revises `d9b4f2c6a713`
+  like #62's `f2a9c4e7d815`; whichever merges second must re-parent so `main` keeps one head.
+- **#35 work not classified above:**
+  - `masterdata/schemas.py`, `service.py`: `revision` (cache refresh) and `successor_code` in the
+    public `/vocabularies` output. Worth porting with retirement (increment 4) so families see a
+    retired term's successor.
+  - Tests `test_reject_needs_a_note_and_only_the_proposer_withdraws` (maps onto reject/withdraw,
+    increment 4) and `test_new_tree_after_publication_sees_the_term` (adapt, increment 4).
+  - `models/genealogy.py`, `genealogy/schemas.py`, `pages/tree/PlacesPage.tsx` (`lgd_level` on
+    places): already in `main` through ADR-0019; discard.
+  - Docs (`privacy-model.md`, `data-model.md`, `domain-model.md`,
+    `india-master-data-and-smart-forms-plan.md`, `dev-accounts.md`, `IMPLEMENTATION_STATUS.md`,
+    `CLAUDE.md`), `api/router.py`, `describe_schema.py`: rewrite per increment; do not copy.
+  - F7 also applies to history: the `7d4a2c9e1b60` downgrade drops the whole `vocabulary_change`
+    table.
