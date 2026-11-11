@@ -9,8 +9,9 @@ import base from "./playwright.config";
  * rasterisation differs between operating systems. A new host (e.g. the factory on macOS) must
  * record its own baselines once, by a person, during trusted setup:
  *   npx playwright test --config=playwright.visual.config.ts --update-snapshots
- * Builders never update baselines: the factory rejects edits to existing snapshot files, so an
- * intended visual change needs a separately reviewed baseline update.
+ * CI runs this suite in the e2e job against the Linux baselines, so a PR that intentionally
+ * changes these screens must update them (and the reviewer looks at the new images). Factory
+ * builders never update baselines: the factory rejects edits to existing snapshot files.
  */
 export default defineConfig({
   ...base,

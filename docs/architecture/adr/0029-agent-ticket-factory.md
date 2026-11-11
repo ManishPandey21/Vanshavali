@@ -76,6 +76,9 @@ remain the merge gate; nothing about `main` changes.
    page in English and Hindi and the sign-in, sign-up and password-reset forms, on desktop and a
    phone viewport, with reduced motion and **zero differing pixels** allowed. Baselines are per
    platform; a new factory host records its own once, by a person.
+   CI runs it in the `e2e` job (step "Playwright (visual regression)"), so the committed Linux
+   baselines stay current: a PR that intentionally changes these screens updates them in the
+   same PR, reviewed like any other change.
 7. **Builders cannot change verification.** Beyond the toolkit's own refusals (edits to existing
    tests/snapshots, manifests, lockfiles, `*.config.*`, `.gitignore`), `protected_paths` covers
    `ops/factory/`, the pytest/Playwright harnesses (`conftest.py`, `helpers.py/ts`,
