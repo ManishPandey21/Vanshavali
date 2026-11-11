@@ -1977,6 +1977,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/calendar-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Calendar Settings
+         * @description The family's calendar convention and observance city, and what is available.
+         */
+        get: operations["get_calendar_settings_api_v1_trees__tree_id__calendar_settings_get"];
+        /**
+         * Set Calendar Settings
+         * @description Chosen by a tree admin; never inferred from a surname, place or community.
+         */
+        put: operations["set_calendar_settings_api_v1_trees__tree_id__calendar_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Family Calendar
+         * @description Birthdays, anniversaries and remembrance days you may see in full, by Gregorian date and,
+         *     for an offered convention, by tithi.
+         */
+        get: operations["family_calendar_api_v1_trees__tree_id__calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/calendar/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert
+         * @description A suggested Gregorian date for a tithi date with a samvat year; nothing is stored.
+         */
+        post: operations["convert_api_v1_trees__tree_id__calendar_convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/calendar-feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feed Status */
+        get: operations["feed_status_api_v1_trees__tree_id__calendar_feed_get"];
+        put?: never;
+        /**
+         * Create Feed
+         * @description Create or replace your private calendar feed; its URL is shown only now.
+         */
+        post: operations["create_feed_api_v1_trees__tree_id__calendar_feed_post"];
+        /** Revoke Feed */
+        delete: operations["revoke_feed_api_v1_trees__tree_id__calendar_feed_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar-feeds/{token}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Feed
+         * @description A member's calendar feed. The token is the credential; every fetch is evaluated as the member.
+         */
+        get: operations["feed_api_v1_calendar_feeds__token__ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notification-channels": {
         parameters: {
             query?: never;
@@ -4709,6 +4816,76 @@ export interface components {
             parent_branch_id?: string | null;
             descent_rule?: components["schemas"]["DescentRule"] | null;
         };
+        /** CalendarEntryOut */
+        CalendarEntryOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            kind: components["schemas"]["ReminderKind"];
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Person Id */
+            person_id?: string | null;
+            /** Label */
+            label: string;
+            /** Anniversary */
+            anniversary?: number | null;
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "solar" | "lunar";
+            /** Lunar Label */
+            lunar_label?: string | null;
+            /** Convention */
+            convention?: string | null;
+            /** Rule */
+            rule?: ("sunrise" | "aparahna") | null;
+            /** City */
+            city?: string | null;
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Entries */
+            entries: components["schemas"]["CalendarEntryOut"][];
+            /** Lunar Unavailable */
+            lunar_unavailable?: ("disabled" | "convention_not_offered" | "no_city") | null;
+        };
+        /** CalendarSettingsIn */
+        CalendarSettingsIn: {
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
+        };
+        /** CalendarSettingsOut */
+        CalendarSettingsOut: {
+            /** Convention */
+            convention: string | null;
+            /** Observance City */
+            observance_city: string | null;
+            /** Conventions */
+            conventions: components["schemas"]["ConventionOut"][];
+            /** Cities */
+            cities: components["schemas"]["CityOut"][];
+            /** Lunar Enabled */
+            lunar_enabled: boolean;
+        };
         /** ChallengeIn */
         ChallengeIn: {
             target_type: components["schemas"]["ReviewTarget"];
@@ -4880,6 +5057,15 @@ export interface components {
          * @enum {string}
          */
         CitationTarget: "person" | "name_record" | "event" | "relationship" | "assertion" | "astrology_profile" | "property" | "land_parcel" | "property_interest" | "property_event" | "household" | "tradition";
+        /** CityOut */
+        CityOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Timezone */
+            timezone: string;
+        };
         /** ClaimIn */
         ClaimIn: {
             /** Message */
@@ -5360,11 +5546,68 @@ export interface components {
              */
             created_at: string;
         };
+        /** ConventionOut */
+        ConventionOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Golden Verified */
+            golden_verified: boolean;
+            /** Offered */
+            offered: boolean;
+        };
+        /** ConvertIn */
+        ConvertIn: {
+            lunar: components["schemas"]["LunarDate"];
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
+        };
+        /**
+         * ConvertOut
+         * @description A suggestion only: nothing is stored unless the user accepts it (ADR-0022 §2).
+         */
+        ConvertOut: {
+            /** Suggestion */
+            suggestion: string | null;
+            /** Convention */
+            convention: string;
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "sunrise" | "aparahna";
+            /** City */
+            city: string;
+            /** Engine Version */
+            engine_version: string;
+        };
         /**
          * DateCalendar
          * @enum {string}
          */
         DateCalendar: "gregorian" | "julian" | "vikram_samvat" | "shaka" | "hijri" | "other";
+        /**
+         * DateDerivation
+         * @description How a Gregorian date was computed from the tithi, when a person accepted the suggestion
+         *     (ADR-0022 §2): the provenance of a calculated value, never set without that acceptance.
+         */
+        DateDerivation: {
+            /**
+             * Source
+             * @default lunar
+             * @constant
+             */
+            source?: "lunar";
+            /** Convention */
+            convention: string;
+            /** City */
+            city: string;
+            /** Engine Version */
+            engine_version: string;
+        };
         /**
          * DatePrecision
          * @enum {string}
@@ -6043,6 +6286,30 @@ export interface components {
             /** Siblings */
             siblings: components["schemas"]["SiblingOut"][];
         };
+        /** FeedIn */
+        FeedIn: {
+            /**
+             * Include Names
+             * @default false
+             */
+            include_names?: boolean;
+        };
+        /** FeedOut */
+        FeedOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Include Names
+             * @default false
+             */
+            include_names?: boolean;
+            /** Created At */
+            created_at?: string | null;
+            /** Last Used At */
+            last_used_at?: string | null;
+            /** Url */
+            url?: string | null;
+        };
         /** FieldChange */
         FieldChange: {
             /** Field */
@@ -6077,6 +6344,8 @@ export interface components {
             end_day?: number | null;
             /** Original Text */
             original_text?: string | null;
+            lunar?: components["schemas"]["LunarDate"] | null;
+            derived?: components["schemas"]["DateDerivation"] | null;
             /**
              * Redacted
              * @default false
@@ -7232,6 +7501,26 @@ export interface components {
             /** Mfa Code */
             mfa_code?: string | null;
         };
+        /**
+         * LunarDate
+         * @description The lunar part of a date, as entered (stored inside the date JSON).
+         */
+        LunarDate: {
+            /** Masa */
+            masa: string;
+            paksha: components["schemas"]["Paksha"];
+            /** Tithi */
+            tithi: number;
+            /**
+             * Is Adhik
+             * @default false
+             */
+            is_adhik?: boolean;
+            month_convention: components["schemas"]["MonthConvention"];
+            samvat?: components["schemas"]["Samvat"] | null;
+            /** Year */
+            year?: number | null;
+        };
         /** MapOut */
         MapOut: {
             /** Points */
@@ -7435,6 +7724,12 @@ export interface components {
             /** Otpauth Uri */
             otpauth_uri: string;
         };
+        /**
+         * MonthConvention
+         * @description How a lunar month is bounded: new moon to new moon, or full moon to full moon.
+         * @enum {string}
+         */
+        MonthConvention: "amanta" | "purnimanta";
         /** NameIn */
         NameIn: {
             /** @default birth */
@@ -7900,6 +8195,11 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /**
+         * Paksha
+         * @enum {string}
+         */
+        Paksha: "shukla" | "krishna";
         /** ParcelGroupOut */
         ParcelGroupOut: {
             parent: components["schemas"]["ParcelRef"];
@@ -9645,6 +9945,12 @@ export interface components {
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
         };
+        /**
+         * ReminderDateRule
+         * @description Which date drives a reminder (ADR-0022 §5): the Gregorian day, or the tithi.
+         * @enum {string}
+         */
+        ReminderDateRule: "solar" | "lunar";
         /** ReminderIn */
         ReminderIn: {
             /**
@@ -9654,6 +9960,12 @@ export interface components {
             event_id: string;
             kind?: components["schemas"]["ReminderKind"] | null;
             recurrence?: components["schemas"]["ReminderRecurrence"] | null;
+            /** @default solar */
+            date_rule?: components["schemas"]["ReminderDateRule"];
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
             /** Lead Days */
             lead_days?: number[] | null;
             /** Channels */
@@ -9680,6 +9992,12 @@ export interface components {
             event_id: string;
             kind: components["schemas"]["ReminderKind"];
             recurrence: components["schemas"]["ReminderRecurrence"];
+            /** @default solar */
+            date_rule?: components["schemas"]["ReminderDateRule"];
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
             /** Lead Days */
             lead_days: number[];
             /** Channels */
@@ -9719,6 +10037,11 @@ export interface components {
         /** ReminderUpdate */
         ReminderUpdate: {
             recurrence?: components["schemas"]["ReminderRecurrence"] | null;
+            date_rule?: components["schemas"]["ReminderDateRule"] | null;
+            /** Convention */
+            convention?: string | null;
+            /** Observance City */
+            observance_city?: string | null;
             /** Lead Days */
             lead_days?: number[] | null;
             /** Channels */
@@ -10022,6 +10345,11 @@ export interface components {
          * @enum {string}
          */
         Role: "OWNER" | "FAMILY_ADMIN" | "BRANCH_ADMIN" | "CONTRIBUTOR" | "RESEARCHER" | "VIEWER" | "DOCUMENT_CUSTODIAN" | "PROPERTY_CUSTODIAN" | "REVIEWER";
+        /**
+         * Samvat
+         * @enum {string}
+         */
+        Samvat: "vikram" | "shaka";
         /**
          * ScanStatus
          * @enum {string}
@@ -15883,6 +16211,269 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_DeliveryOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_calendar_settings_api_v1_trees__tree_id__calendar_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_calendar_settings_api_v1_trees__tree_id__calendar_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarSettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    family_calendar_api_v1_trees__tree_id__calendar_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    convert_api_v1_trees__tree_id__calendar_convert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConvertIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConvertOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feed_status_api_v1_trees__tree_id__calendar_feed_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_feed_api_v1_trees__tree_id__calendar_feed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_feed_api_v1_trees__tree_id__calendar_feed_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feed_api_v1_calendar_feeds__token__ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": unknown;
                 };
             };
             /** @description Validation Error */

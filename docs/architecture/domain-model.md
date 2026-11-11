@@ -142,6 +142,8 @@ graph LR
 | An event photo is never more visible than its event and principal person; at most one cover per event | `lifeevents.service.inherited_privacy`, partial unique index `uq_event_media_cover` |
 | Coordinates are optional and carry a precision; restricted coordinates are coarsened for lower roles | `place.location_precision`, `place.coordinate_privacy`, `genealogy.geo` |
 | Reminders are personal and opt-in; each occurrence × lead × channel is delivered at most once | `uq_event_reminder`, `uq_notification_delivery_once` (ADR-0016) |
+| A tithi date is kept as the family wrote it and is never computed into a record; a Gregorian date found from it is stored only when accepted, with a `derived` note. Computed tithi days need an offered convention (flag, engine, passing golden table) and an observance city. | `GenealogicalDate.lunar` / `.derived`, `calendar.conventions.offered` (ADR-0022) |
+| A calendar feed shows only what its member can see at the moment it is read, names only by opt-in | `calendar_feed` (token hash), `calendar.service.feed_ics` (ADR-0022) |
 | A render shows only what its requester could see and is visible only to them (and admins) | `render.payloads` built as the requester (ADR-0017) |
 
 ## 3a. Heritage visualization extensions (ADR-0015, ADR-0016, ADR-0017)

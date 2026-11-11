@@ -285,6 +285,22 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 - **Family words stay in the family.** A tree's own kinship words are visible only inside that
   tree.
 
+## 14. Family calendar, lunar dates and the calendar feed (ADR-0022)
+
+- **Lunar dates are dates.** A tithi date follows the same visibility as the solar date it sits
+  beside: for a living person, the birth-date field groups decide who sees it, on the profile, the
+  calendar page, the feed and in reminders.
+- **Nothing is computed into a record.** A Gregorian date found from a tithi (or the reverse) is a
+  suggestion; it is stored only when a person accepts it, with a `derived` note (the convention,
+  city and engine version). A redacted (year-only) date drops the tithi and that note with the day.
+- **The calendar feed is the member's, and minimal.** One per member and tree, behind a revocable
+  random token stored hashed. Each fetch is evaluated as that member at that moment, so leaving
+  the tree empties it. By default it carries only the kind of day ("Punyatithi", "Birthday") and a
+  link, because calendar apps are third-party services; names are an explicit opt-in per feed.
+- **Observance places** are public city coordinates from a fixed list (v1; tree places have no time
+  zone yet), used only to compute sunrise and keyed at ~11 km. Cached calendar days (`panchang_day`) contain no family data.
+- **No convention is inferred** from a surname, a place or a community; a person chooses it.
+
 
 ## Family Admin nominations (ADR-0006 amendment, 9 Nov 2026)
 - **Who sees a nomination:** the Owners, the Family Admins and the nominee. The nominee sees who
