@@ -56,19 +56,26 @@ start through `ops/factory/bootstrap_builder.py`, owned by the controller:
 1. It refuses to run anywhere but the top level of a linked worktree inside
    `.git/infra-factory/worktrees` (the symlink target counts).
 2. It checks that `backend/uv.lock`, `frontend/package-lock.json` and `e2e/package-lock.json` are
-   committed and unmodified.
+   byte-identical to the committed versions (by content hash, so index flags such as
+   `--assume-unchanged` cannot hide a change), and that any install configuration present
+   (`.npmrc`, `uv.toml`, `backend/.python-version`) is committed and unmodified too.
 3. It runs `uv sync --frozen`, `npm ci` (frontend, e2e) and `npx playwright install chromium`, with
    the same download caches as the cold checks (`--cache-dir`). `npm ci` always replaces
    `node_modules`, so a stale or partial install from an earlier run is never trusted.
-4. It checks that no tracked file changed, writes `dependencies ready … starting builder` to the
+4. It checks that no changed or untracked file in the worktree was altered (by content, so a second
+   edit to an already-modified file in a reused worktree is caught), writes `dependencies ready … starting builder` to the
    builder log, and then `exec`s the unchanged agent command. Only `PLAYWRIGHT_BROWSERS_PATH` is
    pointed at the cached browsers.
 
 **Failures stop the ticket; they never widen permissions.** Any failure (missing or modified
-lockfile, a tool missing from `PATH`, an install error or a 20-minute step timeout, a changed tracked file,
-the wrong directory) prints `[bootstrap] FAILED: …` in the ticket's `builder.log`, exits non-zero
-before the agent starts, and the factory marks the ticket BLOCKED. Nothing falls back to
-`npm install`, skips a component, or adds a permission. Fix the cause, then `retry`.
+lockfile or install configuration, a tool missing from `PATH`, an install error, a 20-minute step
+timeout (the step's whole process group is killed), an altered worktree file, the wrong directory,
+an agent command that cannot start) prints `[bootstrap] FAILED: …` in the ticket's `builder.log`,
+exits non-zero before the agent starts, and the factory marks the ticket BLOCKED. Nothing falls
+back to `npm install`, skips a component, or adds a permission. Fix the cause, then `retry`.
+**Each failed bootstrap uses one of the ticket's three attempts** (the factory counts the attempt
+before the builder command runs), so check the host before retrying: a preflight on a scratch
+worktree is described below.
 
 **Retry and worktrees.** `retry` only sets a BLOCKED ticket back to PENDING. The next `run` creates
 a **new** worktree and branch from the base (`<ticket>-<timestamp>`) and starts its builder there;
@@ -83,9 +90,26 @@ the toolkit's `AUDIT.md`), from lockfiles committed on the base branch. A ticket
 lockfiles, manifests and `ops/factory/` are refused in builder diffs. Cold checks still install
 their own dependencies in fresh checkouts and never use the builder's. Reviewers get no bootstrap.
 The bootstrap time counts towards the builder's `timeout_seconds`. With `--network-env`, the
-builder already inherits the factory's live environment, so the saved file only fills in proxy/CA
-settings that are not set; the cold checks, which run with a scrubbed environment, use the file as
-is.
+builder already inherits the factory's live environment, which wins: if any proxy variable is set
+live, **no** proxy setting is taken from the saved file (mixing would let npm or Playwright pick a
+stale `npm_config_*` or lowercase value); CA settings from the file only fill in what is unset. The
+cold checks, which run with a scrubbed environment, use the file as is.
+
+**Preflight before a retry.** To prove the host can provision a builder without spending an
+attempt, create a scratch worktree in the factory's worktrees directory and run the bootstrap with a
+harmless command in place of the agent:
+
+```bash
+git worktree add --detach .git/infra-factory/worktrees/PREFLIGHT main
+```
+
+```bash
+REPO="$PWD"; cd .git/infra-factory/worktrees/PREFLIGHT && python3 -I "$REPO/ops/factory/bootstrap_builder.py" --cache-dir ~/.cache/vanshavali-factory -- sh -c "cd frontend && npx vitest run src/i18n"; cd "$REPO"
+```
+
+The log must end with `dependencies ready … starting builder` and a passing test run (add the same
+`--network-env` you gave `configure_factory.py`). (Run both from the main checkout.) Remove it afterwards with
+`git worktree remove --force .git/infra-factory/worktrees/PREFLIGHT`.
 
 ## One-time setup (factory host)
 

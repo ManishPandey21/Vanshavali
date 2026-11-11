@@ -30,9 +30,12 @@ This file lives under ``ops/factory/`` (a protected path): a builder cannot chan
 from __future__ import annotations
 
 import argparse
+import contextlib
+import hashlib
 import importlib.util
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -46,6 +49,16 @@ COMPONENTS = (
     ("backend", "uv.lock", ["uv", "sync", "--frozen"]),
     ("frontend", "package-lock.json", NPM_CI),
     ("e2e", "package-lock.json", NPM_CI),
+)
+# Files that steer those installs (registry, scripts, interpreter). If present they must be committed
+# and unmodified, like the lockfiles; an untracked one could point an install anywhere.
+INSTALL_CONFIG = (
+    ".npmrc",
+    "frontend/.npmrc",
+    "e2e/.npmrc",
+    "uv.toml",
+    "backend/uv.toml",
+    "backend/.python-version",
 )
 
 
@@ -92,22 +105,67 @@ def check_worktree(root: Path) -> None:
         raise BootstrapError(f"{root}: {reason} (expected under {allowed})")
 
 
+def check_committed(root: Path, rel: str, what: str) -> None:
+    """``rel`` must equal its blob in HEAD byte for byte.
+
+    Compares content hashes rather than asking ``git diff``/``git status``, which honour the
+    ``--assume-unchanged`` and ``--skip-worktree`` index flags and would hide a modified file.
+    """
+    path = root / rel
+    if path.is_symlink() or not path.is_file():
+        raise BootstrapError(f"{rel} is not a regular file")
+    committed = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"HEAD:{rel}"], cwd=root, capture_output=True, text=True
+    )
+    if committed.returncode:
+        raise BootstrapError(f"{rel} is not committed")
+    if git(root, "hash-object", "--no-filters", "--", rel) != committed.stdout.strip():
+        raise BootstrapError(f"{rel} differs from the committed {what}")
+
+
 def check_lockfiles(root: Path) -> None:
     for component, lockfile, _ in COMPONENTS:
         rel = f"{component}/{lockfile}"
-        path = root / rel
-        if path.is_symlink() or not path.is_file():
+        if not (root / rel).exists() and not (root / rel).is_symlink():
             raise BootstrapError(f"{rel} is missing: dependencies install only from a committed lockfile")
-        if subprocess.run(
-            ["git", "ls-files", "--error-unmatch", rel], cwd=root, capture_output=True
-        ).returncode:
-            raise BootstrapError(f"{rel} is not committed")
-        if subprocess.run(["git", "diff", "--quiet", "HEAD", "--", rel], cwd=root).returncode:
-            raise BootstrapError(f"{rel} differs from the committed lockfile")
+        check_committed(root, rel, "lockfile")
+    for rel in INSTALL_CONFIG:
+        if (root / rel).exists() or (root / rel).is_symlink():
+            check_committed(root, rel, "install configuration")
 
 
-def tracked_state(root: Path) -> str:
-    return git(root, "status", "--porcelain=v1", "--untracked-files=all")
+def tracked_state(root: Path) -> dict[str, str]:
+    """Every changed or untracked path with a hash of its content (ignored files excluded)."""
+    out = subprocess.run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames"],
+        cwd=root,
+        capture_output=True,
+    )
+    if out.returncode:
+        raise BootstrapError(f"git status failed: {out.stderr.decode(errors='replace').strip()}")
+    state: dict[str, str] = {}
+    for entry in out.stdout.split(b"\0"):
+        if not entry:
+            continue
+        rel = entry[3:].decode("utf-8", "surrogateescape")
+        path = root / rel
+        if path.is_symlink():
+            digest = "link:" + os.readlink(path)
+        elif path.is_file():
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        else:
+            digest = "absent"
+        state[rel] = entry[:2].decode() + ":" + digest
+    return state
+
+
+def proxy_key(name: str) -> bool:
+    return "proxy" in name.lower()
+
+
+def no_proxy_key(name: str) -> bool:
+    # NO_PROXY / npm_config_noproxy list exceptions; on their own they name no proxy.
+    return name.lower().replace("_", "").endswith("noproxy")
 
 
 def install_env(cache: Path, network_env: Path | None) -> dict[str, str]:
@@ -118,9 +176,16 @@ def install_env(cache: Path, network_env: Path | None) -> dict[str, str]:
             saved = rs.read_network_env(network_env)
         except rs.SuiteError as exc:
             raise BootstrapError(str(exc)) from None
-        # Unlike a cold check, a builder inherits the factory's live environment; a captured file
-        # can be stale (a local proxy restarted on another port), so it only fills in what is unset.
+        # Unlike a cold check, a builder inherits the factory's live environment, and a captured
+        # file can be stale (a local proxy restarted on another port). Proxy settings are taken as a
+        # set: if the live environment has any, none come from the file (npm and Playwright read
+        # npm_config_*/lowercase names first, so mixing would pick the stale one). Other settings
+        # (CA bundles) only fill in what is unset.
+        proxies = {k for k in rs.NETWORK_KEYS if proxy_key(k) and not no_proxy_key(k)}
+        live_proxy = any(env.get(k) for k in proxies)
         for key, value in saved.items():
+            if proxy_key(key) and live_proxy:
+                continue
             env.setdefault(key, value)
     env.pop("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", None)
     # Same caches as the cold checks (run_suite.py), so downloads are shared and offline-friendly.
@@ -145,10 +210,17 @@ def step(argv: list[str], cwd: Path, env: dict[str, str], root: Path) -> None:
         raise BootstrapError(f"`{argv[0]}` is not on PATH (see docs/operations/code-factory.md)")
     log(f"$ (cd {cwd.relative_to(root)}) {' '.join(argv)}")
     started = time.monotonic()
+    # Own process group, so a timeout also stops install scripts the tool started.
+    proc = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL, start_new_session=True)
     try:
-        proc = subprocess.run(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL, timeout=STEP_TIMEOUT)
-    except subprocess.TimeoutExpired:
-        raise BootstrapError(f"{argv[0]} timed out after {STEP_TIMEOUT}s") from None
+        proc.wait(timeout=STEP_TIMEOUT)
+    except BaseException:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(proc.pid, signal.SIGKILL)
+        proc.wait()
+        if sys.exc_info()[0] is subprocess.TimeoutExpired:
+            raise BootstrapError(f"{argv[0]} timed out after {STEP_TIMEOUT}s") from None
+        raise
     if proc.returncode:
         raise BootstrapError(f"{argv[0]} exited {proc.returncode}")
     log(f"  ok in {time.monotonic() - started:.0f}s")
@@ -199,7 +271,11 @@ def main(argv: list[str] | None = None) -> int:
         log("the builder was not started; fix the host or repository, then `retry` the ticket")
         return 3
     sys.stderr.flush()
-    os.execvpe(agent[0], agent, env)
+    try:
+        os.execvpe(agent[0], agent, env)
+    except OSError as exc:
+        log(f"FAILED: cannot start the builder {agent[0]!r}: {exc}")
+        return 3
     return 0  # unreachable
 
 

@@ -35,7 +35,16 @@ GIT_ENV = {
     "GIT_COMMITTER_EMAIL": "t@example.invalid",
     "GIT_CONFIG_NOSYSTEM": "1",
 }
-PROXY_KEYS = {"HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "NODE_EXTRA_CA_CERTS"}
+PROXY_KEYS = {
+    "HTTPS_PROXY",
+    "HTTP_PROXY",
+    "ALL_PROXY",
+    "NO_PROXY",
+    "NODE_EXTRA_CA_CERTS",
+    "NPM_CONFIG_HTTPS_PROXY",
+    "NPM_CONFIG_PROXY",
+    "NPM_CONFIG_NOPROXY",
+}
 LOCKFILES = ("backend/uv.lock", "frontend/package-lock.json", "e2e/package-lock.json")
 
 FAKE_TOOL = textwrap.dedent(
@@ -44,6 +53,7 @@ FAKE_TOOL = textwrap.dedent(
     # Records every call; FAKE_FAIL=<tool> fails it, FAKE_TOUCH=<path> edits a tracked file.
     echo "$(basename "$0") $* @ $(pwd)" >> "$FAKE_LOG"
     if [ -n "$FAKE_PROXY_LOG" ]; then echo "$HTTPS_PROXY" >> "$FAKE_PROXY_LOG"; fi
+    if [ -n "$FAKE_ALLPROXY_LOG" ]; then echo "$HTTPS_PROXY|$https_proxy|$npm_config_https_proxy|$NODE_EXTRA_CA_CERTS" >> "$FAKE_ALLPROXY_LOG"; fi
     if [ "$FAKE_FAIL" = "$(basename "$0")" ]; then echo "fake failure" >&2; exit 7; fi
     if [ -n "$FAKE_TOUCH" ]; then echo changed >> "$FAKE_TOUCH"; fi
     if [ "$(basename "$0")" = npm ]; then mkdir -p node_modules && touch node_modules/.installed; fi
@@ -110,7 +120,9 @@ class Host:
         full_env = {
             k: v
             for k, v in os.environ.items()
-            if not k.startswith(("FAKE_", "PLAYWRIGHT_")) and k.upper() not in PROXY_KEYS
+            if not k.startswith(("FAKE_", "PLAYWRIGHT_"))
+            and "proxy" not in k.lower()
+            and k.upper() not in PROXY_KEYS
         }
         full_env.update(
             {
@@ -274,6 +286,82 @@ class BootstrapTests(unittest.TestCase):
         proc = self.host.run(wt, "--network-env", str(net), FAKE_PROXY_LOG=str(seen))
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(set(seen.read_text().split()), {"http://stale.invalid:1"})
+
+    def test_live_no_proxy_alone_does_not_hide_the_saved_proxy(self) -> None:
+        wt = self.host.worktree()
+        net = self.host.tmp / "network.env"
+        net.write_text("HTTPS_PROXY=http://saved.invalid:1\n")
+        net.chmod(0o600)
+        seen = self.host.tmp / "proxy.log"
+        proc = self.host.run(wt, "--network-env", str(net), NO_PROXY="localhost", FAKE_PROXY_LOG=str(seen))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(set(seen.read_text().split()), {"http://saved.invalid:1"})
+
+    def test_any_live_proxy_setting_drops_every_saved_proxy_key(self) -> None:
+        # Review finding: per-key precedence let a stale lowercase / npm_config_ proxy from the
+        # file sit beside a live HTTPS_PROXY, and npm and Playwright read those first.
+        wt = self.host.worktree()
+        net = self.host.tmp / "network.env"
+        net.write_text(
+            "HTTPS_PROXY=http://stale.invalid:1\nhttps_proxy=http://stale.invalid:1\n"
+            "npm_config_https_proxy=http://stale.invalid:1\nNODE_EXTRA_CA_CERTS=/from/file.pem\n"
+        )
+        net.chmod(0o600)
+        seen = self.host.tmp / "all-proxy.log"
+        proc = self.host.run(
+            wt, "--network-env", str(net), HTTPS_PROXY="http://live.invalid:2", FAKE_ALLPROXY_LOG=str(seen)
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        # CA settings are not proxy settings: the file still fills them in.
+        self.assertEqual(set(seen.read_text().split()), {"http://live.invalid:2|||/from/file.pem"})
+
+    def test_install_that_edits_an_already_modified_file_blocks(self) -> None:
+        # Review finding: comparing `git status` text missed a second edit to a dirty file.
+        wt = self.host.worktree()
+        (wt / "frontend" / "app.ts").write_text("export const wip = 1;\n")
+        proc = self.host.run(wt, FAKE_TOUCH=str(wt / "frontend" / "app.ts"))
+        self.assert_blocked(proc, "changed tracked files")
+
+    def test_lockfile_change_hidden_with_assume_unchanged_blocks(self) -> None:
+        wt = self.host.worktree()
+        git(wt, "update-index", "--assume-unchanged", "frontend/package-lock.json")
+        (wt / "frontend" / "package-lock.json").write_text('{"tampered": true}\n')
+        self.assertEqual(git(wt, "status", "--porcelain"), "", "precondition: git hides the change")
+        proc = self.host.run(wt)
+        self.assert_blocked(proc, "frontend/package-lock.json differs from the committed lockfile")
+        self.assertEqual(self.host.call_log(), [])
+
+    def test_uncommitted_install_configuration_blocks(self) -> None:
+        wt = self.host.worktree()
+        (wt / "frontend" / ".npmrc").write_text("registry=https://registry.invalid/\n")
+        proc = self.host.run(wt)
+        self.assert_blocked(proc, "frontend/.npmrc is not committed")
+        self.assertEqual(self.host.call_log(), [])
+
+    def test_agent_that_cannot_start_is_reported(self) -> None:
+        wt = self.host.worktree()
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("FAKE_", "PLAYWRIGHT_"))}
+        env.update(
+            {"PATH": f"{self.host.bin}{os.pathsep}{os.environ['PATH']}", "FAKE_LOG": str(self.host.calls)}
+        )
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-I",
+                str(BOOTSTRAP),
+                "--cache-dir",
+                str(self.host.cache),
+                "--",
+                str(self.host.tmp / "no-such-agent"),
+            ],
+            cwd=wt,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(proc.returncode, 3, proc.stderr)
+        self.assertIn("[bootstrap] FAILED: cannot start the builder", proc.stderr)
 
 
 def load_configure():
