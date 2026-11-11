@@ -27,14 +27,19 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 RUN_SUITE = REPO / "ops" / "factory" / "run_suite.py"
 CONFIG = REPO / ".infra-factory" / "config.json"
-TOOLKIT_VERSION = "0.3.1"
-TOOLKIT_FILES = (
-    "factory.py",
-    "verification_policy.py",
-    "cold_workspace.py",
-    "test_report.py",
-    "agent_bridge.py",
-)
+TOOLKIT_VERSION = "0.3.3"
+# SHA-256 of the toolkit's runtime files as reviewed for this integration (0.3.3). Pinned here, not
+# read from the archive's own SHA256SUMS: that file is shipped next to the code it describes (so it
+# proves nothing against a modified copy), and the 0.3.3 archive carries the stale 0.3.1 list.
+# Upgrading the toolkit = review its diff, then update these hashes in a reviewed PR.
+TOOLKIT_SHA256 = {
+    "factory.py": "188bd15b7bc3b37b2383fdb7adf5306d37db411d8786b549abca9ee1aff2de76",
+    "verification_policy.py": "a984427a17e4e3636fe2a3bf054d9da7b226058d55e5d7f0bfbc2617fdabfcd6",
+    "cold_workspace.py": "2f687c221d1b0226b5a9c3976967cba367bd7df2e2edb53fa80b31f1c3fa0faf",
+    "test_report.py": "192b01fb39c01fda0a384d165df31c4a070a7d37347d2b4c9f2d50dabc9b67da",
+    "agent_bridge.py": "365e7de1ed686c731e0fcddb6ec2e5fa610e398f0cf9f9745af33c94abca0c04",
+}
+TOOLKIT_FILES = tuple(TOOLKIT_SHA256)
 
 # Which repository roots belong to which layer. Paths outside every root (e2e/, renderer/, docs/,
 # deploy/, ops/...) conservatively select the full stack. The generated API contract is "shared":
@@ -119,21 +124,12 @@ def check_toolkit(toolkit: Path) -> None:
     missing = [f for f in TOOLKIT_FILES if not (toolkit / f).is_file()]
     if missing:
         sys.exit(f"--toolkit {toolkit} is not an Infra Code Factory directory (missing {', '.join(missing)})")
-    sums = toolkit / "SHA256SUMS"
-    if not sums.is_file():
-        sys.exit("toolkit has no SHA256SUMS; re-extract the release archive")
-    expected = {}
-    for line in sums.read_text().splitlines():
-        digest, _, name = line.partition("  ")
-        expected[name.strip()] = digest.strip()
-    for name in TOOLKIT_FILES:
-        if expected.get(name) != sha256(toolkit / name):
-            sys.exit(f"toolkit file {name} does not match SHA256SUMS: refusing a modified toolkit")
-    changelog = (toolkit / "CHANGELOG.md").read_text() if (toolkit / "CHANGELOG.md").is_file() else ""
-    if f"## {TOOLKIT_VERSION}" not in changelog:
-        print(
-            f"warning: toolkit is not version {TOOLKIT_VERSION}; re-check this integration", file=sys.stderr
-        )
+    for name, digest in TOOLKIT_SHA256.items():
+        if sha256(toolkit / name) != digest:
+            sys.exit(
+                f"toolkit file {name} is not the reviewed Infra Code Factory {TOOLKIT_VERSION} "
+                "(see TOOLKIT_SHA256 in ops/factory/configure_factory.py): refusing it"
+            )
 
 
 def suite_check(python: str, toolkit: Path, extra: list[str], sid: str, domains, kind, timeout):

@@ -3,7 +3,7 @@
 - Status: **Proposed** · Date: 2026-11-11
 - Relates to: CLAUDE.md working rules 1, 5, 8 (explore first; security-sensitive changes; testing),
   the CI workflow (`.github/workflows/ci.yml`), ADR-0022 (ephemeris), ADR-0017 (Remotion renders).
-- Tooling: [Infra Code Factory 0.3.1](../../operations/code-factory.md) — a standalone, stdlib-only
+- Tooling: [Infra Code Factory 0.3.3](../../operations/code-factory.md) — a standalone, stdlib-only
   Python toolkit kept **outside** this repository.
 
 ## Context
@@ -40,7 +40,9 @@ Adopt the factory as an **optional, local** delivery path. CI, branch protection
 remain the merge gate; nothing about `main` changes.
 
 1. **Toolkit outside the repo, integration inside it.** The toolkit is extracted to a tools
-   directory and verified against its `SHA256SUMS`. The repository carries only the integration in
+   directory; the config generator accepts only the reviewed release, by SHA-256 of its runtime
+   files pinned in `ops/factory/configure_factory.py` (the archive's own `SHA256SUMS` sits next to
+   the code it describes, and 0.3.3 shipped a stale one). The repository carries only the integration in
    `ops/factory/`: the suite wrapper, a pytest classification plugin and a config generator. The
    generated `.infra-factory/config.json` holds machine-specific absolute paths and is git-ignored.
 2. **Map real suites onto the toolkit's kinds** (`ops/factory/run_suite.py`), each runnable in a

@@ -67,8 +67,10 @@ machine that holds production credentials.
    python3 ~/tools/infra-code-factory/factory.py init --repo . --apply
    ```
 
-4. Generate the configuration (preview first, then `--apply`). The script verifies the toolkit
-   against its `SHA256SUMS` and refuses a modified copy.
+4. Generate the configuration (preview first, then `--apply`). The script accepts only the
+   reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
+   pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
+   the toolkit, review its diff and update `TOOLKIT_VERSION`/`TOOLKIT_SHA256` in a normal PR.
 
    ```bash
    python3 ops/factory/configure_factory.py --toolkit ~/tools/infra-code-factory --tdd-skill /path/to/test-driven-development/SKILL.md
