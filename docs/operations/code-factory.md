@@ -8,7 +8,7 @@ fresh reviewers attest to the exact candidate and evidence, and publishes **draf
 merges or deploys: CI and a person still decide. Everything here runs on *your* computer.
 
 ```
-ticket JSON ─► factory run ─► dependency bootstrap ─► builder (worktree) ─► one candidate commit
+ticket JSON ─► factory run ─► dependency bootstrap ─► builder (pinned model/effort) ─► changed-test gate ─► one candidate commit
                                    │ scope + "don't weaken tests" guard
                                    ▼
           cold checkout A ── preflight + required suites ──► reviewer: standards ─┐
@@ -21,7 +21,10 @@ ticket JSON ─► factory run ─► dependency bootstrap ─► builder (workt
 
 | Path | Purpose |
 |---|---|
-| `ops/factory/bootstrap_builder.py` | Controller-owned step every builder starts through: installs dependencies from the committed lockfiles, then starts the agent |
+| `ops/factory/bootstrap_builder.py` | Controller-owned step every builder starts through: host checks, dependencies from the committed lockfiles, the agent, then the changed-test gate |
+| `ops/factory/changed_test_gate.py` | Trusted gate: runs every new/changed/declared test in the builder worktree before the work is accepted (ADR-0030) |
+| `ops/factory/toolkit/*.patch`, `ops/factory/toolkit_release.py` | The reviewed toolkit upgrade (0.3.3 archive → 0.3.4) and the script that rebuilds and verifies it |
+| `ops/factory/routing_report.py` | Per model/effort outcomes, gate results, cold failures and cost, from the ledger and evidence |
 | `ops/factory/tests/` | Regression tests for the factory tooling (`make factory-test`; run in CI) |
 | `ops/factory/run_suite.py` | Trusted wrapper: installs deps in the cold checkout, provisions a private DB/ports, runs one suite, writes JUnit |
 | `ops/factory/pytest_kinds.py` | pytest plugin splitting the backend suite into unit / api / integration / migration |
@@ -112,6 +115,74 @@ The log must end with `dependencies ready … starting builder` and a passing te
 scratch worktree afterwards with
 `git worktree remove --force .git/infra-factory/worktrees/PREFLIGHT`.
 
+## Model and effort routing
+
+Every agent role runs a **pinned model id with an explicit effort** (ADR-0030), set in
+`ROUTES` in `ops/factory/configure_factory.py`:
+
+| Role | Model / effort | Used for |
+|---|---|---|
+| `builder_routine` | Sonnet 5.5 / medium | Tickets without `complexity`, or `complexity: routine` |
+| `builder_complex` | Opus 5.5 / high | `complexity: complex` (cross-module, tricky state, migrations) |
+| `builder_critical` | Opus 5.5 / high | `role: critical` (authz, privacy, integrity, uploads, exports) |
+| `reviewer_standards`, `reviewer_spec` | Opus 5.5 / high | Both cold review lenses |
+| `reviewer_standards_critical` | Opus 5.5 / high | Standards lens for `role: critical` |
+| `reviewer_spec_critical` | Fable 5.2 / high | Exceptional-risk escalation: specification lens for `role: critical` |
+
+Outside the factory (your own Claude sessions, not launched by it): coordinator (tickets,
+allocation, final report) Opus 5.5 / medium; architecture supervisor (ADRs, factory audits)
+Fable 5.2 / high; read-only status summaries and ticket triage Sonnet 5.5 / low. Do not use Fable
+for polling or ordinary coding unless you mean to.
+
+The ticket's `paths` still decide **which suites run**; `role`/`complexity` only decide **which
+model builds and reviews**, so routing can never skip a test or a review. Override one role with
+`--route`, e.g. `--route builder_routine=claude:claude-opus-5-5:high`; aliases (`opus`) and effort
+names the CLI does not document are refused.
+
+What the bridge enforces on every run (`--strict-routing`), and why: the Claude CLI accepts an
+unknown effort silently, lets `CLAUDE_CODE_EFFORT_LEVEL` override `--effort`, clamps to a settings
+`maxEffortLevel` without saying so, and can fall back to another model. The bridge validates the
+effort, sets flag and variable to the same value, removes model-remapping variables, disables
+fallback, refuses a run a settings cap would clamp, and refuses the result unless the requested
+model served it. It cannot see the *effective* effort (the CLI never reports it) or an
+account-level cap. Each run leaves `<result>.routing.json` beside its result (requested vs. served
+model, effort controls, tokens, cost, denied tool names, outcome; never credentials), and builders
+leave `builder-result.transcript.jsonl`.
+
+**Evaluating the routing.** After tickets complete, run:
+
+```bash
+python3 ops/factory/routing_report.py --repo .
+```
+
+It lists, per model and effort, attempts, READY/MERGED, blocks at the gate and in cold checks,
+repair rounds used, cost and tokens, then each attempt. Change a default only when several
+tickets of the same complexity point the same way (routine tickets repeatedly blocking on
+Sonnet/medium; complex ones passing first time on Sonnet), in a reviewed PR that quotes the report.
+
+## Changed-test gate
+
+A builder's statement that its tests pass is not evidence. With `--gate` (always written by
+`configure_factory.py`), after the builder stops and **before the controller commits**, the
+controller runs in the builder's worktree every test file the builder created or changed and every
+test file listed in the ticket's `paths`:
+
+| Test file | Command (in) |
+|---|---|
+| `frontend/**/*.test.ts(x)` | `npx vitest run <files>` (frontend/) |
+| `e2e/tests/**/*.spec.ts` | `npx playwright test <files>` (e2e/; starts its own backend, SPA and database on private ports) |
+| `e2e/visual/**/*.spec.ts` | the same with `--config=playwright.visual.config.ts` |
+| `backend/tests/**/test_*.py` | `uv run pytest <files>` (backend/; private database, ephemeris, Tesseract) |
+
+A run passes with exit 0, at least one test and no failure, error or skip. A declared test file
+that was not written, or a test file with no trusted runner (e.g. `renderer/`), fails. On failure
+the builder gets the controller's output (the end of the runner log) for `--repair-rounds` more
+turns (default 1) within **the same attempt**, then the attempt blocks with
+`[bootstrap] FAILED: new or changed tests did not pass under the controller`. Evidence:
+`changed-tests.json` plus `changed-tests-N-<runner>.log`/`.junit.xml` in the ticket's log
+directory. The gate never edits the candidate (checked by content hash) and does not replace cold
+verification, which still runs every selected suite twice.
+
 ## One-time setup (factory host)
 
 Host requirements: Git, Python ≥ 3.10, [uv](https://docs.astral.sh/uv/), Node 22 + npm, Tesseract
@@ -120,11 +191,22 @@ from the README (`vanshavali`/`vanshavali`, allowed to create databases), the `c
 `codex` for the default mixed providers), and `gh` for publishing. Never run the factory on a
 machine that holds production credentials.
 
-1. Extract the toolkit outside the repository and run its self-test:
+1. Build the reviewed toolkit (0.3.4) outside the repository from the upstream 0.3.3 archive and
+   the reviewed patch, then run its self-test (131 tests). `build` refuses any other archive, a
+   patch that does not produce the pinned runtime files, and an existing output directory:
 
    ```bash
-   python3 -m unittest discover -s ~/tools/infra-code-factory/tests -v
+   python3 ops/factory/toolkit_release.py build --archive ~/Downloads/infra-code-factory-v0.3.3.zip --out ~/tools/infra-code-factory-0.3.4
    ```
+
+   ```bash
+   python3 -m unittest discover -s ~/tools/infra-code-factory-0.3.4/tests -v
+   ```
+
+   `python3 ops/factory/toolkit_release.py verify --toolkit DIR` checks an installed copy: its
+   `SHA256SUMS` must list exactly the files present and every hash must match. (The 0.3.3 archive
+   fails this on purpose: it ships the 0.3.1 manifest, whose four stale entries are exactly the
+   files 0.3.2/0.3.3 changed.)
 
 2. Install the Superpowers plugin (provides the `test-driven-development` skill the builders
    follow) and note the path of its `test-driven-development/SKILL.md`. See the toolkit's
@@ -137,21 +219,26 @@ machine that holds production credentials.
    ```
 
 4. Generate the configuration (preview first, then `--apply`). The script accepts only the
-   reviewed toolkit release (Infra Code Factory **0.3.3**), checked by SHA-256 of its runtime files
+   reviewed toolkit release (Infra Code Factory **0.3.4**), checked by SHA-256 of its runtime files
    pinned in `ops/factory/configure_factory.py`; any other or modified copy is refused. To upgrade
    the toolkit, review its diff and update `TOOLKIT_VERSION`/`TOOLKIT_SHA256` in a normal PR.
+   `--apply` first **probes every distinct model/effort** in the routing table through the real
+   bridge (a few tokens each; see "Model and effort routing") and writes nothing if one is
+   unavailable or another model answers.
 
    ```bash
-   python3 ops/factory/configure_factory.py --toolkit ~/tools/infra-code-factory --tdd-skill /path/to/test-driven-development/SKILL.md
+   python3 ops/factory/configure_factory.py --toolkit ~/tools/infra-code-factory-0.3.4 --tdd-skill /path/to/test-driven-development/SKILL.md --providers claude
    ```
 
    ```bash
-   python3 ops/factory/configure_factory.py --toolkit ~/tools/infra-code-factory --tdd-skill /path/to/test-driven-development/SKILL.md --apply
+   python3 ops/factory/configure_factory.py --toolkit ~/tools/infra-code-factory-0.3.4 --tdd-skill /path/to/test-driven-development/SKILL.md --providers claude --apply
    ```
 
    Useful options: `--providers claude` (Claude for every role if you don't use Codex),
-   `--claude-builder-model`, `--claude-review-model`, `--codex-model`, `--cache-dir`,
-   `--pg-admin-url` (must be localhost). Behind a proxy or private CA add
+   `--route ROLE=PROVIDER:MODEL:EFFORT` (override one role; repeatable), `--repair-rounds 0|1|2`
+   (changed-test gate feedback turns, default 1), `--codex-model`, `--cache-dir`,
+   `--pg-admin-url` (must be localhost), `--skip-model-probe` (offline only; runs still refuse a
+   wrong model). Behind a proxy or private CA add
    `--network-env ~/.config/vanshavali-factory/network.env --capture-network-env`: the factory
    strips the environment from test runs, so the proxy/CA variables of your shell are saved to
    that private (0600) file and only those allow-listed names are read back.
@@ -220,6 +307,14 @@ toolkit's `docs/HARDENING_SETUP.md`.
   a time (Alembic heads must not fork).
 - **Security-sensitive work** (CLAUDE.md rule 5): put the threat-model/privacy-model updates and
   the required negative tests into the acceptance criteria and `paths`; use `role: critical`.
+- **Complexity.** Add `"complexity": "complex"` for cross-module work, tricky state or migrations
+  (Opus/high builder); leave it out for routine tickets (Sonnet/medium).
+- **List every test file in `paths`.** The changed-test gate runs each declared test file and fails
+  the attempt if one was not written. Name tests where their runner expects them (table above).
+- **Replacing a blocked ticket** (re-scoped, corrected): give it a new id **and**
+  `"supersedes": ["OLD-ID"]`. It inherits the old ticket's attempts and closes it; a ticket with the
+  same paths as an unfinished ticket that has used attempts is refused without `supersedes`, and a
+  ticket that used all three attempts cannot be renamed into a new budget.
 
 ## What the evidence does and does not mean
 
@@ -241,6 +336,18 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
   (`--static backend|frontend` for the preflight).
 - "Cold check modified the candidate checkout": a suite wrote an untracked, non-ignored file;
   fix the suite (via a normal PR), not the ticket.
+- `builder.log` ends with `changed-test gate FAILED` / `new or changed tests did not pass under the
+  controller`: the builder's own tests failed under the controller after the repair rounds. Read
+  `changed-tests.json` and the `changed-tests-N-*.log` files in the ticket's log directory.
+- `agent_bridge: … did not serve this run` / `maxEffortLevel … would silently clamp` /
+  `not a full Claude model id`: strict routing refused the run (see "Model and effort routing").
+  Check account access and settings files; never work around it by removing `--strict-routing`.
+- `model probe failed for …` from `configure_factory.py --apply`: that model/effort is not available
+  to this account. Choose another with `--route`, or fix access; nothing was written.
+- `viewer-denied.spec.ts` (and any spec verifying an email late in a run) fails with `429
+  rate_limited` from `POST /auth/verify-email`: the backend limits token use to 30/minute per IP
+  (hard-coded in `identity/service.py`), and a full e2e run from 127.0.0.1 can exceed it. Measured
+  on `main`: 15 passes then 5 fast failures in 20 repeats. Tracked separately; not quarantined.
 - `builder.log` ends with `[bootstrap] FAILED: …` and the ticket is BLOCKED: dependency provisioning
   failed and the builder never started (see "Builder dependencies"). Fix the host (tool on `PATH`,
   network, cache disk space) or the lockfile on the base branch, then `retry`. Do **not** give

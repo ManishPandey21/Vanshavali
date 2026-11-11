@@ -20,8 +20,12 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
+import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -30,17 +34,18 @@ RUN_SUITE = REPO / "ops" / "factory" / "run_suite.py"
 # lockfiles before the agent exists (builders themselves may never install packages).
 BOOTSTRAP = REPO / "ops" / "factory" / "bootstrap_builder.py"
 CONFIG = REPO / ".infra-factory" / "config.json"
-TOOLKIT_VERSION = "0.3.3"
-# SHA-256 of the toolkit's runtime files as reviewed for this integration (0.3.3). Pinned here, not
-# read from the archive's own SHA256SUMS: that file is shipped next to the code it describes (so it
-# proves nothing against a modified copy), and the 0.3.3 archive carries the stale 0.3.1 list.
+TOOLKIT_VERSION = "0.3.4"
+# SHA-256 of the toolkit's runtime files as reviewed for this integration (0.3.4). Pinned here, not
+# read from the toolkit's own SHA256SUMS: that file ships next to the code it describes, so it proves
+# nothing against a modified copy. 0.3.4 = the pinned 0.3.3 archive + the reviewed patch in
+# ops/factory/toolkit/; `ops/factory/toolkit_release.py build` reproduces it and checks these hashes.
 # Upgrading the toolkit = review its diff, then update these hashes in a reviewed PR.
 TOOLKIT_SHA256 = {
-    "factory.py": "188bd15b7bc3b37b2383fdb7adf5306d37db411d8786b549abca9ee1aff2de76",
+    "factory.py": "27bb5b036b519b2b21abeead6185ecaca20f3d2d12d5df98c4219ee2555f5a1b",
     "verification_policy.py": "a984427a17e4e3636fe2a3bf054d9da7b226058d55e5d7f0bfbc2617fdabfcd6",
     "cold_workspace.py": "2f687c221d1b0226b5a9c3976967cba367bd7df2e2edb53fa80b31f1c3fa0faf",
     "test_report.py": "192b01fb39c01fda0a384d165df31c4a070a7d37347d2b4c9f2d50dabc9b67da",
-    "agent_bridge.py": "365e7de1ed686c731e0fcddb6ec2e5fa610e398f0cf9f9745af33c94abca0c04",
+    "agent_bridge.py": "1ae9b3b8c5107e6deeb77cc8b0158402d311cdadeff6df44735a4aaab2eba541",
 }
 TOOLKIT_FILES = tuple(TOOLKIT_SHA256)
 
@@ -164,16 +169,73 @@ def suite_check(python: str, toolkit: Path, extra: list[str], sid: str, domains,
     }
 
 
+EFFORTS = ("low", "medium", "high", "xhigh", "max")  # Claude Code CLI --effort levels
+CODEX_EFFORTS = ("low", "medium", "high")
+FULL_CLAUDE_ID = re.compile(r"claude-[a-z]+(-[0-9]+)+")
+# Role -> (provider, model, effort): ADR-0030. Builders are chosen by ticket risk/complexity
+# (role: critical, complexity: complex), not by frontend/backend; which suites run is still decided
+# by the ticket's paths. Fable reviews critical tickets only, unless selected with --route.
+ROUTES = {
+    "builder_routine": ("claude", "claude-sonnet-5-5", "medium"),
+    "builder_complex": ("claude", "claude-opus-5-5", "high"),
+    "builder_critical": ("claude", "claude-opus-5-5", "high"),
+    "reviewer_standards": ("claude", "claude-opus-5-5", "high"),
+    "reviewer_spec": ("claude", "claude-opus-5-5", "high"),
+    "reviewer_standards_critical": ("claude", "claude-opus-5-5", "high"),
+    "reviewer_spec_critical": ("claude", "claude-fable-5-2", "high"),
+}
+# --providers mixed: the standards lens and routine builds on Codex, so the two reviewers never share
+# one model's blind spots.
+MIXED = {"builder_routine": "medium", "reviewer_standards": "high"}
+# Tickets are still validated by role (frontend/backend/critical): those names stay as aliases.
+LEGACY_ROLES = {"frontend": "builder_routine", "backend": "builder_routine", "critical": "builder_critical"}
+NODE_MAJOR = 22  # .github/workflows/ci.yml
+MIN_FREE_GB = 5.0
+
+
+def parse_route(text: str) -> tuple[str, tuple[str, str, str]]:
+    try:
+        role, rest = text.split("=", 1)
+        provider, model, effort = rest.split(":")
+    except ValueError:
+        raise argparse.ArgumentTypeError("--route takes ROLE=PROVIDER:MODEL:EFFORT") from None
+    if role not in ROUTES:
+        raise argparse.ArgumentTypeError(f"unknown role {role!r} (one of {', '.join(ROUTES)})")
+    check_route(role, provider, model, effort)
+    return role, (provider, model, effort)
+
+
+def check_route(role: str, provider: str, model: str, effort: str) -> None:
+    if provider not in ("claude", "codex"):
+        raise argparse.ArgumentTypeError(f"{role}: provider must be claude or codex")
+    if effort not in (CODEX_EFFORTS if provider == "codex" else EFFORTS):
+        raise argparse.ArgumentTypeError(f"{role}: effort {effort!r} is not supported for {provider}")
+    if provider == "claude" and not FULL_CLAUDE_ID.fullmatch(model):
+        raise argparse.ArgumentTypeError(
+            f"{role}: {model!r} is not a full Claude model id (aliases can be remapped)"
+        )
+
+
+def routes_for(a: argparse.Namespace) -> dict[str, tuple[str, str, str]]:
+    routes = dict(ROUTES)
+    if a.providers == "mixed":
+        for role, effort in MIXED.items():
+            routes[role] = ("codex", a.codex_model, effort)
+    routes.update(dict(getattr(a, "route", None) or []))
+    return routes
+
+
 def agent(
     python: str,
     toolkit: Path,
-    provider: str,
-    mode: str,
-    model: str,
+    role: str,
+    route: tuple[str, str, str],
     skill: Path | None,
     bootstrap: list[str] | None = None,
 ):
-    # Builders: [python -I bootstrap_builder.py <bootstrap args> --] + the unchanged agent command.
+    provider, model, effort = route
+    mode = "builder" if role.startswith("builder") else "reviewer"
+    # Builders: [python -I bootstrap_builder.py <bootstrap args> --gate ... --] + the agent command.
     # Reviewers get no bootstrap: they read the candidate and the cold-check evidence only.
     prefix = [python, "-I", str(BOOTSTRAP), *(bootstrap or []), "--"] if mode == "builder" else []
     spec = {
@@ -187,17 +249,50 @@ def agent(
             mode,
             "--model",
             "{model}",
+            "--effort",
+            effort,
+            "--strict-routing",
             "--prompt-file",
             "{prompt_file}",
             "--result-file",
             "{result_file}",
         ],
         "stdin_prompt": False,
+        "provider": provider,
         "model": model,
+        "effort": effort,
     }
     if mode == "builder":
         spec["primary_skill"] = str(skill)
     return spec
+
+
+def probe_models(python: str, toolkit: Path, routes: dict[str, tuple[str, str, str]]) -> dict[str, dict]:
+    """Run each distinct provider/model/effort once through the real bridge in strict mode: the
+    model must answer and must be the one that served the run. Any failure stops the configuration."""
+    results: dict[str, dict] = {}
+    for provider, model, effort in sorted(set(routes.values())):
+        key = f"{provider}:{model}:{effort}"
+        with tempfile.TemporaryDirectory(prefix="vsh-model-probe-") as tmp:
+            prompt = Path(tmp) / "prompt.txt"
+            prompt.write_text("Reply with exactly: OK. Do not use any tools.")
+            result = Path(tmp) / "probe-result.json"
+            proc = subprocess.run(  # noqa: S603 (the pinned bridge, fixed argv)
+                [python, str(toolkit / "agent_bridge.py"), "--provider", provider, "--mode", "builder",
+                 "--model", model, "--effort", effort, "--strict-routing",
+                 "--prompt-file", str(prompt), "--result-file", str(result)],
+                cwd=tmp, capture_output=True, text=True, timeout=600,
+            )  # fmt: skip
+            evidence_file = result.with_name("probe-result.routing.json")
+            evidence = json.loads(evidence_file.read_text()) if evidence_file.is_file() else {}
+        if proc.returncode or evidence.get("outcome") != "ok":
+            reason = evidence.get("error") or proc.stderr.strip()[-500:] or f"exit {proc.returncode}"
+            sys.exit(
+                f"model probe failed for {key}: {reason}\nNothing was written; fix access or choose another --route."
+            )
+        results[key] = {"served_models": sorted(evidence.get("served_models") or []), "at": time.time()}
+        print(f"model probe ok: {key}", file=sys.stderr)
+    return results
 
 
 def build(a: argparse.Namespace) -> dict:
@@ -211,8 +306,14 @@ def build(a: argparse.Namespace) -> dict:
     for tool in ("git", "uv", "npm", "npx", "node", "tesseract", "claude"):
         if not shutil.which(tool):
             print(f"warning: `{tool}` is not on PATH; the factory will block until it is", file=sys.stderr)
-    if a.providers == "mixed" and not shutil.which("codex"):
-        sys.exit("`codex` is not on PATH: install/authenticate it, or pass --providers claude")
+    routes = routes_for(a)
+    for role, route in routes.items():
+        try:
+            check_route(role, *route)
+        except argparse.ArgumentTypeError as exc:
+            sys.exit(str(exc))
+    if any(provider == "codex" for provider, _, _ in routes.values()) and not shutil.which("codex"):
+        sys.exit("`codex` is not on PATH: install/authenticate it, or route every role to claude")
     extra = ["--cache-dir", str(cache), "--pg-admin-url", a.pg_admin_url]
     boot = ["--cache-dir", str(cache)]
     if a.network_env:
@@ -225,25 +326,23 @@ def build(a: argparse.Namespace) -> dict:
             sys.exit(f"{net} does not exist: add --capture-network-env to create it from this shell")
         extra += ["--network-env", str(net)]
         boot += ["--network-env", str(net)]
-
-    if a.providers == "mixed":
-        codex_b = agent(python, toolkit, "codex", "builder", a.codex_model, skill, boot)
-        commands = {
-            "backend": codex_b,
-            "critical": codex_b,
-            "frontend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill, boot),
-            # two lenses on two providers: the reviewers do not share a model's blind spots
-            "reviewer_standards": agent(python, toolkit, "codex", "reviewer", a.codex_model, None),
-            "reviewer_spec": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
-        }
-    else:
-        commands = {
-            "backend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill, boot),
-            "critical": agent(python, toolkit, "claude", "builder", a.claude_review_model, skill, boot),
-            "frontend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill, boot),
-            "reviewer_standards": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
-            "reviewer_spec": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
-        }
+    boot += [
+        "--gate",
+        "--repair-rounds",
+        str(getattr(a, "repair_rounds", 1)),
+        "--pg-admin-url",
+        a.pg_admin_url,
+        "--min-free-gb",
+        f"{MIN_FREE_GB:g}",
+        "--node-major",
+        str(NODE_MAJOR),
+    ]
+    commands = {role: agent(python, toolkit, role, route, skill, boot) for role, route in routes.items()}
+    for legacy, role in LEGACY_ROLES.items():
+        commands[legacy] = commands[role]
+    probe = None
+    if getattr(a, "probe_models", False):
+        probe = probe_models(python, toolkit, routes)
     static = lambda side: [python, "-I", str(RUN_SUITE), "--static", side, *extra]  # noqa: E731
     return {
         "version": 1,
@@ -258,6 +357,12 @@ def build(a: argparse.Namespace) -> dict:
             "checks": [suite_check(python, toolkit, extra, *s) for s in SUITES],
         },
         "commands": commands,
+        # For people and routing_report.py: the factory reads commands, not this section.
+        "routing": {
+            role: dict(zip(("provider", "model", "effort"), route, strict=True))
+            for role, route in routes.items()
+        },
+        "model_probe": probe if probe is not None else "not run (preview, or --skip-model-probe)",
     }
 
 
@@ -271,12 +376,31 @@ def main(argv: list[str] | None = None) -> int:
         "--providers",
         choices=("mixed", "claude"),
         default="mixed",
-        help="mixed: Codex backend + standards review, Claude frontend + spec review (toolkit default); "
-        "claude: Claude for every role",
+        help="mixed: Codex for routine builds and the standards lens, Claude for the rest; "
+        "claude: Claude for every role (see ROUTES; override single roles with --route)",
     )
-    p.add_argument("--codex-model", default="gpt-6.1-sol")
-    p.add_argument("--claude-builder-model", default="sonnet")
-    p.add_argument("--claude-review-model", default="opus")
+    p.add_argument("--codex-model", default="gpt-6.1-sol", help="Codex model for --providers mixed")
+    p.add_argument(
+        "--route",
+        action="append",
+        type=parse_route,
+        default=[],
+        metavar="ROLE=PROVIDER:MODEL:EFFORT",
+        help="override one role (repeatable), e.g. builder_routine=claude:claude-opus-5-5:high; "
+        "roles: " + ", ".join(ROUTES),
+    )
+    p.add_argument(
+        "--repair-rounds",
+        type=int,
+        default=1,
+        choices=range(3),
+        help="times a failing changed-test gate is fed back to the builder within one attempt (default 1)",
+    )
+    p.add_argument(
+        "--skip-model-probe",
+        action="store_true",
+        help="with --apply: do not check model availability now (the bridge still refuses a wrong model at run time)",
+    )
     p.add_argument("--base-ref", default="main")
     p.add_argument(
         "--cache-dir",
@@ -305,6 +429,7 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     if "localhost" not in a.pg_admin_url and "127.0.0.1" not in a.pg_admin_url:
         sys.exit("--pg-admin-url must be a local test server: suites DROP and CREATE databases on it")
+    a.probe_models = a.apply and not a.skip_model_probe
     config = build(a)
     text = json.dumps(config, indent=2) + "\n"
     if not a.apply:

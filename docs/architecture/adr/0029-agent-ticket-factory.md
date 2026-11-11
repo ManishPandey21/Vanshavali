@@ -3,8 +3,10 @@
 - Status: **Proposed** · Date: 2026-11-11
 - Relates to: CLAUDE.md working rules 1, 5, 8 (explore first; security-sensitive changes; testing),
   the CI workflow (`.github/workflows/ci.yml`), ADR-0022 (ephemeris), ADR-0017 (Remotion renders).
-- Tooling: [Infra Code Factory 0.3.3](../../operations/code-factory.md) — a standalone, stdlib-only
-  Python toolkit kept **outside** this repository.
+- Tooling: [Infra Code Factory 0.3.4](../../operations/code-factory.md) — a standalone, stdlib-only
+  Python toolkit kept **outside** this repository (0.3.4 = reviewed 0.3.3 archive + patch; ADR-0030).
+- Amended by: [ADR-0030](0030-factory-model-routing-and-changed-test-gate.md) (model/effort routing,
+  changed-test gate, attempt history across replacement tickets).
 
 ## Context
 
