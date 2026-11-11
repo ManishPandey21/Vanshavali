@@ -26,6 +26,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 RUN_SUITE = REPO / "ops" / "factory" / "run_suite.py"
+# Builders start through this controller-owned step, which installs dependencies from the committed
+# lockfiles before the agent exists (builders themselves may never install packages).
+BOOTSTRAP = REPO / "ops" / "factory" / "bootstrap_builder.py"
 CONFIG = REPO / ".infra-factory" / "config.json"
 TOOLKIT_VERSION = "0.3.3"
 # SHA-256 of the toolkit's runtime files as reviewed for this integration (0.3.3). Pinned here, not
@@ -161,9 +164,21 @@ def suite_check(python: str, toolkit: Path, extra: list[str], sid: str, domains,
     }
 
 
-def agent(python: str, toolkit: Path, provider: str, mode: str, model: str, skill: Path | None):
+def agent(
+    python: str,
+    toolkit: Path,
+    provider: str,
+    mode: str,
+    model: str,
+    skill: Path | None,
+    bootstrap: list[str] | None = None,
+):
+    # Builders: [python -I bootstrap_builder.py <bootstrap args> --] + the unchanged agent command.
+    # Reviewers get no bootstrap: they read the candidate and the cold-check evidence only.
+    prefix = [python, "-I", str(BOOTSTRAP), *(bootstrap or []), "--"] if mode == "builder" else []
     spec = {
         "argv": [
+            *prefix,
             python,
             str(toolkit / "agent_bridge.py"),
             "--provider",
@@ -198,26 +213,8 @@ def build(a: argparse.Namespace) -> dict:
             print(f"warning: `{tool}` is not on PATH; the factory will block until it is", file=sys.stderr)
     if a.providers == "mixed" and not shutil.which("codex"):
         sys.exit("`codex` is not on PATH: install/authenticate it, or pass --providers claude")
-
-    if a.providers == "mixed":
-        codex_b = agent(python, toolkit, "codex", "builder", a.codex_model, skill)
-        commands = {
-            "backend": codex_b,
-            "critical": codex_b,
-            "frontend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill),
-            # two lenses on two providers: the reviewers do not share a model's blind spots
-            "reviewer_standards": agent(python, toolkit, "codex", "reviewer", a.codex_model, None),
-            "reviewer_spec": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
-        }
-    else:
-        commands = {
-            "backend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill),
-            "critical": agent(python, toolkit, "claude", "builder", a.claude_review_model, skill),
-            "frontend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill),
-            "reviewer_standards": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
-            "reviewer_spec": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
-        }
     extra = ["--cache-dir", str(cache), "--pg-admin-url", a.pg_admin_url]
+    boot = ["--cache-dir", str(cache)]
     if a.network_env:
         net = a.network_env.expanduser().resolve()
         if REPO in net.parents:
@@ -227,6 +224,26 @@ def build(a: argparse.Namespace) -> dict:
         elif not net.is_file():
             sys.exit(f"{net} does not exist: add --capture-network-env to create it from this shell")
         extra += ["--network-env", str(net)]
+        boot += ["--network-env", str(net)]
+
+    if a.providers == "mixed":
+        codex_b = agent(python, toolkit, "codex", "builder", a.codex_model, skill, boot)
+        commands = {
+            "backend": codex_b,
+            "critical": codex_b,
+            "frontend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill, boot),
+            # two lenses on two providers: the reviewers do not share a model's blind spots
+            "reviewer_standards": agent(python, toolkit, "codex", "reviewer", a.codex_model, None),
+            "reviewer_spec": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
+        }
+    else:
+        commands = {
+            "backend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill, boot),
+            "critical": agent(python, toolkit, "claude", "builder", a.claude_review_model, skill, boot),
+            "frontend": agent(python, toolkit, "claude", "builder", a.claude_builder_model, skill, boot),
+            "reviewer_standards": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
+            "reviewer_spec": agent(python, toolkit, "claude", "reviewer", a.claude_review_model, None),
+        }
     static = lambda side: [python, "-I", str(RUN_SUITE), "--static", side, *extra]  # noqa: E731
     return {
         "version": 1,
