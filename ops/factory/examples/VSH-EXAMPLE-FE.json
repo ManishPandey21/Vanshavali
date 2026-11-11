@@ -1,0 +1,28 @@
+{
+  "id": "VSH-EXAMPLE-FE",
+  "title": "EXAMPLE (frontend-only): format lakh/crore amounts in the property summary",
+  "description": "Template showing the ticket shape for a frontend-only change. Replace every field with a real, agreed requirement before adding it. Add a pure helper formatIndianAmount(value, lang) in frontend/src/lib/indianAmount.ts with unit tests in frontend/src/lib/indianAmount.test.ts. Do not edit existing files.",
+  "acceptance": [
+    "formatIndianAmount(1234567, 'en') returns '12,34,567'",
+    "Hindi output uses the same Indian digit grouping",
+    "New unit tests fail before the helper exists and pass afterwards"
+  ],
+  "paths": [
+    "frontend/src/lib/indianAmount.ts",
+    "frontend/src/lib/indianAmount.test.ts"
+  ],
+  "depends_on": [],
+  "role": "frontend",
+  "spec": {
+    "ui": {
+      "impact": "Pure formatting helper used by UI code; no screen changes in this ticket",
+      "acceptance": ["No visual baseline changes"]
+    },
+    "api": {"not_applicable": "No API change."},
+    "data": {"not_applicable": "No schema or stored-data change."},
+    "cross_cutting": {
+      "impact": "i18n: en and hi must both be covered",
+      "acceptance": ["Both locales covered by tests"]
+    }
+  }
+}

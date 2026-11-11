@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     # Rate limiting
     rate_limit_backend: Literal["memory", "redis"] = "memory"
     login_rate_limit_per_minute: int = 10
+    # per-IP account registrations per minute (the per-email limit, 5/hour, is fixed)
+    register_rate_limit_per_minute: int = 20
 
     # Jobs
     job_mode: Literal["sync", "rq"] = "sync"

@@ -18,3 +18,7 @@ backend/var/
 coverage/
 playwright-report/
 test-results/
+
+# Infra Code Factory (ADR-0029): machine-local config and native JUnit output from cold checkouts
+/.infra-factory/
+.factory-test-output/
