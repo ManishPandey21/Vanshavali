@@ -1,0 +1,28 @@
+{
+  "id": "VSH-EXAMPLE-BE",
+  "title": "EXAMPLE (backend-only): reject future birth years in a pure validator",
+  "description": "Template showing the ticket shape for a backend-only change. Replace every field with a real, agreed requirement before adding it. Add a pure validator in backend/app/core/factory_example.py with tests in backend/tests/test_factory_example.py. Do not edit existing files.",
+  "acceptance": [
+    "A birth year later than the current year is rejected with a ValueError",
+    "The current year and earlier years are accepted",
+    "New tests fail before the validator exists and pass afterwards"
+  ],
+  "paths": [
+    "backend/app/core/factory_example.py",
+    "backend/tests/test_factory_example.py"
+  ],
+  "depends_on": [],
+  "role": "backend",
+  "spec": {
+    "ui": {"not_applicable": "No UI change."},
+    "api": {
+      "impact": "Internal validator only; the OpenAPI document must not change",
+      "acceptance": ["shared-contract check passes unchanged"]
+    },
+    "data": {"not_applicable": "No migration or stored-data change."},
+    "cross_cutting": {
+      "impact": "Input validation with regression tests",
+      "acceptance": ["No network or external side effects"]
+    }
+  }
+}

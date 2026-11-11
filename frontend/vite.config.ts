@@ -4,6 +4,10 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 const apiTarget = process.env.VSH_API_TARGET ?? "http://localhost:8000";
+// The agent ticket factory (ADR-0029) verifies candidates in checkouts under .git/infra-factory/,
+// which Vite's default fs.deny ("**/.git/**") would refuse entirely. Only ops/factory/run_suite.py
+// sets this; the normal dev server keeps Vite's defaults.
+const factoryColdCheckout = process.env.VSH_FACTORY_COLD === "1";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -21,6 +25,7 @@ export default defineConfig({
     },
   },
   server: {
+    ...(factoryColdCheckout ? { fs: { deny: [".env", ".env.*", "*.{crt,pem}"] } } : {}),
     host: "0.0.0.0",
     port: 3000,
     strictPort: true,

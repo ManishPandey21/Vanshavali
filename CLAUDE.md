@@ -23,6 +23,10 @@ Modular monolith (ADR-0001):
 - `deploy/pilot/` — staging/pilot stack (ADR-0014: one VM with Compose + managed PostgreSQL and S3):
   Caddy edge, scripts (deploy, rollback, backup, restore), monitoring, and a staging drill. Runbooks
   in `docs/operations/`, go-live checklist in `docs/release/pilot-go-live-checklist.md`.
+- `ops/factory/` — optional local agent ticket factory integration (ADR-0029, runbook
+  `docs/operations/code-factory.md`): trusted suite wrapper, pytest kind classifier, config
+  generator. Builders it launches may not edit existing tests/snapshots, manifests, lockfiles,
+  `*.config.*` or `ops/factory/`. Visual baselines: `e2e/visual/` (`playwright.visual.config.ts`).
 - Architecture, domain model and decisions: `docs/architecture/`. Security/privacy: `docs/security/`.
 
 ## Commands
