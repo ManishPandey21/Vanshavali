@@ -766,4 +766,11 @@ Made after the consolidation review of PR #35 against this ADR (PR #64,
 | A8 | The offer projection is treated as a cross-tenant read: no tree id, fixed columns, audited, tested; offers come in a later increment. | §8, §12 |
 | A9 | The threat ID is allocated at merge (PR #62 holds T63). | Threats |
 | A10 | `VSH_MASTERDATA_CONSOLE_ENABLED` defaults to `false` until two named administrators are recorded. | §7, §11 |
-| — | The owner's positions of 11 Nov 2026: solo mode deferred; offer notes hidden; §14 accepted; the six first vocabularies; honorific and language stay `pack`; no religion, community or caste lists; geography licence review before real data. | §7, §12, §13, §14, Open decisions |
+| — | The owner's positions of 11 Nov 2026: solo mode deferred; offer notes hidden; §14 accepted; the six first vocabularies; honorific, pravara and language stay `pack`; no religion, community or caste lists; geography licence review before real data. | §7, §12, §13, §14, Open decisions |
+
+**Re-checked 11 Nov 2026 at `3cb12f9`** (integration audit): `main` changed only in the agent
+ticket factory, CI and an overload test since `5913759`, so the Context still holds. The single
+Alembic head on `main` is `d9b4f2c6a713`. PR #62 still holds T63. Draft PR #67 (increment 1) uses
+T64 and adds migration `e7c2a9f4b310`, which revises `d9b4f2c6a713` like #62's `f2a9c4e7d815`:
+whichever merges second must re-parent its migration onto the other so `main` keeps one head.
+The status stays **Proposed**.
