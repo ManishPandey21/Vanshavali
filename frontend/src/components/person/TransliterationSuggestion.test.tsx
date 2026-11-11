@@ -14,6 +14,13 @@ const answers: Record<string, { text: string; method: "lexicon" | "rules" }[]> =
   ],
 };
 
+// Each name part is debounced (400 ms, useDebounced in TransliterationSuggestion) before it is
+// transliterated. When typing is slow (a busy CPU), the given name's suggestion can show before the
+// surname has settled, and it disappears while the surname's answer is fetched. So the tests wait for
+// the final suggestion, not the first one, and allow time for both debounces; the assertions are the
+// same as before. (Reproduced: 2 failures in 16 full runs with the backend suite running alongside.)
+const AFTER_DEBOUNCE = { timeout: 3000 };
+
 function server() {
   return vi.fn((url: RequestInfo | URL, init?: RequestInit) => {
     if (String(url).endsWith("/transliterate")) {
@@ -40,8 +47,9 @@ describe("TransliterationSuggestion", () => {
     await userEvent.type(given, "Sunita");
     await userEvent.type(screen.getByLabelText("Surname / family name"), "Sharma");
 
-    expect(await screen.findByText("In Devanagari:")).toBeInTheDocument();
-    expect(await screen.findByText("सुनीता शर्मा")).toHaveAttribute("lang", "hi");
+    // the final suggestion, for both parts; then everything else is checked against that state
+    expect(await screen.findByText("सुनीता शर्मा", {}, AFTER_DEBOUNCE)).toHaveAttribute("lang", "hi");
+    expect(screen.getByText("In Devanagari:")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
     expect(onAdd).not.toHaveBeenCalled();
     expect(given).toHaveValue("Sunita");
@@ -67,7 +75,7 @@ describe("TransliterationSuggestion", () => {
     vi.stubGlobal("fetch", server());
     renderWithProviders(<Harness onAdd={vi.fn()} />);
     await userEvent.type(screen.getByLabelText("Given name"), "Vinita");
-    expect(await screen.findByText("विनिता")).toBeInTheDocument();
+    expect(await screen.findByText("विनिता", {}, AFTER_DEBOUNCE)).toBeInTheDocument();
     expect(screen.getByText("विनीता")).toBeInTheDocument();
     expect(screen.getAllByText("(possible spelling)")).toHaveLength(2);
     await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));

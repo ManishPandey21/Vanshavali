@@ -272,7 +272,7 @@ valid), native Hindi review of new strings, and the elder-friendly UX review in 
 - In-app cultural archive: `tradition_entry` (ritual guides, customs, songs, recipes) with people,
   events, places, branch scope, privacy and sources.
 
-### Phase H: Indian family calendar — ADR-0022
+### Phase H: Indian family calendar — [ADR-0022](adr/0022-family-calendar-tithi-punyatithi.md)
 
 - **Gates before code:** Q16 (engine chosen and licence reviewed) and the regional conventions in
   Q6 approved. This phase **does not resolve Q6 by itself**; it implements whatever Q6 decides.
