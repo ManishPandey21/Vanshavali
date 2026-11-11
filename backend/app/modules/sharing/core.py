@@ -27,8 +27,15 @@ from app.authz.permissions import permissions_for
 from app.authz.privacy import RECORD_RANK, Subject, is_private_record_level, is_record_owner, load_subjects
 from app.core import audit
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
-from app.models import AccessGrant, FamilyBranch, Person, TreeMembership, User
-from app.models.enums import GrantPermission, GrantResource, PrivacyLevel, RecordPrivacyLevel, Role
+from app.models import AccessGrant, FamilyBranch, Person, TreeMembership, User, UserNotification
+from app.models.enums import (
+    GrantPermission,
+    GrantResource,
+    NotificationKind,
+    PrivacyLevel,
+    RecordPrivacyLevel,
+    Role,
+)
 from app.modules.sharing.schemas import (
     SharingCeilingOut,
     SharingMemberIn,
@@ -160,6 +167,8 @@ class RecordAdapter(ABC):
     resource: GrantResource
     audit_type: str
     supports_download: bool = True
+    # the owner is told when the record is narrowed automatically (ADR-0027 §5); None = never narrowed
+    narrowed_notice: NotificationKind | None = None
 
     def __init__(self, record: Any) -> None:
         self.record = record
@@ -440,7 +449,38 @@ def enforce_ceiling(ctx: TreeContext, rec: RecordAdapter, *, reason: str) -> boo
         target_id=rec.id,
         details={"from": old.value, "to": level.value, "reason": reason},
     )
+    _tell_owner(ctx, rec)
     return True
+
+
+def _tell_owner(ctx: TreeContext, rec: RecordAdapter) -> None:
+    """Tell the owner their record was made more private (ADR-0027 §5). Ids and a kind only; the
+    actor is never named (it may be a person asking to be removed, or a system job). One unread
+    notice per record is enough."""
+    if rec.narrowed_notice is None or rec.owner_membership_id is None:
+        return
+    owner = ctx.db.get(TreeMembership, rec.owner_membership_id)
+    if owner is None or owner.tree_id != ctx.tree_id or owner.user_id == ctx.user_id:
+        return  # the owner left, or narrowed it themselves
+    unread = ctx.db.scalar(
+        select(UserNotification.id).where(
+            UserNotification.tree_id == ctx.tree_id,
+            UserNotification.user_id == owner.user_id,
+            UserNotification.kind == rec.narrowed_notice,
+            UserNotification.subject_id == rec.id,
+            UserNotification.read_at.is_(None),
+        )
+    )
+    if unread is None:
+        ctx.db.add(
+            UserNotification(
+                tree_id=ctx.tree_id,
+                user_id=owner.user_id,
+                kind=rec.narrowed_notice,
+                subject_id=rec.id,
+                created_by=ctx.user_id,
+            )
+        )
 
 
 def replace_grants(

@@ -7972,7 +7972,7 @@ export interface components {
          * NotificationKind
          * @enum {string}
          */
-        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed";
+        NotificationKind: "proposal_to_review" | "proposal_accepted" | "proposal_rejected" | "proposal_stale" | "challenge_opened" | "challenge_upheld" | "challenge_dismissed" | "proposal_comment" | "offer_accepted" | "offer_declined" | "nomination_created" | "nomination_accepted" | "nomination_declined" | "nomination_approved" | "nomination_rejected" | "nomination_expired" | "nomination_lapsed" | "document_narrowed" | "tradition_narrowed";
         /** NotificationOut */
         NotificationOut: {
             /**
@@ -7983,6 +7983,8 @@ export interface components {
             kind: components["schemas"]["NotificationKind"];
             /** Proposal Id */
             proposal_id: string | null;
+            /** Subject Id */
+            subject_id?: string | null;
             /** Text */
             text: string;
             /**

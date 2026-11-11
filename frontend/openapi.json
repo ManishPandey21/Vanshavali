@@ -29353,7 +29353,9 @@
      "nomination_approved",
      "nomination_rejected",
      "nomination_expired",
-     "nomination_lapsed"
+     "nomination_lapsed",
+     "document_narrowed",
+     "tradition_narrowed"
     ],
     "title": "NotificationKind"
    },
@@ -29378,6 +29380,18 @@
        }
       ],
       "title": "Proposal Id"
+     },
+     "subject_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Subject Id"
      },
      "text": {
       "type": "string",

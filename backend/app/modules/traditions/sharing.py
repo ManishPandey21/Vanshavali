@@ -14,7 +14,7 @@ from sqlalchemy import select
 from app.authz.context import TreeContext
 from app.authz.privacy import is_record_owner, record_allows
 from app.models import TraditionEntry, TraditionLink
-from app.models.enums import GrantResource, RecordPrivacyLevel, TraditionLinkTarget
+from app.models.enums import GrantResource, NotificationKind, RecordPrivacyLevel, TraditionLinkTarget
 from app.modules.sharing import core
 from app.modules.sharing.core import Proposal
 from app.modules.sharing.schemas import SharingOut, SharingUpdate
@@ -58,6 +58,7 @@ def entry_audience_allows(ctx: TreeContext, e: TraditionEntry) -> bool:
 class TraditionRecord(core.RecordAdapter):
     resource = GrantResource.TRADITION
     audit_type = "tradition"
+    narrowed_notice = NotificationKind.TRADITION_NARROWED
     supports_download = False
     record: TraditionEntry
 

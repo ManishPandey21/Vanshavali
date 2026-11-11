@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Bell, Flag, ShieldCheck, Users } from "lucide-react";
-import type { DuplicateCheckIn, ProposalItemIn, ReviewState, ReviewTarget } from "../../api/types";
+import type { DuplicateCheckIn, NotificationOut, ProposalItemIn, ReviewState, ReviewTarget } from "../../api/types";
 import type { PersonDraft } from "../person/PersonForm";
 import { useCreateChallenge, useCreateProposal, useDuplicateCheck, useMarkNotificationsRead, useNotifications } from "../../api/hooks/review";
 import { reviewBus } from "../../lib/reviewBus";
@@ -259,7 +259,7 @@ export function NotificationBell({ treeId }: { treeId: string }) {
               {notes.data!.items.map((n) => (
                 <li key={n.id}>
                   <Link
-                    to={n.kind.startsWith("nomination_") ? `/t/${treeId}/admin/members` : n.proposal_id ? `/t/${treeId}/review/${n.proposal_id}` : `/t/${treeId}/review`}
+                    to={notificationHref(treeId, n)}
                     className={`block rounded px-1 py-2 text-sm hover:bg-parchment ${n.read ? "text-ink-muted" : "font-medium"}`}
                     onClick={() => {
                       if (!n.read) markRead.mutate([n.id]);
@@ -276,6 +276,14 @@ export function NotificationBell({ treeId }: { treeId: string }) {
       )}
     </div>
   );
+}
+
+/** Where a notification leads; a "made more private" notice opens the record (ADR-0027 §5). */
+export function notificationHref(treeId: string, n: Pick<NotificationOut, "kind" | "proposal_id" | "subject_id">): string {
+  if (n.kind === "document_narrowed" && n.subject_id) return `/t/${treeId}/documents/${n.subject_id}`;
+  if (n.kind === "tradition_narrowed" && n.subject_id) return `/t/${treeId}/traditions/${n.subject_id}`;
+  if (n.kind.startsWith("nomination_")) return `/t/${treeId}/admin/members`;
+  return n.proposal_id ? `/t/${treeId}/review/${n.proposal_id}` : `/t/${treeId}/review`;
 }
 
 /**
