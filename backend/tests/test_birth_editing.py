@@ -221,6 +221,8 @@ def test_reviewed_date_edit_can_be_rebased_and_reschedules(owner, tree, member_f
             }
         ],
     ).json()
+    detail = owner.get(f"/trees/{tid}/proposals/{prop['id']}").json()
+    assert all(c["field"] != "expected_revision" for i in detail["items"] for c in i["changes"])
     assert (
         owner.patch(f"/trees/{tid}/events/{e['id']}", json={"description": "More evidence"}).status_code
         == 200
