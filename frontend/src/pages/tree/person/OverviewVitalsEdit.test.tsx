@@ -87,4 +87,32 @@ describe("Overview birth/death actions", () => {
     await screen.findByText("Kanpur");
     expect(screen.queryByRole("button", { name: /^(Edit|Add) (birth|death)$/ })).not.toBeInTheDocument();
   });
+  it("shows a loading state while the saved event is fetched, and Cancel closes it", async () => {
+    let release: (r: Response) => void = () => {};
+    const pending = new Promise<Response>((r) => (release = r));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(attested(async (url) => (String(url).endsWith("/people/p1/events") ? pending : jsonResponse([])))),
+    );
+    renderWithProviders(<OverviewTab person={withBirth} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Edit birth" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("status")).toHaveTextContent("Loading…");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    release(jsonResponse([birthEvent]));
+  });
+
+  it("explains when the saved event is missing, closes on Cancel, and the action works again", async () => {
+    vi.stubGlobal("fetch", vi.fn(attested(async () => jsonResponse([]))));
+    renderWithProviders(<OverviewTab person={withBirth} />);
+    const btn = await screen.findByRole("button", { name: "Edit birth" });
+    await userEvent.click(btn);
+    const dialog = await screen.findByRole("dialog");
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(/Not found/);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await userEvent.click(btn);
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
 });

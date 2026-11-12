@@ -14,7 +14,7 @@ import { NameFields, cleanName, nameHasContent, type NameDraft } from "../../../
 import { SEXES, STATUSES } from "../../../components/person/PersonForm";
 import { Button } from "../../../components/ui/Button";
 import { ConfirmDialog, Dialog } from "../../../components/ui/Dialog";
-import { ErrorAlert } from "../../../components/ui/feedback";
+import { ErrorAlert, Spinner } from "../../../components/ui/feedback";
 import { Field, Select, TextArea, TextInput } from "../../../components/ui/form";
 import { Badge } from "../../../components/ui/Badge";
 
@@ -144,24 +144,25 @@ function VitalEventDialog({ person, kind, onClose }: { person: PersonOut; kind: 
   const eventId = (kind === "birth" ? person.birth : person.death)?.event_id;
   const events = usePersonEvents(treeId, person.id, !!eventId);
   if (!eventId) return <EventDialog personId={person.id} event={null} initialType={kind} onClose={onClose} />;
-  if (events.error) {
-    return (
-      <Dialog
-        open
-        onClose={onClose}
-        title={t(`person.vitalEdit.${kind}`)}
-        footer={
-          <Button variant="secondary" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-        }
-      >
-        <ErrorAlert error={events.error} />
-      </Dialog>
-    );
-  }
   const event = events.data?.find((e) => e.id === eventId);
-  return event ? <EventDialog personId={person.id} event={event} onClose={onClose} /> : null;
+  if (event) return <EventDialog personId={person.id} event={event} onClose={onClose} />;
+  // Never render nothing: while loading, on error, or when the saved event is not in the list
+  // (removed elsewhere, or hidden from this viewer), show a dialog the user can close.
+  const missing = events.isSuccess ? new Error(t("errors.notFound")) : null;
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      title={t(`person.vitalEdit.${kind}`)}
+      footer={
+        <Button variant="secondary" onClick={onClose}>
+          {t("common.cancel")}
+        </Button>
+      }
+    >
+      {events.error || missing ? <ErrorAlert error={events.error ?? missing} /> : <Spinner />}
+    </Dialog>
+  );
 }
 
 const rangeYear = (r: unknown, key: "from" | "to"): number | null => {
