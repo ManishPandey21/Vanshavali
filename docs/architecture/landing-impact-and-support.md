@@ -14,8 +14,9 @@ Status: implementation proposal (12 November 2026). This is not approval to coll
 
 ## Donations
 
-- The landing page offers five choices: ₹10, ₹50, ₹100, ₹1,000 and ₹10,000.
+- The landing page offers five presets: ₹10, ₹50, ₹100, ₹1,000 and ₹10,000, plus **Other amount / अन्य राशि** for a voluntary whole-rupee amount between ₹1 and ₹1,00,000. The input rejects fractions, negative values, zero, exponent notation and oversized values.
 - Each choice needs its **own** hosted Razorpay checkout page/payment link configured for the correct fixed amount. Set `VITE_DONATION_LINK_10`, `VITE_DONATION_LINK_50`, `VITE_DONATION_LINK_100`, `VITE_DONATION_LINK_1000`, and `VITE_DONATION_LINK_10000` in the **frontend build environment**. Links must use HTTPS on an allowlisted Razorpay domain.
+- For **Other amount**, set `VITE_DONATION_LINK_CUSTOM` to an approved HTTPS hosted payment page that explicitly lets the donor enter an amount. The typed number is a local preview only; it is **not** passed as a query parameter, used to construct checkout URLs, or treated as a payment instruction. The donor must enter and confirm the intended amount again on the hosted page. This avoids trusting client-entered amounts or misrepresenting the charged amount. The payment provider must independently enforce its own limits.
 - An unconfigured choice displays an unavailable message; the interface never simulates a successful payment.
 - Vanshavali handles no card credentials, payment identifiers or webhook receipts in this increment. The provider is responsible for secure checkout and receipts. Payment verification, refund policy, bookkeeping, tax treatment and beneficiary disclosures must be reviewed before enabling.
 - Donation is voluntary and does not confer access to private family records.
@@ -25,5 +26,5 @@ Status: implementation proposal (12 November 2026). This is not approval to coll
 
 - Check that the API returns active trees only and contains no private family data.
 - Check that repeat visits with the same cookie do not increase the 30-day browser estimate, that a separate cookie does increase it, and that Redis outages produce `null` without breaking the landing page.
-- Check English and Hindi translations, keyboard/radio focus, mobile layout, the disabled checkout state, and safe fixed-amount checkout URLs.
+- Check English and Hindi translations, keyboard/radio focus, mobile layout, the disabled checkout state, and safe fixed-amount and variable-amount checkout URLs. Test boundary and malformed custom amounts, including fraction, sign, whitespace, exponent notation, and direct URL abuse. Confirm the provider independently validates the amount and that the browser does not collect payment details.
 - Run backend lint, typing, pytest, frontend lint/typecheck/Vitest/build and Playwright accessibility/visual E2E tests. No deployment or payment activation without CI and a human checkout review.
