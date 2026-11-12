@@ -64,7 +64,11 @@ A standalone photo collection has its own audience (new collections are Only me)
 photo in it only if they may see both, and sharing a collection never shares its photos.
 Ownership of a document, tradition or collection moves only when its owner offers it to another
 member and that member accepts; an offer gives no access, and a record whose owner left cannot be
-claimed by anyone. Members a private record is shared with only read it: the owner alone edits,
+claimed by anyone, not even through an offer made before they left, nor narrowed to Only me (which
+would leave it readable by nobody). Older application code (after a rollback) cannot store a
+tradition as the tree owner's `PRIVATE_SELF`: the database stores it as Only me for its author. A
+schema downgrade that would widen or discard access to traditions, documents or photo collections, or lift a
+takedown suspension, is refused (counts only, no override); roll forward or restore from backup. Members a private record is shared with only read it: the owner alone edits,
 withdraws, shares or transfers it. A render (animated export) is downloadable by its requester only.
 Global search and the archive export follow the same rule: a collection is a hit or exported only
 for someone who may see it, and only the photos they may see are listed in it.

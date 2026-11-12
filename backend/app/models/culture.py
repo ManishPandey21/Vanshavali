@@ -9,7 +9,7 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from sqlalchemy import DateTime, Index, String, Text, UniqueConstraint
+from sqlalchemy import DDL, DateTime, Index, String, Text, UniqueConstraint, event
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -96,3 +96,35 @@ class TraditionLink(TreeScopedMixin, Base):
     tradition_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     target_type: Mapped[TraditionLinkTarget] = mapped_column(enum_column(TraditionLinkTarget))
     target_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+
+
+# ADR-0027 increment 2, migration f2a9c4e7d815: whatever code writes a tradition (including the
+# previous release after ``rollback.sh``), ``PRIVATE_SELF`` is stored as ``ONLY_ME`` (it always meant
+# the author only) and an entry inserted without an owner gets its author's current membership.
+# An existing row's owner is never changed. Keep create_all() (fast tests) equal to the migration.
+TRADITION_OWNER_FUNCTION = DDL(
+    """
+CREATE OR REPLACE FUNCTION tradition_entry_record_owner() RETURNS trigger AS $$
+BEGIN
+  IF NEW.privacy_level = 'PRIVATE_SELF' THEN
+    NEW.privacy_level := 'ONLY_ME';
+  END IF;
+  IF TG_OP = 'INSERT' AND NEW.owner_membership_id IS NULL AND NEW.created_by IS NOT NULL THEN
+    SELECT m.id INTO NEW.owner_membership_id
+      FROM tree_membership m
+     WHERE m.tree_id = NEW.tree_id AND m.user_id = NEW.created_by;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+"""
+)
+TRADITION_OWNER_TRIGGER = DDL(
+    """
+CREATE TRIGGER tradition_entry_record_owner
+BEFORE INSERT OR UPDATE OF privacy_level ON tradition_entry
+FOR EACH ROW EXECUTE FUNCTION tradition_entry_record_owner();
+"""
+)
+event.listen(TraditionEntry.__table__, "after_create", TRADITION_OWNER_FUNCTION)
+event.listen(TraditionEntry.__table__, "after_create", TRADITION_OWNER_TRIGGER)
