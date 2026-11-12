@@ -275,7 +275,14 @@
     "deathPlace": "Death place",
     "died": "Died",
     "editDetails": "Edit details",
-    "editVitalsInTimeline": "Edit birth and death details on the Events tab.",
+    "vitalAdd": {
+      "birth": "Add birth",
+      "death": "Add death"
+    },
+    "vitalEdit": {
+      "birth": "Edit birth",
+      "death": "Edit death"
+    },
     "err": {
       "fixErrors": "Please fix the errors above before saving.",
       "nameRequired": "Enter at least a given name, surname or the full name as recorded."
@@ -331,7 +338,14 @@
       "history": "History"
     },
     "viewInTree": "View in tree",
-    "vitals": "Life details"
+    "vitals": "Life details",
+    "birthEdit": {
+      "date": "Edit date of birth",
+      "time": "Edit birth time",
+      "place": "Edit birthplace",
+      "unavailable": "This event could not be loaded. Reload it or close this dialog and refresh the profile.",
+      "reload": "Reload event"
+    }
   },
   "names": {
     "add": "Add name",
@@ -436,7 +450,7 @@
     },
     "err": {
       "exactNotAllowed": "A verbally recalled, approximate or unknown-source time can't be marked exact.",
-      "format": "Use 24-hour HH:MM.",
+      "format": "Use 24-hour HH:MM or HH:MM:SS.",
       "valueRequired": "Enter the time, or set precision to “Unknown”."
     },
     "exactBlocked": "“Exact” is unavailable for a {{source}} time — only a record (certificate, hospital record, kundli) can support an exact time.",
@@ -447,7 +461,10 @@
     "timezoneCommon": "Common",
     "timezoneHint": "Needed to interpret a birth time correctly (IST for most Indian births).",
     "timezoneNone": "Not recorded",
-    "value": "Time (24-hour)"
+    "value": "Time (24-hour)",
+    "utcOffset": "UTC offset (minutes)",
+    "utcOffsetHint": "Only if recorded; for example, +330. Leave unknown offsets blank.",
+    "utcOffsetError": "Enter a whole number of minutes between −840 and 840."
   },
   "pickers": {
     "clearPerson": "Clear {{name}}",

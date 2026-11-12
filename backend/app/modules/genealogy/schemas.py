@@ -323,11 +323,12 @@ class EventIn(EventCore):
 
 
 class EventUpdate(ApiModel):
+    expected_revision: int | None = Field(default=None, ge=1)
     subtype: str | None = None
     date: GenealogicalDate | None = None
     time: GenealogicalTime | None = None
-    timezone_id: str | None = None
-    utc_offset_minutes: int | None = None
+    timezone_id: str | None = Field(default=None, max_length=64)
+    utc_offset_minutes: int | None = Field(default=None, ge=-14 * 60, le=14 * 60)
     place_id: uuid.UUID | None = None
     place_as_recorded: str | None = None
     origin_place_id: uuid.UUID | None = None
@@ -345,6 +346,11 @@ class EventUpdate(ApiModel):
     significance: EventSignificance | None = None
     location_precision: LocationPrecision | None = None
 
+    @field_validator("timezone_id")
+    @classmethod
+    def _tz(cls, v: str | None) -> str | None:
+        return EventCore._tz(v)
+
 
 class ParticipantOut(ApiModel):
     person_id: uuid.UUID
@@ -354,6 +360,7 @@ class ParticipantOut(ApiModel):
 
 
 class EventOut(ApiModel):
+    revision: int = 1
     # family review (ADR-0021 §6): unreviewed, family_reviewed or contested; not evidence
     review_state: ReviewState = ReviewState.UNREVIEWED
     id: uuid.UUID

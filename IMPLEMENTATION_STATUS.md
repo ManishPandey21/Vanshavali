@@ -4,6 +4,22 @@ Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERI
 tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
+## Family profile and communications programme (12 November 2026)
+
+**PARTIAL — first birth-editing slice verified; programme continues.** [Repository audit](docs/architecture/family-profile-communications/audit.md),
+[accepted ADR-0031](docs/architecture/adr/0031-family-profile-addresses-and-communications.md),
+[phased plan](docs/architecture/family-profile-communications/plan.md), and
+[acceptance matrix](docs/architecture/family-profile-communications/acceptance.md).
+The owner chose staged legacy-access retention and explicit source-owner consent for independent
+address-copy sharing. Initial implementation reuses open #74's inline vital editor and adds focused
+birth actions, unknown-zone defaults, hidden-field write checks, revision conflicts and transactional
+reminder rescheduling. Verification and remaining scope are recorded in the
+[birth increment](docs/architecture/family-profile-communications/birth-increment.md).
+Strict field-policy conversion, addresses, contacts and new channels remain unimplemented.
+No schema migration, provider activation, merge or deployment is included.
+
+## Earlier milestone verification
+
 Last verified: 2026-10-02 (heritage visualization milestone, on top of the pilot deployment and
 operational validation; [docs/release/production-readiness.md](docs/release/production-readiness.md),
 [docs/release/pilot-go-live-checklist.md](docs/release/pilot-go-live-checklist.md)).

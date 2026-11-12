@@ -24257,6 +24257,11 @@
    },
    "EventOut": {
     "properties": {
+     "revision": {
+      "type": "integer",
+      "title": "Revision",
+      "default": 1
+     },
      "review_state": {
       "$ref": "#/components/schemas/ReviewState",
       "default": "unreviewed"
@@ -24618,6 +24623,18 @@
    },
    "EventUpdate": {
     "properties": {
+     "expected_revision": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expected Revision"
+     },
      "subtype": {
       "anyOf": [
        {
@@ -24652,7 +24669,8 @@
      "timezone_id": {
       "anyOf": [
        {
-        "type": "string"
+        "type": "string",
+        "maxLength": 64
        },
        {
         "type": "null"
@@ -24663,7 +24681,9 @@
      "utc_offset_minutes": {
       "anyOf": [
        {
-        "type": "integer"
+        "type": "integer",
+        "maximum": 840.0,
+        "minimum": -840.0
        },
        {
         "type": "null"
