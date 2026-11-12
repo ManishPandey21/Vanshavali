@@ -80,6 +80,9 @@ Paths in this table are relative to the repository root; symbols identify the im
 5. “Invite” has two existing meanings. Email-bound membership invitation and profile-claim
    review must remain visibly different; sharing a bearer link never proves identity.
 6. An event edit must invalidate queued occurrences as well as recompute future ones.
+7. Existing encryption provides AES-GCM and fixed key classes, not versioned key rotation.
+   Reuse the primitives without claiming a rotation facility exists. Migration must also prove
+   new readers are a subset of old readers: the original contributor may lack current field access.
 
 These are code-inspection findings unless accompanied by a named test in the acceptance matrix;
 they are not claims that a new security implementation has passed verification.

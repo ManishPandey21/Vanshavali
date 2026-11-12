@@ -108,8 +108,12 @@ country projection: no private address ID, house label, PIN, street, source text
 
 Recommend **narrowing**, with an operator preview containing counts only:
 
-- For existing sensitive groups, controller = current claimant membership, else current original
-  contributor membership, else NULL. No admin fallback or inference from kinship.
+- For each existing sensitive group, choose the current claimant membership, else the current
+  original contributor membership, **only if that candidate can already read that field under
+  the pre-migration person and field policies**. Otherwise controller is NULL. Check each group
+  separately; having created a person does not prove access to that person's private fields.
+  The resulting readership must be a subset of the pre-migration readership. No admin fallback
+  or inference from kinship, and no silent recovery of access once removed.
 - New policies default to controller-only, even where legacy defaults admitted admins. Do not
   copy broad person grants into sensitive-field grants. Existing data stays intact; authorized
   controllers can explicitly re-share after a clear migration notice.
@@ -289,7 +293,12 @@ subscription if the user accepts. Lunar calculation retains ADR-0022 licensing/g
    prevent older clients bypassing policies. A binary rollback that reads legacy fields broadly is
    unsafe and must be refused by deployment compatibility checks.
 3. Add encrypted postal/contact structures and revision/proposal payload handling. Reuse core
-   authenticated encryption and key versioning; bind ciphertext to tree/person/record purpose.
+   AES-GCM and associated-data primitives; bind ciphertext to tree/person/record purpose.
+   Existing key management has fixed STANDARD/VAULT/SYSTEM key classes, **not** a version registry
+   or in-place key rotation. V1 retains that limitation and its secret-manager/backup controls;
+   it must not claim rotation is solved. Include an envelope format version for decoding future
+   formats, which is not a key version. A future rotation facility needs its own reviewed
+   re-encryption, interruption/recovery and backup/restore tests before keys can be retired.
    Extend the existing revision machinery rather than a second history service; redact before
    serializing diffs, and erase values on subject erasure. Audit holds field names/IDs only.
 4. Move legacy address text verbatim to a single `other` record with unknown validity. Do not infer
@@ -330,7 +339,8 @@ erDiagram
 | Challenge | Decision |
 |---|---|
 | A grantee is promoted to Owner | Explicit field membership audience unchanged; role cannot bypass policy |
-| A contributor records an unclaimed adult's phone | Contributor control does not constitute the adult's consent; no send; claim later resets sharing |
+| A contributor records an unclaimed adult's phone | New-record contributor control does not constitute the adult's consent; no send; claim later resets sharing |
+| Original contributor currently cannot read an existing private field | Migration leaves control unset for that group; subset-of-existing-readers check prevents disclosure |
 | Controller leaves and returns | New membership has no old control or grants; no admin recovery shortcut |
 | A member edits a visible date while time is hidden | Patch date only; server rejects hidden-time modification; preserved time is not returned |
 | Village is not in LGD, or India Post is unavailable | Manual entry, historical names retained, no invented reference codes |
@@ -351,7 +361,8 @@ The brief settles the feature priorities and no-inference/provider boundaries. T
 remain for acceptance of this proposal:
 
 1. **Existing sensitive fields:** adopt the count-previewed narrowing in §3, with claimant or
-   original contributor control and no admin recovery. Alternative: preserve legacy access visibly
+   original contributor control only when already authorized for that field, otherwise no controller,
+   and no admin recovery. Alternative: preserve legacy access visibly
    during a staged rollout, postponing the role-invariance acceptance criterion for those records.
 2. **Private address copies:** independent values but retained source privacy/erasure ceiling (§5),
    rather than an irrevocable independent copy. Wider re-sharing would need a distinct source-owner

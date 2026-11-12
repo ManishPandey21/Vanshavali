@@ -335,7 +335,8 @@ It does **not** assign ADR-0027's record-only audiences to people or change the 
 documented above. The present application still admits legacy role-based readers.
 
 The proposal requires an explicit decision on narrowing existing fields to claimant/original
-contributor control (no administrator fallback), and on retaining a source privacy ceiling for
+contributor control only when already authorized for that field (otherwise no controller, no
+administrator fallback), and on retaining a source privacy ceiling for
 independently editable address copies. No old audience is silently declared migrated. Its plan
 covers history, proposals, exports, search, reminders, claim transfer, removal/reinvite, erasure,
 old clients and rollback before enabling the new UI. Profile contact data never establishes
