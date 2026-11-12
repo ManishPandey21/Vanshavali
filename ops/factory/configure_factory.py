@@ -287,8 +287,13 @@ def suite_check(python: str, toolkit: Path, extra: list[str], sid: str, domains,
         "domains": domains,
         "kind": kind,
         "argv": [
+            # Not -I: toolkit 0.5.0's test_report.py imports modules beside it (path_safety), and -I
+            # drops the script's directory from sys.path, so every suite died before running a
+            # test. -s -E still ignore user site-packages and PYTHON* variables, and a script run
+            # never puts the working directory (the cold checkout) on the path.
             python,
-            "-I",
+            "-s",
+            "-E",
             str(toolkit / "test_report.py"),
             "--report",
             "{report}",

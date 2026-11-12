@@ -449,6 +449,7 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
 
 ## Suite details and troubleshooting
 
+- Every cold suite fails at once with `ModuleNotFoundError: No module named 'path_safety'` (or another toolkit module): the configuration starts the toolkit's `test_report.py` with `python3 -I`, which hides the toolkit's own modules. `configure_factory.py` uses `-s -E` since U02-VITALS-EDIT-C (12 Nov 2026); re-run it with `--apply` to regenerate an older configuration.
 - Each suite uses database `vsh_factory_<hash>_<kind>` on the local server and, for Playwright,
   ports in 20000–28999 derived from the run's namespace, so your dev stack (8000/3000) and the
   normal E2E ports (8100/3100) are untouched.
