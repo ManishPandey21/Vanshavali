@@ -27,11 +27,35 @@ format selector, claim selector, new citation controls, profile reminder afforda
 schema/reuse/consent release, contacts and new channels. Existing event/source/review screens
 remain available. Backend date editing and browser editing are being verified separately.
 
-Validation in progress: full backend suite; full frontend lint/types/tests/build; real-stack
-birth editing including manual Indic birthplace and seconds/offset, plus desktop/mobile axe.
-Focused backend evidence (including follow-up regressions): hidden-field denial, preserved legacy admin access, stale revision,
-earlier-date reschedule, partial-date pause/resume, queued cancellation, both real-database
-edit/delivery lock orders, and stale-proposal rebase/approval. All sends use the test file backend.
+## Verification
+
+On 12 November 2026, using the local PostgreSQL application role with RLS enabled:
+
+- Full backend run at the initial implementation: **818 passed, 1 skipped** (optional real
+  Remotion renderer). Follow-up scheduling, approval, privacy and threat-ID regressions on the
+  revised candidate: **60 passed**. The final proposal-metadata refinement's rebase/approval
+  regression passed separately. No backend failure remains.
+- Backend Ruff lint/format and mypy: pass. OpenAPI and frontend API types regenerated.
+- Full frontend: **230 passed** across 45 files; lint, TypeScript and production build pass.
+  Vite retains the existing bundle-size advisory.
+- Focused real-stack birth editing: **5 passed**, including create/edit/reload, cancellation,
+  seconds/offset with unknown zone, manually recorded Hindi birthplace, and desktop/mobile axe.
+- Full browser suite: **50 passed, 1 failed** on a heading-readiness race in the accessibility
+  harness. The harness now waits for the route's required h1 before scanning; English/Hindi
+  signed-in-page rerun: **2 passed**. The failed English audit and the Hindi counterpart both
+  pass with the corrected readiness check; no unresolved browser failures remain.
+- Two isolated standards/specification reviews: no remaining actionable findings after recheck
+  through code commit `b9f2bd2`. See [review evidence](birth-review.md).
+
+Negative/concurrency evidence includes hidden-field denial, preserved legacy administrator access,
+cross-tree denial, stale forms across background refreshes, earlier-date rescheduling, incomplete
+pause/resume, queued cancellation, same-day year corrections, post-fire date toggling without
+repeat sends, both edit/delivery lock orders, scheduling-writer races, and proposal rebase plus
+approval racing an edit. Test deliveries use file/mock transports; no real messages were sent.
+
+The development API was restarted with source reload enabled and verified to expose the new
+revision precondition; API readiness and frontend both return HTTP 200. Claude-only factory
+configuration targets `feature/profile-birth-editing`; its dry run selects no tickets.
 
 Review base: `c8fe982b534f893336575e31575ef457bd1451bf`. Coordinator implementation, not a
 Code Factory ticket run; no EGM execution receipt is claimed. No merge or deployment authorized.

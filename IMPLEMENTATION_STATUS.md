@@ -6,14 +6,15 @@ Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements
 
 ## Family profile and communications programme (12 November 2026)
 
-**IN_PROGRESS — first birth-editing slice.** [Repository audit](docs/architecture/family-profile-communications/audit.md),
+**PARTIAL — first birth-editing slice verified; programme continues.** [Repository audit](docs/architecture/family-profile-communications/audit.md),
 [accepted ADR-0031](docs/architecture/adr/0031-family-profile-addresses-and-communications.md),
 [phased plan](docs/architecture/family-profile-communications/plan.md), and
 [acceptance matrix](docs/architecture/family-profile-communications/acceptance.md).
 The owner chose staged legacy-access retention and explicit source-owner consent for independent
 address-copy sharing. Initial implementation reuses open #74's inline vital editor and adds focused
 birth actions, unknown-zone defaults, hidden-field write checks, revision conflicts and transactional
-reminder rescheduling. Verification is recorded in the slice implementation note when complete.
+reminder rescheduling. Verification and remaining scope are recorded in the
+[birth increment](docs/architecture/family-profile-communications/birth-increment.md).
 Strict field-policy conversion, addresses, contacts and new channels remain unimplemented.
 No schema migration, provider activation, merge or deployment is included.
 
