@@ -28,6 +28,7 @@ from app.modules.merge.router import router as merge_router
 from app.modules.notifications.router import router as reminders_router
 from app.modules.notifications.router import user_router as notifications_user_router
 from app.modules.ownership.router import router as ownership_router
+from app.modules.platform.router import router as platform_router
 from app.modules.property.router import router as property_router
 from app.modules.public.router import router as public_router
 from app.modules.render.router import files_router as render_files_router
@@ -78,3 +79,4 @@ api_router.include_router(extraction_router)
 api_router.include_router(astrology_router)
 api_router.include_router(gedcom_router)
 api_router.include_router(archive_router)
+api_router.include_router(platform_router)

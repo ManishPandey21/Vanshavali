@@ -183,15 +183,15 @@ CASES = [
 
 @pytest.mark.parametrize("case", CASES)
 def test_a_lossy_record_downgrade_is_refused_atomically(case):
-    """Every target that would run the lossy downgrade is refused (explicit revision below it,
-    ``base`` and the relative ``-1``, which fails closed); ``alembic_version`` and the data are
+    """Starting at the guard revision, every target that would run the lossy downgrade is refused
+    (explicit revision below it, ``base`` and the relative ``-1``, which fails closed); ``alembic_version`` and the data are
     unchanged, and the error names counts only. A downgrade that stops at the guarded revision is
     allowed and the upgrade re-runs."""
     admin, url = _fresh(f"_rguard_{case}")
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         engine = create_engine(url)
         with engine.begin() as conn:
             ids = _seed(conn)
@@ -211,7 +211,7 @@ def test_a_lossy_record_downgrade_is_refused_atomically(case):
                 assert _version(conn) == head
                 assert _snapshot(conn) == before
         command.downgrade(cfg, lowest)  # stops above the lossy downgrade
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         with engine.connect() as conn:
             assert _version(conn) == head
             after = _snapshot(conn)
@@ -227,7 +227,7 @@ def test_the_refusal_lists_every_guarded_loss_the_run_would_reach():
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         engine = create_engine(url)
         with engine.begin() as conn:
             ids = _seed(conn)
@@ -256,13 +256,13 @@ def test_a_lifted_suspension_does_not_block_the_takedown_downgrade():
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         engine = create_engine(url)
         with engine.begin() as conn:
             ids = _seed(conn)
             _suspend(conn, ids, _doc(conn, ids), status="lifted")
         command.downgrade(cfg, "c7e3a1f5b829")
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         engine.dispose()
     finally:
         _drop(admin, url)
@@ -276,7 +276,7 @@ def test_a_downgrade_that_changes_no_access_runs_and_the_upgrade_re_runs():
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         engine = create_engine(url)
         with engine.begin() as conn:
             ids = _seed(conn)
@@ -290,7 +290,7 @@ def test_a_downgrade_that_changes_no_access_runs_and_the_upgrade_re_runs():
                 fam: "TREE_MEMBERS",
                 admins: "PRIVATE_TREE_ADMINS",
             }
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         with engine.connect() as conn:
             assert _version(conn) == GUARD_REVISION
             got = dict(conn.execute(text("SELECT id, owner_membership_id FROM document")).all())
@@ -307,10 +307,14 @@ def test_an_offline_sql_downgrade_through_a_guarded_revision_is_refused():
         command.downgrade(cfg, f"{GUARD_REVISION}:c7e3a1f5b829", sql=True)
 
 
-def test_the_record_guard_revision_is_the_single_head():
+def test_the_migrations_have_a_single_head_above_the_record_guard():
+    """The tests above start at the guard revision; later migrations must stack on it."""
     from alembic.script import ScriptDirectory
 
-    assert ScriptDirectory.from_config(_cfg()).get_heads() == [GUARD_REVISION]
+    script = ScriptDirectory.from_config(_cfg())
+    heads = script.get_heads()
+    assert len(heads) == 1
+    assert GUARD_REVISION in {r.revision for r in script.iterate_revisions(heads[0], "base")}
 
 
 def test_a_downgrade_that_stops_exactly_at_the_tradition_revision_is_allowed():
@@ -321,13 +325,13 @@ def test_a_downgrade_that_stops_exactly_at_the_tradition_revision_is_allowed():
     try:
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
-        command.upgrade(cfg, "head")
+        command.upgrade(cfg, GUARD_REVISION)
         engine = create_engine(url)
         with engine.begin() as conn:
             ids = _seed(conn)
             _entry(conn, ids, "SELECTED_MEMBERS", ids["m_author"])
         command.downgrade(cfg, "8d2e6b4f1a37")
-        command.upgrade(cfg, "head")  # below the guards nothing is checked (runbook section 7)
+        command.upgrade(cfg, GUARD_REVISION)  # below the guards nothing is checked (runbook section 7)
         with pytest.raises(RuntimeError, match="lossy downgrade refused"):
             command.downgrade(cfg, "3f6a8c1d2e94")
         engine.dispose()

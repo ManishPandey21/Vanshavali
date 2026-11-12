@@ -42,6 +42,8 @@ erDiagram
   CHANGE_PROPOSAL_ITEM }o--o| PERSON : "changes a fact of (name, vital, claim, relationship)"
   PERSON ||--o{ RECORD_REVISION : "history: changed fields, before/after, actor, reviewer"
   APP_USER ||--o{ USER_NOTIFICATION : "ids only; text built when read"
+  APP_USER ||--o{ USER_SESSION : "mfa_verified_at, mfa_step_up_at (ADR-0028)"
+  APP_USER ||--o{ PLATFORM_CAPABILITY_GRANT : "named holder; operator CLI only; no tree (ADR-0028)"
 
   PERSON ||--o{ ASSERTION : "heritage claims (gotra, pravara, kula…)"
   FAMILY_BRANCH ||--o{ ASSERTION : "branch heritage"
@@ -136,6 +138,7 @@ graph LR
 | Places keep their historical names. Renames append history. | `place.historical_names` |
 | Merges are reversible | `merge_record.changes` |
 | The audit log is append-only | DB trigger |
+| A platform capability (master-data console) belongs to one named person, is granted only by the operator CLI and never by the application, and gives no tree access; it counts only on a session opened with password + TOTP after the current enrolment, and writes need a recent step-up | `platform_capability_grant` (read-only to the application role), `user_session.mfa_verified_at` / `mfa_step_up_at`, `authz.platform` (ADR-0028 §7–§8) |
 | A life-event category refines, never replaces, the structural event type | `CATEGORY_EVENT_TYPE` (ADR-0015) |
 | An event's own privacy level gates every lookup of it (album, reminders, charts, renders) | `genealogy.service.get_event_checked` |
 | A shareable record (document, photo, recording, family tradition) has an owner membership and an audience: Only me, Selected members, Selected branch or All family members. The two private audiences admit no one by role (not owners, admins or custodians); a grant belongs to one membership and dies with it. Viewing and downloading are separate. | `document.owner_membership_id`, `access_grant.membership_id`, `authz.privacy.record_allows`, `documents.access` (ADR-0027) |

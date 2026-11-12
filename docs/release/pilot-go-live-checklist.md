@@ -98,6 +98,12 @@ Status as of 2 Oct 2026: items marked *(prepared)* have everything they need in 
 - [ ] On the pilot, the session list (`/settings` → sessions) shows your **real public IP**, not
   `172.30.0.x`. This proves Docker's userland proxy is off and client IPs survive (threat T30).
 
+### Platform administrators (ADR-0028)
+- [ ] `VSH_MASTERDATA_CONSOLE_ENABLED` stays `false` (the default) until two named administrators
+  hold `master_data.admin`, each granted with `app.cli.platform grant` and each signed in once with
+  password + authenticator code (`docs/operations/platform-admins.md`). Record both names and dates.
+- [ ] No role or shared mailbox holds a capability (`app.cli.platform list --all`).
+
 ### Migrations and release process
 - [ ] GitHub environments `staging` and `pilot` created:
   - required reviewers;

@@ -486,6 +486,48 @@
     }
    }
   },
+  "/api/v1/auth/step-up": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Step Up",
+    "description": "Re-enter a TOTP code on this session, as administration writes require (ADR-0028 \u00a77).",
+    "operationId": "step_up_api_v1_auth_step_up_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/MfaCodeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StepUpOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/auth/mfa/disable": {
    "post": {
     "tags": [
@@ -17732,6 +17774,28 @@
     }
    }
   },
+  "/api/v1/admin/master-data/session": {
+   "get": {
+    "tags": [
+     "master-data-admin"
+    ],
+    "summary": "Console Session",
+    "description": "The caller's capabilities and when their two-step session and step-up run out.",
+    "operationId": "console_session_api_v1_admin_master_data_session_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsoleSessionOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/health": {
    "get": {
     "tags": [
@@ -22407,6 +22471,42 @@
      "notes"
     ],
     "title": "ConsentOut"
+   },
+   "ConsoleSessionOut": {
+    "properties": {
+     "capabilities": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Capabilities"
+     },
+     "mfa_valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Mfa Valid Until"
+     },
+     "step_up_valid_until": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Step Up Valid Until"
+     }
+    },
+    "type": "object",
+    "required": [
+     "capabilities",
+     "mfa_valid_until",
+     "step_up_valid_until"
+    ],
+    "title": "ConsoleSessionOut",
+    "description": "What the console needs to know about the caller's session (ADR-0028 \u00a77)."
    },
    "ContactIn": {
     "properties": {
@@ -39561,6 +39661,20 @@
     ],
     "title": "StatementOut"
    },
+   "StepUpOut": {
+    "properties": {
+     "step_up_valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Step Up Valid Until"
+     }
+    },
+    "type": "object",
+    "required": [
+     "step_up_valid_until"
+    ],
+    "title": "StepUpOut"
+   },
    "StorageClass": {
     "type": "string",
     "enum": [
@@ -41718,6 +41832,14 @@
       "type": "boolean",
       "title": "Must Change Password",
       "default": false
+     },
+     "platform_capabilities": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Platform Capabilities",
+      "default": []
      }
     },
     "type": "object",

@@ -145,6 +145,45 @@ class Settings(BaseSettings):
     ocr_enabled: bool = True
     # Master-data vocabularies (ADR-0018); false = endpoints answer 404 and the UI falls back to text
     masterdata_enabled: bool = True
+    # Super Admin master-data console (ADR-0028 §7). Off until the go-live checklist records two
+    # named administrators; while off, every /admin/master-data route answers 404.
+    masterdata_console_enabled: bool = False
+    # Platform capabilities need a session opened with password + TOTP within this many hours, and
+    # every write a TOTP step-up within this many minutes (ADR-0028 §7).
+    platform_session_mfa_max_age_hours: int = 12
+    platform_step_up_max_age_minutes: int = 15
+    # Role or shared mailboxes the capability CLI refuses (local part, before any "+tag"): a
+    # capability belongs to one named person (ADR-0028 §7).
+    platform_mailbox_denylist: list[str] = [
+        "abuse",
+        "account",
+        "accounts",
+        "admin",
+        "administrator",
+        "billing",
+        "contact",
+        "dev",
+        "devops",
+        "help",
+        "helpdesk",
+        "hello",
+        "hostmaster",
+        "info",
+        "it",
+        "mail",
+        "noreply",
+        "no-reply",
+        "office",
+        "ops",
+        "postmaster",
+        "root",
+        "sales",
+        "security",
+        "support",
+        "sysadmin",
+        "team",
+        "webmaster",
+    ]
     # Indian geography reference data (ADR-0019); false = /geo answers 404, places stay free text
     geo_enabled: bool = True
     # Family calendar (ADR-0022). Lunar conversion and reminders stay off until the engine licence

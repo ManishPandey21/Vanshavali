@@ -41,8 +41,27 @@ Conventions: every tree-scoped table has `tree_id` and a `UNIQUE (tree_id, id)`;
 | `revoked_at` | DATETIME | yes |  |
 | `ip` | VARCHAR(64) | yes |  |
 | `user_agent` | VARCHAR(400) | yes |  |
+| `mfa_verified_at` | DATETIME | yes |  |
+| `mfa_step_up_at` | DATETIME | yes |  |
 
 Constraints/indexes: `INDEX ix_user_session_user_active (user_id, revoked_at)`
+
+### `platform_capability_grant`
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | UUID | no | PK |
+| `user_id` | UUID | no | → app_user |
+| `capability` | enum(master_data.admin) | no |  |
+| `holder_name` | VARCHAR(200) | no |  |
+| `reason` | TEXT | no |  |
+| `granted_by` | VARCHAR(200) | no |  |
+| `granted_at` | DATETIME | no |  |
+| `revoked_at` | DATETIME | yes |  |
+| `revoked_by` | VARCHAR(200) | yes |  |
+| `revoke_reason` | TEXT | yes |  |
+
+Constraints/indexes: `INDEX ix_platform_capability_grant_user_id (user_id)`; `INDEX uq_platform_capability_grant_active (user_id, capability) UNIQUE`
 
 ### `tree`
 

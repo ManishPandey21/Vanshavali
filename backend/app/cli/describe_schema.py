@@ -15,6 +15,7 @@ GROUPS = {
     "Identity & access": [
         "app_user",
         "user_session",
+        "platform_capability_grant",
         "tree",
         "tree_membership",
         "tree_invitation",
