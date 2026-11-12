@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 from app.core.config import get_settings
 from app.core.db import get_sessionmaker
+from app.core.ratelimit import get_limiter
 from app.models import AuditEvent, User, UserSession
 
 
@@ -90,6 +91,40 @@ def test_registration_rate_limited_per_ip(make_client, monkeypatch):
     ]
     assert [r.status_code for r in responses] == [202] * 3 + [429] * 2
     assert responses[-1].json()["error"]["code"] == "rate_limited"
+
+
+def _token_uses(anon, n: int) -> list[int]:  # type: ignore[no-untyped-def]
+    # every token use from one IP counts, valid or not, and both token flows share one bucket
+    codes = []
+    for i in range(n):
+        if i % 2:
+            r = anon.post(
+                "/auth/password-reset/confirm", json={"token": "x" * 43, "new_password": "brand new password"}
+            )
+        else:
+            r = anon.post("/auth/verify-email", json={"token": "x" * 43})
+        codes.append(r.status_code)
+    return codes
+
+
+def test_token_use_rate_limited_per_ip_by_default(make_client):
+    # production default: 30 token uses per minute per IP; the 31st is refused
+    assert get_settings().token_rate_limit_per_minute == 30
+    anon = make_client()
+    codes = _token_uses(anon, 32)
+    assert codes == [400] * 30 + [429] * 2
+    r = anon.post("/auth/verify-email", json={"token": "x" * 43})
+    assert r.status_code == 429
+    assert r.json()["error"]["code"] == "rate_limited"
+
+
+def test_token_rate_limit_is_a_setting(make_client, monkeypatch):
+    # E2E raises it (VSH_TOKEN_RATE_LIMIT_PER_MINUTE); the setting moves the threshold both ways
+    monkeypatch.setattr(get_settings(), "token_rate_limit_per_minute", 3)
+    assert _token_uses(make_client(), 5) == [400] * 3 + [429] * 2
+    get_limiter().reset()  # type: ignore[union-attr]
+    monkeypatch.setattr(get_settings(), "token_rate_limit_per_minute", 40)
+    assert _token_uses(make_client(), 41) == [400] * 40 + [429]
 
 
 def test_csrf_required_for_unsafe_methods(client):

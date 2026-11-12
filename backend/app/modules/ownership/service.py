@@ -3,7 +3,9 @@
 Shareable records are documents, tradition entries and photo collections. The owner offers a record to another
 member, who becomes the owner only when they accept. The owner can cancel the offer; the member
 can decline it. Nobody else can transfer, claim or accept a record, so an orphaned record (its
-owner left) stays with its grantees. Every step is audited without titles or contents (§11).
+owner left) stays with its grantees. An offer is the owner's consent while they own the record: once
+the owner's membership is gone the offer cannot be accepted or listed (it can still be declined).
+Every step is audited without titles or contents (§11).
 Anyone who is neither the owner nor the member offered the record gets 404.
 """
 
@@ -134,6 +136,9 @@ def accept(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUI
     # answer is the same 404 as "no offer" whatever happens, never a hint of the suspension
     if r.pending_owner_membership_id is None or r.pending_owner_membership_id != me or r.suspended_at:
         raise NotFound("Record not found")
+    if r.owner_membership_id is None:
+        # the owner left after offering: an orphan is claimed by nobody (ADR-0027 §2)
+        raise NotFound("Record not found")
     previous = r.owner_membership_id
     r.owner_membership_id = me
     r.pending_owner_membership_id = None
@@ -143,7 +148,7 @@ def accept(ctx: TreeContext, resource_type: GrantResource, resource_id: uuid.UUI
         "record.ownership_transferred",
         resource_type,
         r,
-        from_membership=str(previous) if previous else None,
+        from_membership=str(previous),
         to_membership=str(me),
     )
     return _out(resource_type, r)
@@ -177,6 +182,7 @@ def offers_for_me(ctx: TreeContext) -> list[OwnershipOfferOut]:
             .where(
                 model.tree_id == ctx.tree_id,
                 model.pending_owner_membership_id == me,
+                model.owner_membership_id.is_not(None),  # an orphan's offer has lapsed
                 model.suspended_at.is_(None),  # never list a suspended record (ADR-0027 §8.2)
                 _live(model),
             )
