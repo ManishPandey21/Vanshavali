@@ -10,8 +10,8 @@
   - ADR-0026 §4 and its open point "Where curation happens": curation moves from the operator CLI
     and code review to the console.
 
-  Those ADRs are **not** edited or marked superseded in this change. Each gets a short "amended
-  by ADR-0028" note in a separate, reviewed change (implementation plan, step 0).
+  Those ADRs are not superseded. Each carries a short "amended by ADR-0028" note, added in a
+  separate change (implementation plan, step 0).
 - Relates to: ADR-0002 (roles and row-level security), ADR-0005 (sign-in, two-step sign-in),
   ADR-0019 (geography snapshots), ADR-0021 (review and revisions), ADR-0025 (transliteration
   lexicon), Q4 (caste, jati and religion), Q13 (lawful basis).
@@ -690,7 +690,7 @@ The consolidation review (PR #64, §8 and §9) gives the reused PR #35 files and
 for each increment.
 
 0. **Before code.** Land PR #60 (CI) on its own (done, 11 Nov 2026). Accept this ADR (done, 12 Nov 2026). Add the "amended by ADR-0028"
-   notes to ADR-0006, ADR-0018 and ADR-0026 in a separate change.
+   notes to ADR-0006, ADR-0018 and ADR-0026 in a separate change (done, 12 Nov 2026).
 1. **Platform capability and sign-in.**
    - `platform_capability_grant` and the grant and revoke CLI.
    - The session MFA columns, the step-up endpoint and `require_platform`.

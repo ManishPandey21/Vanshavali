@@ -1,6 +1,6 @@
 # ADR-0006: Authorisation and privacy evaluation
 
-- Status: Accepted · Date: 2026-09-25
+- Status: Accepted · Date: 2026-09-25 · Item 6 amended by [ADR-0028](0028-super-admin-master-data-console.md) (12 Nov 2026)
 
 ## Decision
 **Deny by default**, centralised in `app/authz`:
@@ -30,6 +30,12 @@
    also require OWNER, FAMILY_ADMIN or DOCUMENT_CUSTODIAN, or an explicit grant. Property documents
    also allow PROPERTY_CUSTODIAN.
 6. **SYSTEM_ADMIN** has platform endpoints only (health, metrics) and **no implicit tree access**.
+   *Amended by [ADR-0028](0028-super-admin-master-data-console.md) §7–§8:* curating global master data is a separate platform capability,
+   `master_data.admin`. It is granted to named people only, by the operator CLI
+   (`python -m app.cli.platform`), never through the API. `is_system_admin` does not imply it.
+   Holders need two-step sign-in in the current session and a fresh step-up for every write
+   (`require_platform`). Like SYSTEM_ADMIN, the capability gives **no access to any family tree**:
+   a holder gets the same 404 as any non-member.
 
 ### Role → permission matrix (summary)
 | Permission | Owner | FamAdmin | BranchAdmin | Contributor | Researcher | Viewer | DocCustodian | PropCustodian |
