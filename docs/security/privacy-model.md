@@ -377,3 +377,21 @@ before an edit cannot be recalled. No edit creates a subscription or channel con
 Future address copies retain their source ceiling unless the source owner explicitly consents to
 independent sharing, with version, recipient, audience and purpose bound to the consent. This does
 not override erasure. Profile contacts never establish verified account contact or messaging consent.
+
+## Landing-page community counts and voluntary support (PR #78; not yet released)
+
+- **Aggregate only.** `GET /api/v1/public/site-impact` returns the number of non-deleted family trees
+  and, optionally, an approximate count of distinct browsers over 30 days. No name, identifier or
+  per-tree figure is returned.
+- **Visitor measurement is opt-in at deployment** (`VSH_VISITOR_STATS_ENABLED=false` by default) and
+  must not be switched on before the visitor privacy notice is reviewed. When on, a random signed
+  first-party HttpOnly cookie (90 days, path `/api/v1/public`) identifies the browser; only its HMAC
+  digest reaches Redis HyperLogLog buckets that expire after 35 days. IP addresses are used only as a
+  short-lived (one-hour) rate-limit key against cookie-less inflation, never stored with the digest.
+  User agents, accounts and family data are not used.
+- **Browser privacy signals are honoured:** a request with `Sec-GPC: 1` or `DNT: 1` is never counted
+  and never receives the cookie; it still sees the aggregate figures.
+- **Never presented as people.** The UI labels the figure as browsers, hides it when measurement is
+  off or unavailable, and never shows a false zero.
+- **Donations** open an external hosted payment page. Vanshavali receives no payment or donor data in
+  this increment, and contributing never changes access to any family record.

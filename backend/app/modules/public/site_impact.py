@@ -2,8 +2,12 @@
 
 Only active family-tree *counts* are disclosed. Optional visitor measurement uses a
 random first-party, HttpOnly browser cookie and Redis HyperLogLog: no IP, user agent,
-profile, family identifier, or request-level visitor history is retained.
+profile, family identifier, or request-level visitor history is retained in the impact
+store. Browsers that send Global Privacy Control (``Sec-GPC: 1``) or Do Not Track
+(``DNT: 1``) are never recorded or given the cookie, and new-browser registrations are
+capped per client address so a cookie-less script cannot inflate the estimate cheaply.
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -18,8 +22,9 @@ from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from app.api.deps import DbDep
+from app.api.deps import DbDep, request_info
 from app.core.config import get_settings
+from app.core.ratelimit import get_limiter
 from app.models import Tree
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -30,6 +35,9 @@ _COOKIE_MAX_AGE = 90 * 86400
 _DAYS = 30
 _KEY_PREFIX = "vsh:impact:unique:"
 _KEY_TTL = 35 * 86400
+# At most this many *new* browsers are counted per client address per hour; returning
+# browsers with a valid cookie are unaffected. The limiter key expires with its window.
+_NEW_VISITORS_PER_ADDRESS_HOURLY = 20
 
 
 class SiteImpactOut(BaseModel):
@@ -40,9 +48,7 @@ class SiteImpactOut(BaseModel):
 
 @lru_cache(maxsize=1)
 def _redis_client() -> redis.Redis:
-    return redis.Redis.from_url(
-        get_settings().redis_url, socket_connect_timeout=0.5, socket_timeout=0.5
-    )
+    return redis.Redis.from_url(get_settings().redis_url, socket_connect_timeout=0.5, socket_timeout=0.5)
 
 
 def _signed_cookie(token: str, key: str) -> str:
@@ -63,20 +69,32 @@ def _visitor_token(cookie: str | None, key: str) -> tuple[str, bool]:
     return secrets.token_urlsafe(24), True
 
 
+def _opted_out(request: Request) -> bool:
+    return request.headers.get("sec-gpc") == "1" or request.headers.get("dnt") == "1"
+
+
+def _day_keys() -> list[str]:
+    today = dt.datetime.now(dt.UTC).date()
+    return [f"{_KEY_PREFIX}{(today - dt.timedelta(days=i)).isoformat()}" for i in range(_DAYS)]
+
+
 def _record_visitor(request: Request, response: Response) -> int:
     settings = get_settings()
+    keys = _day_keys()
+    r = _redis_client()
+    if _opted_out(request):
+        # Read-only: the aggregate is shown, but this browser is neither counted nor tagged.
+        return int(r.pfcount(*keys))
     token, new = _visitor_token(request.cookies.get(_COOKIE), settings.signing_key)
+    if new and not get_limiter().hit(
+        f"impact-new:{request_info(request).ip}", _NEW_VISITORS_PER_ADDRESS_HOURLY, 3600
+    ):
+        return int(r.pfcount(*keys))
     # The cookie is never sent to the datastore. This digest remains stable across
     # days so Redis PFCOUNT can estimate distinct browsers over a 30-day window.
     visitor_hash = hmac.new(
         settings.signing_key.encode(), f"impact:{token}".encode(), hashlib.sha256
     ).hexdigest()
-    today = dt.datetime.now(dt.UTC).date()
-    keys = [
-        f"{_KEY_PREFIX}{(today - dt.timedelta(days=i)).isoformat()}"
-        for i in range(_DAYS)
-    ]
-    r = _redis_client()
     pipe = r.pipeline()
     pipe.pfadd(keys[0], visitor_hash)
     pipe.expire(keys[0], _KEY_TTL)
@@ -87,7 +105,7 @@ def _record_visitor(request: Request, response: Response) -> int:
             _COOKIE,
             _signed_cookie(token, settings.signing_key),
             max_age=_COOKIE_MAX_AGE,
-            secure=settings.env == "production",
+            secure=settings.cookie_secure,
             httponly=True,
             samesite="lax",
             path=f"{settings.api_prefix}/public",
@@ -98,9 +116,9 @@ def _record_visitor(request: Request, response: Response) -> int:
 @router.get("/site-impact", response_model=SiteImpactOut)
 def site_impact(request: Request, response: Response, db: DbDep) -> SiteImpactOut:
     """Aggregate family trees and opt-in 30-day browser visitors for the landing page."""
-    family_trees = int(
-        db.scalar(select(func.count(Tree.id)).where(Tree.deleted_at.is_(None))) or 0
-    )
+    family_trees = int(db.scalar(select(func.count(Tree.id)).where(Tree.deleted_at.is_(None))) or 0)
+    # Per-browser side effects (cookie) and a live estimate: never cache in shared proxies.
+    response.headers["Cache-Control"] = "no-store"
     visitors: int | None = None
     if get_settings().visitor_stats_enabled:
         try:

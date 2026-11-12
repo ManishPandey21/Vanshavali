@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import type { SiteImpactOut } from "../../api/types";
 import { DONATION_AMOUNTS, parseVoluntaryAmount, safeHostedDonationLink } from "./donations";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -751,11 +752,6 @@ function KeptInTrust({ startTo, startLabel, btnText }: { startTo: string; startL
 }
 
 
-type PublicImpact = {
-  family_trees: number;
-  unique_visitors_30d: number | null;
-};
-
 /**
  * Each environment variable must point to a hosted checkout with that amount already
  * configured server-side. This site never collects card or UPI credentials. Do not
@@ -781,7 +777,7 @@ function CommunityImpactAndSupport() {
   const [otherAmountText, setOtherAmountText] = useState("");
   const impact = useQuery({
     queryKey: ["public", "site-impact"],
-    queryFn: () => api.get<PublicImpact>("/public/site-impact"),
+    queryFn: () => api.get<SiteImpactOut>("/public/site-impact"),
     staleTime: 5 * 60_000,
     retry: false,
   });
@@ -809,16 +805,17 @@ function CommunityImpactAndSupport() {
             <dl className="mt-6 grid grid-cols-2 gap-4">
               <div>
                 <dt className="text-sm text-umber">{t("landing.support.families")}</dt>
-                <dd className="mt-1 font-heritage text-4xl text-rust" aria-live="polite">
+                <dd className="mt-1 font-heritage text-4xl text-rust">
                   {impact.data ? number(impact.data.family_trees) : "—"}
                 </dd>
               </div>
-              <div>
-                <dt className="text-sm text-umber">{t("landing.support.visitors")}</dt>
-                <dd className="mt-1 font-heritage text-4xl text-rust" aria-live="polite">
-                  {impact.data?.unique_visitors_30d != null ? number(impact.data.unique_visitors_30d) : "—"}
-                </dd>
-              </div>
+              {/* Null means measurement is off or unavailable: show nothing rather than a dash or a false zero. */}
+              {impact.data?.unique_visitors_30d != null && (
+                <div>
+                  <dt className="text-sm text-umber">{t("landing.support.visitors")}</dt>
+                  <dd className="mt-1 font-heritage text-4xl text-rust">{number(impact.data.unique_visitors_30d)}</dd>
+                </div>
+              )}
             </dl>
             <p className="mt-5 text-xs leading-relaxed text-umber">{t("landing.support.countNote")}</p>
           </div>
@@ -829,7 +826,7 @@ function CommunityImpactAndSupport() {
               <legend className="mb-3 text-sm font-semibold">{t("landing.support.chooseAmount")}</legend>
               <div className="flex flex-wrap gap-2">
                 {DONATION_AMOUNTS.map((option) => (
-                  <label key={option} className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition ${!isOtherAmount && amount === option ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
+                  <label key={option} className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-rust ${!isOtherAmount && amount === option ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
                     <input
                       type="radio"
                       name="donation-amount"
@@ -841,7 +838,7 @@ function CommunityImpactAndSupport() {
                     ₹{number(option)}
                   </label>
                 ))}
-                <label className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition ${isOtherAmount ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
+                <label className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-rust ${isOtherAmount ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
                   <input
                     type="radio"
                     name="donation-amount"
@@ -898,7 +895,7 @@ function CommunityImpactAndSupport() {
                   : t("landing.support.notConfigured")}
               </p>
             )}
-            {isOtherAmount && enteredAmount !== null && (
+            {checkout && isOtherAmount && enteredAmount !== null && (
               <p className="mt-3 text-xs font-medium text-umber">
                 {t("landing.support.confirmCustom", { amount: number(enteredAmount) })}
               </p>

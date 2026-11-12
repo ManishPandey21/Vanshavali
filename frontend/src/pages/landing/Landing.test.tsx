@@ -7,7 +7,7 @@ import { jsonResponse, renderWithProviders } from "../../test/utils";
 
 const user = { id: "u1", email: "a@example.com", display_name: "A", preferred_language: "en", created_at: "2026-01-01T00:00:00Z", mfa_enabled: false };
 
-function stubApi(signedIn: boolean) {
+function stubApi(signedIn: boolean, impact: { family_trees: number; unique_visitors_30d: number | null } = { family_trees: 1234, unique_visitors_30d: null }) {
   const calls: string[] = [];
   vi.stubGlobal(
     "fetch",
@@ -16,6 +16,7 @@ function stubApi(signedIn: boolean) {
       if (url.endsWith("/auth/me")) {
         return signedIn ? jsonResponse(user) : jsonResponse({ error: { code: "unauthenticated", message: "Authentication required" } }, 401);
       }
+      if (url.endsWith("/public/site-impact")) return jsonResponse(impact);
       return jsonResponse([]);
     }),
   );
@@ -40,8 +41,8 @@ describe("landing page", () => {
     // without IntersectionObserver (jsdom) the family tree shows finished, kinship included
     expect(screen.getByRole("img", { name: /family tree growing generation by generation/ })).toBeInTheDocument();
     expect(screen.getByText("Suresh is Aarav's दादा (dādā) — his father's father")).toBeInTheDocument();
-    // Static page: it asks only who is signed in, never for family data.
-    expect(calls.every((u) => u.endsWith("/auth/me"))).toBe(true);
+    // Static page: it asks only who is signed in and the public aggregate counts, never for family data.
+    expect(calls.every((u) => u.endsWith("/auth/me") || u.endsWith("/public/site-impact"))).toBe(true);
   });
 
   it("does not replace the signed-in home page", async () => {
@@ -84,7 +85,8 @@ describe("landing page", () => {
     expect(screen.getByRole("link", { name: /Save my family tree/ })).toHaveAttribute("href", "/register");
     expect(JSON.parse(window.sessionStorage.getItem("vsh.treeDraft") ?? "{}")).toMatchObject({ self: "Aarav Sharma", grandfather: "Suresh Sharma" });
     // typing names sends nothing anywhere
-    expect(calls.every((u) => u.endsWith("/auth/me"))).toBe(true);
+    expect(calls.every((u) => u.endsWith("/auth/me") || u.endsWith("/public/site-impact"))).toBe(true);
+    expect(calls.some((u) => u.includes("Sharma"))).toBe(false);
 
     await userEvent.click(screen.getByRole("button", { name: "Clear names" }));
     expect(window.sessionStorage.getItem("vsh.treeDraft")).toBeNull();
@@ -139,5 +141,45 @@ describe("landing page", () => {
     } finally {
       await i18n.changeLanguage("en");
     }
+  });
+
+  it("shows aggregate community counts only, hiding the visitor estimate while measurement is off", async () => {
+    stubApi(false);
+    renderWithProviders(<App />, { tree: null, route: "/" });
+    const section = (await screen.findByRole("heading", { name: "Our growing community" })).closest("section")!;
+    expect(await within(section).findByText("1,234")).toBeInTheDocument();
+    expect(within(section).queryByText(/Unique visiting browsers/)).not.toBeInTheDocument();
+  });
+
+  it("shows the 30-day browser estimate when the server reports one", async () => {
+    stubApi(false, { family_trees: 3, unique_visitors_30d: 42 });
+    renderWithProviders(<App />, { tree: null, route: "/" });
+    const section = (await screen.findByRole("heading", { name: "Our growing community" })).closest("section")!;
+    expect(await within(section).findByText("42")).toBeInTheDocument();
+    expect(within(section).getByText(/Unique visiting browsers/)).toBeInTheDocument();
+  });
+
+  it("offers the preset amounts but no checkout until one is configured, and validates other amounts", async () => {
+    stubApi(false);
+    renderWithProviders(<App />, { tree: null, route: "/" });
+    const section = (await screen.findByRole("heading", { name: "Our growing community" })).closest("section")!;
+    const group = within(section).getByRole("group", { name: "Choose an amount" });
+    for (const label of ["₹10", "₹50", "₹100", "₹1,000", "₹10,000", "Other amount"]) {
+      expect(within(group).getByRole("radio", { name: label })).toBeInTheDocument();
+    }
+    expect(within(group).getByRole("radio", { name: "₹100" })).toBeChecked();
+    // No VITE_DONATION_LINK_* in tests: nothing to pay, and nothing pretends otherwise.
+    expect(within(section).queryByRole("link", { name: /Contribute/ })).not.toBeInTheDocument();
+    expect(within(section).getByText(/not available yet/)).toBeInTheDocument();
+
+    await userEvent.click(within(group).getByRole("radio", { name: "Other amount" }));
+    const input = within(section).getByLabelText("Your contribution (₹)");
+    await userEvent.type(input, "10.5");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(within(section).getByText(/Enter a whole-rupee amount/)).toBeInTheDocument();
+    await userEvent.clear(input);
+    await userEvent.type(input, "250");
+    expect(input).toHaveAttribute("aria-invalid", "false");
+    expect(within(section).queryByRole("link", { name: /secure payment page/ })).not.toBeInTheDocument();
   });
 });

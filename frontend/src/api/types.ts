@@ -16,6 +16,7 @@ export type AuditEventOut = S["AuditEventOut"];
 export type Role = S["Role"];
 export type PrivacyLevel = S["PrivacyLevel"];
 export type PublicMode = S["PublicMode"];
+export type SiteImpactOut = S["SiteImpactOut"];
 
 export type PersonSummary = S["PersonSummary"];
 export type PersonOut = S["PersonOut"];

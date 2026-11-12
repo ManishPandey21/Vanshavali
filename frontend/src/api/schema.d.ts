@@ -2496,6 +2496,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/site-impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Site Impact
+         * @description Aggregate family trees and opt-in 30-day browser visitors for the landing page.
+         */
+        get: operations["site_impact_api_v1_public_site_impact_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/sources": {
         parameters: {
             query?: never;
@@ -11179,6 +11199,13 @@ export interface components {
             /** Kind */
             kind: string;
         };
+        /** SiteImpactOut */
+        SiteImpactOut: {
+            /** Family Trees */
+            family_trees: number;
+            /** Unique Visitors 30D */
+            unique_visitors_30d?: number | null;
+        };
         /** SmartAddCommitIn */
         SmartAddCommitIn: {
             /** Term */
@@ -18196,6 +18223,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    site_impact_api_v1_public_site_impact_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteImpactOut"];
                 };
             };
         };
