@@ -10,7 +10,7 @@ the agent exists:
     python3 -I ops/factory/bootstrap_builder.py --cache-dir DIR [--network-env FILE] -- AGENT_ARGV...
 
 1. Refuses to run anywhere but the top level of a factory builder worktree (a linked Git worktree
-   under ``<git-common-dir>/infra-factory/worktrees``, following the symlink the runbook asks for).
+   under ``<git-common-dir>/infra-factory/worktrees``; a factory clone has a separate Git directory).
 2. Checks every lockfile it installs from is committed and unmodified.
 3. Installs from those lockfiles only: ``uv sync --frozen`` (backend), ``npm ci`` (frontend, e2e)
    and the Playwright Chromium matching the pinned ``@playwright/test``. ``npm ci`` always replaces
@@ -51,7 +51,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 STEP_TIMEOUT = 1200  # seconds per install step; the factory's builder timeout bounds the whole call
-INFRA_EXIT = 75  # with --gate: "host refused before/around the agent"; toolkit 0.3.4 does not charge it
+INFRA_EXIT = 75  # with --gate: "host refused before/around the agent" (EX_TEMPFAIL). Toolkit 0.5.0 still
+# blocks the ticket and counts the attempt for it like any failure; the code only makes the cause visible.
 NPM_CI = ["npm", "ci", "--no-audit", "--no-fund"]
 # (component dir, lockfile, install argv) - every install reads only the committed lockfile.
 COMPONENTS = (
@@ -332,6 +333,15 @@ superpowers:test-driven-development skill through the Skill tool.
 """
 
 
+def _routing_outcome(path: Path) -> str | None:
+    """The bridge's recorded outcome for one agent run (None when it wrote no evidence)."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data.get("outcome") if isinstance(data, dict) else None
+
+
 def _flag_value(agent: list[str], flag: str) -> Path:
     if flag not in agent or agent.index(flag) == len(agent) - 1:
         raise BootstrapError(f"--gate needs an agent command with {flag} (the factory's bridge has it)")
@@ -518,8 +528,9 @@ def gated_build(
                 {"round": round_no, "prompt": str(prompt), "result": str(result), "exit_code": code,
                  "routing_evidence": str(routing) if routing.is_file() else None}
             )  # fmt: skip
-            if code == INFRA_EXIT and routing.is_file():
-                # the bridge refused the model/effort (host or account problem): not the work
+            if code and _routing_outcome(routing) == "routing_refused":
+                # the bridge refused the model/effort (host or account problem): not the work. Toolkit
+                # 0.5.0's bridge exits 2 and records the refusal in its routing evidence.
                 evidence["outcome"] = "routing_refused"
                 return INFRA_EXIT
             if code:

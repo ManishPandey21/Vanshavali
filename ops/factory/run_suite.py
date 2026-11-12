@@ -9,6 +9,7 @@ the toolkit's ``test_report.py`` turns into evidence (it rejects empty, skipped 
 
     python3 -I ops/factory/run_suite.py SUITE JUNIT_PATH [--cache-dir DIR] [--pg-admin-url URL]
     python3 -I ops/factory/run_suite.py --static backend|frontend [--cache-dir DIR]
+    (the factory config passes backend-preflight / frontend-preflight, which are the same)
 
 Suites (each maps to one verification-policy check kind):
 
@@ -368,7 +369,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "junit", nargs="?", help="relative path for the native JUnit XML (e.g. .factory-test-output/x.xml)"
     )
-    p.add_argument("--static", choices=("backend", "frontend"))
+    # "<side>-preflight" is what the factory config passes: a bare "backend"/"frontend" in a check argv
+    # names a repository directory, which toolkit >= 0.5.0 would then protect from every ticket.
+    p.add_argument("--static", choices=("backend", "frontend", "backend-preflight", "frontend-preflight"))
     p.add_argument("--cache-dir", default=str(Path.home() / ".cache" / "vanshavali-factory"))
     p.add_argument("--pg-admin-url", default=DEFAULT_PG_ADMIN_URL)
     p.add_argument("--network-env", help="private KEY=VALUE file of proxy/CA settings (outside the repo)")
@@ -382,7 +385,7 @@ def main(argv: list[str] | None = None) -> int:
         net = Path(a.network_env).expanduser() if a.network_env else None
         ctx = Context(Path(a.repo).resolve(), Path(a.cache_dir).expanduser().resolve(), a.pg_admin_url, net)
         if a.static:
-            ctx.static(a.static)
+            ctx.static(a.static.removesuffix("-preflight"))
             return 0
         junit = (ctx.root / a.junit).resolve()
         if ctx.root not in junit.parents:

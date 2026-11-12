@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Cost/quality report over completed factory attempts, per role, model and effort (ADR-0030).
 
-Reads only local factory state: the ledger (``.git/infra-factory/ledger.sqlite3``) and each
-attempt's log directory (``.git/infra-factory/logs/<ticket>-<stamp>/``): the bridge's routing
+Reads only local factory state under ``<git-common-dir>/infra-factory`` (toolkit 0.5.0; the
+factory clone keeps its Git directory outside the checkout): the ledger (``ledger.sqlite3``) and each
+attempt's log directory (``logs/<ticket>-<stamp>/``): the bridge's routing
 evidence (``*.routing.json``), the changed-test gate evidence (``changed-tests.json``), cold-check
 reports and review results. Nothing is sent anywhere.
 
     python3 ops/factory/routing_report.py --repo .            # Markdown tables
     python3 ops/factory/routing_report.py --repo . --json     # one record per attempt
 
-Attempts from before 0.3.4 have no routing evidence and are reported as ``unrecorded``.
+Attempts without routing evidence (from before strict routing) are reported as ``unrecorded``.
+Only the standards and spec lenses are summarised; specialist and risk reviews are in the logs.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -60,8 +63,25 @@ def builder_routing(logs: Path) -> dict[str, Any]:
     return first
 
 
+# where an attempt ends (0.5.0 adds AWAITING_HUMAN for high-risk work and REJECTED for refused work)
+END_STATES = ("BLOCKED", "READY", "AWAITING_HUMAN", "REJECTED", "MERGED")
+
+
+def factory_home(repo: Path) -> Path:
+    """``<git-common-dir>/infra-factory``, as the toolkit resolves it."""
+    out = subprocess.run(  # noqa: S603 (fixed argv)
+        ["git", "-C", str(repo), "rev-parse", "--git-common-dir"],  # noqa: S607 (fixed argv, git on PATH)
+        capture_output=True,
+        text=True,
+    )
+    if out.returncode:
+        raise SystemExit(f"{repo} is not a Git checkout")
+    common = Path(out.stdout.strip())
+    return (common if common.is_absolute() else repo / common).resolve() / "infra-factory"
+
+
 def attempts(repo: Path) -> list[dict[str, Any]]:
-    home = repo / ".git" / "infra-factory"
+    home = factory_home(repo)
     ledger = home / "ledger.sqlite3"
     if not ledger.is_file():
         raise SystemExit(f"no factory ledger at {ledger}")
@@ -77,11 +97,7 @@ def attempts(repo: Path) -> list[dict[str, Any]]:
         stamp = details["branch"].rsplit("-", 1)[-1]
         logs = home / "logs" / f"{ev['ticket_id']}-{stamp}"
         end = next(
-            (
-                e
-                for e in events[i + 1 :]
-                if e["ticket_id"] == ev["ticket_id"] and e["state"] in ("BLOCKED", "READY", "MERGED")
-            ),
+            (e for e in events[i + 1 :] if e["ticket_id"] == ev["ticket_id"] and e["state"] in END_STATES),
             None,
         )
         end_details = json.loads(end["details"]) if end and end["details"] else {}
@@ -134,11 +150,11 @@ def summary(rows: list[dict[str, Any]]) -> str:
     lines = [
         "## Builders by model and effort",
         "",
-        "| Model | Effort | Attempts | READY/MERGED | Blocked at gate | Blocked in cold checks | Repairs used | Cost (USD) | Tokens |",
+        "| Model | Effort | Attempts | Passed review | Blocked at gate | Blocked in cold checks | Repairs used | Cost (USD) | Tokens |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
     for (model, effort), items in sorted(groups.items()):
-        ok = sum(r["outcome"] in ("READY", "MERGED") for r in items)
+        ok = sum(r["outcome"] in ("READY", "AWAITING_HUMAN", "MERGED") for r in items)
         gate = sum(r["gate"]["outcome"] == "failed" for r in items)
         cold = sum(bool(r["cold_failed"]) for r in items)
         repairs = sum(r["gate"]["repairs_used"] for r in items)

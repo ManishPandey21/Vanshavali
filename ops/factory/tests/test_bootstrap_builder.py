@@ -9,9 +9,10 @@ laid out like a factory host (worktrees symlinked out of ``.git``) with fake ``n
 Run from the repository root: ``python3 -m unittest discover -s ops/factory/tests -v``
 """
 
-# ruff: noqa: S603, S607  (test code; same waiver as backend/tests in pyproject.toml)
+# ruff: noqa: S101, S603, S607  (test code; same waiver as backend/tests in pyproject.toml)
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import shutil
@@ -421,6 +422,72 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("[bootstrap] FAILED: npm timed out after 2s", err)
         self.assert_dead(pidfile)
         self.assertFalse(self.host.agent_started())
+
+
+def load_configure():
+    spec = importlib.util.spec_from_file_location("configure_factory_under_test", CONFIGURE)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class ConfigureTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.mkdtemp(prefix="vsh-configure-test-")
+        tmp = Path(self._tmp)
+        self.toolkit = tmp / "toolkit"
+        self.toolkit.mkdir()
+        self.skill = tmp / "SKILL.md"
+        self.skill.write_text("tdd\n")
+        self.cf = load_configure()
+        self.cf.check_toolkit = lambda toolkit: None  # the pinned hashes are tested by use, not here
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self._tmp, ignore_errors=True)
+
+    def build(self, providers: str, network_env: Path | None = None) -> dict:
+        argv = [
+            "--toolkit", str(self.toolkit),
+            "--tdd-skill", str(self.skill),
+            "--providers", providers,
+            "--codex-model", "m-codex",
+            "--claude-builder-model", "claude-build-1-0",
+            "--claude-review-model", "claude-review-1-0",
+            "--cache-dir", str(Path(self._tmp) / "cache"),
+            "--pg-admin-url", "postgresql+psycopg://u:p@localhost:5432/postgres",
+            "--python", "/usr/bin/python3",
+        ]  # fmt: skip
+        if network_env:
+            argv += ["--network-env", str(network_env)]
+        return self.cf.build(self.cf.parser().parse_args(argv))
+
+    def test_every_builder_command_runs_the_bootstrap_first_and_reviewers_do_not(self) -> None:
+        for providers in ("claude", "mixed"):
+            if providers == "mixed" and not shutil.which("codex"):
+                self.cf.shutil = type("S", (), {"which": staticmethod(lambda t: "/bin/" + t)})
+            commands = self.build(providers)["commands"]
+            for role in ("frontend", "backend", "critical"):
+                argv = commands[role]["argv"]
+                self.assertEqual(argv[:3], ["/usr/bin/python3", "-I", str(BOOTSTRAP)], role)
+                sep = argv.index("--")
+                self.assertEqual(
+                    argv[sep + 1 : sep + 3], ["/usr/bin/python3", str(self.toolkit / "agent_bridge.py")]
+                )
+                self.assertIn("builder", argv[sep:])
+                self.assertIn("--cache-dir", argv[:sep])
+            for role in ("reviewer_standards", "reviewer_spec"):
+                argv = commands[role]["argv"]
+                self.assertNotIn(str(BOOTSTRAP), argv, role)
+                self.assertEqual(argv[1], str(self.toolkit / "agent_bridge.py"))
+
+    def test_builder_bootstrap_gets_the_network_env(self) -> None:
+        net = Path(self._tmp) / "network.env"
+        net.write_text("")
+        argv = self.build("claude", network_env=net)["commands"]["frontend"]["argv"]
+        sep = argv.index("--")
+        self.assertEqual(argv[argv.index("--network-env") + 1], str(net.resolve()))
+        self.assertLess(argv.index("--network-env"), sep)
 
 
 if __name__ == "__main__":

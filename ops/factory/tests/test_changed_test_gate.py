@@ -96,6 +96,8 @@ FAKE_AGENT = textwrap.dedent(
     for rel, text in knobs.get("repair_writes" if repair else "writes", {}).items():
         path = Path(rel); path.parent.mkdir(parents=True, exist_ok=True); path.write_text(text)
     result.write_text(json.dumps({"summary": "done"}))
+    if "routing_outcome" in knobs:  # what toolkit 0.5.0's bridge records beside the result
+        result.with_name(result.stem + ".routing.json").write_text(json.dumps({"outcome": knobs["routing_outcome"]}))
     sys.exit(knobs.get("agent_exit", 0))
     """
 )
@@ -442,6 +444,17 @@ class GateTests(unittest.TestCase):
     def test_agent_cannot_fake_an_uncharged_infrastructure_refusal(self) -> None:
         proc = self.run_gate(self.ticket([]), agent_exit=75)
         self.assertEqual(proc.returncode, 1)
+
+    def test_bridge_routing_refusal_is_reported_as_infrastructure(self) -> None:
+        # toolkit 0.5.0's bridge exits 2 on a refused model/effort and records it in its evidence
+        proc = self.run_gate(self.ticket([]), agent_exit=2, routing_outcome="routing_refused")
+        self.assertEqual(proc.returncode, 75)
+        self.assertEqual(self.evidence()["outcome"], "routing_refused")
+
+    def test_agent_error_with_ordinary_routing_evidence_stays_an_agent_failure(self) -> None:
+        proc = self.run_gate(self.ticket([]), agent_exit=2, routing_outcome="error")
+        self.assertEqual(proc.returncode, 2)
+        self.assertEqual(self.evidence()["outcome"], "agent_failed")
 
 
 class HostCheckTests(unittest.TestCase):
