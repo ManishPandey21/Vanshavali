@@ -325,3 +325,18 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   (approved, declined by either side, withdrawn, expired or lapsed). The row keeps only ids, the
   status and timestamps, so the notifications and audit events that point to it still resolve. It is
   deleted with the tree.
+
+## Proposed family-profile field extension — not implemented
+
+[ADR-0031](../architecture/adr/0031-family-profile-addresses-and-communications.md) proposes
+membership-controlled sensitive fields, separate coarse-location/full-address/history audiences,
+encrypted postal/contact values and protected revisions, and explicit channel-purpose consent.
+It does **not** assign ADR-0027's record-only audiences to people or change the current defaults
+documented above. The present application still admits legacy role-based readers.
+
+The proposal requires an explicit decision on narrowing existing fields to claimant/original
+contributor control (no administrator fallback), and on retaining a source privacy ceiling for
+independently editable address copies. No old audience is silently declared migrated. Its plan
+covers history, proposals, exports, search, reminders, claim transfer, removal/reinvite, erasure,
+old clients and rollback before enabling the new UI. Profile contact data never establishes
+verified account contact or consent to receive messages.

@@ -4,6 +4,19 @@ Status vocabulary: `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VERI
 tests exist **and pass**), `BLOCKED`, plus `DEFERRED` (intentionally postponed, with the phase named).
 Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements-traceability.md).
 
+## Family profile and communications programme (12 November 2026)
+
+**IN_PROGRESS — design only.** [Repository audit and reuse matrix](docs/architecture/family-profile-communications/audit.md),
+[proposed ADR-0031](docs/architecture/adr/0031-family-profile-addresses-and-communications.md),
+[UX and phased plan](docs/architecture/family-profile-communications/plan.md), and
+[acceptance matrix](docs/architecture/family-profile-communications/acceptance.md).
+Audited main: `b8c248b`; one migration head `a4d7e2c9b153`. Targeted baseline: 78 backend and
+17 frontend tests passed. This does not verify the proposed features. Product implementation
+awaits the ADR's two policy decisions; no migration, provider activation, merge or deployment.
+Open #74 already covers part of inline vital editing and must be coordinated with PR A.
+
+## Earlier milestone verification
+
 Last verified: 2026-10-02 (heritage visualization milestone, on top of the pilot deployment and
 operational validation; [docs/release/production-readiness.md](docs/release/production-readiness.md),
 [docs/release/pilot-go-live-checklist.md](docs/release/pilot-go-live-checklist.md)).

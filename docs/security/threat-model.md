@@ -215,3 +215,28 @@ SameSite=Lax cookies apply.
 - **clamd availability:** scanning fails closed (uploads rejected while clamd is down), which trades
   availability for safety.
 - **Watermarking of downloaded documents:** DEFERRED.
+
+## Proposed family-profile controls (ADR-0031; not implemented)
+
+These `FP-` identifiers are design threats, not completed mitigations. The audit checked open
+PR #67's T65 reservation; allocate permanent T numbers at implementation merge, after refreshing
+open branches. Existing T entries above are unchanged. See the
+[ADR](../architecture/adr/0031-family-profile-addresses-and-communications.md) and
+[acceptance matrix](../architecture/family-profile-communications/acceptance.md).
+
+| ID | Threat | Proposed control and required negative evidence |
+|---|---|---|
+| FP-PRIVACY | Promotion or broad person grant exposes private birth/contact/address fields | Central field policy without role bypass; membership-bound grants; promotion, removal/reinvite, orphan and claim-transfer tests |
+| FP-WRITE | General person-write permission overwrites hidden time/date/contact; whole-event PATCH clears redacted data | Field-scoped server write checks across direct, import, extraction and proposal paths; forged patch and stale revision tests |
+| FP-PLACE | Private street/hospital details escape through tree Place search, map, export or coarse city summary | Private encrypted payload outside searchable Place; allowlisted city projection; cross-surface leakage tests |
+| FP-COPY | Copying/linking/recent-address caches bypass source privacy or reveal hidden relatives | Source recheck at commit/read, retained copy-chain ceiling, filtered counts, revoke/erase tests |
+| FP-HISTORY | Migration, history, review patches, audit or rollback retain/re-expose plaintext | Encrypt sensitive revisions/proposals; audit names of fields only; verbatim migration equality check, restore and fail-closed downgrade tests |
+| FP-REMINDER | Edited date or withdrawn access leaves stale/duplicate queued messages | Transactional event-change invalidation, occurrence/generation check and recipient/consent recheck; both race orders tested with mock provider |
+| FP-ENDPOINT | A relative-entered number/username becomes a verified destination or an adult is silently subscribed | Separate profile methods, account endpoints and channel-purpose consent; no-send and forged-verification tests |
+| FP-INVITE | Forwarded claim link grants access, manual share reports false delivery, or previews leak family data | Existing consent/identity/admin approval boundaries; fragment tokens and generic sharing; no access before approval |
+| FP-GEO | Ambiguous PIN or unapproved snapshot creates false facts; stale lookup overwrites manual/historical data | Approved snapshots only, suggestion precision/provenance, stale-response and conflict tests; manual fallback |
+| FP-TENANT | Address/contact/source/branch IDs cross trees or bypass branch write scope | Composite FKs, tree RLS and centralized authorization; every new route covered by isolation tests |
+
+Residual: an authorized person can retain a screenshot or externally copied value; an already
+accepted external message cannot be recalled. In-app source revocation still applies immediately
+to subsequent reads and sends. Proposed field-controller recovery is not an admin permission.

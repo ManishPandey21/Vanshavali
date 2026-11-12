@@ -34,3 +34,4 @@ into 0003, 0009 and 0010.
 | 0027 | [Record visibility and selective sharing for family media and records](0027-record-visibility-and-selective-sharing.md) | Accepted (implementation in progress) |
 | 0029 | [Agent ticket factory (Infra Code Factory) for locally verified draft PRs](0029-agent-ticket-factory.md) | Proposed |
 | 0030 | [Factory changed-test gate inside the builder command](0030-factory-changed-test-gate.md) | Proposed |
+| 0031 | [Family profile fields, private addresses and communications](0031-family-profile-addresses-and-communications.md) | Proposed — design review; no product implementation |
