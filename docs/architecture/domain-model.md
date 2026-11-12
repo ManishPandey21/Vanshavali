@@ -183,3 +183,11 @@ erDiagram
   (father → brother …) that the UI renders in regional terms.
 - Closure tables or materialised paths are **DEFERRED** until load tests at 10k–100k people show
   the need.
+
+## Proposed family-profile extension (not part of the current schema)
+
+[ADR-0031](adr/0031-family-profile-addresses-and-communications.md) describes proposed field
+policies, person-address associations, immutable shared address versions and encrypted contact
+methods. Birth facts remain events and ancestral villages remain assertions linked to places.
+No table or migration in that proposal exists yet; update the canonical diagram and schema
+documentation only with the accepted implementation migrations.

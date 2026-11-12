@@ -204,7 +204,13 @@ def resolve_item(ctx: TreeContext, item: ProposalItemIn) -> Resolved:
 def _patch_json(body: BaseModel | None, op: ProposalOp) -> dict[str, Any]:
     if body is None:
         return {}
-    return body.model_dump(mode="json", exclude_unset=op == ProposalOp.UPDATE)
+    # A concurrency precondition is not a proposed family fact. Proposals bind their own
+    # base_revisions, so do not display or replay the form's transport-only revision field.
+    return body.model_dump(
+        mode="json",
+        exclude_unset=op == ProposalOp.UPDATE,
+        exclude={"expected_revision"} if isinstance(body, EventUpdate) else None,
+    )
 
 
 def _sources(ctx: TreeContext, ids: Iterable[uuid.UUID]) -> list[uuid.UUID]:
@@ -480,6 +486,7 @@ def _lock_and_check(ctx: TreeContext, items: list[ChangeProposalItem]) -> str | 
                 select(model)
                 .where(model.tree_id == ctx.tree_id, model.id == uuid.UUID(rid))
                 .with_for_update()
+                .execution_options(populate_existing=True)
             )
             if rec is None or getattr(rec, "deleted_at", None) is not None:
                 return f"A {tname} this change depends on no longer exists."

@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
-from app.authz.privacy import Subject
+from app.authz.privacy import Subject, require_birth_fields_visible
 from app.core import audit
 from app.core.dates import GenealogicalDate, date_to_json
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
@@ -437,6 +437,10 @@ def create_event(ctx: TreeContext, body: EventIn, **provenance: Any) -> Event:
     for p in body.participants:
         lookup.get_person(ctx, p.person_id)
         ctx.require(Permission.PERSON_WRITE, person_id=p.person_id)
+        if etype == EventType.BIRTH and not ctx.db.info.get(review_policy.APPLYING):
+            require_birth_fields_visible(
+                ctx, lookup.get_person_subject(ctx, p.person_id), set(body.model_fields_set)
+            )
     if etype in SINGLE_PREFERRED and len(principals) != 1:
         raise Unprocessable(f"A {etype.value} event has exactly one principal")
     e = Event(
@@ -510,10 +514,25 @@ def get_event_checked(ctx: TreeContext, event_id: uuid.UUID) -> tuple[Event, uui
 
 
 def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Event:
+    # Lock the anchor before reminder/delivery rows. Delivery takes the same lock before sending,
+    # so an accepted provider request is ordered either before or after this edit.
+    ctx.db.scalar(
+        select(Event)
+        .where(Event.tree_id == ctx.tree_id, Event.id == event_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
     e, principal = get_event_checked(ctx, event_id)
     ctx.require(Permission.PERSON_WRITE, person_id=principal)
+    reviewed = bool(ctx.db.info.get(review_policy.APPLYING))
+    # Accepted proposals have their own locked base revisions and a reviewer who can see
+    # every changed field. Preserve that legacy path, including explicitly rebased proposals.
+    if not reviewed and body.expected_revision is not None and body.expected_revision != e.revision:
+        raise Conflict("This event changed; reload it before saving", code="stale_revision")
     review_policy.require_direct(ctx, "all", [principal], [e])
-    fields = set(body.model_fields_set)
+    fields = set(body.model_fields_set) - {"expected_revision"}
+    if e.type == EventType.BIRTH and principal is not None and not reviewed:
+        require_birth_fields_visible(ctx, lookup.get_person_subject(ctx, principal), fields)
     core = fields & (_CORE_FIELDS | {"origin_place_id"})
     _apply_event_core(ctx, e, body, core)
     for f in fields - core - {"is_preferred"}:
@@ -532,6 +551,11 @@ def update_event(ctx: TreeContext, event_id: uuid.UUID, body: EventUpdate) -> Ev
 
         ctx.db.flush()
         enforce_event_ceiling(ctx, e.id)  # album photos narrow with their event (ADR-0027 §5.3)
+    if "date" in fields:
+        from app.modules.notifications.service import reschedule_event
+
+        ctx.db.flush()
+        reschedule_event(ctx, e.id)
     return e
 
 

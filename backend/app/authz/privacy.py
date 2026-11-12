@@ -332,5 +332,29 @@ def visible_field_groups(ctx: TreeContext, subject: Subject) -> set[str]:
     return {g for g in FieldGroup.ALL if can_view_field(ctx, subject, g)}
 
 
+def require_birth_fields_visible(ctx: TreeContext, subject: Subject, fields: set[str]) -> None:
+    """A general genealogy editor cannot overwrite a birth field hidden from them.
+
+    This adds a write ceiling without changing legacy audiences (ADR-0031 staged rollout).
+    Callers still require PERSON_WRITE and the normal review checks.
+    """
+    from app.core.errors import Forbidden
+
+    groups = {
+        FieldGroup.BIRTH_DATE_FULL: {"date"},
+        FieldGroup.BIRTH_TIME: {"time", "timezone_id", "utc_offset_minutes"},
+        FieldGroup.BIRTH_PLACE_DETAIL: {
+            "place_id",
+            "place_as_recorded",
+            "latitude",
+            "longitude",
+            "location_precision",
+        },
+    }
+    for group, keys in groups.items():
+        if fields & keys and not can_view_field(ctx, subject, group):
+            raise Forbidden("You cannot change a hidden birth field", code="field_hidden")
+
+
 def roles_can_manage_privacy(roles: frozenset[Role]) -> bool:
     return bool(roles & {Role.OWNER, Role.FAMILY_ADMIN})

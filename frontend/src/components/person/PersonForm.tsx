@@ -41,11 +41,11 @@ export interface VitalDraft {
   description: string;
 }
 
-export function emptyVital(withTz = true): VitalDraft {
+export function emptyVital(): VitalDraft {
   return {
     date: emptyDate(),
     time: { value: null, precision: "unknown", source: "unknown" },
-    timezone_id: withTz ? "Asia/Kolkata" : "",
+    timezone_id: "",
     place: emptyPlace(),
     description: "",
   };

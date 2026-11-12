@@ -30,6 +30,13 @@ describe("genealogical dates", () => {
 });
 
 describe("genealogical times", () => {
+  it("accepts optional recorded seconds and keeps them in the display", () => {
+    const time = { value: "04:12:34", precision: "approximate", source: "verbal" } as const;
+    expect(validateTime(time)).toBeNull();
+    expect(formatTime(time, t)).toContain("04:12:34");
+    expect(validateTime({ ...time, value: "04:12:60" })).toBe("time.err.format");
+    expect(validateTime({ ...time, value: "24:00:00" })).toBe("time.err.format");
+  });
   it("never labels an approximate time as exact", () => {
     for (const precision of ["approximate", "family_recollection", "document_recorded"] as const) {
       const text = formatTime({ value: "06:30", precision, source: "verbal" }, t)!;

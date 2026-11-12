@@ -42,6 +42,7 @@ from app.models import (
     NotificationDelivery,
     NotificationPreference,
     Tree,
+    TreeMembership,
     User,
 )
 from app.models.enums import (
@@ -224,7 +225,19 @@ def _check_channels(ctx: TreeContext, channels: list[NotificationChannel]) -> No
 
 
 def set_preferences(ctx: TreeContext, body: PreferenceIn) -> PreferenceOut:
-    user_id = _require_member(ctx)
+    user_id = _lock_schedule_owner(ctx)
+    # Creation uses the same owner lock, so this event snapshot cannot miss a new subscription.
+    _lock_events(
+        ctx,
+        list(
+            ctx.db.scalars(
+                select(EventReminder.event_id).where(
+                    EventReminder.tree_id == ctx.tree_id,
+                    EventReminder.user_id == user_id,
+                )
+            )
+        ),
+    )
     if body.enabled:
         _check_channels(ctx, body.channels)
     p = _pref(ctx)
@@ -250,6 +263,37 @@ def set_preferences(ctx: TreeContext, body: PreferenceIn) -> PreferenceOut:
 
 
 # ---------------------------------------------------------------- reminders
+def _lock_schedule_owner(ctx: TreeContext) -> uuid.UUID:
+    user_id = _require_member(ctx)
+    membership = ctx.db.scalar(
+        select(TreeMembership.id)
+        .where(
+            TreeMembership.tree_id == ctx.tree_id,
+            TreeMembership.user_id == user_id,
+        )
+        .with_for_update()
+    )
+    if membership is None:
+        raise NotFound("Tree not found")
+    return user_id
+
+
+def _lock_events(ctx: TreeContext, event_ids: list[uuid.UUID]) -> None:
+    # All schedule writers acquire anchors before touching reminders; refresh any cached date.
+    list(
+        ctx.db.scalars(
+            select(Event)
+            .where(
+                Event.tree_id == ctx.tree_id,
+                Event.id.in_(event_ids),
+            )
+            .order_by(Event.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    )
+
+
 def _visible_event(ctx: TreeContext, event_id: uuid.UUID) -> EventOut:
     from app.modules.lifeevents.service import serialize_events
 
@@ -300,6 +344,81 @@ def _reschedule_all(ctx: TreeContext, pref: NotificationPreference) -> None:
         _compute_next(r, pref, anchor, max(_now(), r.last_fired_at or _now()))
 
 
+def reschedule_event(ctx: TreeContext, event_id: uuid.UUID) -> None:
+    """Recompute after a committed-to-this-transaction date edit, never as the editor's audience.
+
+    The caller holds the event row lock and has flushed its date. Keep the actor identity intact:
+    loading each recipient's context must not attribute the genealogy revision to a subscriber.
+    """
+    now = _now()
+    window_start = now - dt.timedelta(hours=get_settings().reminder_grace_hours)
+    valid_schedules: dict[uuid.UUID, tuple[EventReminder, NotificationPreference, schedule.AnyAnchor]] = {}
+    actor = ctx.db.info.get("actor_id")
+    try:
+        reminders = list(
+            ctx.db.scalars(
+                select(EventReminder)
+                .where(EventReminder.tree_id == ctx.tree_id, EventReminder.event_id == event_id)
+                .order_by(EventReminder.id)
+                .with_for_update()
+            )
+        )
+        for r in reminders:
+            r.next_fire_at = None
+            user = ctx.db.get(User, r.user_id)
+            if not r.active or user is None or not user.is_active:
+                continue
+            try:
+                recipient = load_tree_context(ctx.db, ctx.tree_id, user)
+                pref = _pref(recipient)
+                if pref is None or not pref.enabled:
+                    continue
+                anchor = _anchor(_visible_event(recipient, event_id), r.recurrence, r)
+                valid_schedules[r.id] = (r, pref, anchor)
+                # Reconsider the normal grace window after edits, including a date changed back
+                # after its send hour. Delivery identity still prevents repeating an attempted send.
+                _compute_next(r, pref, anchor, window_start)
+                r.last_fired_at = window_start
+            except (NotFound, Unprocessable):
+                continue
+        for delivery in ctx.db.scalars(
+            select(NotificationDelivery)
+            .where(
+                NotificationDelivery.tree_id == ctx.tree_id,
+                NotificationDelivery.event_id == event_id,
+                NotificationDelivery.status.in_([DeliveryStatus.PENDING, DeliveryStatus.RETRYING]),
+            )
+            .order_by(NotificationDelivery.id)
+            .with_for_update()
+        ):
+            current = valid_schedules.get(delivery.reminder_id) if delivery.reminder_id else None
+            if current is None or not _delivery_matches(delivery, *current):
+                _cancel(delivery, "event_date_changed")
+    finally:
+        ctx.db.info["actor_id"] = actor
+
+
+def _delivery_matches(
+    delivery: NotificationDelivery,
+    reminder: EventReminder,
+    pref: NotificationPreference,
+    anchor: schedule.AnyAnchor,
+) -> bool:
+    return any(
+        f.occurrence == delivery.occurrence_date
+        and f.lead_days == delivery.lead_days
+        and f.at == delivery.scheduled_for
+        for f in schedule.fires(
+            anchor,
+            reminder.recurrence,
+            reminder.lead_days,
+            pref.send_hour,
+            pref.timezone,
+            delivery.scheduled_for,
+        )
+    )
+
+
 def _get_reminder(ctx: TreeContext, reminder_id: uuid.UUID) -> EventReminder:
     r = ctx.db.scalar(
         select(EventReminder).where(
@@ -314,7 +433,8 @@ def _get_reminder(ctx: TreeContext, reminder_id: uuid.UUID) -> EventReminder:
 
 
 def create_reminder(ctx: TreeContext, body: ReminderIn) -> EventReminder:
-    user_id = _require_member(ctx)
+    user_id = _lock_schedule_owner(ctx)
+    _lock_events(ctx, [body.event_id])
     eo = _visible_event(ctx, body.event_id)
     kind = body.kind or KIND_FOR_TYPE.get(eo.type, ReminderKind.ONE_TIME)
     recurrence = body.recurrence or (
@@ -390,8 +510,10 @@ def create_reminder(ctx: TreeContext, body: ReminderIn) -> EventReminder:
 
 
 def update_reminder(ctx: TreeContext, reminder_id: uuid.UUID, body: ReminderUpdate) -> EventReminder:
-    _require_member(ctx)
+    _lock_schedule_owner(ctx)
     r = _get_reminder(ctx, reminder_id)
+    _lock_events(ctx, [r.event_id])
+    ctx.db.refresh(r)
     if body.channels is not None:
         _check_channels(ctx, body.channels)
         r.channels = [c.value for c in body.channels]
@@ -700,11 +822,26 @@ def tick(now: dt.datetime | None = None) -> TickResult:
         created: list[NotificationDelivery] = []
         with maker() as db:
             bind_tree(db, tree_id)
+            # Same order as genealogy edits and delivery: anchor first, then dependent rows.
+            due_event_ids = select(EventReminder.event_id).where(
+                EventReminder.tree_id == tree_id,
+                EventReminder.active.is_(True),
+                EventReminder.next_fire_at <= now,
+            )
+            locked_events = list(
+                db.scalars(
+                    select(Event.id)
+                    .where(Event.tree_id == tree_id, Event.id.in_(due_event_ids))
+                    .order_by(Event.id)
+                    .with_for_update(skip_locked=True)
+                )
+            )
             due = list(
                 db.scalars(
                     select(EventReminder)
                     .where(
                         EventReminder.tree_id == tree_id,
+                        EventReminder.event_id.in_(locked_events),
                         EventReminder.active.is_(True),
                         EventReminder.next_fire_at.is_not(None),
                         EventReminder.next_fire_at <= now,
@@ -739,7 +876,7 @@ def tick(now: dt.datetime | None = None) -> TickResult:
                 ):
                     for c in r.channels:
                         exists = db.scalar(
-                            select(NotificationDelivery.id).where(
+                            select(NotificationDelivery).where(
                                 NotificationDelivery.tree_id == tree_id,
                                 NotificationDelivery.reminder_id == r.id,
                                 NotificationDelivery.channel == c,
@@ -748,6 +885,18 @@ def tick(now: dt.datetime | None = None) -> TickResult:
                             )
                         )
                         if exists is not None:
+                            # An unsent occurrence invalidated by an edit can become valid again.
+                            # Never re-arm anything that reached a provider (even an ambiguous failure).
+                            if (
+                                exists.status == DeliveryStatus.CANCELLED
+                                and exists.cancelled_reason == "event_date_changed"
+                                and exists.attempts == 0
+                                and pref.enabled
+                            ):
+                                exists.status = DeliveryStatus.PENDING
+                                exists.cancelled_reason = None
+                                exists.scheduled_for = f.at
+                                created.append(exists)
                             continue
                         d = NotificationDelivery(
                             tree_id=tree_id,
@@ -807,6 +956,17 @@ def deliver(delivery_id: str, tree_id: str) -> str:
     maker = get_sessionmaker()
     with maker() as db:
         bind_tree(db, tree_id)
+        anchor_id = (
+            select(NotificationDelivery.event_id)
+            .where(
+                NotificationDelivery.tree_id == uuid.UUID(tree_id),
+                NotificationDelivery.id == uuid.UUID(delivery_id),
+            )
+            .scalar_subquery()
+        )
+        db.scalar(
+            select(Event).where(Event.tree_id == uuid.UUID(tree_id), Event.id == anchor_id).with_for_update()
+        )
         d = db.scalar(
             select(NotificationDelivery)
             .where(
@@ -853,10 +1013,13 @@ def _attempt(db: Session, d: NotificationDelivery) -> str:
     recurrence = reminder.recurrence if reminder else ReminderRecurrence.ANNUAL
     if not d.is_test:
         try:
-            _anchor_raw(eo.date, recurrence, reminder)
+            anchor = _anchor_raw(eo.date, recurrence, reminder)
         except schedule.NotSchedulable as exc:
             # the date became hidden, or a lunar convention is no longer offered
             _cancel(d, "date_hidden" if exc.code in ("date_hidden", "date_incomplete") else exc.code)
+            return d.status.value
+        if reminder is None or pref is None or not _delivery_matches(d, reminder, pref, anchor):
+            _cancel(d, "event_date_changed")
             return d.status.value
     try:
         msg = _compose(db, ctx, user, d, eo, kind, reminder)

@@ -52,6 +52,7 @@ interface Draft {
   date: GenealogicalDate;
   time: GenealogicalTime;
   timezone_id: string;
+  utc_offset_minutes: string;
   place: PlaceValue;
   origin: PlaceValue;
   reason: string;
@@ -78,6 +79,7 @@ function fromEvent(e: EventOut): Draft {
     date: (e.date as GenealogicalDate | null) ?? emptyDate(),
     time: (e.time as GenealogicalTime | null) ?? { value: null, precision: "unknown", source: "unknown" },
     timezone_id: e.timezone_id ?? "",
+    utc_offset_minutes: e.utc_offset_minutes == null ? "" : String(e.utc_offset_minutes),
     place: { place_id: e.place_id ?? null, place_label: e.place_name ?? null, place_as_recorded: e.place_as_recorded ?? "" },
     origin: { place_id: e.origin_place_id ?? null, place_label: e.origin_place_name ?? null, place_as_recorded: e.origin_place_as_recorded ?? "" },
     reason: e.reason ?? "",
@@ -101,7 +103,8 @@ function emptyDraft(type: EventType): Draft {
     subtype: "",
     date: emptyDate(),
     time: { value: null, precision: "unknown", source: "unknown" },
-    timezone_id: type === "birth" ? "Asia/Kolkata" : "",
+    timezone_id: "",
+    utc_offset_minutes: "",
     place: emptyPlace(),
     origin: emptyPlace(),
     reason: "",
@@ -126,12 +129,14 @@ export function EventDialog({
   onClose,
   initialType = "residence",
   initialCategory,
+  birthField,
 }: {
   personId: string;
   event: EventOut | null;
   onClose: () => void;
   initialType?: EventType;
   initialCategory?: LifeEventCategory;
+  birthField?: "date" | "time" | "place";
 }) {
   const { t } = useTranslation();
   const { treeId } = useTreeCtx();
@@ -143,24 +148,29 @@ export function EventDialog({
     return initialCategory ? { ...draft, category: initialCategory, significance: "important" } : draft;
   });
   const [submitted, setSubmitted] = useState(false);
+  // Bind the revision to the draft, not a background-refetched event prop. Otherwise a
+  // newer revision could authorize this form's older values to overwrite a concurrent edit.
+  const [expectedRevision] = useState(event?.revision);
   const redacted = new Set(event?.redacted_fields ?? []);
-  const dateLocked = redacted.has("birth_date_full") || redacted.has("event_date_full");
-  const timeLocked = redacted.has("birth_time");
-  const placeLocked = redacted.has("birth_place_detail") || redacted.has("address");
+  const dateLocked = redacted.has("birth_date_full") || redacted.has("event_date_full") || (!!birthField && birthField !== "date");
+  const timeLocked = redacted.has("birth_time") || (!!birthField && birthField !== "time");
+  const placeLocked = redacted.has("birth_place_detail") || redacted.has("address") || (!!birthField && birthField !== "place");
   const withTime = d.type === "birth";
   const set = (patch: Partial<Draft>) => setD({ ...d, ...patch });
-  const dateErrs = hasDate(d.date) ? validateDate(d.date) : {};
-  const timeErr = withTime && (d.time.value || d.time.precision !== "unknown") ? validateTime(d.time) : null;
+  const dateErrs = !dateLocked && hasDate(d.date) ? validateDate(d.date) : {};
+  const timeErr = withTime && !timeLocked && (d.time.value || d.time.precision !== "unknown") ? validateTime(d.time) : null;
   const mutation = event ? update : create;
   const lat = parseCoordinate(d.latitude, "lat");
   const lng = parseCoordinate(d.longitude, "lng");
-  const coordErr = lat === "invalid" || lng === "invalid" ? "geo.latError" : (lat === null) !== (lng === null) ? "geo.pairError" : null;
+  const coordErr = placeLocked ? null : lat === "invalid" || lng === "invalid" ? "geo.latError" : (lat === null) !== (lng === null) ? "geo.pairError" : null;
+  const offset = d.utc_offset_minutes.trim() === "" ? null : Number(d.utc_offset_minutes);
+  const offsetError = !timeLocked && offset !== null && (!Number.isInteger(offset) || Math.abs(offset) > 840);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (Object.keys(dateErrs).length || timeErr || coordErr) return;
-    const common: Record<string, unknown> = {
+    if (Object.keys(dateErrs).length || timeErr || coordErr || offsetError) return;
+    const common: Record<string, unknown> = birthField ? {} : {
       category: d.category || null,
       title: d.title.trim() || null,
       significance: d.significance,
@@ -175,6 +185,7 @@ export function EventDialog({
     if (withTime && !timeLocked) {
       common.time = d.time.value ? { value: d.time.value, precision: d.time.precision, source: d.time.source } : null;
       common.timezone_id = d.time.value && d.timezone_id ? d.timezone_id : null;
+      common.utc_offset_minutes = d.time.value ? offset : null;
     }
     if (!placeLocked) {
       common.place_id = d.place.place_id;
@@ -188,6 +199,7 @@ export function EventDialog({
       common.origin_place_as_recorded = d.origin.place_as_recorded.trim() || null;
     }
     if (event) {
+      common.expected_revision = expectedRevision;
       update.mutate({ id: event.id, body: common }, { onSuccess: onClose });
     } else {
       const participants: EventIn["participants"] = [{ person_id: personId, role: "principal" }];
@@ -203,7 +215,7 @@ export function EventDialog({
       open
       onClose={onClose}
       size="lg"
-      title={event ? t("events.editTitle", { type: event.title || t(`enum.eventType.${event.type}`) }) : t("events.addTitle")}
+      title={birthField ? t(`person.birthEdit.${birthField}`) : event ? t("events.editTitle", { type: event.title || t(`enum.eventType.${event.type}`) }) : t("events.addTitle")}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
@@ -216,7 +228,7 @@ export function EventDialog({
       }
     >
       <form id="event-form" onSubmit={submit} noValidate className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {!birthField && <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("lifeEvents.category")} hint={t("lifeEvents.categoryHint")}>
             {(p) => (
               <Select
@@ -257,8 +269,8 @@ export function EventDialog({
           <Field label={t("events.subtype")} hint={t("events.subtypeHint")}>
             {(p) => <TextInput {...p} value={d.subtype} onChange={(e) => set({ subtype: e.target.value })} />}
           </Field>
-        </div>
-        {(dateLocked || timeLocked || placeLocked) && <RedactionNoticeBlock text={t("events.someHidden")} />}
+        </div>}
+        {redacted.size > 0 && <RedactionNoticeBlock text={t("events.someHidden")} />}
         {!dateLocked && <GenealogicalDateEditor legend={t("events.date")} value={d.date} onChange={(date) => set({ date })} showErrors={submitted && hasDate(d.date)} />}
         {withTime && !timeLocked && (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -266,6 +278,9 @@ export function EventDialog({
               <TimeEditor legend={t("person.form.birthTime")} value={d.time} onChange={(time) => set({ time })} showErrors={submitted} />
             </div>
             <TimezoneSelect value={d.timezone_id} onChange={(timezone_id) => set({ timezone_id })} />
+            <Field label={t("time.utcOffset")} hint={t("time.utcOffsetHint")} error={submitted && offsetError ? t("time.utcOffsetError") : null}>
+              {(p) => <TextInput {...p} inputMode="numeric" value={d.utc_offset_minutes} onChange={(e) => set({ utc_offset_minutes: e.target.value })} />}
+            </Field>
           </div>
         )}
         {d.type === "migration" && <PlacePicker treeId={treeId} label={t("events.origin")} value={d.origin} onChange={(origin) => set({ origin })} />}
@@ -301,6 +316,7 @@ export function EventDialog({
             </div>
           </details>
         )}
+        {!birthField && <>
         <Field label={t("events.description")}>{(p) => <TextArea {...p} rows={2} value={d.description} onChange={(e) => set({ description: e.target.value })} />}</Field>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("lifeEvents.significance")}>
@@ -342,6 +358,7 @@ export function EventDialog({
             <Checkbox label={t("events.preferred")} hint={t("events.preferredHint")} checked={d.is_preferred} onChange={(is_preferred) => set({ is_preferred })} />
           </div>
         </div>
+        </>}
         <ErrorAlert error={mutation.error} />
       </form>
     </Dialog>

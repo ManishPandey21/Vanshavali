@@ -338,3 +338,26 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   the console is switched off. It never reveals who else holds one.
 - **Session data.** `user_session` records when the session was opened with TOTP and when the last
   step-up happened. Both are timestamps only, deleted with the session.
+
+## Family-profile staged rollout (ADR-0031)
+
+[ADR-0031](../architecture/adr/0031-family-profile-addresses-and-communications.md) is accepted
+for phased development. Existing legacy readers, including authorized administrators, retain
+access until an explicit, previewed field conversion. New strict field policies, encrypted postal
+and contact records and membership-bound grants are not implemented by the birth-editing slice.
+No old audience is silently declared migrated.
+
+Direct birth-event edits require person-write permission **and** visibility of each submitted
+birth field group. Date, time/zone/offset and birthplace have separate checks; omitted hidden fields
+remain untouched. A contributor may still propose a change for approval by an authorized reviewer
+who can see every changed field (ADR-0021); proposal base revisions remain authoritative. Optional
+client event revisions reject stale direct saves. Imported claims and extraction retain their
+existing workflows; this slice does not claim a complete field-controller migration.
+
+A date edit recomputes existing personal reminders as each recipient and cancels queued old-date
+deliveries in the same transaction. Event-row locks order edits and sends; a send already accepted
+before an edit cannot be recalled. No edit creates a subscription or channel consent.
+
+Future address copies retain their source ceiling unless the source owner explicitly consents to
+independent sharing, with version, recipient, audience and purpose bound to the consent. This does
+not override erasure. Profile contacts never establish verified account contact or messaging consent.

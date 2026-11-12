@@ -148,6 +148,7 @@ class Serializer:
         places = self.places({ev.place_id, ev.origin_place_id})
         data: dict[str, Any] = {
             "id": ev.id,
+            "revision": ev.revision,
             "type": ev.type,
             "subtype": ev.subtype,
             "date": ev.date,
