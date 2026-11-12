@@ -32,6 +32,7 @@ from app.modules.platform.router import router as platform_router
 from app.modules.profile_details.router import router as profile_details_router
 from app.modules.property.router import router as property_router
 from app.modules.public.router import router as public_router
+from app.modules.public.site_impact import router as site_impact_router
 from app.modules.render.router import files_router as render_files_router
 from app.modules.render.router import router as render_router
 from app.modules.review.router import router as review_router
@@ -62,6 +63,7 @@ api_router.include_router(visualization_router)
 api_router.include_router(render_router)
 api_router.include_router(render_files_router)
 api_router.include_router(public_router)
+api_router.include_router(site_impact_router)
 api_router.include_router(evidence_router)
 api_router.include_router(heritage_router)
 api_router.include_router(traditions_router)
