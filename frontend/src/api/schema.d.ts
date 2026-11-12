@@ -3938,6 +3938,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/family-addresses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Family Addresses */
+        get: operations["list_family_addresses_api_v1_trees__tree_id__family_addresses_get"];
+        put?: never;
+        /** Create Family Address */
+        post: operations["create_family_address_api_v1_trees__tree_id__family_addresses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["list_sources_api_v1_trees__tree_id__family_addresses_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Family Address */
+        get: operations["get_family_address_api_v1_trees__tree_id__family_addresses__family_address_id__get"];
+        put?: never;
+        post?: never;
+        /** Retire Family Address */
+        delete: operations["retire_family_address_api_v1_trees__tree_id__family_addresses__family_address_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Family Address Version */
+        post: operations["create_family_address_version_api_v1_trees__tree_id__family_addresses__family_address_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/affected": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Affected Addresses */
+        get: operations["affected_addresses_api_v1_trees__tree_id__family_addresses__family_address_id__affected_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/release-consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Consent To Release */
+        post: operations["consent_to_release_api_v1_trees__tree_id__family_addresses__family_address_id__release_consents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/release-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview Release */
+        post: operations["preview_release_api_v1_trees__tree_id__family_addresses__family_address_id__release_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/release-consents/{consent_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Withdraw Release Consent */
+        delete: operations["withdraw_release_consent_api_v1_trees__tree_id__family_addresses_release_consents__consent_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/activate-sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate Sharing */
+        post: operations["activate_sharing_api_v1_trees__tree_id__family_addresses__family_address_id__activate_sharing_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Family Address Grants */
+        get: operations["list_family_address_grants_api_v1_trees__tree_id__family_addresses__family_address_id__grants_get"];
+        put?: never;
+        /** Grant Family Address Access */
+        post: operations["grant_family_address_access_api_v1_trees__tree_id__family_addresses__family_address_id__grants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/grants/{grant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Family Address Access */
+        delete: operations["revoke_family_address_access_api_v1_trees__tree_id__family_addresses__family_address_id__grants__grant_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/addresses/reuse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reuse Address */
+        post: operations["reuse_address_api_v1_trees__tree_id__people__person_id__addresses_reuse_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}/adopt-family-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adopt Family Version */
+        post: operations["adopt_family_version_api_v1_trees__tree_id__people__person_id__addresses__address_id__adopt_family_version_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/documents": {
         parameters: {
             query?: never;
@@ -4429,6 +4653,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivateSharingIn */
+        ActivateSharingIn: {
+            /** Revision */
+            revision: number;
+            /**
+             * Consent Id
+             * Format: uuid
+             */
+            consent_id: string;
+        };
         /** AddressIn */
         AddressIn: {
             /** Building */
@@ -4527,6 +4761,15 @@ export interface components {
             revision: number;
             /** Source */
             source: string;
+            reuse_mode?: components["schemas"]["AddressReuseMode"] | null;
+            /** Family Address Id */
+            family_address_id?: string | null;
+            /** Family Address Version */
+            family_address_version?: number | null;
+            /** Family Update Available */
+            family_update_available?: number | null;
+            /** Ancestral Assertion Id */
+            ancestral_assertion_id?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -4543,6 +4786,38 @@ export interface components {
          * @enum {string}
          */
         AddressPurpose: "unknown" | "current_residence" | "permanent" | "previous_residence" | "ancestral_home" | "native_place" | "correspondence" | "other";
+        /** AddressReuseIn */
+        AddressReuseIn: {
+            /**
+             * Source Kind
+             * @enum {string}
+             */
+            source_kind: "family_address" | "ancestral_assertion" | "my_address";
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Source Version */
+            source_version?: number | null;
+            mode: components["schemas"]["AddressReuseMode"];
+            purpose: components["schemas"]["AddressPurpose"];
+            status: components["schemas"]["AddressStatus"];
+            /**
+             * Is Primary Current
+             * @default false
+             */
+            is_primary_current?: boolean;
+            valid_from?: components["schemas"]["GenealogicalDate"] | null;
+            valid_until?: components["schemas"]["GenealogicalDate"] | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /**
+         * AddressReuseMode
+         * @enum {string}
+         */
+        AddressReuseMode: "link" | "copy";
         /**
          * AddressStatus
          * @enum {string}
@@ -4588,6 +4863,30 @@ export interface components {
             postal_code?: string | null;
             valid_from?: components["schemas"]["GenealogicalDate"] | null;
             valid_until?: components["schemas"]["GenealogicalDate"] | null;
+        };
+        /** AdoptFamilyAddressVersionIn */
+        AdoptFamilyAddressVersionIn: {
+            /** Revision */
+            revision: number;
+            /** Version */
+            version: number;
+        };
+        /** AffectedAddressOut */
+        AffectedAddressOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Person Name */
+            person_name: string;
+            /**
+             * Address Id
+             * Format: uuid
+             */
+            address_id: string;
+            /** Pinned Version */
+            pinned_version: number;
         };
         /**
          * AgeOrderOut
@@ -6805,6 +7104,164 @@ export interface components {
          * @enum {string}
          */
         EvidenceStatus: "USER_ASSERTION" | "FAMILY_RECOLLECTION" | "SOURCED" | "CORROBORATED" | "DISPUTED" | "SUPERSEDED" | "DISPROVEN";
+        /** FamilyAddressCreateIn */
+        FamilyAddressCreateIn: {
+            /** Label */
+            label: string;
+            /** @default TREE_MEMBERS */
+            privacy_level?: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** Household Id */
+            household_id?: string | null;
+            /** Property Id */
+            property_id?: string | null;
+            /** Ancestral Assertion Id */
+            ancestral_assertion_id?: string | null;
+            /** Source Person Id */
+            source_person_id?: string | null;
+            /** Source Person Address Id */
+            source_person_address_id?: string | null;
+            snapshot?: components["schemas"]["FamilyAddressSnapshot"] | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** FamilyAddressGrantIn */
+        FamilyAddressGrantIn: {
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /** FamilyAddressGrantOut */
+        FamilyAddressGrantOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Granted At
+             * Format: date-time
+             */
+            granted_at: string;
+        };
+        /** FamilyAddressOut */
+        FamilyAddressOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            privacy_level: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id: string | null;
+            /** Branch Id */
+            branch_id: string | null;
+            /** Household Id */
+            household_id: string | null;
+            /** Property Id */
+            property_id: string | null;
+            /** Place Id */
+            place_id: string | null;
+            /** Ancestral Assertion Id */
+            ancestral_assertion_id: string | null;
+            /** Current Version */
+            current_version: number;
+            /** Revision */
+            revision: number;
+            /** Sharing Released */
+            sharing_released: boolean;
+            snapshot: components["schemas"]["FamilyAddressSnapshot"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** FamilyAddressSnapshot */
+        FamilyAddressSnapshot: {
+            /** Building */
+            building?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Landmark */
+            landmark?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** As Recorded */
+            as_recorded?: string | null;
+            /** Gram Panchayat */
+            gram_panchayat?: string | null;
+            /** Post Office */
+            post_office?: string | null;
+            /** Place Id */
+            place_id?: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** Sub District */
+            sub_district?: string | null;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country Code */
+            country_code?: string | null;
+            /** Postal Code */
+            postal_code?: string | null;
+        };
+        /** FamilyAddressSourceOut */
+        FamilyAddressSourceOut: {
+            /**
+             * Source Kind
+             * @enum {string}
+             */
+            source_kind: "family_address" | "ancestral_assertion" | "my_address";
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Version */
+            version?: number | null;
+            /** Label */
+            label: string;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "Recent" | "Family" | "Branch" | "Ancestral" | "My addresses";
+            snapshot: components["schemas"]["FamilyAddressSnapshot"];
+            /** Link Allowed */
+            link_allowed: boolean;
+        };
+        /** FamilyAddressVersionIn */
+        FamilyAddressVersionIn: {
+            /** Revision */
+            revision: number;
+            /** Reason */
+            reason: string;
+            snapshot: components["schemas"]["FamilyAddressSnapshot"];
+        };
         /** FamilyOut */
         FamilyOut: {
             person: components["schemas"]["PersonSummary"];
@@ -7116,7 +7573,7 @@ export interface components {
          * GrantResource
          * @enum {string}
          */
-        GrantResource: "person" | "document" | "property" | "tradition" | "collection";
+        GrantResource: "person" | "document" | "property" | "tradition" | "collection" | "family_address";
         /** GraphEdge */
         GraphEdge: {
             /** Source */
@@ -8689,6 +9146,13 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** Page[AffectedAddressOut] */
+        Page_AffectedAddressOut_: {
+            /** Items */
+            items: components["schemas"]["AffectedAddressOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[AuditEventOut] */
         Page_AuditEventOut_: {
             /** Items */
@@ -8721,6 +9185,27 @@ export interface components {
         Page_EventOut_: {
             /** Items */
             items: components["schemas"]["EventOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[FamilyAddressGrantOut] */
+        Page_FamilyAddressGrantOut_: {
+            /** Items */
+            items: components["schemas"]["FamilyAddressGrantOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[FamilyAddressOut] */
+        Page_FamilyAddressOut_: {
+            /** Items */
+            items: components["schemas"]["FamilyAddressOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[FamilyAddressSourceOut] */
+        Page_FamilyAddressSourceOut_: {
+            /** Items */
+            items: components["schemas"]["FamilyAddressSourceOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -10516,6 +11001,72 @@ export interface components {
             /** Relationships */
             relationships: components["schemas"]["RelationshipOut"][];
         };
+        /** ReleaseConsentIn */
+        ReleaseConsentIn: {
+            /** Source Version */
+            source_version: number;
+            /**
+             * Destination Family Address Id
+             * Format: uuid
+             */
+            destination_family_address_id: string;
+            permitted_privacy_level: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id?: string | null;
+            /** Purpose */
+            purpose: string;
+            /** Notice Version */
+            notice_version: string;
+        };
+        /** ReleaseConsentOut */
+        ReleaseConsentOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Source Version Id
+             * Format: uuid
+             */
+            source_version_id: string;
+            /**
+             * Destination Family Address Id
+             * Format: uuid
+             */
+            destination_family_address_id: string;
+            permitted_privacy_level: components["schemas"]["RecordPrivacyLevel"];
+            /** Audience Branch Id */
+            audience_branch_id: string | null;
+            /** Purpose */
+            purpose: string;
+            /** Notice Version */
+            notice_version: string;
+            /**
+             * Granted At
+             * Format: date-time
+             */
+            granted_at: string;
+            /** Withdrawn At */
+            withdrawn_at: string | null;
+        };
+        /** ReleasePreviewOut */
+        ReleasePreviewOut: {
+            /** Additional Readers */
+            additional_readers: components["schemas"]["ReleaseReaderOut"][];
+            /** Required Controller Membership Ids */
+            required_controller_membership_ids: string[];
+        };
+        /** ReleaseReaderOut */
+        ReleaseReaderOut: {
+            /**
+             * Membership Id
+             * Format: uuid
+             */
+            membership_id: string;
+            /** Display Name */
+            display_name: string;
+        };
         /**
          * ReminderDateRule
          * @description Which date drives a reminder (ADR-0022 §5): the Gregorian day, or the tithi.
@@ -11179,6 +11730,38 @@ export interface components {
             /** Kind */
             kind: string;
         };
+        /** SmartAddAncestralVillageIn */
+        SmartAddAncestralVillageIn: {
+            /**
+             * Choice
+             * @default unknown
+             * @enum {string}
+             */
+            choice?: "unknown" | "recorded" | "new";
+            /** Assertion Id */
+            assertion_id?: string | null;
+            /** Value Text */
+            value_text?: string | null;
+            /** Place Id */
+            place_id?: string | null;
+        };
+        /** SmartAddAncestralVillageOut */
+        SmartAddAncestralVillageOut: {
+            /**
+             * Assertion Id
+             * Format: uuid
+             */
+            assertion_id: string;
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Label */
+            label: string;
+            /** Place Id */
+            place_id?: string | null;
+        };
         /** SmartAddCommitIn */
         SmartAddCommitIn: {
             /** Term */
@@ -11198,6 +11781,12 @@ export interface components {
             provisional_sex_at_birth?: (components["schemas"]["SexAtBirth"] | null)[];
             /** Relative Age */
             relative_age?: ("elder" | "younger") | null;
+            /**
+             * @default {
+             *       "choice": "unknown"
+             *     }
+             */
+            ancestral_village?: components["schemas"]["SmartAddAncestralVillageIn"];
         };
         /** SmartAddCommitOut */
         SmartAddCommitOut: {
@@ -11255,6 +11844,11 @@ export interface components {
              * @default []
              */
             preview?: components["schemas"]["SmartAddPreviewItem"][];
+            /**
+             * Ancestral Villages
+             * @default []
+             */
+            ancestral_villages?: components["schemas"]["SmartAddAncestralVillageOut"][];
         };
         /** SmartAddPreviewItem */
         SmartAddPreviewItem: {
@@ -22161,6 +22755,565 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_RevisionSnapshot_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_family_addresses_api_v1_trees__tree_id__family_addresses_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_FamilyAddressOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_family_address_api_v1_trees__tree_id__family_addresses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyAddressCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyAddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sources_api_v1_trees__tree_id__family_addresses_sources_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_FamilyAddressSourceOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_family_address_api_v1_trees__tree_id__family_addresses__family_address_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyAddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retire_family_address_api_v1_trees__tree_id__family_addresses__family_address_id__delete: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_family_address_version_api_v1_trees__tree_id__family_addresses__family_address_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyAddressVersionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyAddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    affected_addresses_api_v1_trees__tree_id__family_addresses__family_address_id__affected_get: {
+        parameters: {
+            query: {
+                target_version: number;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AffectedAddressOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    consent_to_release_api_v1_trees__tree_id__family_addresses__family_address_id__release_consents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseConsentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseConsentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_release_api_v1_trees__tree_id__family_addresses__family_address_id__release_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseConsentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleasePreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_release_consent_api_v1_trees__tree_id__family_addresses_release_consents__consent_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                consent_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_sharing_api_v1_trees__tree_id__family_addresses__family_address_id__activate_sharing_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivateSharingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyAddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_family_address_grants_api_v1_trees__tree_id__family_addresses__family_address_id__grants_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_FamilyAddressGrantOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grant_family_address_access_api_v1_trees__tree_id__family_addresses__family_address_id__grants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyAddressGrantIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyAddressGrantOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_family_address_access_api_v1_trees__tree_id__family_addresses__family_address_id__grants__grant_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_address_id: string;
+                grant_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reuse_address_api_v1_trees__tree_id__people__person_id__addresses_reuse_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressReuseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    adopt_family_version_api_v1_trees__tree_id__people__person_id__addresses__address_id__adopt_family_version_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdoptFamilyAddressVersionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressOut"];
                 };
             };
             /** @description Validation Error */

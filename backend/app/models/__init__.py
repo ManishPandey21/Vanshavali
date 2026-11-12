@@ -17,6 +17,13 @@ from app.models.documents import (
 )
 from app.models.evidence import Citation, Source
 from app.models.family import BranchMembership, FamilyBranch, Household, HouseholdMembership
+from app.models.family_addresses import (
+    FamilyAddress,
+    FamilyAddressReleaseConsent,
+    FamilyAddressVersion,
+    FamilyAddressVersionAncestor,
+    FamilyAddressVersionSource,
+)
 from app.models.genealogy import (
     Event,
     EventParticipant,
@@ -90,6 +97,11 @@ __all__ = [
     "ExportJob",
     "ExternalIdentity",
     "ExtractionProposal",
+    "FamilyAddress",
+    "FamilyAddressReleaseConsent",
+    "FamilyAddressVersion",
+    "FamilyAddressVersionAncestor",
+    "FamilyAddressVersionSource",
     "FamilyBranch",
     "FamilyDataAttestation",
     "GedcomExtension",

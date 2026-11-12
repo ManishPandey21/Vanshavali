@@ -16111,7 +16111,7 @@
    },
    "delete": {
     "tags": [
-     "profile details"
+     "family addresses"
     ],
     "summary": "Delete Address",
     "operationId": "delete_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__delete",
@@ -16802,6 +16802,1066 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/Page_RevisionSnapshot_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses": {
+   "get": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "List Family Addresses",
+    "operationId": "list_family_addresses_api_v1_trees__tree_id__family_addresses_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_FamilyAddressOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Create Family Address",
+    "operationId": "create_family_address_api_v1_trees__tree_id__family_addresses_post",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FamilyAddressCreateIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FamilyAddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/sources": {
+   "get": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "List Sources",
+    "operationId": "list_sources_api_v1_trees__tree_id__family_addresses_sources_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_FamilyAddressSourceOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}": {
+   "get": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Get Family Address",
+    "operationId": "get_family_address_api_v1_trees__tree_id__family_addresses__family_address_id__get",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FamilyAddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Retire Family Address",
+    "operationId": "retire_family_address_api_v1_trees__tree_id__family_addresses__family_address_id__delete",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "revision",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Revision"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/versions": {
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Create Family Address Version",
+    "operationId": "create_family_address_version_api_v1_trees__tree_id__family_addresses__family_address_id__versions_post",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FamilyAddressVersionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FamilyAddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/affected": {
+   "get": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Affected Addresses",
+    "operationId": "affected_addresses_api_v1_trees__tree_id__family_addresses__family_address_id__affected_get",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "target_version",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Target Version"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_AffectedAddressOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/release-consents": {
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Consent To Release",
+    "operationId": "consent_to_release_api_v1_trees__tree_id__family_addresses__family_address_id__release_consents_post",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReleaseConsentIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReleaseConsentOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/release-preview": {
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Preview Release",
+    "operationId": "preview_release_api_v1_trees__tree_id__family_addresses__family_address_id__release_preview_post",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReleaseConsentIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReleasePreviewOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/release-consents/{consent_id}": {
+   "delete": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Withdraw Release Consent",
+    "operationId": "withdraw_release_consent_api_v1_trees__tree_id__family_addresses_release_consents__consent_id__delete",
+    "parameters": [
+     {
+      "name": "consent_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Consent Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/activate-sharing": {
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Activate Sharing",
+    "operationId": "activate_sharing_api_v1_trees__tree_id__family_addresses__family_address_id__activate_sharing_post",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ActivateSharingIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FamilyAddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/grants": {
+   "get": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "List Family Address Grants",
+    "operationId": "list_family_address_grants_api_v1_trees__tree_id__family_addresses__family_address_id__grants_get",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_FamilyAddressGrantOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Grant Family Address Access",
+    "operationId": "grant_family_address_access_api_v1_trees__tree_id__family_addresses__family_address_id__grants_post",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FamilyAddressGrantIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FamilyAddressGrantOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-addresses/{family_address_id}/grants/{grant_id}": {
+   "delete": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Revoke Family Address Access",
+    "operationId": "revoke_family_address_access_api_v1_trees__tree_id__family_addresses__family_address_id__grants__grant_id__delete",
+    "parameters": [
+     {
+      "name": "family_address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Family Address Id"
+      }
+     },
+     {
+      "name": "grant_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Grant Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/addresses/reuse": {
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Reuse Address",
+    "operationId": "reuse_address_api_v1_trees__tree_id__people__person_id__addresses_reuse_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AddressReuseIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}/adopt-family-version": {
+   "post": {
+    "tags": [
+     "family addresses"
+    ],
+    "summary": "Adopt Family Version",
+    "operationId": "adopt_family_version_api_v1_trees__tree_id__people__person_id__addresses__address_id__adopt_family_version_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AdoptFamilyAddressVersionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AddressOut"
         }
        }
       }
@@ -18769,6 +19829,26 @@
  },
  "components": {
   "schemas": {
+   "ActivateSharingIn": {
+    "properties": {
+     "revision": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Revision"
+     },
+     "consent_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Consent Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision",
+     "consent_id"
+    ],
+    "title": "ActivateSharingIn"
+   },
    "AddressIn": {
     "properties": {
      "building": {
@@ -19207,6 +20287,62 @@
       "type": "string",
       "title": "Source"
      },
+     "reuse_mode": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AddressReuseMode"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "family_address_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Family Address Id"
+     },
+     "family_address_version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Family Address Version"
+     },
+     "family_update_available": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Family Update Available"
+     },
+     "ancestral_assertion_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ancestral Assertion Id"
+     },
      "created_at": {
       "type": "string",
       "format": "date-time",
@@ -19254,6 +20390,99 @@
      "other"
     ],
     "title": "AddressPurpose"
+   },
+   "AddressReuseIn": {
+    "properties": {
+     "source_kind": {
+      "type": "string",
+      "enum": [
+       "family_address",
+       "ancestral_assertion",
+       "my_address"
+      ],
+      "title": "Source Kind"
+     },
+     "source_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Source Id"
+     },
+     "source_version": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Version"
+     },
+     "mode": {
+      "$ref": "#/components/schemas/AddressReuseMode"
+     },
+     "purpose": {
+      "$ref": "#/components/schemas/AddressPurpose"
+     },
+     "status": {
+      "$ref": "#/components/schemas/AddressStatus"
+     },
+     "is_primary_current": {
+      "type": "boolean",
+      "title": "Is Primary Current",
+      "default": false
+     },
+     "valid_from": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "valid_until": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "idempotency_key": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idempotency Key"
+     }
+    },
+    "type": "object",
+    "required": [
+     "source_kind",
+     "source_id",
+     "mode",
+     "purpose",
+     "status"
+    ],
+    "title": "AddressReuseIn"
+   },
+   "AddressReuseMode": {
+    "type": "string",
+    "enum": [
+     "link",
+     "copy"
+    ],
+    "title": "AddressReuseMode"
    },
    "AddressStatus": {
     "type": "string",
@@ -19509,6 +20738,56 @@
      "revision"
     ],
     "title": "AddressUpdate"
+   },
+   "AdoptFamilyAddressVersionIn": {
+    "properties": {
+     "revision": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Revision"
+     },
+     "version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision",
+     "version"
+    ],
+    "title": "AdoptFamilyAddressVersionIn"
+   },
+   "AffectedAddressOut": {
+    "properties": {
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "person_name": {
+      "type": "string",
+      "title": "Person Name"
+     },
+     "address_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Address Id"
+     },
+     "pinned_version": {
+      "type": "integer",
+      "title": "Pinned Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "person_id",
+     "person_name",
+     "address_id",
+     "pinned_version"
+    ],
+    "title": "AffectedAddressOut"
    },
    "AgeOrderOut": {
     "properties": {
@@ -26733,6 +28012,589 @@
     ],
     "title": "EvidenceStatus"
    },
+   "FamilyAddressCreateIn": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Label"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel",
+      "default": "TREE_MEMBERS"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "household_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Household Id"
+     },
+     "property_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Property Id"
+     },
+     "ancestral_assertion_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ancestral Assertion Id"
+     },
+     "source_person_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Person Id"
+     },
+     "source_person_address_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Person Address Id"
+     },
+     "snapshot": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/FamilyAddressSnapshot"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "idempotency_key": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idempotency Key"
+     }
+    },
+    "type": "object",
+    "required": [
+     "label"
+    ],
+    "title": "FamilyAddressCreateIn"
+   },
+   "FamilyAddressGrantIn": {
+    "properties": {
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
+     "expires_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expires At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "membership_id"
+    ],
+    "title": "FamilyAddressGrantIn"
+   },
+   "FamilyAddressGrantOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
+     "expires_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expires At"
+     },
+     "granted_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Granted At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "membership_id",
+     "expires_at",
+     "granted_at"
+    ],
+    "title": "FamilyAddressGrantOut"
+   },
+   "FamilyAddressOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "privacy_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Branch Id"
+     },
+     "household_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Household Id"
+     },
+     "property_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Property Id"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     },
+     "ancestral_assertion_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ancestral Assertion Id"
+     },
+     "current_version": {
+      "type": "integer",
+      "title": "Current Version"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "sharing_released": {
+      "type": "boolean",
+      "title": "Sharing Released"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/FamilyAddressSnapshot"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "label",
+     "privacy_level",
+     "audience_branch_id",
+     "branch_id",
+     "household_id",
+     "property_id",
+     "place_id",
+     "ancestral_assertion_id",
+     "current_version",
+     "revision",
+     "sharing_released",
+     "snapshot",
+     "created_at",
+     "updated_at"
+    ],
+    "title": "FamilyAddressOut"
+   },
+   "FamilyAddressSnapshot": {
+    "properties": {
+     "building": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Building"
+     },
+     "street": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Street"
+     },
+     "landmark": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Landmark"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 1000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "as_recorded": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Recorded"
+     },
+     "gram_panchayat": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gram Panchayat"
+     },
+     "post_office": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Post Office"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "sub_district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 160
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country_code": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2,
+        "minLength": 2
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country Code"
+     },
+     "postal_code": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 24
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Postal Code"
+     }
+    },
+    "type": "object",
+    "title": "FamilyAddressSnapshot"
+   },
+   "FamilyAddressSourceOut": {
+    "properties": {
+     "source_kind": {
+      "type": "string",
+      "enum": [
+       "family_address",
+       "ancestral_assertion",
+       "my_address"
+      ],
+      "title": "Source Kind"
+     },
+     "source_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Source Id"
+     },
+     "version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Version"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "group": {
+      "type": "string",
+      "enum": [
+       "Recent",
+       "Family",
+       "Branch",
+       "Ancestral",
+       "My addresses"
+      ],
+      "title": "Group"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/FamilyAddressSnapshot"
+     },
+     "link_allowed": {
+      "type": "boolean",
+      "title": "Link Allowed"
+     }
+    },
+    "type": "object",
+    "required": [
+     "source_kind",
+     "source_id",
+     "label",
+     "group",
+     "snapshot",
+     "link_allowed"
+    ],
+    "title": "FamilyAddressSourceOut"
+   },
+   "FamilyAddressVersionIn": {
+    "properties": {
+     "revision": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Revision"
+     },
+     "reason": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Reason"
+     },
+     "snapshot": {
+      "$ref": "#/components/schemas/FamilyAddressSnapshot"
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision",
+     "reason",
+     "snapshot"
+    ],
+    "title": "FamilyAddressVersionIn"
+   },
    "FamilyOut": {
     "properties": {
      "person": {
@@ -27676,7 +29538,8 @@
      "document",
      "property",
      "tradition",
-     "collection"
+     "collection",
+     "family_address"
     ],
     "title": "GrantResource"
    },
@@ -32259,6 +34122,33 @@
     ],
     "title": "Page[AddressOut]"
    },
+   "Page_AffectedAddressOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/AffectedAddressOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[AffectedAddressOut]"
+   },
    "Page_AuditEventOut_": {
     "properties": {
      "items": {
@@ -32393,6 +34283,87 @@
      "items"
     ],
     "title": "Page[EventOut]"
+   },
+   "Page_FamilyAddressGrantOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyAddressGrantOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[FamilyAddressGrantOut]"
+   },
+   "Page_FamilyAddressOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyAddressOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[FamilyAddressOut]"
+   },
+   "Page_FamilyAddressSourceOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyAddressSourceOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[FamilyAddressSourceOut]"
    },
    "Page_PersonSummary_": {
     "properties": {
@@ -38556,6 +40527,172 @@
     ],
     "title": "RelativeOut"
    },
+   "ReleaseConsentIn": {
+    "properties": {
+     "source_version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Source Version"
+     },
+     "destination_family_address_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Destination Family Address Id"
+     },
+     "permitted_privacy_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "purpose": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Purpose"
+     },
+     "notice_version": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Notice Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "source_version",
+     "destination_family_address_id",
+     "permitted_privacy_level",
+     "purpose",
+     "notice_version"
+    ],
+    "title": "ReleaseConsentIn"
+   },
+   "ReleaseConsentOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "source_version_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Source Version Id"
+     },
+     "destination_family_address_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Destination Family Address Id"
+     },
+     "permitted_privacy_level": {
+      "$ref": "#/components/schemas/RecordPrivacyLevel"
+     },
+     "audience_branch_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Audience Branch Id"
+     },
+     "purpose": {
+      "type": "string",
+      "title": "Purpose"
+     },
+     "notice_version": {
+      "type": "string",
+      "title": "Notice Version"
+     },
+     "granted_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Granted At"
+     },
+     "withdrawn_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Withdrawn At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "source_version_id",
+     "destination_family_address_id",
+     "permitted_privacy_level",
+     "audience_branch_id",
+     "purpose",
+     "notice_version",
+     "granted_at",
+     "withdrawn_at"
+    ],
+    "title": "ReleaseConsentOut"
+   },
+   "ReleasePreviewOut": {
+    "properties": {
+     "additional_readers": {
+      "items": {
+       "$ref": "#/components/schemas/ReleaseReaderOut"
+      },
+      "type": "array",
+      "title": "Additional Readers"
+     },
+     "required_controller_membership_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Required Controller Membership Ids"
+     }
+    },
+    "type": "object",
+    "required": [
+     "additional_readers",
+     "required_controller_membership_ids"
+    ],
+    "title": "ReleasePreviewOut"
+   },
+   "ReleaseReaderOut": {
+    "properties": {
+     "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Membership Id"
+     },
+     "display_name": {
+      "type": "string",
+      "title": "Display Name"
+     }
+    },
+    "type": "object",
+    "required": [
+     "membership_id",
+     "display_name"
+    ],
+    "title": "ReleaseReaderOut"
+   },
    "ReminderDateRule": {
     "type": "string",
     "enum": [
@@ -40378,6 +42515,95 @@
     ],
     "title": "SiblingOut"
    },
+   "SmartAddAncestralVillageIn": {
+    "properties": {
+     "choice": {
+      "type": "string",
+      "enum": [
+       "unknown",
+       "recorded",
+       "new"
+      ],
+      "title": "Choice",
+      "default": "unknown"
+     },
+     "assertion_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Assertion Id"
+     },
+     "value_text": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value Text"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     }
+    },
+    "type": "object",
+    "title": "SmartAddAncestralVillageIn"
+   },
+   "SmartAddAncestralVillageOut": {
+    "properties": {
+     "assertion_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Assertion Id"
+     },
+     "branch_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Branch Id"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "assertion_id",
+     "branch_id",
+     "label"
+    ],
+    "title": "SmartAddAncestralVillageOut"
+   },
    "SmartAddCommitIn": {
     "properties": {
      "term": {
@@ -40448,6 +42674,12 @@
        }
       ],
       "title": "Relative Age"
+     },
+     "ancestral_village": {
+      "$ref": "#/components/schemas/SmartAddAncestralVillageIn",
+      "default": {
+       "choice": "unknown"
+      }
      }
     },
     "type": "object",
@@ -40617,6 +42849,14 @@
       },
       "type": "array",
       "title": "Preview",
+      "default": []
+     },
+     "ancestral_villages": {
+      "items": {
+       "$ref": "#/components/schemas/SmartAddAncestralVillageOut"
+      },
+      "type": "array",
+      "title": "Ancestral Villages",
       "default": []
      }
     },

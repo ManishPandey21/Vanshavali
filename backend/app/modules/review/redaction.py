@@ -10,13 +10,13 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+from app.authz.assertions import ATTRIBUTE_GROUP
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.authz.privacy import FieldGroup, Subject, can_view_field
 from app.models import ChangeProposalItem, RecordRevision
 from app.models.enums import EventType, ProposalOp, ReviewTarget
 from app.modules.genealogy import lookup
-from app.modules.heritage.service import ATTRIBUTE_GROUP
 from app.modules.review.revisions import MODEL_FOR, _fields, _json
 
 PRIVACY_FIELDS = frozenset({"privacy_level", "field_privacy"})

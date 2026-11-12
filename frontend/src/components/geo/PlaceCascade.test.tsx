@@ -153,6 +153,35 @@ function PickerHarness({ onChange }: { onChange: (v: PlaceValue) => void }) {
 }
 
 describe("PlacePicker ancestral-village suggestion (ADR-0019 §8)", () => {
+  it("offers an existing geographical match and preserves the historical spelling as recorded", async () => {
+    geoApi((url) =>
+      url.pathname.endsWith("/places")
+        ? jsonResponse({
+            items: [
+              {
+                id: "kalpathy",
+                canonical_name: "Kalpathy",
+                place_type: "village",
+                hierarchy: ["Kalpathy", "Palakkad", "Kerala"],
+                local_names: [],
+                historical_names: [{ name: "Kalpathi", language: "en", script: "Latn" }],
+              },
+            ],
+            next_cursor: null,
+          })
+        : undefined,
+    );
+    const onChange = vi.fn();
+    renderWithProviders(<PickerHarness onChange={onChange} />);
+    await userEvent.type(screen.getByRole("combobox", { name: "Birth place" }), "Kalpathi");
+    await userEvent.click(await screen.findByRole("option", { name: /Kalpathy, Palakkad, Kerala/ }));
+    expect(onChange).toHaveBeenLastCalledWith({
+      place_id: "kalpathy",
+      place_label: "Kalpathy, Palakkad, Kerala",
+      place_as_recorded: "Kalpathi",
+    });
+  });
+
   it("is offered, never filled, and can be accepted or dismissed", async () => {
     geoApi((url) => (url.pathname.includes("/places") ? jsonResponse({ items: [], next_cursor: null }) : undefined));
     const onChange = vi.fn();
