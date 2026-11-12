@@ -148,6 +148,9 @@ export function EventDialog({
     return initialCategory ? { ...draft, category: initialCategory, significance: "important" } : draft;
   });
   const [submitted, setSubmitted] = useState(false);
+  // Bind the revision to the draft, not a background-refetched event prop. Otherwise a
+  // newer revision could authorize this form's older values to overwrite a concurrent edit.
+  const [expectedRevision] = useState(event?.revision);
   const redacted = new Set(event?.redacted_fields ?? []);
   const dateLocked = redacted.has("birth_date_full") || redacted.has("event_date_full") || (!!birthField && birthField !== "date");
   const timeLocked = redacted.has("birth_time") || (!!birthField && birthField !== "time");
@@ -196,7 +199,7 @@ export function EventDialog({
       common.origin_place_as_recorded = d.origin.place_as_recorded.trim() || null;
     }
     if (event) {
-      common.expected_revision = event.revision;
+      common.expected_revision = expectedRevision;
       update.mutate({ id: event.id, body: common }, { onSuccess: onClose });
     } else {
       const participants: EventIn["participants"] = [{ person_id: personId, role: "principal" }];

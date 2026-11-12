@@ -6,15 +6,19 @@ This is not completion of the full family-profile programme or strict privacy mi
 - Reuses open PR #74 (`8b2c9f6`) for inline birth/death entry, its en/hi labels and initial tests.
   Existing birth claims now have separate date, time and birthplace actions. Loading/missing
   events have visible recovery; a new event remains stable through the save/refetch cycle.
-- Each focused save sends only its field group plus the loaded event revision. Server-side
+- Each focused save sends only its field group plus the loaded event revision. The revision stays bound to the draft across background refreshes. Server-side
   visibility checks protect direct birth-event writes, alongside existing person permissions.
   Authorized legacy administrators retain access. Proposals still require a separate reviewer
-  who can see the changes; rebasing uses the proposal's freshly locked base revisions.
+  who can see the changes; rebasing uses the proposal's freshly locked base revisions. Approval
+  refreshes cached records after acquiring locks so a concurrent edit cannot escape that check.
 - Times start with no assumed zone. Optional recorded seconds and UTC offset are preserved.
   Historical/partial dates and manually recorded Indic place text use existing editors.
 - Date edits recompute personal reminders as their recipients, pause incomplete dates and
   cancel queued old-date occurrences transactionally. Scheduler, edit and delivery take the
-  event lock first. An unsent cancelled occurrence can be re-armed if its date becomes valid
+  event lock first. Subscription/preference writers share that ordering and serialize per member
+  so a new subscription cannot miss a simultaneous preference change. Still-valid queued
+  occurrences survive year-only corrections; the ordinary grace window is reconsidered on edits.
+  An unsent cancelled occurrence can be re-armed if its date becomes valid
   again; a previously attempted/sent occurrence cannot be resent by toggling dates.
 - API types are regenerated. No schema migration, new provider, subscription or live send.
 
@@ -25,7 +29,7 @@ remain available. Backend date editing and browser editing are being verified se
 
 Validation in progress: full backend suite; full frontend lint/types/tests/build; real-stack
 birth editing including manual Indic birthplace and seconds/offset, plus desktop/mobile axe.
-Focused backend evidence: hidden-field denial, preserved legacy admin access, stale revision,
+Focused backend evidence (including follow-up regressions): hidden-field denial, preserved legacy admin access, stale revision,
 earlier-date reschedule, partial-date pause/resume, queued cancellation, both real-database
 edit/delivery lock orders, and stale-proposal rebase/approval. All sends use the test file backend.
 

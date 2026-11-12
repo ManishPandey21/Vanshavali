@@ -480,6 +480,7 @@ def _lock_and_check(ctx: TreeContext, items: list[ChangeProposalItem]) -> str | 
                 select(model)
                 .where(model.tree_id == ctx.tree_id, model.id == uuid.UUID(rid))
                 .with_for_update()
+                .execution_options(populate_existing=True)
             )
             if rec is None or getattr(rec, "deleted_at", None) is not None:
                 return f"A {tname} this change depends on no longer exists."

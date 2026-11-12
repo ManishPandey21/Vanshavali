@@ -109,6 +109,10 @@ async function seedData(browser: Browser, baseURL: string): Promise<Seed> {
  */
 async function settled(page: Page) {
   await expect(page.locator("main, [role=main]").first()).toBeVisible();
+  // The app shell can paint before a lazy route mounts its spinner or page heading. Wait for
+  // the route's required heading before auditing, rather than mistaking that shell for a page.
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator(".animate-spin")).toHaveCount(0, { timeout: 20_000 });
   await page.waitForFunction(
     () =>

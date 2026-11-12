@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { EventOut, PersonOut } from "../../../api/types";
 import { attested, jsonResponse, renderWithProviders } from "../../../test/utils";
@@ -43,6 +43,36 @@ const eventsCalls = (m: ReturnType<typeof mockFetch>) => m.mock.calls.filter((c)
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Overview birth/death actions", () => {
+  it("keeps a draft bound to its original revision across background event refreshes", async () => {
+    const calls: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", vi.fn(attested(async (url, init) => {
+      if (init?.method === "PATCH") {
+        calls.push(JSON.parse(String(init.body)));
+        return jsonResponse({ error: { code: "stale_revision", message: "Reload before saving" } }, 409);
+      }
+      if (String(url).endsWith("/people/p1/events")) return jsonResponse([{ ...birthEvent, revision: 4 }]);
+      return jsonResponse([]);
+    })));
+    const { qc } = renderWithProviders(<OverviewTab person={withBirth} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Edit date of birth" }));
+    await screen.findByDisplayValue("1950");
+    await act(async () => {
+      qc.setQueryData(["tree", "tree-1", "person", "p1", "events"], [{ ...birthEvent, revision: 5, date: { precision: "year_only", year: 2000 } }]);
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0].expected_revision).toBe(4);
+    expect(await screen.findByDisplayValue("1950")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveTextContent("Reload before saving");
+  });
+
+  it("hides birth actions for field groups that are hidden from this editor", async () => {
+    mockFetch();
+    renderWithProviders(<OverviewTab person={{ ...withBirth, redacted_fields: ["birth_date_full", "birth_time", "birth_place_detail"] }} />);
+    expect(screen.queryByRole("button", { name: /Edit (date of birth|birth time|birthplace)/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Kanpur")).not.toBeInTheDocument();
+  });
+
   it("shows a recoverable missing-event state instead of a silent dead end", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse([])));
     renderWithProviders(<OverviewTab person={withBirth} />);
