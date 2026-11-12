@@ -216,11 +216,22 @@ SameSite=Lax cookies apply.
   availability for safety.
 - **Watermarking of downloaded documents:** DEFERRED.
 
-## Proposed family-profile controls (ADR-0031; not implemented)
+## Birth-editing increment (ADR-0031 staged rollout)
 
-These `FP-` identifiers are design threats, not completed mitigations. The audit checked open
-PR #67's T65 reservation; allocate permanent T numbers at implementation merge, after refreshing
-open branches. Existing T entries above are unchanged. See the
+| ID | Threat | Implemented control | Evidence |
+|---|---|---|---|
+| T66 | A direct genealogy edit overwrites hidden birth details, or a stale form loses a newer edit | Central field-visibility guard on birth-event create/update plus person-write checks; optional expected revision checked under event lock. Existing proposal review retains proposer permissions, visible-reviewer approval and locked proposal revisions. Legacy admin audiences remain intentionally unchanged. | `test_birth_editing.py`, `test_proposals.py`, `OverviewVitalsEdit.test.tsx` |
+| T67 | A changed birth date leaves queued old-date reminders or races provider delivery | Date edits recompute each recipient's schedule and cancel pending/retrying deliveries transactionally; tick/edit/delivery lock the event before dependent rows; delivery revalidates occurrence. Previously sent/attempted occurrences are never re-armed. | `test_birth_editing.py` (earlier/partial dates, queued cancellation, both database race orders), `test_reminders.py` |
+
+These controls do not implement the strict field-controller migration, address-copy policy or
+new messaging channels below. Provider requests completed before the edit cannot be recalled.
+
+## Remaining family-profile controls (ADR-0031; not implemented)
+
+These `FP-` identifiers are programme-level design threats, not completed mitigations.
+T66/T67 implement only the scoped birth-edit controls above. The audit checked open
+PR #67's T65 reservation; T66/T67 leave that reservation untouched. Allocate further permanent
+T numbers after refreshing open branches. See the
 [ADR](../architecture/adr/0031-family-profile-addresses-and-communications.md) and
 [acceptance matrix](../architecture/family-profile-communications/acceptance.md).
 

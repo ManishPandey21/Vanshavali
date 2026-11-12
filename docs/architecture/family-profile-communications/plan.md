@@ -1,7 +1,9 @@
 # Family profiles: UX and implementation plan
 
-Status: **Proposed**. Design is separate from production implementation. Start point is audited
-main `b8c248b`; no implementation tickets are queued and no feature migrations are authored yet.
+Status: **Accepted for phased development**. The owner chose staged retention of legacy access
+and explicit source-owner consent before independent address-copy sharing (ADR-0031 §11).
+The first birth-editing slice is in development from audited main `b8c248b`; strict field-policy
+conversion and address/contact schemas remain unimplemented. No factory tickets are queued.
 [Audit](audit.md) · [ADR-0031](../adr/0031-family-profile-addresses-and-communications.md) ·
 [Acceptance matrix](acceptance.md) · [original request](brief.md).
 
@@ -122,17 +124,17 @@ OpenAPI and frontend schema types change with every API increment.
 
 ## 4. Focused implementation sequence
 
-This is a dependency plan, not a set of executable factory tickets. Acceptance of ADR-0031 and
-its two policy choices precedes ticket creation. Use the verified Claude-only builder/reviewer
+This is a dependency plan, not a set of executable factory tickets. ADR-0031 and its two policy choices are accepted. The initial birth slice is being implemented
+by the coordinator under existing legacy audiences; subsequent factory tickets still need their own gates. Use the verified Claude-only builder/reviewer
 configuration; coordinator prepares migrations/manifests/trusted configuration where factory
 builders are prohibited from editing them. Each ticket must name protected paths, exact tests,
 base SHA and EGM approval evidence. Never manufacture approval receipts.
 
 | Increment | Scope / dependency | Acceptance boundary |
 |---|---|---|
-| Design (this branch) | Audit, ADR, UX, migration/privacy decisions and tests | Reviewed proposal; no production code |
-| A0 — field privacy foundation, P0 | ADR accepted; central field read/write policy, grants, claim/leave behaviour and count-previewed migration; old-client guard | Promotion/reinvite/claim negatives pass across all surfaces; no new role-based private access |
-| A1 — birth editing, P0 | A0; coordinate #74, reuse its approach after resolving dead end. Separate date/time/place actions, partial dates, unknown zone, withheld state, citations/review | Full create → edit → reload flow, restricted-field write tests, stale concurrency |
+| Design | Audit, ADR, UX, migration/privacy decisions and tests | Accepted phased design; historic reviews in review.md |
+| A0 — field privacy foundation, P0 | Staged conversion after explicit audience preview; retain legacy access until conversion; central policy/grants and old-client guards | Converted fields pass promotion/reinvite/claim negatives; legacy fields keep documented legacy audiences |
+| A1 — birth editing, P0 | Initial slice reuses #74 and fixes its loading dead end; separate date/time/place actions, partial dates, unknown zone, legacy visibility write guard and revision check. Strict policy UI, withheld state and 12/24 selector follow A0 | Create → edit → reload, hidden-field negative tests, stale save; full A1 remains partial |
 | A2 — birth edit scheduling, P0 | Part of PR A completion, cannot wait for G. Event-change hook, pending-delivery invalidation, recomputation and occurrence check | Moved-earlier date fires correctly; queued old occurrence never sends; no duplicate deliveries |
 | B — smart address form, P0 | Existing geo APIs; reusable form can be developed with isolated fixtures while C schema is reviewed | PIN/manual/mismatch/overseas/Hindi states; reverse candidates clearly labelled; no new importer |
 | C — person addresses/history, P0 | A0 + B; additive schema, encrypted legacy migration and revision/proposal adapters | Multiple/primary addresses, correction/move/remove, transaction race and safe rollback tests |
@@ -163,6 +165,6 @@ deploy or external traffic is part of this development authorization.
 - Release review: native Hindi, screen-reader and deployment/legal gates already in repository
   remain open until their owners supply evidence. Development tests do not satisfy them implicitly.
 
-**Recommended first implementation:** A0 followed by A1/A2 as the complete PR-A birth experience;
-build B's reusable form next, then C/D/E. All work remains local or in reviewed draft PRs until
+**Current implementation order:** a legacy-compatible A1/A2 birth slice first, then staged A0
+conversion and remaining A1 controls. Build B's reusable form next, then C/D/E. All work remains local or in reviewed draft PRs until
 the user separately authorizes merging/deployment.

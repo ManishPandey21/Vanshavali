@@ -6301,6 +6301,11 @@ export interface components {
         };
         /** EventOut */
         EventOut: {
+            /**
+             * Revision
+             * @default 1
+             */
+            revision?: number;
             /** @default unreviewed */
             review_state?: components["schemas"]["ReviewState"];
             /**
@@ -6394,6 +6399,8 @@ export interface components {
         EventType: "birth" | "death" | "marriage" | "divorce" | "adoption" | "residence" | "migration" | "education" | "occupation" | "cremation" | "burial" | "memorial" | "religious_ceremony" | "other";
         /** EventUpdate */
         EventUpdate: {
+            /** Expected Revision */
+            expected_revision?: number | null;
             /** Subtype */
             subtype?: string | null;
             date?: components["schemas"]["GenealogicalDate"] | null;

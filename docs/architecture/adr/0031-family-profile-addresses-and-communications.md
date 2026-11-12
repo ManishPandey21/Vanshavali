@@ -1,12 +1,14 @@
 # ADR-0031: Family profile fields, private addresses and communications
 
-- Status: **Proposed — not accepted, not implemented** · 12 November 2026.
+- Status: **Accepted for phased development, with the owner decisions in §11** · 12 November 2026.
+  Implementation is incremental; this document does not claim every feature is built.
 - Requested scope: [brief](../family-profile-communications/brief.md).
 - Evidence: [repository audit](../family-profile-communications/audit.md).
-- Proposed amendments to ADR-0003 (withheld date state), ADR-0006 (sensitive field policy),
+- Phased amendments to ADR-0003 (withheld date state), ADR-0006 (sensitive field policy),
   ADR-0019 (reverse PIN suggestions), ADR-0021 (address/contact review targets), ADR-0016
   (event-edit rescheduling and explicit channel-purpose consent).
-- ADR-0027's record-only audiences remain record-only. No amendment is accepted by this file.
+- ADR-0027's record-only audiences remain record-only. Legacy-field access is retained during
+  staged migration; stricter policies apply only after explicit conversion (§3).
 
 ## 1. Context and boundaries
 
@@ -104,9 +106,15 @@ detail/list/search, events, history, proposals/comments, source previews, calend
 render payloads, address pickers and delivery. Current-location output is an allowlisted city/state/
 country projection: no private address ID, house label, PIN, street, source text or coordinates.
 
-### Existing-data migration — decision requiring acceptance
+### Existing-data migration — owner chose staged legacy compatibility
 
-Recommend **narrowing**, with an operator preview containing counts only:
+**Owner decision, 12 November 2026:** retain legacy access during a staged migration.
+Do not bulk-narrow existing fields or remove their administrator access. Mark unconverted policies
+as legacy, explain their actual audience, and keep old read semantics until explicit conversion.
+The role-invariance acceptance criterion applies to converted/new strict policies; it is deferred
+for unconverted legacy fields. Existing roles may still broaden legacy access, as today.
+
+Conversion is an explicit, revision-bound action with an audience preview. Its safe default is:
 
 - For each existing sensitive group, choose the current claimant membership, else the current
   original contributor membership, **only if that candidate can already read that field under
@@ -114,13 +122,13 @@ Recommend **narrowing**, with an operator preview containing counts only:
   separately; having created a person does not prove access to that person's private fields.
   The resulting readership must be a subset of the pre-migration readership. No admin fallback
   or inference from kinship, and no silent recovery of access once removed.
-- New policies default to controller-only, even where legacy defaults admitted admins. Do not
+- Converted policies default to controller-only, even where legacy defaults admitted admins. Do not
   copy broad person grants into sensitive-field grants. Existing data stays intact; authorized
   controllers can explicitly re-share after a clear migration notice.
-- This deliberately removes some old access. Until this migration and every consumer are ready,
+- Explicit conversion can remove old access. Until conversion and every consumer are ready,
   the new privacy UI stays off and legacy screens must not promise role-independent privacy.
-- Keeping old role-based access indefinitely would fail the requested promotion-invariance test;
-  silently relabelling old levels “Only me” is rejected.
+- Legacy compatibility is a staged exception accepted by the owner, not a claim of strict privacy.
+  Silently relabelling old levels “Only me” is rejected.
 
 ## 4. Smart address form and geography
 
@@ -196,6 +204,13 @@ and historical variants remain valid. An idempotency key prevents retry-created 
   apply to linked and copied derivatives; do not retain an unauthorized copy as a back door.
   Source policy tombstones persist while derivatives exist; source deletion does not drop the
   ceiling. Copy chains carry the original ceiling, not just the immediate parent.
+  **Owner decision:** independent sharing is allowed only after explicit source-owner consent.
+  Record a separate release consent bound to the source version, destination copy, consenting
+  controller membership, permitted audience/purpose, notice version and timestamp. Preview the
+  additional readers; a normal view/copy grant is not release consent. All original-source ceilings
+  in a copy chain must authorize release. Consent withdrawal stops future independent sharing;
+  already exported values cannot be recalled. Until a valid release exists, the ceiling above
+  remains. Independent sharing never overrides the data subject's erasure/consent rights.
 - **Correct:** update one record with optimistic concurrency, encrypted before/after history and
   reason. Default does not mutate another person's address or all references to a place.
 - **Move:** in one transaction lock the person/current address, check revision and rights, mark
@@ -288,8 +303,8 @@ subscription if the user accepts. Lunar calculation retains ADR-0022 licensing/g
 1. Land additive policy/withheld/schema support behind a feature flag, on the **then-current**
    single Alembic head. If #67 has merged, re-parent before publication. Never edit accepted old
    revisions or create a second head.
-2. Backfill field policies after the approved count-only migration preview. Protect legacy fields
-   immediately through the new evaluator before displaying new controls. API capability flags
+2. Retain legacy field policies and readers until an explicit conversion, as the owner chose.
+   Display legacy versus strict policy honestly. API capability flags
    prevent older clients bypassing policies. A binary rollback that reads legacy fields broadly is
    unsafe and must be refused by deployment compatibility checks.
 3. Add encrypted postal/contact structures and revision/proposal payload handling. Reuse core
@@ -355,19 +370,17 @@ Rejected: a second DOB field; copying national geography into trees; private str
 using record-only privacy levels on person fields; automatic ancestral inheritance; unrestricted
 copy/re-share; new scheduler; Telegram username delivery; unofficial WhatsApp automation.
 
-## 11. Concrete owner decisions
+## 11. Owner decisions recorded
 
-The brief settles the feature priorities and no-inference/provider boundaries. Two policy choices
-remain for acceptance of this proposal:
+The owner answered both design questions on 12 November 2026:
 
-1. **Existing sensitive fields:** adopt the count-previewed narrowing in §3, with claimant or
-   original contributor control only when already authorized for that field, otherwise no controller,
-   and no admin recovery. Alternative: preserve legacy access visibly
-   during a staged rollout, postponing the role-invariance acceptance criterion for those records.
-2. **Private address copies:** independent values but retained source privacy/erasure ceiling (§5),
-   rather than an irrevocable independent copy. Wider re-sharing would need a distinct source-owner
-   release consent and is deferred.
+1. **“Retain legacy access during a staged migration.”** Existing field readers are preserved;
+   explicit conversion introduces stricter policies, with honest legacy labels. Role-independent
+   privacy is not claimed for unconverted fields.
+2. **“Allow independent sharing only after explicit source-owner consent.”** Copying alone does
+   not authorize wider sharing. A separate, auditable release consent is required as in §5.
 
-Recommended: accept both conservative defaults. After acceptance, execute the focused increments
-in the plan, beginning with privacy and the PR-A birth vertical slice. This is not a request to
-activate external providers, merge or deploy.
+These answers authorize development with the revised choices; do not repeat the approval request.
+Begin the birth vertical slice under preserved legacy read policies, with server-side field-write
+guards, then introduce opt-in strict-policy conversion alongside new private address/contact data.
+External providers, merge and deployment remain outside this authorization.

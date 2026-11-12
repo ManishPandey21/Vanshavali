@@ -44,6 +44,7 @@ export function TimeEditor({
           <input
             id={`${id}-value`}
             type="time"
+            step={1}
             className="input"
             value={value.value ?? ""}
             aria-invalid={!!error || undefined}

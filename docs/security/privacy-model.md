@@ -326,18 +326,25 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   status and timestamps, so the notifications and audit events that point to it still resolve. It is
   deleted with the tree.
 
-## Proposed family-profile field extension — not implemented
+## Family-profile staged rollout (ADR-0031)
 
-[ADR-0031](../architecture/adr/0031-family-profile-addresses-and-communications.md) proposes
-membership-controlled sensitive fields, separate coarse-location/full-address/history audiences,
-encrypted postal/contact values and protected revisions, and explicit channel-purpose consent.
-It does **not** assign ADR-0027's record-only audiences to people or change the current defaults
-documented above. The present application still admits legacy role-based readers.
+[ADR-0031](../architecture/adr/0031-family-profile-addresses-and-communications.md) is accepted
+for phased development. Existing legacy readers, including authorized administrators, retain
+access until an explicit, previewed field conversion. New strict field policies, encrypted postal
+and contact records and membership-bound grants are not implemented by the birth-editing slice.
+No old audience is silently declared migrated.
 
-The proposal requires an explicit decision on narrowing existing fields to claimant/original
-contributor control only when already authorized for that field (otherwise no controller, no
-administrator fallback), and on retaining a source privacy ceiling for
-independently editable address copies. No old audience is silently declared migrated. Its plan
-covers history, proposals, exports, search, reminders, claim transfer, removal/reinvite, erasure,
-old clients and rollback before enabling the new UI. Profile contact data never establishes
-verified account contact or consent to receive messages.
+Direct birth-event edits require person-write permission **and** visibility of each submitted
+birth field group. Date, time/zone/offset and birthplace have separate checks; omitted hidden fields
+remain untouched. A contributor may still propose a change for approval by an authorized reviewer
+who can see every changed field (ADR-0021); proposal base revisions remain authoritative. Optional
+client event revisions reject stale direct saves. Imported claims and extraction retain their
+existing workflows; this slice does not claim a complete field-controller migration.
+
+A date edit recomputes existing personal reminders as each recipient and cancels queued old-date
+deliveries in the same transaction. Event-row locks order edits and sends; a send already accepted
+before an edit cannot be recalled. No edit creates a subscription or channel consent.
+
+Future address copies retain their source ceiling unless the source owner explicitly consents to
+independent sharing, with version, recipient, audience and purpose bound to the consent. This does
+not override erasure. Profile contacts never establish verified account contact or messaging consent.

@@ -147,7 +147,7 @@ export function validateTime(t: GenealogicalTime): string | null {
   const precision = t.precision ?? "unknown";
   const source = t.source ?? "unknown";
   if (precision !== "unknown" && !t.value) return "time.err.valueRequired";
-  if (t.value && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t.value)) return "time.err.format";
+  if (t.value && !/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(t.value)) return "time.err.format";
   if (precision === "exact" && NON_EXACT_SOURCES.has(source)) return "time.err.exactNotAllowed";
   return null;
 }
@@ -267,7 +267,7 @@ export function formatTime(time: GenealogicalTime | Record<string, unknown> | nu
   if (!g.value || precision === "unknown") {
     return g.value ? t("time.display.unknownPrecision", { time: g.value }) : null;
   }
-  const value = String(g.value).slice(0, 5);
+  const value = String(g.value);
   const source = (g.source ?? "unknown") as TimeSource;
   const src = t(`enum.timeSource.${source}`);
   switch (precision) {
