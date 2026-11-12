@@ -71,6 +71,19 @@ describe("privacy notice", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Privacy notice" })).toBeInTheDocument();
   });
 
+  it.each([
+    ["/login", "Welcome back"],
+    ["/register", null],
+  ])("is linked from the sign-in and register screens (%s)", async (route, heading) => {
+    stubSignedOut();
+    renderWithProviders(<App />, { tree: null, route });
+    if (heading) await screen.findByRole("heading", { name: heading });
+    const link = await screen.findByRole("link", { name: "Privacy notice" });
+    expect(link).toHaveAttribute("href", "/privacy");
+    await userEvent.click(link);
+    expect(await screen.findByRole("heading", { level: 1, name: "Privacy notice" })).toBeInTheDocument();
+  });
+
   it("links the configured contact address", async () => {
     vi.stubEnv("VITE_PRIVACY_CONTACT_EMAIL", "privacy@example.org");
     stubSignedOut();

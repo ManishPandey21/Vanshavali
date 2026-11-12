@@ -66,6 +66,11 @@ function AuthFrame({
           </div>
           {footer && <div className="mt-4 text-center text-sm">{footer}</div>}
           <p className="mt-6 text-center text-xs text-ink-muted">{t("auth.privacyPromise")}</p>
+          <p className="mt-2 text-center text-xs">
+            <Link to="/privacy" className="font-medium text-kumkum-800 underline">
+              {t("privacyNotice.title")}
+            </Link>
+          </p>
         </div>
       </main>
     </div>
