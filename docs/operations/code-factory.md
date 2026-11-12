@@ -12,7 +12,7 @@ Toolkit version: **Infra Code Factory 0.5.0** plus its local-pilot hardening (Co
 `a780fce`), pinned by hash in `ops/factory/configure_factory.py`.
 
 ```
-ticket JSON ─► factory run ─► dependency bootstrap ─► builder (worktree) ─► one candidate commit
+ticket JSON ─► factory run ─► dependency bootstrap ─► builder (worktree) ─► changed-test gate ─► one candidate commit
                                    │ scope + "don't weaken tests" guard
                                    ▼
      cold checkout per lens ── preflight + required suites ──► reviewers: standards, spec
@@ -30,7 +30,9 @@ ticket JSON ─► factory run ─► dependency bootstrap ─► builder (workt
 
 | Path | Purpose |
 |---|---|
-| `ops/factory/bootstrap_builder.py` | Controller-owned step every builder starts through: installs dependencies from the committed lockfiles, then starts the agent |
+| `ops/factory/bootstrap_builder.py` | Controller-owned step every builder starts through: host checks, dependencies from the committed lockfiles, the agent, then the changed-test gate |
+| `ops/factory/changed_test_gate.py` | Trusted gate: runs every new/changed/declared test in a fresh copy of the builder's changes before the work is accepted (ADR-0030) |
+| `ops/factory/routing_report.py` | Per model/effort outcomes, gate results, cold failures and cost, from the ledger and evidence |
 | `ops/factory/tests/` | Regression tests for the factory tooling (`make factory-test`; run in CI) |
 | `ops/factory/run_suite.py` | Trusted wrapper: installs deps in the cold checkout, provisions a private DB/ports, runs one suite, writes JUnit |
 | `ops/factory/pytest_kinds.py` | pytest plugin splitting the backend suite into unit / api / integration / migration |
@@ -108,7 +110,8 @@ start through `ops/factory/bootstrap_builder.py`, owned by the controller:
    `node_modules`, so a stale or partial install from an earlier run is never trusted.
 4. It checks that no changed or untracked file in the worktree was altered (by content, so a second
    edit to an already-modified file in a reused worktree is caught), writes `dependencies ready … starting builder` to the
-   builder log, and then `exec`s the unchanged agent command. Only `PLAYWRIGHT_BROWSERS_PATH` is
+   builder log, and then starts the unchanged agent command (with `--gate`, which the generated
+   configuration always passes, as a child followed by the changed-test gate below). Only `PLAYWRIGHT_BROWSERS_PATH` is
    pointed at the cached browsers.
 
 **Failures stop the ticket; they never widen permissions.** Any failure (missing or modified
@@ -154,6 +157,64 @@ REPO="$PWD"; cd "$WT" && python3 -I "$REPO/ops/factory/bootstrap_builder.py" --c
 
 The log must end with `dependencies ready … starting builder` and a passing test run. Remove the
 scratch worktree afterwards with `git worktree remove --force "$WT"`.
+
+## Changed-test gate
+
+A builder's statement that its tests pass is not evidence ([ADR-0030](../architecture/adr/0030-factory-changed-test-gate.md)).
+Every builder command written by `configure_factory.py` passes `--gate` to the bootstrap, so after
+the agent stops and **before the controller commits**:
+
+1. Agent configuration (`.claude/`, `.mcp.json`, `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md`) must be
+   exactly what is committed, ignored files included; this is also checked before every agent turn.
+2. Changes the factory would reject anyway are refused before anything from them runs: manifests and
+   lockfiles, `*.config.*`, `tsconfig*.json`, `.gitignore`, the test harness, and any edit to an
+   existing test.
+3. The bootstrap creates a **fresh worktree** at the base with exactly the builder's changed and new
+   files, installs dependencies there itself, and runs each test file below **one file per run**,
+   with runners that never install anything (`npx --no-install`, `uv run --frozen --no-sync`).
+   Nothing the builder left in ignored files (`node_modules`, `.venv`, `.env`) affects the result.
+   The copy is removed afterwards.
+
+Test files run: every one the builder created or changed, and every one listed in the ticket's
+`paths`:
+
+| Test file | Command (in) |
+|---|---|
+| `frontend/**/*.test.ts(x)` | `npx vitest run <files>` (frontend/) |
+| `e2e/tests/**/*.spec.ts` | `npx playwright test <files>` (e2e/; starts its own backend, SPA and database on private ports) |
+| `e2e/visual/**/*.spec.ts` | the same with `--config=playwright.visual.config.ts` |
+| `backend/tests/**/test_*.py` | `uv run pytest <files>` (backend/; private database, ephemeris, Tesseract) |
+
+Each file passes with exit 0, at least one test **from that file** and no failure, error or skip. A
+declared test file that was not written, a test file with no trusted runner (e.g. `renderer/`) or a
+file name a runner could read as an option fails. A ticket with no new or declared tests passes the
+gate with `no_tests: true` recorded (cold verification still runs every suite). On failure the
+builder gets the controller's output (the end of the runner log) for `--repair-rounds` more turns
+(default 1) within **the same builder command and attempt**, then the command fails with
+`[bootstrap] FAILED: new or changed tests did not pass under the controller` and the ticket blocks.
+A repair round is not started with less than 15 minutes left of the builder command's limit
+(`timeout_seconds`, 5400 s for install, builder, gate and repair together). This is separate from
+0.5.0's `factory.py repair` (below), which starts a new candidate and uses the attempt budget.
+
+**Exit codes.** Work failures (the gate, a rejected change, a failing builder) exit 4 or the agent's
+own code. Host or account refusals before or around the agent (dependency install, host checks,
+the gate module not being the pinned one, a model or effort the bridge refuses) exit **75**, so
+`builder.log` shows a host problem rather than the work. Toolkit 0.5.0 still **charges the attempt**
+for either: fix the host before retrying. An agent's own exit 75 is never passed through. Evidence:
+`changed-tests.json` plus `changed-tests-N-<runner>.log`/`.junit.xml` in the ticket's log
+directory. The gate never edits the candidate (checked by content hash) and does not replace cold
+verification, which still runs every selected suite in every review lens.
+
+**Routing report.** After tickets complete, from the factory clone:
+
+```bash
+python3 ops/factory/routing_report.py --repo .
+```
+
+It lists, per builder model and effort, attempts, those that passed review (READY, AWAITING_HUMAN or
+MERGED), blocks at the gate and in cold checks, repair rounds used, cost and tokens, then each
+attempt with its standards and spec verdicts (`--json` for one record per attempt). Change a model
+or effort default only when several tickets point the same way, in a reviewed PR that quotes it.
 
 ## One-time setup (factory host)
 
@@ -280,7 +341,8 @@ machine that holds production credentials.
    `--tdd-skill`: a verified Matt/Superpowers inventory; builders also get the helper skills),
    `--ci-workflow-id ID` (allow `repair --source github` from that GitHub Actions workflow; find the
    id with `gh api repos/ManishPandey21/Vanshavali/actions/workflows`), `--egm` (require approved EGM
-   design handoffs on every ticket), `--cache-dir`, `--pg-admin-url` (must be localhost). Behind a
+   design handoffs on every ticket), `--repair-rounds 0|1|2` (changed-test gate feedback turns,
+   default 1), `--cache-dir`, `--pg-admin-url` (must be localhost). Behind a
    proxy or private CA add
    `--network-env ~/.config/vanshavali-factory/network.env --capture-network-env`: the factory
    strips the environment from test runs, so the proxy/CA variables of your shell are saved to
@@ -370,6 +432,8 @@ read-only). See the toolkit's `docs/TICKET_CONTROLS.md` and `docs/ASSURANCE_OPER
   ticket full-stack.
 - **Migrations** need a downgrade and are covered by the migration suite; one migration ticket at
   a time (Alembic heads must not fork).
+- **List every test file in `paths`.** The changed-test gate runs each declared test file and fails
+  the attempt if one was not written. Name tests where their runner expects them (gate table above).
 - **Security-sensitive work** (CLAUDE.md rule 5): put the threat-model/privacy-model updates and
   the required negative tests into the acceptance criteria and `paths`; use `role: critical`.
 
@@ -410,6 +474,13 @@ The draft PR body says "LOCAL verification"; CI on GitHub is still the gate.
 - A builder's summary says its test commands were refused and its tests were never run: the
   permission rules from setup step 5 are missing. Expect its new tests to fail in cold
   verification; add the rules before retrying.
+- `builder.log` ends with `changed-test gate FAILED` / `new or changed tests did not pass under the
+  controller`: the builder's own tests failed under the controller after the repair rounds. Read
+  `changed-tests.json` and the `changed-tests-N-*.log` files in the ticket's log directory.
+- `viewer-denied.spec.ts` (and any spec verifying an email late in a run) fails with `429
+  rate_limited` from `POST /auth/verify-email`: the backend limits token use to 30/minute per IP
+  (hard-coded in `identity/service.py`), and a full e2e run from 127.0.0.1 can exceed it. Measured
+  on `main`: 15 passes then 5 fast failures in 20 repeats. Tracked separately; not quarantined.
 - `builder.log` ends with `[bootstrap] FAILED: …` and the ticket is BLOCKED: dependency provisioning
   failed and the builder never started (see "Builder dependencies"). Fix the host (tool on `PATH`,
   network, cache disk space) or the lockfile on the base branch, then `retry`. Do **not** give

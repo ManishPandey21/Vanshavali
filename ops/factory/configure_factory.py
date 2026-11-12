@@ -193,6 +193,14 @@ REVIEW_POLICY = {
     },
 }
 REPAIR_REPOSITORY = "ManishPandey21/Vanshavali"
+# Changed-test gate (ADR-0030): after the agent, bootstrap_builder.py runs every test file the builder
+# added or changed in a fresh controller-provisioned worktree and feeds failures back to it, inside
+# the same builder command and attempt. The host checks match CI (.github/workflows/ci.yml).
+GATE = REPO / "ops" / "factory" / "changed_test_gate.py"
+NODE_MAJOR = 22
+MIN_FREE_GB = 5.0
+# One builder command covers install, agent, gate and repair rounds; reviewers get the same limit.
+TIMEOUT_SECONDS = 5400
 
 # Strict routing (agent_bridge.py --strict-routing): model ids must be pinned, full ids; aliases such
 # as "opus" are refused because another variable could remap them. Same pattern as the toolkit's.
@@ -488,6 +496,22 @@ def build(a: argparse.Namespace) -> dict:
             sys.exit(f"{net} does not exist: add --capture-network-env to create it from this shell")
         extra += ["--network-env", str(net)]
         boot += ["--network-env", str(net)]
+    boot += [
+        "--gate",
+        "--repair-rounds",
+        str(a.repair_rounds),
+        "--pg-admin-url",
+        a.pg_admin_url,
+        "--min-free-gb",
+        f"{MIN_FREE_GB:g}",
+        "--node-major",
+        str(NODE_MAJOR),
+        # an argv path, so the factory hashes it with the other tools for the whole run
+        "--gate-module",
+        str(GATE),
+        "--budget-seconds",
+        str(TIMEOUT_SECONDS - 300),
+    ]
 
     commands = {}
     for role, route in role_routes.items():
@@ -502,7 +526,7 @@ def build(a: argparse.Namespace) -> dict:
         "version": 1,
         "base_ref": a.base_ref,
         "max_parallel": 2,
-        "timeout_seconds": 3600,
+        "timeout_seconds": TIMEOUT_SECONDS,
         "checks": [static("backend"), static("frontend")],
         "protected_paths": PROTECTED_PATHS,
         "verification": {
@@ -563,6 +587,13 @@ def parser() -> argparse.ArgumentParser:
         default=[],
         help="numeric id of a GitHub Actions workflow whose failed run may seed `factory.py repair "
         "--source github` (repeatable; e.g. the CI workflow)",
+    )
+    p.add_argument(
+        "--repair-rounds",
+        type=int,
+        default=1,
+        choices=range(3),
+        help="times a failing changed-test gate is fed back to the builder within one attempt (default 1)",
     )
     p.add_argument("--egm", action="store_true", help="require approved EGM design handoffs on every ticket")
     p.add_argument("--base-ref", default="main")

@@ -54,13 +54,29 @@ apt_opts=(-o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::
   -o "Dir::Cache::archives=$cache")
 $sudo mkdir -p "$cache/partial"
 
+apt_etc=${APT_INSTALL_ETC:-/etc/apt}   # overridable only to test the rewrite on a copy
+switched=0
 use_fallback_mirror() {
-  local f
-  for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
+  [ "$switched" -eq 0 ] || return 0
+  local f changed=0
+  for f in "$apt_etc"/sources.list "$apt_etc"/sources.list.d/*.sources "$apt_etc"/sources.list.d/*.list; do
     [ -f "$f" ] || continue
-    $sudo sed -i -E "s#${primary_pattern}#${fallback_mirror}/#g" "$f"
+    # GitHub's Ubuntu 24.04 images do not name the archive in their sources: they use
+    # `URIs: mirror+file:/etc/apt/apt-mirrors.txt`, a mirror list whose first entry is the Azure
+    # archive. Replace that list as well as any literal archive URL, or nothing changes (Nov 2026:
+    # the Azure archive stopped resolving and every attempt still went to it).
+    if grep -qE "mirror\+file:[^[:space:]]+|${primary_pattern}" "$f"; then
+      $sudo sed -i -E -e "s#mirror\+file:[^[:space:]]+#${fallback_mirror}/#g" \
+        -e "s#${primary_pattern}#${fallback_mirror}/#g" "$f"
+      changed=$((changed + 1))
+    fi
   done
-  echo "apt-install: switched the Ubuntu archive to ${fallback_mirror}"
+  switched=1
+  if [ "$changed" -eq 0 ]; then
+    echo "apt-install: no Ubuntu archive or mirror list found to replace; retrying unchanged" >&2
+  else
+    echo "apt-install: switched the Ubuntu archive to ${fallback_mirror} in ${changed} sources file(s)"
+  fi
 }
 
 for i in $(seq 1 "$attempts"); do

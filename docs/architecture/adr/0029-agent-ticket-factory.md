@@ -6,6 +6,8 @@
 - Amended: 2026-11-11 — toolkit upgraded to 0.5.0 (see [Amendment 1](#amendment-1-toolkit-050)).
 - Tooling: [Infra Code Factory 0.5.0](../../operations/code-factory.md) — a standalone, stdlib-only
   Python toolkit kept **outside** this repository.
+- Amended by: [ADR-0030](0030-factory-changed-test-gate.md) (changed-test gate
+  inside the builder command, routing report).
 
 ## Context
 
