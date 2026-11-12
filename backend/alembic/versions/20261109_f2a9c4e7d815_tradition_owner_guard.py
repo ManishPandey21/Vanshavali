@@ -35,9 +35,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sqlalchemy import text
-
 from alembic import op
+from app.core.downgrade_guard import LossyDowngrade, refuse_lossy_downgrades
 
 revision: str = "f2a9c4e7d815"
 down_revision: str | None = "d9b4f2c6a713"
@@ -69,27 +68,31 @@ FOR EACH ROW EXECUTE FUNCTION tradition_entry_record_owner();
 """
 
 # What 8d2e6b4f1a37's downgrade would lose or widen. Counts only: no ids, titles or names.
-LOSSES = {
-    "tradition grants (selected members would lose access)": (
-        "SELECT count(*) FROM access_grant WHERE resource_type = 'tradition'"
-    ),
-    "Selected members entries (tree admins would gain access)": (
-        "SELECT count(*) FROM tradition_entry WHERE privacy_level = 'SELECTED_MEMBERS'"
-    ),
-    "orphaned Only me entries (a re-invited author would get them back)": (
-        "SELECT count(*) FROM tradition_entry WHERE privacy_level = 'ONLY_ME' AND owner_membership_id IS NULL"
-    ),
-    "orphans whose author is a member again (ownership would be revived)": """
+TRADITIONS = LossyDowngrade(
+    revision=TRADITIONS_REVISION,
+    subject="family traditions",
+    losses={
+        "tradition grants (selected members would lose access)": (
+            "SELECT count(*) FROM access_grant WHERE resource_type = 'tradition'"
+        ),
+        "Selected members entries (tree admins would gain access)": (
+            "SELECT count(*) FROM tradition_entry WHERE privacy_level = 'SELECTED_MEMBERS'"
+        ),
+        "orphaned Only me entries (a re-invited author would get them back)": (
+            "SELECT count(*) FROM tradition_entry WHERE privacy_level = 'ONLY_ME' AND owner_membership_id IS NULL"
+        ),
+        "orphans whose author is a member again (ownership would be revived)": """
         SELECT count(*) FROM tradition_entry e
         WHERE e.owner_membership_id IS NULL AND e.created_by IS NOT NULL
           AND EXISTS (SELECT 1 FROM tree_membership m WHERE m.tree_id = e.tree_id AND m.user_id = e.created_by)
     """,
-    "entries owned by someone other than their author (the transfer would be forgotten)": """
+        "entries owned by someone other than their author (the transfer would be forgotten)": """
         SELECT count(*) FROM tradition_entry e
         JOIN tree_membership m ON m.tree_id = e.tree_id AND m.id = e.owner_membership_id
         WHERE e.created_by IS DISTINCT FROM m.user_id
     """,
-}
+    },
+)
 
 
 def upgrade() -> None:
@@ -99,36 +102,7 @@ def upgrade() -> None:
     op.execute(TRIGGER)
 
 
-def _reaches_traditions_downgrade() -> bool:
-    """Will this run go on to run 8d2e6b4f1a37's downgrade? Unknown or relative targets: yes."""
-    env = op.get_context().environment_context
-    if env is None:
-        return True
-    target = env.get_revision_argument()
-    if isinstance(target, tuple):
-        target = target[0] if len(target) == 1 else None
-    if not isinstance(target, str) or target.startswith(("-", "+")) or "@" in target:
-        return True
-    try:
-        script = env.script
-        dest = script.get_revision(target)
-        kept = {r.revision for r in script.iterate_revisions("heads", TRADITIONS_REVISION)}
-    except Exception:
-        return True
-    return dest is None or dest.revision not in kept
-
-
 def downgrade() -> None:
-    if _reaches_traditions_downgrade():
-        bind = op.get_bind()
-        found = {what: int(bind.execute(text(sql)).scalar() or 0) for what, sql in LOSSES.items()}
-        found = {what: n for what, n in found.items() if n}
-        if found:
-            summary = "; ".join(f"{n} {what}" for what, n in found.items())
-            raise RuntimeError(
-                f"lossy downgrade refused: going below {TRADITIONS_REVISION} would change who can read or "
-                f"own family traditions ({summary}). Nothing was changed. Follow "
-                "docs/operations/tradition-ownership-recovery.md."
-            )
+    refuse_lossy_downgrades(TRADITIONS, runbook="docs/operations/tradition-ownership-recovery.md")
     op.execute("DROP TRIGGER IF EXISTS tradition_entry_record_owner ON tradition_entry")
     op.execute("DROP FUNCTION IF EXISTS tradition_entry_record_owner()")
