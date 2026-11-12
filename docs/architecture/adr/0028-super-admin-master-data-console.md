@@ -22,12 +22,12 @@
     fork the Alembic graph, duplicate geography tables `main` already has, and encode the per-term
     model rejected in §2. #35 stays open as a reference until the increments in the implementation
     plan reach feature parity.
-  - PR #60 carries #35's CI commits unchanged (same patch ids) and lands on its own.
+  - PR #60 carried #35's CI commits unchanged (same patch ids) and has merged on its own.
   - PR #19 (draft) is unrelated to this decision and is left untouched.
 
 ## Context
 
-### What `main` does today (verified 9 Nov 2026 at `1f99b97`; re-verified 11 Nov 2026 at `5913759`)
+### What `main` does today (verified 9 Nov 2026 at `1f99b97`; re-verified 11 Nov 2026 at `5913759` and 12 Nov 2026 at `b8c248b`)
 - **Global terms live in JSON packs** (`backend/app/modules/masterdata/packs/*.json`). There are nine
   vocabularies: gotra (16 terms), kula (7), occupation (17), honorific (8), language (23, closed),
   pravara (14 gotra links), and kuladevata, kuladevi and devak, which are empty.
@@ -524,8 +524,8 @@ Kinds of data:
 
 ## Threats and tests to write before code (threat ID allocated at merge)
 Each of these becomes a test in the implementation PRs:
-The threat ID is the next free one when the first implementation increment merges. PR #62
-already claims T63, so this is T64 if #62 lands first (amendment A9).
+The threat ID is the next free one when the first implementation increment merges (amendment A9).
+`main` now holds T63 (#62) and T64 (#71), so draft PR #67 (increment 1) takes T65.
 
 - **Privilege.**
   - A non-holder gets 404 on every console route, parametrised over all routes.
@@ -686,7 +686,7 @@ Still open:
 The consolidation review (PR #64, §8 and §9) gives the reused PR #35 files and the acceptance tests
 for each increment.
 
-0. **Before code.** Land PR #60 (CI) on its own. Accept this ADR. Add the "amended by ADR-0028"
+0. **Before code.** Land PR #60 (CI) on its own (done, 11 Nov 2026). Accept this ADR. Add the "amended by ADR-0028"
    notes to ADR-0006, ADR-0018 and ADR-0026 in a separate change.
 1. **Platform capability and sign-in.**
    - `platform_capability_grant` and the grant and revoke CLI.
@@ -764,7 +764,7 @@ Made after the consolidation review of PR #35 against this ADR (PR #64,
 | A6 | Pack proposals live in `vocabulary_pack_proposal`, never as `draft` terms; codes reserved across terms, requests and proposals; advisory lock taken before the loader reads. | §3 |
 | A7 | Merge and `replaced_by` deferred; retirement with a successor covers the first release. | §4, §5, §10 |
 | A8 | The offer projection is treated as a cross-tenant read: no tree id, fixed columns, audited, tested; offers come in a later increment. | §8, §12 |
-| A9 | The threat ID is allocated at merge (PR #62 holds T63). | Threats |
+| A9 | The threat ID is allocated at merge (T63 and T64 are taken on `main`; increment 1 takes T65). | Threats |
 | A10 | `VSH_MASTERDATA_CONSOLE_ENABLED` defaults to `false` until two named administrators are recorded. | §7, §11 |
 | — | The owner's positions of 11 Nov 2026: solo mode deferred; offer notes hidden; §14 accepted; the six first vocabularies; honorific, pravara and language stay `pack`; no religion, community or caste lists; geography licence review before real data. | §7, §12, §13, §14, Open decisions |
 
@@ -774,3 +774,10 @@ Alembic head on `main` is `d9b4f2c6a713`. PR #62 still holds T63. Draft PR #67 (
 T64 and adds migration `e7c2a9f4b310`, which revises `d9b4f2c6a713` like #62's `f2a9c4e7d815`:
 whichever merges second must re-parent its migration onto the other so `main` keeps one head.
 The status stays **Proposed**.
+
+**Re-checked 12 Nov 2026 at `b8c248b`**: since `3cb12f9`, `main` merged #60 (CI apt hardening),
+#62 (tradition ownership guard, T63, migration `f2a9c4e7d815`), #71 (record downgrade guard, T64,
+migration `a4d7e2c9b153`), the ticket factory upgrade (#68, #69, #72) and #73. None touches master
+data, `READ_ONLY_TABLES`, RLS forcing or the licence, so the Context still holds. The single
+Alembic head on `main` is `a4d7e2c9b153`. Draft PR #67 (increment 1) has been re-parented onto it
+(`e7c2a9f4b310`, one head) and uses threat ID T65. The status stays **Proposed**.
