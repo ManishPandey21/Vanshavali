@@ -1,16 +1,17 @@
 # ADR-0028: Super Admin master-data console: global terms published from the interface (Option B)
 
-- Status: **Proposed** · Date: 2026-11-09 · Amended 2026-11-11 (amendments A1–A10, see
-  "Amendments of 11 Nov 2026" at the end) · Not implemented. Nothing in this ADR is built until the
-  owner accepts it.
-- Would amend, **only once accepted**:
+- Status: **Accepted** 2026-11-12, as amended · Date: 2026-11-09 · Amended 2026-11-11 (amendments
+  A1–A10, see "Amendments of 11 Nov 2026" at the end) · Implementation in progress (increment 1 is
+  draft PR #67). Open decisions 2–5 are still open; until they are settled the defaults in "Open
+  decisions for the owner" apply.
+- Amends:
   - ADR-0006 §6: system administrators get a separate master-data capability.
   - ADR-0018 §4: the packs stop being the only source of truth for global terms.
   - ADR-0026 §4 and its open point "Where curation happens": curation moves from the operator CLI
     and code review to the console.
 
-  Those accepted ADRs are **not** edited or marked superseded by this proposal. If it is accepted,
-  each gets a short "amended by ADR-0028" note in a separate, reviewed change.
+  Those ADRs are **not** edited or marked superseded in this change. Each gets a short "amended
+  by ADR-0028" note in a separate, reviewed change (implementation plan, step 0).
 - Relates to: ADR-0002 (roles and row-level security), ADR-0005 (sign-in, two-step sign-in),
   ADR-0019 (geography snapshots), ADR-0021 (review and revisions), ADR-0025 (transliteration
   lexicon), Q4 (caste, jati and religion), Q13 (lawful basis).
@@ -663,8 +664,8 @@ global lists" section) are updated in the first implementation PR, not by this p
     and audited as a cross-tenant read (§12).
 
 ## Open decisions for the owner
-Positions the owner set out on 11 Nov 2026, now written into this ADR (it stays **Proposed** until
-the owner accepts it as a whole):
+Positions the owner set out on 11 Nov 2026, written into this ADR (accepted as a whole on
+12 Nov 2026):
 - Solo mode: **deferred**; two named administrators for every publication (§7).
 - Offer notes: **never shown** to global reviewers (§12).
 - Database privileges: **§14 accepted**, with the read-only list and function set above.
@@ -674,8 +675,10 @@ the owner accepts it as a whole):
 - LGD and India Post data need a recorded licence and attribution review before any real import
   (§13).
 
-Still open:
-1. **Accept this ADR**, as amended.
+Decided:
+1. **Accept this ADR**, as amended: **accepted 12 Nov 2026**.
+
+Still open (none blocks increments 1–3; each default holds until decided):
 2. **The offer note.** Also stop collecting it for new offers? That amends ADR-0026 §4.
 3. **The two named administrators** for go-live.
 4. **Who records the licence review** for real LGD and India Post files.
@@ -686,7 +689,7 @@ Still open:
 The consolidation review (PR #64, §8 and §9) gives the reused PR #35 files and the acceptance tests
 for each increment.
 
-0. **Before code.** Land PR #60 (CI) on its own (done, 11 Nov 2026). Accept this ADR. Add the "amended by ADR-0028"
+0. **Before code.** Land PR #60 (CI) on its own (done, 11 Nov 2026). Accept this ADR (done, 12 Nov 2026). Add the "amended by ADR-0028"
    notes to ADR-0006, ADR-0018 and ADR-0026 in a separate change.
 1. **Platform capability and sign-in.**
    - `platform_capability_grant` and the grant and revoke CLI.
@@ -781,3 +784,9 @@ migration `a4d7e2c9b153`), the ticket factory upgrade (#68, #69, #72) and #73. N
 data, `READ_ONLY_TABLES`, RLS forcing or the licence, so the Context still holds. The single
 Alembic head on `main` is `a4d7e2c9b153`. Draft PR #67 (increment 1) has been re-parented onto it
 (`e7c2a9f4b310`, one head) and uses threat ID T65. The status stays **Proposed**.
+
+**Accepted 12 Nov 2026** by the owner, as amended (A1–A10 and the 11 Nov positions). Open decisions
+2–5 stay open with the defaults above: offer notes are still collected but never shown to
+reviewers; the console stays off (`VSH_MASTERDATA_CONSOLE_ENABLED=false`) until two named
+administrators are recorded; no real LGD or India Post data is imported before a recorded licence
+review; geography snapshot approval stays on the operator CLI.
