@@ -1,6 +1,6 @@
 # Master-data console consolidation review: PR #35 vs PR #61 (ADR-0028)
 
-- Date: 11 Nov 2026. Analysis only. Nothing was merged, closed, deployed or force-pushed.
+- Date: 11 Nov 2026; re-checked 12 Nov 2026 at `b8c248b` (see the last addendum). Analysis only. Nothing was merged, closed, deployed or force-pushed.
 - Verified against `main` at `5913759` (merge of #63). Every finding below cites code on that
   commit or on the PR heads listed in §1.
 - Recommendation in one line: **adopt ADR-0028 (PR #61) as the canonical design, with the
@@ -247,12 +247,12 @@ Paths are in PR #35 unless they start with `main:`.
   - It returns only the §12 columns, for `offer_status = 'offered'`.
   - It is paginated and audited per call.
   - Tests prove it returns nothing else and refuses non-holders (F9e).
-- **A9. Threat ID.** Allocate the next free ID when increment 1 merges (T64 if #62 lands first). Do not hard-code T63.
+- **A9. Threat ID.** Allocate the next free ID when increment 1 merges. Do not hard-code T63. (12 Nov: T63 and T64 are taken on `main`; increment 1, #67, uses T65.)
 - **A10. Console switch.** `VSH_MASTERDATA_CONSOLE_ENABLED` defaults to `false` until the go-live checklist records two named admins.
 
 ## 7. Migration and consolidation plan
 
-1. **No #35 migration lands.** All schema work comes in new revisions chained to `main`'s head at the time; today that is `d9b4f2c6a713`, or `f2a9c4e7d815` if #62 lands first.
+1. **No #35 migration lands.** All schema work comes in new revisions chained to `main`'s head at the time; at review time that was `d9b4f2c6a713`; on 12 Nov it is `a4d7e2c9b153` (after #62 and #71).
 2. **Increment 1 migration (identity)** adds:
    - `platform_capability_grant`, read-only to the app role;
    - `user_session.mfa_verified_at` and `mfa_step_up_at`, nullable. Existing sessions are NULL, so they do not qualify.
@@ -285,7 +285,7 @@ Each increment is a draft PR from `main`, merged only with the owner's approval,
 
 | # | Branch (suggested) | Scope | Reuses from #35 |
 |---|---|---|---|
-| 0 | — | Land **#60** (CI) on its own. Accept **ADR-0028 + §6 amendments** (update #61). Add "amended by ADR-0028" notes to ADR-0006/0018/0026 in a separate change. | — |
+| 0 | — | Land **#60** (CI) on its own (done, 11 Nov). Accept **ADR-0028 + §6 amendments** (update #61). Add "amended by ADR-0028" notes to ADR-0006/0018/0026 in a separate change. | — |
 | 1 | `claude/md-console-1-capability` | `platform_capability_grant` and CLI `grant/revoke` (verified email, TOTP, role-mailbox deny-list); session MFA columns, set at login; step-up endpoint; `require_platform`; `UserOut.platform_capabilities`; import-boundary test; threat ID; privacy-model section. | `authz/platform.py`, `AdminContext` |
 | 2 | `claude/md-console-2-catalogue` | Read-only console: vocabularies (with authority badge), terms, term detail; not-found page; 403 step-up prompt; card list at 390 px. | `MasterDataPages.tsx` (layout, dashboard, table, pager), hooks, i18n keys |
 | 3 | `claude/md-console-3-loader-history` | Migration from §7.3; loader rules and advisory lock; `export`, `adopt-pack`, `--dry-run` CI gate; version history view; read-only grants and definer functions (no publish yet). | Loader "kept" report, `revision` |
@@ -367,10 +367,10 @@ Every increment must pass `make check`, the Alembic round trip (`upgrade head �
 
 | PR | Recommended outcome | Condition |
 |---|---|---|
-| #60 | Merge on its own (owner decision) | Already green, and patch-identical to #35's CI commits. |
+| #60 | Merged on its own (11 Nov) | Was green, and patch-identical to #35's CI commits. |
 | #61 | Update with the §6 amendments, then accept | Owner decision. |
 | #35 | Close as **superseded** | After increment 4 merges and §3's "adapt/reuse" items are verified present. Keep the branch for reference. |
-| #62 | Unaffected | Only coordinate the threat ID and the Alembic parent with increment 1/3. |
+| #62 | Merged (T63, `f2a9c4e7d815`) | Increment 1 (#67) has been re-parented and renumbered after it. |
 | #19 | Out of scope | Separately already superseded by ADR-0018 and ADR-0019 on `main`. |
 
 ## 11. Open owner decisions
@@ -402,3 +402,15 @@ Every increment must pass `make check`, the Alembic round trip (`upgrade head �
     `CLAUDE.md`), `api/router.py`, `describe_schema.py`: rewrite per increment; do not copy.
   - F7 also applies to history: the `7d4a2c9e1b60` downgrade drops the whole `vocabulary_change`
     table.
+
+## Addendum: re-check of 12 Nov 2026 at `b8c248b`
+- Since `3cb12f9`, `main` merged #60 (CI apt hardening), #62 (tradition ownership guard, threat
+  T63, migration `f2a9c4e7d815`), #71 (record downgrade guard, threat T64, migration
+  `a4d7e2c9b153`), the ticket factory upgrade (#68, #69, #72; ADR-0030) and #73. None of them
+  touches master data, `READ_ONLY_TABLES`, RLS forcing or the geography licence, so the findings
+  above still hold.
+- The single Alembic head on `main` is `a4d7e2c9b153`. Draft PR #67 (increment 1) has been
+  re-parented onto it (`e7c2a9f4b310`, one head) and uses threat ID **T65**. The previous
+  addendum's T64 / `d9b4f2c6a713` note is superseded.
+- #35 is unchanged (head `dc7b617`, draft). ADR-0028 (#61) is still **Proposed**.
+- The verified-state table in §1 describes `main` at `5913759` and is kept as it was.
