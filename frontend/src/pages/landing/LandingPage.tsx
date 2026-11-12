@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import { DONATION_AMOUNTS, parseVoluntaryAmount, safeHostedDonationLink } from "./donations";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, BookOpenText, Download, EyeOff, Heart, Lock, Network, ScrollText, ShieldCheck, Sprout, UserCog, Users, type LucideIcon } from "lucide-react";
@@ -755,8 +756,6 @@ type PublicImpact = {
   unique_visitors_30d: number | null;
 };
 
-const DONATION_AMOUNTS = [10, 50, 100, 1000, 10000] as const;
-
 /**
  * Each environment variable must point to a hosted checkout with that amount already
  * configured server-side. This site never collects card or UPI credentials. Do not
@@ -771,29 +770,27 @@ const DONATION_LINKS: Record<number, string | undefined> = {
 };
 
 function safeDonationLink(amount: number): string | null {
-  const configured = DONATION_LINKS[amount];
-  if (!configured) return null;
-  try {
-    const url = new URL(configured);
-    return url.protocol === "https:" && ["pages.razorpay.com", "rzp.io", "razorpay.me"].includes(url.hostname)
-      ? url.href
-      : null;
-  } catch {
-    return null;
-  }
+  return safeHostedDonationLink(DONATION_LINKS[amount]);
 }
 
 function CommunityImpactAndSupport() {
   const { t, i18n } = useTranslation();
   const hindi = i18n.language.startsWith("hi");
   const [amount, setAmount] = useState<number>(100);
+  const [isOtherAmount, setIsOtherAmount] = useState(false);
+  const [otherAmountText, setOtherAmountText] = useState("");
   const impact = useQuery({
     queryKey: ["public", "site-impact"],
     queryFn: () => api.get<PublicImpact>("/public/site-impact"),
     staleTime: 5 * 60_000,
     retry: false,
   });
-  const checkout = safeDonationLink(amount);
+  const enteredAmount = parseVoluntaryAmount(otherAmountText);
+  // A variable-amount hosted page must ask donors to enter and confirm the amount again.
+  // We do not send an untrusted number through URL parameters or declare a payment successful.
+  const checkout = isOtherAmount
+    ? enteredAmount !== null ? safeHostedDonationLink(import.meta.env.VITE_DONATION_LINK_CUSTOM) : null
+    : safeDonationLink(amount);
   const number = (value: number) => new Intl.NumberFormat(hindi ? "hi-IN" : "en-IN").format(value);
 
   return (
@@ -832,19 +829,57 @@ function CommunityImpactAndSupport() {
               <legend className="mb-3 text-sm font-semibold">{t("landing.support.chooseAmount")}</legend>
               <div className="flex flex-wrap gap-2">
                 {DONATION_AMOUNTS.map((option) => (
-                  <label key={option} className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition ${amount === option ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
+                  <label key={option} className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition ${!isOtherAmount && amount === option ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
                     <input
                       type="radio"
                       name="donation-amount"
                       value={option}
-                      checked={amount === option}
-                      onChange={() => setAmount(option)}
+                      checked={!isOtherAmount && amount === option}
+                      onChange={() => { setAmount(option); setIsOtherAmount(false); }}
                       className="sr-only"
                     />
                     ₹{number(option)}
                   </label>
                 ))}
+                <label className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition ${isOtherAmount ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
+                  <input
+                    type="radio"
+                    name="donation-amount"
+                    checked={isOtherAmount}
+                    onChange={() => setIsOtherAmount(true)}
+                    className="sr-only"
+                  />
+                  {t("landing.support.otherAmount")}
+                </label>
               </div>
+              {isOtherAmount && (
+                <div className="mt-4">
+                  <label htmlFor="voluntary-donation-amount" className="block text-sm font-semibold">
+                    {t("landing.support.enterAmount")}
+                  </label>
+                  <div className="mt-2 flex max-w-xs items-center border border-cocoa/30 bg-white focus-within:border-rust">
+                    <span className="px-3 text-lg text-umber" aria-hidden>₹</span>
+                    <input
+                      id="voluntary-donation-amount"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={6}
+                      value={otherAmountText}
+                      onChange={(event) => setOtherAmountText(event.target.value)}
+                      aria-invalid={otherAmountText.length > 0 && enteredAmount === null}
+                      aria-describedby="voluntary-donation-note"
+                      placeholder="250"
+                      className="w-full min-w-0 bg-transparent px-2 py-3 outline-none"
+                    />
+                  </div>
+                  <p id="voluntary-donation-note" className="mt-2 text-xs text-umber" role="status">
+                    {otherAmountText && enteredAmount === null
+                      ? t("landing.support.invalidAmount")
+                      : t("landing.support.otherAmountNote")}
+                  </p>
+                </div>
+              )}
             </fieldset>
             {checkout ? (
               <a
@@ -854,11 +889,18 @@ function CommunityImpactAndSupport() {
                 className="mt-6 inline-flex items-center justify-center gap-2 bg-cocoa px-6 py-3 text-sm font-semibold text-cream hover:bg-cocoa-soft"
               >
                 <Heart className="size-4" aria-hidden />
-                {t("landing.support.donateAmount", { amount: number(amount) })}
+                {isOtherAmount ? t("landing.support.continueCustom") : t("landing.support.donateAmount", { amount: number(amount) })}
               </a>
             ) : (
               <p className="mt-6 text-sm text-umber" role="status">
-                {t("landing.support.notConfigured")}
+                {isOtherAmount && enteredAmount === null
+                  ? t("landing.support.enterValidAmount")
+                  : t("landing.support.notConfigured")}
+              </p>
+            )}
+            {isOtherAmount && enteredAmount !== null && (
+              <p className="mt-3 text-xs font-medium text-umber">
+                {t("landing.support.confirmCustom", { amount: number(enteredAmount) })}
               </p>
             )}
             <p className="mt-3 text-xs text-umber">{t("landing.support.paymentNote")}</p>
