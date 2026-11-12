@@ -135,6 +135,7 @@ anyone. Never put a secret here. Typed in `frontend/src/vite-env.d.ts`.
 | Variable | Purpose | Req. | Default | Recommendation |
 |---|---|---|---|---|
 | `VITE_DONATION_LINK_10` / `_50` / `_100` / `_1000` / `_10000` | Hosted Razorpay checkout for each fixed landing-page amount. HTTPS on `pages.razorpay.com`, `rzp.io` or `razorpay.me` only; anything else is ignored | no | unset (no checkout offered) | set only after the checkout, receipts and refunds are reviewed; each link's amount must match its name |
+| `VITE_PRIVACY_CONTACT_EMAIL` | Address for privacy questions and requests, shown as a `mailto:` link on `/privacy`. Plain addresses only; anything else is ignored | yes, before public launch | unset (page points to the support contact) | a monitored mailbox for privacy requests |
 | `VITE_DONATION_LINK_CUSTOM` | Hosted page on which the donor enters and confirms their own amount ("Other amount"). The typed amount is never sent to it | no | unset | same review as above |
 
 ## Deployment-only (scripts)

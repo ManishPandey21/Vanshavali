@@ -157,6 +157,19 @@ each is enforced server-side today, and changing the enforcing code means changi
 | You decide who sees what (roles, per-person level; public pages off by default, deceased-only, marked one by one) | `ROLE_PERMISSIONS`, `Person.privacy_level` / `field_privacy`; `PublicMode.OFF` default; public branch of `level_allows` |
 | Your records stay yours (GEDCOM / family archive export) | `gedcom.export` (Owner, Family admin, Contributor) in gedcom and archive services |
 
+**Public privacy notice (`/privacy`).** `frontend/src/pages/public/PrivacyPage.tsx`, copy in
+`privacyNotice.*` in both locales, linked from the landing footer. Like "Kept in trust", every
+statement must stay true of the code. Change the copy in the same PR as any change to:
+- the data collected at sign-up or sign-in;
+- cookie or browser-storage keys (a test checks every key is named);
+- processors (hosting, email, messaging, Google, payment);
+- retention, OCR/AI processing, or subject rights.
+
+The contact line uses the build-time `VITE_PRIVACY_CONTACT_EMAIL`. Without it, the page points
+to the pilot support contact and never invents an address. The notice states two gaps openly:
+sign-in records and the audit log have no retention period yet, and there is no named grievance
+officer (DEFERRED below).
+
 **Landing-page sketch ("plant your tree").** Signed-out visitors can type up to four names (self,
 father, mother, paternal grandfather) on the public landing page to preview a tree. The names are
 kept only in that browser tab's `sessionStorage` (`vsh.treeDraft`, ≤120 chars each), are never sent

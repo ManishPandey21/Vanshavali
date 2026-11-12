@@ -86,7 +86,10 @@ real visitors reach:
    - the 35-day aggregate retention;
    - the GPC/DNT behaviour and how to delete the cookie.
 
-   No such public page exists today.
+   The page exists at `/privacy` (`frontend/src/pages/public/PrivacyPage.tsx`) and covers all of
+   this. Before activation it still needs:
+   - counsel's review of the wording, in both languages;
+   - `VITE_PRIVACY_CONTACT_EMAIL` set to a monitored mailbox.
 2. Counsel's view on the lawful basis (Q20), and product-owner approval of this ADR.
 3. `VSH_RATE_LIMIT_BACKEND=redis` in that environment. Per-process memory limiting would multiply
    the inflation cap by the number of backend replicas.

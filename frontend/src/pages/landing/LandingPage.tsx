@@ -576,6 +576,9 @@ export function LandingPage() {
             <Link to={startTo} className="hover:text-gold">
               {startLabel}
             </Link>
+            <Link to="/privacy" className="hover:text-gold">
+              {t("landing.footer.privacy")}
+            </Link>
             {!signedIn && (
               <>
                 <Link to="/login" className="hover:text-gold">

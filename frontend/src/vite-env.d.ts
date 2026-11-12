@@ -10,6 +10,8 @@ interface ImportMetaEnv {
   readonly VITE_DONATION_LINK_10000?: string;
   /** Hosted page on which the donor enters and confirms their own amount. */
   readonly VITE_DONATION_LINK_CUSTOM?: string;
+  /** Address shown on the public privacy notice (/privacy) for privacy questions and requests. */
+  readonly VITE_PRIVACY_CONTACT_EMAIL?: string;
 }
 
 interface ImportMeta {

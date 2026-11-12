@@ -14,6 +14,7 @@ import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/
 import { AcceptInvitePage, CreateTreePage, TreesListPage } from "./pages/trees/TreesPages";
 import { AccountPage } from "./pages/AccountPage";
 import { WelcomePage } from "./pages/onboarding/WelcomePage";
+import { PrivacyPage } from "./pages/public/PrivacyPage";
 import { ClaimInvitePage } from "./pages/onboarding/ClaimInvitePage";
 import { DashboardPage } from "./pages/tree/DashboardPage";
 import { PeoplePage } from "./pages/tree/PeoplePage";
@@ -104,6 +105,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/about" element={<LandingPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/invite/:token" element={<AcceptInvitePage />} />
         <Route path="/claim" element={<ClaimInvitePage />} />
         <Route path="/p/:slug" element={<PublicTreePage />} />
