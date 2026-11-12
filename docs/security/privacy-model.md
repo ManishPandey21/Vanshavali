@@ -343,9 +343,25 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
 
 [ADR-0031](../architecture/adr/0031-family-profile-addresses-and-communications.md) is accepted
 for phased development. Existing legacy readers, including authorized administrators, retain
-access until an explicit, previewed field conversion. New strict field policies, encrypted postal
-and contact records and membership-bound grants are not implemented by the birth-editing slice.
-No old audience is silently declared migrated.
+access until an explicit, previewed field conversion. Migration `c8f4a2d7e901` moves legacy postal
+and contact free text verbatim into tree-scoped AES-GCM records, clears the plaintext columns and
+labels legacy address purpose/status/dates unknown. Authorized old clients read/write a compatibility
+projection; no old audience is silently declared migrated. Strict field policies and
+membership-bound grants remain future work.
+
+Person address lists and encrypted history use the existing address field gate; person contact
+lists/history/reveal use the contact field gate. Both require person-write permission to mutate,
+use RLS and composite tree foreign keys, and are deleted with person erasure. Lists are cursor
+paginated. Address building, street, landmark, post office, gram-panchayat text, postal code, notes,
+revision reasons and snapshots are encrypted; audit events contain only identifiers, purpose and
+changed field names—not postal content. Contacts are masked by default; explicit reveal is audited,
+and revision-history values remain masked. Telegram and Instagram
+profile links are produced only from validated handles or fixed-host HTTPS URLs.
+
+Concurrent detail writes serialize on the parent person. Partial unique indexes backstop the one
+active legacy record, one primary current address and one preferred contact per kind. A WhatsApp
+“same as mobile” action records the source revision; later mobile edits show an outdated-copy prompt
+and never silently update or subscribe the person.
 
 Direct birth-event edits require person-write permission **and** visibility of each submitted
 birth field group. Date, time/zone/offset and birthplace have separate checks; omitted hidden fields

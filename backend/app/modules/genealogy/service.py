@@ -593,13 +593,20 @@ def create_person(ctx: TreeContext, body: PersonCreate, *, provisional: bool = F
         else (body.privacy_level or ctx.tree.default_person_privacy),
         occupation=body.occupation,
         notes=body.notes,
-        contact_info=body.contact_info,
-        residential_address=body.residential_address,
+        contact_info=None,
+        residential_address=None,
         is_provisional=provisional,
         created_by=ctx.user_id,
     )
     ctx.db.add(person)
     ctx.db.flush()
+    if body.residential_address is not None or body.contact_info is not None:
+        from app.modules.profile_details import service as profile_details
+
+        if body.residential_address is not None:
+            profile_details.set_legacy_address(ctx, person.id, body.residential_address)
+        if body.contact_info is not None:
+            profile_details.set_legacy_contact(ctx, person.id, body.contact_info)
     review_policy.remember_new_person(ctx, person.id)  # links to a new person are additions (§1)
     names = [] if provisional else [_new_name(ctx, person.id, n) for n in body.names]
     for n in names:
@@ -649,15 +656,23 @@ def update_person(ctx: TreeContext, person_id: uuid.UUID, body: PersonUpdate) ->
             details={"from": person.profile_status.value, "to": str(changes["profile_status"])},
         )
     sensitive = {"contact_info", "residential_address", "gender_identity"} & set(changes)
+    legacy = {k: changes.pop(k) for k in ("contact_info", "residential_address") if k in changes}
     for k, v in changes.items():
         setattr(person, k, v)
+    if legacy:
+        from app.modules.profile_details import service as profile_details
+
+        if "residential_address" in legacy:
+            profile_details.set_legacy_address(ctx, person.id, legacy["residential_address"])
+        if "contact_info" in legacy:
+            profile_details.set_legacy_contact(ctx, person.id, legacy["contact_info"])
     person.updated_by = ctx.user_id
     audit.log(
         ctx,
         "person.changed",
         target_type="person",
         target_id=person.id,
-        details={"fields": sorted(changes), "sensitive_fields": sorted(sensitive)},
+        details={"fields": sorted(set(changes) | set(legacy)), "sensitive_fields": sorted(sensitive)},
     )
     return person
 
@@ -1128,6 +1143,9 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
         DocumentLink,
         ExtractionProposal,
         GedcomExtension,
+        PersonAddress,
+        PersonContactMethod,
+        PersonDetailRevision,
         Relationship,
         TraditionLink,
         TreeMembership,
@@ -1144,6 +1162,30 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
             ExtractionProposal.tree_id == ctx.tree_id, ExtractionProposal.subject_person_id == person.id
         )
     )
+    db.execute(
+        sa_delete(PersonDetailRevision).where(
+            PersonDetailRevision.tree_id == ctx.tree_id,
+            PersonDetailRevision.person_id == person.id,
+        )
+    )
+    db.execute(
+        sa_delete(Citation).where(
+            Citation.tree_id == ctx.tree_id,
+            Citation.target_type == CitationTarget.ADDRESS,
+            Citation.target_id.in_(
+                select(PersonAddress.id).where(
+                    PersonAddress.tree_id == ctx.tree_id,
+                    PersonAddress.person_id == person.id,
+                )
+            ),
+        )
+    )
+    for detail_model in (PersonAddress, PersonContactMethod):
+        db.execute(
+            sa_delete(detail_model).where(
+                detail_model.tree_id == ctx.tree_id, detail_model.person_id == person.id
+            )
+        )
     db.execute(
         sa_delete(DocumentLink).where(
             DocumentLink.tree_id == ctx.tree_id,

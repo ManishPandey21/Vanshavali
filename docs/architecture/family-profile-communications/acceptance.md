@@ -22,6 +22,22 @@ The previous environment check covered full backend/frontend/E2E/visual/renderer
 design change does not rerun all of them or claim they verify unimplemented features. Fresh browser
 acceptance is required at every implementation increment.
 
+## Address/contact increment evidence (12 November 2026)
+
+Implementation and known gaps are recorded in
+[addresses-contacts-increment.md](addresses-contacts-increment.md). Focused backend tests in
+`test_profile_details.py` cover encrypted address/contact payloads and history, optimistic conflicts,
+atomic/idempotent moves, multiple current residences, masking/reveal, preferred uniqueness, syntax
+validation and unauthorized reads. Existing `test_privacy.py` covers compatibility redaction and
+erasure; `test_migrations.py` proves one migration head, model parity, clean empty roundtrip, and a
+populated verbatim legacy encryption/downgrade restore.
+Frontend `profile.test.tsx` covers masked display, explicit reveal and the LGD/manual entry point.
+
+Status: FP-C01 and FP-C02 core **verified**; FP-C04 migration behavior **verified** with separate
+backup/restore evidence still required for release; FP-E01 and FP-E02 core **verified**; B and FP-X01 remain
+**partial** pending reverse-PIN/mismatch UX, full route-role matrix, browser accessibility and manual
+language/assistive-technology checks. D is the next planned increment.
+
 ## Required regression and acceptance tests
 
 | ID / increment | Backend / migration contract | Frontend / real-stack proof |

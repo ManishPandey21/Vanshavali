@@ -224,30 +224,31 @@ SameSite=Lax cookies apply.
 | T66 | A direct genealogy edit overwrites hidden birth details, or a stale form loses a newer edit | Central field-visibility guard on birth-event create/update plus person-write checks; optional expected revision checked under event lock. Existing proposal review retains proposer permissions, visible-reviewer approval and locked proposal revisions. Legacy admin audiences remain intentionally unchanged. | `test_birth_editing.py`, `test_proposals.py`, `OverviewVitalsEdit.test.tsx` |
 | T67 | A changed birth date leaves queued old-date reminders or races provider delivery | Date edits recompute each recipient's schedule and cancel pending/retrying deliveries transactionally; tick/edit/delivery lock the event before dependent rows; delivery revalidates occurrence. Previously sent/attempted occurrences are never re-armed. | `test_birth_editing.py` (earlier/partial dates, queued cancellation, both database race orders), `test_reminders.py` |
 
-These controls do not implement the strict field-controller migration, address-copy policy or
-new messaging channels below. Provider requests completed before the edit cannot be recalled.
+These controls do not implement the strict field-controller migration, reusable address-copy policy
+or new messaging channels below. Provider requests completed before the edit cannot be recalled.
 
-## Remaining family-profile controls (ADR-0031; not implemented)
+## Family-profile controls (ADR-0031; staged)
 
-These `FP-` identifiers are programme-level design threats, not completed mitigations.
-T66/T67 implement only the scoped birth-edit controls above. The audit checked open
+These `FP-` identifiers are programme-level threats. Person address/history and contact-method core
+controls are implemented; field-controller conversion, reusable copies and messaging remain open.
+The audit checked open
 PR #67's T65 reservation; T66/T67 leave that reservation untouched. Allocate further permanent
 T numbers after refreshing open branches. See the
 [ADR](../architecture/adr/0031-family-profile-addresses-and-communications.md) and
 [acceptance matrix](../architecture/family-profile-communications/acceptance.md).
 
-| ID | Threat | Proposed control and required negative evidence |
+| ID | Threat | Implemented/current control and remaining evidence |
 |---|---|---|
 | FP-PRIVACY | Promotion or broad person grant exposes private birth/contact/address fields | Central field policy without role bypass; membership-bound grants; promotion, removal/reinvite, orphan and claim-transfer tests |
 | FP-WRITE | General person-write permission overwrites hidden time/date/contact; whole-event PATCH clears redacted data | Field-scoped server write checks across direct, import, extraction and proposal paths; forged patch and stale revision tests |
-| FP-PLACE | Private street/hospital details escape through tree Place search, map, export or coarse city summary | Private encrypted payload outside searchable Place; allowlisted city projection; cross-surface leakage tests |
+| FP-PLACE | Private street/hospital details escape through tree Place search, map, export or coarse city summary | **Core implemented:** building/street/landmark/post office/gram-panchayat text/postal code/notes are encrypted outside `Place`; list/detail use address authorization and no search/map/export path exposes them. Coarse-city split and wider cross-surface tests remain. |
 | FP-COPY | Copying/linking/recent-address caches bypass source privacy or reveal hidden relatives | Source recheck at commit/read, retained copy-chain ceiling, filtered counts, revoke/erase tests |
-| FP-HISTORY | Migration, history, review patches, audit or rollback retain/re-expose plaintext | Encrypt sensitive revisions/proposals; audit names of fields only; verbatim migration equality check, restore and fail-closed downgrade tests |
+| FP-HISTORY | Migration, history, review patches, audit or rollback retain/re-expose plaintext | **Core implemented:** address/contact payloads, reasons and before/after history use AES-GCM; contact history remains masked; audit contains identifiers/field names; populated migration proves verbatim conversion and restore; lossy downgrade refuses. Proposal adapters and backup/restore evidence remain. |
 | FP-REMINDER | Edited date or withdrawn access leaves stale/duplicate queued messages | Transactional event-change invalidation, occurrence/generation check and recipient/consent recheck; both race orders tested with mock provider |
-| FP-ENDPOINT | A relative-entered number/username becomes a verified destination or an adult is silently subscribed | Separate profile methods, account endpoints and channel-purpose consent; no-send and forged-verification tests |
+| FP-ENDPOINT | A relative-entered number/username becomes a verified destination or an adult is silently subscribed | **Implemented for profile methods:** typed values remain separate from verified notification contacts, are masked by default, and no create/edit/reveal path subscribes or sends. Channel-purpose flows remain separate future work. |
 | FP-INVITE | Forwarded claim link grants access, manual share reports false delivery, or previews leak family data | Existing consent/identity/admin approval boundaries; fragment tokens and generic sharing; no access before approval |
 | FP-GEO | Ambiguous PIN or unapproved snapshot creates false facts; stale lookup overwrites manual/historical data | Approved snapshots only, suggestion precision/provenance, stale-response and conflict tests; manual fallback |
-| FP-TENANT | Address/contact/source/branch IDs cross trees or bypass branch write scope | Composite FKs, tree RLS and centralized authorization; every new route covered by isolation tests |
+| FP-TENANT | Address/contact/source/branch IDs cross trees or bypass branch write scope | **Address/contact core implemented:** composite FKs, tree RLS, centralized field/person authorization and route-isolation coverage. Shared-address/source/branch routes remain future work. |
 
 Residual: an authorized person can retain a screenshot or externally copied value; an already
 accepted external message cannot be recalled. In-app source revocation still applies immediately

@@ -47,6 +47,7 @@ from app.models.notifications import (
     NotificationPreference,
 )
 from app.models.privacy import ConsentRecord, FamilyDataAttestation, ProfileClaim, ProfileClaimInvite
+from app.models.profile_details import PersonAddress, PersonContactMethod, PersonDetailRevision
 from app.models.property import LandParcel, Property, PropertyEvent, PropertyEventParcel, PropertyInterest
 from app.models.review import (
     ChangeProposal,
@@ -107,6 +108,9 @@ __all__ = [
     "NotificationPreference",
     "PanchangDay",
     "Person",
+    "PersonAddress",
+    "PersonContactMethod",
+    "PersonDetailRevision",
     "PhotoCollection",
     "PhotoCollectionItem",
     "PincodeOffice",

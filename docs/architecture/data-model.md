@@ -1603,6 +1603,9 @@ Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `IN
 - `calendar_feed`
 - `external_identity`
 - `panchang_day`
+- `person_address`
+- `person_contact_method`
+- `person_detail_revision`
 - `photo_collection`
 - `photo_collection_item`
 - `record_report`

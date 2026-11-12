@@ -198,6 +198,32 @@ class PlaceType(StrEnum):
     OTHER = "other"
 
 
+class AddressPurpose(StrEnum):
+    UNKNOWN = "unknown"
+    CURRENT_RESIDENCE = "current_residence"
+    PERMANENT = "permanent"
+    PREVIOUS_RESIDENCE = "previous_residence"
+    ANCESTRAL_HOME = "ancestral_home"
+    NATIVE_PLACE = "native_place"
+    CORRESPONDENCE = "correspondence"
+    OTHER = "other"
+
+
+class AddressStatus(StrEnum):
+    UNKNOWN = "unknown"
+    CURRENT = "current"
+    FORMER = "former"
+
+
+class ContactKind(StrEnum):
+    EMAIL = "email"
+    MOBILE = "mobile"
+    WHATSAPP = "whatsapp"
+    TELEGRAM = "telegram"
+    INSTAGRAM = "instagram"
+    LEGACY_NOTE = "legacy_note"
+
+
 class AssertionSubject(StrEnum):
     PERSON = "person"
     BRANCH = "branch"
@@ -281,6 +307,7 @@ class CitationTarget(StrEnum):
     PROPERTY_EVENT = "property_event"
     HOUSEHOLD = "household"
     TRADITION = "tradition"  # ADR-0026 §7
+    ADDRESS = "address"  # ADR-0031 §5
 
 
 class DocumentCategory(StrEnum):

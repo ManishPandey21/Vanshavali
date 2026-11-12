@@ -24,6 +24,11 @@ erDiagram
   TREE ||--o{ PERSON : contains
 
   PERSON ||--o{ NAME_RECORD : "has (type, script, language)"
+  PERSON ||--o{ PERSON_ADDRESS : "has current/former postal details"
+  PLACE |o--o{ PERSON_ADDRESS : "optional geographic reference"
+  PERSON ||--o{ PERSON_CONTACT_METHOD : "has private contact methods"
+  PERSON_ADDRESS ||--o{ PERSON_DETAIL_REVISION : "encrypted history"
+  PERSON_CONTACT_METHOD ||--o{ PERSON_DETAIL_REVISION : "encrypted history"
   PERSON ||--o{ RELATIONSHIP : "person_a (parent / partner)"
   PERSON ||--o{ RELATIONSHIP : "person_b (child / partner)"
   RELATIONSHIP |o--o{ RELATIONSHIP : "union_id (child's parents' union)"
@@ -93,6 +98,9 @@ graph LR
   P -- MEMBER_OF_HOUSEHOLD --> H[Household]
   P -- MEMBER_OF_BRANCH --> B[FamilyBranch]
   P -- participant --> E[Event]
+  P -- private postal association --> PA[PersonAddress]
+  PA -. optional reference .-> PL
+  P -- private contact method --> PC[PersonContactMethod]
   E -- BORN_AT / LIVED_AT / MIGRATED_FROM / MIGRATED_TO --> PL[Place]
   P -- asserted heritage --> A[Assertion]
   A -- ancestral village / temple --> PL
@@ -130,6 +138,8 @@ graph LR
 | A person added "as unknown for now" is `is_provisional` (their origin, kept for good); created only on the user's explicit choice. Whether they still *need details* (no name) or are *verified* (every relationship has supporting evidence) is derived, never stored. Until verified, only the creator and tree admins can see them and exports leave them out. | `person.is_provisional`, `genealogy.provisional` (ADR-0020 §4, §7) |
 | Lineage views (biological / legal / ritual / social) filter edges by `lineage` | `lineage` query parameter on family, ancestors, descendants, relationship-path |
 | Incomplete dates keep their precision: nothing is padded, calendars are preserved, sort ranges are derived | `core/dates.GenealogicalDate` |
+| A person can have several current/former addresses but only one explicitly primary current address. Move retains the selected old record and atomically creates a new current record; correction updates one record under optimistic revision. Street/building/landmark/post office/gram-panchayat text/postal code/notes, revision reasons and snapshots are AES-GCM encrypted. A record needs at least one identifying place/postal detail. Legacy free text is preserved verbatim with unknown purpose/status/dates. Sources cite addresses through `citation.target_type = address`. | `person_address`, `person_detail_revision`, `citation`, `profile_details.service` (ADR-0031) |
+| Profile contacts are typed, encrypted and masked by default. Reveal is a separate authorized/audited read; one contact per kind can be preferred. “Same as mobile” stores the copied source revision and becomes outdated when that mobile changes; it never silently synchronizes. Profile methods never become verified user endpoints or messaging consent. Telegram/Instagram links use fixed validated HTTPS hosts. | `person_contact_method`, `profile_details.service` (ADR-0031) |
 | Approximate birth times are never exact. Exact requires a document-grade source. | `core/dates.GenealogicalTime` validator |
 | Competing claims coexist (several births, assertions, astrology profiles). One is preferred. Nothing is overwritten. | `is_preferred` + evidence status |
 | Heritage values are never inferred | No code path derives them. Enforced by a regression test. |
@@ -184,10 +194,11 @@ erDiagram
 - Closure tables or materialised paths are **DEFERRED** until load tests at 10k–100k people show
   the need.
 
-## Proposed family-profile extension (not part of the current schema)
+## Family-profile address/contact increment
 
-[ADR-0031](adr/0031-family-profile-addresses-and-communications.md) describes proposed field
-policies, person-address associations, immutable shared address versions and encrypted contact
-methods. Birth facts remain events and ancestral villages remain assertions linked to places.
-No table or migration in that proposal exists yet; update the canonical diagram and schema
-documentation only with the accepted implementation migrations.
+[ADR-0031](adr/0031-family-profile-addresses-and-communications.md) is being delivered in stages.
+Migration `c8f4a2d7e901` implements person-address associations, encrypted revision history and typed
+encrypted profile contacts. Birth facts remain events and ancestral villages remain assertions
+linked to places. Strict field-controller conversion, immutable shared family-address versions,
+ceiling-aware copy/link and independently consented copy sharing remain the next stages; they are
+not represented as current tables here.
