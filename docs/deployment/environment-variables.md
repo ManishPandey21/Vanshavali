@@ -54,6 +54,7 @@ deployment-level variables of the pilot stack (`deploy/pilot`). See ADR-0014 for
 | `FORWARDED_ALLOW_IPS` | Proxies whose `X-Forwarded-For` uvicorn trusts (client IP for rate limits, audit, sessions; threat T30). **No `VSH_` prefix**: uvicorn reads it | fixed | `127.0.0.1` (image: `127.0.0.1,::1`) | exactly the Caddy address `172.30.0.10` (compose.yml). `*` or a `/0` network is refused at start-up; loopback-only logs a warning | no |
 | `VSH_LOGIN_RATE_LIMIT_PER_MINUTE` | Per-IP and per-account login throttle | no | `10` | leave | no |
 | `VSH_REGISTER_RATE_LIMIT_PER_MINUTE` | Per-IP account registrations per minute (per-email: 5/hour, fixed) | no | `20` | leave | no |
+| `VSH_TOKEN_RATE_LIMIT_PER_MINUTE` | Per-IP uses of emailed tokens (verify email, confirm password reset; one shared bucket) per minute. Raised only by the E2E harness | no | `30` | leave (never raise in production) | no |
 | `VSH_RATE_LIMIT_BACKEND` | `memory` or `redis` (shared by all replicas) | fixed | `memory` | `redis` (compose.yml) | no |
 | Trusted hosts | No app-level setting: Caddy serves only `VSH_DOMAIN` (any other Host/SNI gets no certificate and no site), and the API is not published | — | — | — | — |
 | Password hashing | Argon2id with argon2-cffi's defaults (ADR-0005); **not configurable by environment** | — | — | — | — |

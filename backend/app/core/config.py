@@ -106,6 +106,9 @@ class Settings(BaseSettings):
     login_rate_limit_per_minute: int = 10
     # per-IP account registrations per minute (the per-email limit, 5/hour, is fixed)
     register_rate_limit_per_minute: int = 20
+    # per-IP uses of emailed one-time tokens (verify email, confirm password reset) per minute;
+    # raised only by the E2E harness, never in production
+    token_rate_limit_per_minute: int = 30
 
     # Jobs
     job_mode: Literal["sync", "rq"] = "sync"
