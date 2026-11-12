@@ -241,6 +241,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/step-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Step Up
+         * @description Re-enter a TOTP code on this session, as administration writes require (ADR-0028 §7).
+         */
+        post: operations["step_up_api_v1_auth_step_up_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/mfa/disable": {
         parameters: {
             query?: never;
@@ -4345,6 +4365,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/master-data/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Console Session
+         * @description The caller's capabilities and when their two-step session and step-up run out.
+         */
+        get: operations["console_session_api_v1_admin_master_data_session_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -5970,6 +6010,21 @@ export interface components {
              * @default true
              */
             active?: boolean;
+        };
+        /**
+         * ConsoleSessionOut
+         * @description What the console needs to know about the caller's session (ADR-0028 §7).
+         */
+        ConsoleSessionOut: {
+            /** Capabilities */
+            capabilities: string[];
+            /**
+             * Mfa Valid Until
+             * Format: date-time
+             */
+            mfa_valid_until: string;
+            /** Step Up Valid Until */
+            step_up_valid_until: string | null;
         };
         /**
          * ContactKind
@@ -11477,6 +11532,14 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** StepUpOut */
+        StepUpOut: {
+            /**
+             * Step Up Valid Until
+             * Format: date-time
+             */
+            step_up_valid_until: string;
+        };
         /**
          * StorageClass
          * @enum {string}
@@ -12205,6 +12268,11 @@ export interface components {
              * @default false
              */
             must_change_password?: boolean;
+            /**
+             * Platform Capabilities
+             * @default []
+             */
+            platform_capabilities?: string[];
         };
         /** UserRef */
         UserRef: {
@@ -12904,6 +12972,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    step_up_api_v1_auth_step_up_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaCodeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StepUpOut"];
                 };
             };
             /** @description Validation Error */
@@ -23115,6 +23216,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    console_session_api_v1_admin_master_data_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsoleSessionOut"];
                 };
             };
         };

@@ -58,6 +58,13 @@ class UserOut(ApiModel):
     email_verified: bool = False
     # A temporary password must be replaced before anything else works (POST /auth/password).
     must_change_password: bool = False
+    # The caller's own platform capabilities (ADR-0028 §7), empty while the console is switched off.
+    # Only shows or hides the console link; the server checks every console request.
+    platform_capabilities: list[str] = []
+
+
+class StepUpOut(ApiModel):
+    step_up_valid_until: dt.datetime
 
 
 class ProvidersOut(ApiModel):

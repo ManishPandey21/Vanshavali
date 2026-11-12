@@ -5,9 +5,11 @@ import datetime as dt
 from fastapi import APIRouter, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, CurrentUserPendingPassword, DbDep, optional_user, request_info
 from app.api.schemas import Message
+from app.authz import platform
 from app.core import audit
 from app.core.config import get_settings
 from app.core.errors import NotFound, Unauthorized
@@ -27,6 +29,7 @@ from app.modules.identity.schemas import (
     ProvidersOut,
     RegisterIn,
     SessionOut,
+    StepUpOut,
     TokenIn,
     UserOut,
 )
@@ -34,11 +37,17 @@ from app.modules.identity.schemas import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _user_out(user: User) -> UserOut:
+def _user_out(user: User, db: Session | None = None) -> UserOut:
+    """``db`` adds the caller's own platform capabilities (only to show or hide the console link;
+    the server checks every console request itself, ADR-0028 §7)."""
+    caps: list[str] = []
+    if db is not None and get_settings().masterdata_console_enabled:
+        caps = sorted(c.value for c in platform.capabilities(db, user))
     return UserOut.model_validate(user).model_copy(
         update={
             "mfa_enabled": user.mfa_enabled_at is not None,
             "email_verified": user.email_verified_at is not None,
+            "platform_capabilities": caps,
         }
     )
 
@@ -99,8 +108,9 @@ def login(body: LoginIn, request: Request, response: Response, db: DbDep) -> Use
     user = service.authenticate(
         db, email=body.email, password=body.password, info=info, mfa_code=body.mfa_code
     )
-    service.start_session(db, user, response, info)
-    return _user_out(user)
+    # authenticate() has checked the TOTP code whenever two-step sign-in is on
+    service.start_session(db, user, response, info, mfa_verified=user.mfa_enabled_at is not None)
+    return _user_out(user, db)
 
 
 @router.post("/logout", response_model=Message)
@@ -118,7 +128,7 @@ def me(request: Request, db: DbDep) -> UserOut:
     user = optional_user(request, db)
     if user is None:
         raise Unauthorized()
-    return _user_out(user)
+    return _user_out(user, db)
 
 
 @router.patch("/me", response_model=UserOut)
@@ -181,6 +191,18 @@ def mfa_setup(user: CurrentUser, db: DbDep) -> MfaSetupOut:
 def mfa_enable(body: MfaCodeIn, user: CurrentUser, db: DbDep) -> UserOut:
     service.mfa_enable(db, user, body.code)
     return _user_out(user)
+
+
+@router.post("/step-up", response_model=StepUpOut)
+def step_up(body: MfaCodeIn, request: Request, user: CurrentUser, db: DbDep) -> StepUpOut:
+    """Re-enter a TOTP code on this session, as administration writes require (ADR-0028 §7)."""
+    sid = getattr(request.state, "session_id", None)
+    sess = db.get(UserSession, sid) if sid is not None else None
+    if sess is None:
+        raise Unauthorized()
+    at = service.step_up(db, user, sess, body.code, request_info(request))
+    minutes = get_settings().platform_step_up_max_age_minutes
+    return StepUpOut(step_up_valid_until=at + dt.timedelta(minutes=minutes))
 
 
 @router.post("/mfa/disable", response_model=UserOut)

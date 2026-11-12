@@ -100,14 +100,16 @@ def disable_sql(table: str) -> list[str]:
     ]
 
 
-# Global reference data the application only reads (ADR-0019 §2): loaded by operator CLIs as the
-# schema owner. The grant below revokes write access on these, whenever they exist.
+# Tables the application only reads, written by operator CLIs as the schema owner: global
+# reference data (ADR-0019 §2) and platform capability grants (ADR-0028 §7, so nothing reachable
+# from the API can grant itself a capability). The grant below revokes writes on these.
 READ_ONLY_TABLES: tuple[str, ...] = (
     "geo_snapshot",
     "geo_unit",
     "geo_unit_alias",
     "pincode_office",
     "panchang_day",
+    "platform_capability_grant",
 )
 
 # (the array below must list READ_ONLY_TABLES; tests/test_geo.py checks that it does). No "%" in
@@ -123,7 +125,7 @@ BEGIN
     EXECUTE 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {role}';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {role}';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {role}';
-    FOREACH t IN ARRAY ARRAY['geo_snapshot', 'geo_unit', 'geo_unit_alias', 'pincode_office', 'panchang_day'] LOOP
+    FOREACH t IN ARRAY ARRAY['geo_snapshot', 'geo_unit', 'geo_unit_alias', 'pincode_office', 'panchang_day', 'platform_capability_grant'] LOOP
       IF to_regclass('public.' || t) IS NOT NULL THEN
         EXECUTE 'REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ' || quote_ident(t) || ' FROM {role}';
       END IF;

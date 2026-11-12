@@ -326,6 +326,19 @@ guardian-consent capture flows beyond the consent ledger are also deferred.
   status and timestamps, so the notifications and audit events that point to it still resolve. It is
   deleted with the tree.
 
+## Platform administrators and global lists (ADR-0028, increment 1)
+- **A platform capability is not a tree permission.** Holding `master_data.admin` gives no access to
+  any family tree: console code never binds a tree, never imports tree-scoped models, and a holder
+  gets the same 404 as any stranger on every `/trees/{id}` route. Their own memberships work as for
+  anyone else.
+- **Named people only.** A grant records the holder's name and the reason. The operator CLI refuses
+  role or shared mailboxes and accounts without a verified email or two-step sign-in. The holder's
+  name stays in the grant row; audit events carry only the capability, the grant id and the operator.
+- **`UserOut.platform_capabilities`** lists only the caller's own capabilities, and is empty while
+  the console is switched off. It never reveals who else holds one.
+- **Session data.** `user_session` records when the session was opened with TOTP and when the last
+  step-up happened. Both are timestamps only, deleted with the session.
+
 ## Family-profile staged rollout (ADR-0031)
 
 [ADR-0031](../architecture/adr/0031-family-profile-addresses-and-communications.md) is accepted

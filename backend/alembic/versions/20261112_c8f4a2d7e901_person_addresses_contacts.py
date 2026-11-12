@@ -1,7 +1,7 @@
 """encrypted person addresses, history and contact methods (ADR-0031)
 
 Revision ID: c8f4a2d7e901
-Revises: a4d7e2c9b153
+Revises: e7c2a9f4b310
 Create Date: 2026-11-12
 """
 
@@ -21,7 +21,7 @@ from app.core.ids import uuid7
 from app.models.rls import disable_sql, enable_sql
 
 revision: str = "c8f4a2d7e901"
-down_revision: str | None = "a4d7e2c9b153"
+down_revision: str | None = "e7c2a9f4b310"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
