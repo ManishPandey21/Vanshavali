@@ -332,6 +332,17 @@ class Serializer:
         can_edit = False
         if not ctx.public and ctx.has(Permission.PERSON_WRITE):
             can_edit = ctx.branch_scope is None or p.id in ctx.branch_people()
+        legacy_address = legacy_contact = None
+        if not ctx.public:
+            from app.modules.profile_details.service import legacy_presence, legacy_values
+
+            has_address, has_contact = legacy_presence(ctx, p.id)
+            if can_view_field(ctx, s, FieldGroup.ADDRESS) or can_view_field(ctx, s, FieldGroup.CONTACT):
+                legacy_address, legacy_contact = legacy_values(ctx, p.id)
+            if has_address and not can_view_field(ctx, s, FieldGroup.ADDRESS):
+                redacted.append(FieldGroup.ADDRESS)
+            if has_contact and not can_view_field(ctx, s, FieldGroup.CONTACT):
+                redacted.append(FieldGroup.CONTACT)
         out = PersonOut(
             **summary.model_dump(),
             gender_identity=gated(FieldGroup.GENDER_IDENTITY, p.gender_identity),
@@ -339,8 +350,8 @@ class Serializer:
             scripts_used=list(p.scripts_used or []),
             occupation=None if ctx.public else p.occupation,
             notes=None if ctx.public else gated(FieldGroup.NOTES, p.notes),
-            contact_info=None if ctx.public else gated(FieldGroup.CONTACT, p.contact_info),
-            residential_address=None if ctx.public else gated(FieldGroup.ADDRESS, p.residential_address),
+            contact_info=None if ctx.public else gated(FieldGroup.CONTACT, legacy_contact),
+            residential_address=None if ctx.public else gated(FieldGroup.ADDRESS, legacy_address),
             field_privacy=dict(p.field_privacy or {})
             if ctx.is_admin or (ctx.user is not None and p.claimed_by_user_id == ctx.user.id)
             else None,

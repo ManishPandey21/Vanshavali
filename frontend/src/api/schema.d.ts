@@ -3778,6 +3778,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trees/{tree_id}/people/{person_id}/addresses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Addresses */
+        get: operations["list_addresses_api_v1_trees__tree_id__people__person_id__addresses_get"];
+        put?: never;
+        /** Create Address */
+        post: operations["create_address_api_v1_trees__tree_id__people__person_id__addresses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Address */
+        delete: operations["delete_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Address */
+        patch: operations["update_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move Address */
+        post: operations["move_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__move_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Address History */
+        get: operations["address_history_api_v1_trees__tree_id__people__person_id__addresses__address_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Contacts */
+        get: operations["list_contacts_api_v1_trees__tree_id__people__person_id__contacts_get"];
+        put?: never;
+        /** Create Contact */
+        post: operations["create_contact_api_v1_trees__tree_id__people__person_id__contacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/contacts/{contact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Contact */
+        delete: operations["delete_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Contact */
+        patch: operations["update_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/contacts/{contact_id}/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reveal Contact */
+        get: operations["reveal_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__reveal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/people/{person_id}/contacts/{contact_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Contact History */
+        get: operations["contact_history_api_v1_trees__tree_id__people__person_id__contacts__contact_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trees/{tree_id}/documents": {
         parameters: {
             query?: never;
@@ -4249,6 +4389,166 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AddressIn */
+        AddressIn: {
+            /** Building */
+            building?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Landmark */
+            landmark?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** As Recorded */
+            as_recorded?: string | null;
+            /** Gram Panchayat */
+            gram_panchayat?: string | null;
+            /** Post Office */
+            post_office?: string | null;
+            purpose: components["schemas"]["AddressPurpose"];
+            status: components["schemas"]["AddressStatus"];
+            /**
+             * Is Primary Current
+             * @default false
+             */
+            is_primary_current?: boolean;
+            /** Place Id */
+            place_id?: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** Sub District */
+            sub_district?: string | null;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country Code */
+            country_code?: string | null;
+            /** Postal Code */
+            postal_code?: string | null;
+            valid_from?: components["schemas"]["GenealogicalDate"] | null;
+            valid_until?: components["schemas"]["GenealogicalDate"] | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** AddressOut */
+        AddressOut: {
+            /** Building */
+            building?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Landmark */
+            landmark?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** As Recorded */
+            as_recorded?: string | null;
+            /** Gram Panchayat */
+            gram_panchayat?: string | null;
+            /** Post Office */
+            post_office?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            purpose: components["schemas"]["AddressPurpose"];
+            status: components["schemas"]["AddressStatus"];
+            /** Is Primary Current */
+            is_primary_current: boolean;
+            /** Place Id */
+            place_id: string | null;
+            /** Locality */
+            locality: string | null;
+            /** Sub District */
+            sub_district: string | null;
+            /** District */
+            district: string | null;
+            /** State */
+            state: string | null;
+            /** Country Code */
+            country_code: string | null;
+            /** Postal Code */
+            postal_code: string | null;
+            /** Valid From */
+            valid_from: {
+                [key: string]: unknown;
+            } | null;
+            /** Valid Until */
+            valid_until: {
+                [key: string]: unknown;
+            } | null;
+            /** Revision */
+            revision: number;
+            /** Source */
+            source: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * AddressPurpose
+         * @enum {string}
+         */
+        AddressPurpose: "unknown" | "current_residence" | "permanent" | "previous_residence" | "ancestral_home" | "native_place" | "correspondence" | "other";
+        /**
+         * AddressStatus
+         * @enum {string}
+         */
+        AddressStatus: "unknown" | "current" | "former";
+        /** AddressUpdate */
+        AddressUpdate: {
+            /** Building */
+            building?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Landmark */
+            landmark?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** As Recorded */
+            as_recorded?: string | null;
+            /** Gram Panchayat */
+            gram_panchayat?: string | null;
+            /** Post Office */
+            post_office?: string | null;
+            /** Revision */
+            revision: number;
+            /** Reason */
+            reason?: string | null;
+            purpose?: components["schemas"]["AddressPurpose"] | null;
+            status?: components["schemas"]["AddressStatus"] | null;
+            /** Is Primary Current */
+            is_primary_current?: boolean | null;
+            /** Place Id */
+            place_id?: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** Sub District */
+            sub_district?: string | null;
+            /** District */
+            district?: string | null;
+            /** State */
+            state?: string | null;
+            /** Country Code */
+            country_code?: string | null;
+            /** Postal Code */
+            postal_code?: string | null;
+            valid_from?: components["schemas"]["GenealogicalDate"] | null;
+            valid_until?: components["schemas"]["GenealogicalDate"] | null;
+        };
         /**
          * AgeOrderOut
          * @description Whether the person reached by a sibling word in ``chain`` is older or younger than the person
@@ -5208,7 +5508,7 @@ export interface components {
          * CitationTarget
          * @enum {string}
          */
-        CitationTarget: "person" | "name_record" | "event" | "relationship" | "assertion" | "astrology_profile" | "property" | "land_parcel" | "property_interest" | "property_event" | "household" | "tradition";
+        CitationTarget: "person" | "name_record" | "event" | "relationship" | "assertion" | "astrology_profile" | "property" | "land_parcel" | "property_interest" | "property_event" | "household" | "tradition" | "address";
         /** CityOut */
         CityOut: {
             /** Key */
@@ -5671,32 +5971,41 @@ export interface components {
              */
             active?: boolean;
         };
-        /** ContactIn */
-        ContactIn: {
-            channel: components["schemas"]["NotificationChannel"];
-            /**
-             * Address
-             * @description E.164 phone number, e.g. +919876543210
-             */
-            address: string;
-        };
-        /** ContactOut */
-        ContactOut: {
+        /**
+         * ContactKind
+         * @enum {string}
+         */
+        ContactKind: "email" | "mobile" | "whatsapp" | "telegram" | "instagram" | "legacy_note";
+        /** ContactReveal */
+        ContactReveal: {
             /**
              * Id
              * Format: uuid
              */
             id: string;
-            channel: components["schemas"]["NotificationChannel"];
-            /** Address Hint */
-            address_hint: string;
-            /** Verified */
-            verified: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
+            /** Value */
+            value: string;
+            /** Profile Url */
+            profile_url?: string | null;
+        };
+        /** ContactUpdate */
+        ContactUpdate: {
+            /** Revision */
+            revision: number;
+            /** Reason */
+            reason?: string | null;
+            /** Value */
+            value?: string | null;
+            /** Purpose */
+            purpose?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Is Preferred */
+            is_preferred?: boolean | null;
+            /** Copied From Contact Id */
+            copied_from_contact_id?: string | null;
+            /** Copied From Revision */
+            copied_from_revision?: number | null;
         };
         /** ConventionOut */
         ConventionOut: {
@@ -7897,6 +8206,25 @@ export interface components {
          * @enum {string}
          */
         MonthConvention: "amanta" | "purnimanta";
+        /** MoveAddressIn */
+        MoveAddressIn: {
+            /** Revision */
+            revision: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            valid_until?: components["schemas"]["GenealogicalDate"] | null;
+            /**
+             * Reason
+             * @default Moved
+             */
+            reason?: string | null;
+            new_address: components["schemas"]["AddressIn"];
+        };
+        /** MoveAddressOut */
+        MoveAddressOut: {
+            former_address: components["schemas"]["AddressOut"];
+            new_address: components["schemas"]["AddressOut"];
+        };
         /** NameIn */
         NameIn: {
             /** @default birth */
@@ -8299,10 +8627,24 @@ export interface components {
             /** Pending Owner Membership Id */
             pending_owner_membership_id: string | null;
         };
+        /** Page[AddressOut] */
+        Page_AddressOut_: {
+            /** Items */
+            items: components["schemas"]["AddressOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[AuditEventOut] */
         Page_AuditEventOut_: {
             /** Items */
             items: components["schemas"]["AuditEventOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[ContactOut] */
+        Page_ContactOut_: {
+            /** Items */
+            items: components["schemas"]["app__modules__profile_details__schemas__ContactOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -8352,6 +8694,13 @@ export interface components {
         Page_RevisionOut_: {
             /** Items */
             items: components["schemas"]["RevisionOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[RevisionSnapshot] */
+        Page_RevisionSnapshot_: {
+            /** Items */
+            items: components["schemas"]["RevisionSnapshot"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -10571,6 +10920,28 @@ export interface components {
              */
             revertible?: boolean;
         };
+        /** RevisionSnapshot */
+        RevisionSnapshot: {
+            /** Revision */
+            revision: number;
+            /** Operation */
+            operation: string;
+            /** Reason */
+            reason: string | null;
+            /** Before */
+            before: {
+                [key: string]: unknown;
+            } | null;
+            /** After */
+            after: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /**
          * Role
          * @enum {string}
@@ -12031,6 +12402,94 @@ export interface components {
             vocabulary: components["schemas"]["VocabularyOut"];
             /** Items */
             items: components["schemas"]["VocabularyTermOut"][];
+        };
+        /** ContactIn */
+        app__modules__notifications__schemas__ContactIn: {
+            channel: components["schemas"]["NotificationChannel"];
+            /**
+             * Address
+             * @description E.164 phone number, e.g. +919876543210
+             */
+            address: string;
+        };
+        /** ContactOut */
+        app__modules__notifications__schemas__ContactOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            channel: components["schemas"]["NotificationChannel"];
+            /** Address Hint */
+            address_hint: string;
+            /** Verified */
+            verified: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ContactIn */
+        app__modules__profile_details__schemas__ContactIn: {
+            kind: components["schemas"]["ContactKind"];
+            /** Value */
+            value: string;
+            /** Purpose */
+            purpose?: string | null;
+            /** Language */
+            language?: string | null;
+            /**
+             * Is Preferred
+             * @default false
+             */
+            is_preferred?: boolean;
+            /** Copied From Contact Id */
+            copied_from_contact_id?: string | null;
+            /** Copied From Revision */
+            copied_from_revision?: number | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** ContactOut */
+        app__modules__profile_details__schemas__ContactOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            kind: components["schemas"]["ContactKind"];
+            /** Hint */
+            hint: string;
+            /** Purpose */
+            purpose: string | null;
+            /** Language */
+            language: string | null;
+            /** Is Preferred */
+            is_preferred: boolean;
+            /** Copied From Contact Id */
+            copied_from_contact_id: string | null;
+            /** Copy Outdated */
+            copy_outdated: boolean;
+            /** Revision */
+            revision: number;
+            /** Source */
+            source: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** DecisionIn */
         app__modules__review__schemas__DecisionIn: {
@@ -16833,7 +17292,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ContactOut"][];
+                    "application/json": components["schemas"]["app__modules__notifications__schemas__ContactOut"][];
                 };
             };
         };
@@ -16847,7 +17306,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ContactIn"];
+                "application/json": components["schemas"]["app__modules__notifications__schemas__ContactIn"];
             };
         };
         responses: {
@@ -16857,7 +17316,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ContactOut"];
+                    "application/json": components["schemas"]["app__modules__notifications__schemas__ContactOut"];
                 };
             };
             /** @description Validation Error */
@@ -16892,7 +17351,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ContactOut"];
+                    "application/json": components["schemas"]["app__modules__notifications__schemas__ContactOut"];
                 };
             };
             /** @description Validation Error */
@@ -21171,6 +21630,436 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonPropertyInterestsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_addresses_api_v1_trees__tree_id__people__person_id__addresses_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AddressOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_address_api_v1_trees__tree_id__people__person_id__addresses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__delete: {
+        parameters: {
+            query: {
+                revision: number;
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__move_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveAddressIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoveAddressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    address_history_api_v1_trees__tree_id__people__person_id__addresses__address_id__history_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                address_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RevisionSnapshot_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_contacts_api_v1_trees__tree_id__people__person_id__contacts_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ContactOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_contact_api_v1_trees__tree_id__people__person_id__contacts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__profile_details__schemas__ContactIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__profile_details__schemas__ContactOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__delete: {
+        parameters: {
+            query: {
+                revision: number;
+                reason?: string | null;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                contact_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                contact_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__profile_details__schemas__ContactOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reveal_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__reveal_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+                contact_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactReveal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    contact_history_api_v1_trees__tree_id__people__person_id__contacts__contact_id__history_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                person_id: string;
+                contact_id: string;
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RevisionSnapshot_"];
                 };
             };
             /** @description Validation Error */

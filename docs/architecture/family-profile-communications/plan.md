@@ -2,8 +2,9 @@
 
 Status: **Accepted for phased development**. The owner chose staged retention of legacy access
 and explicit source-owner consent before independent address-copy sharing (ADR-0031 §11).
-The first birth-editing slice is in development from audited main `b8c248b`; strict field-policy
-conversion and address/contact schemas remain unimplemented. No factory tickets are queued.
+The birth-editing slice is merged and the encrypted person-address/history and typed-contact slice
+is implemented from audited main `a8529e7`. Strict field-policy conversion and reusable shared
+family-address schemas remain unimplemented. No factory tickets are queued.
 [Audit](audit.md) · [ADR-0031](../adr/0031-family-profile-addresses-and-communications.md) ·
 [Acceptance matrix](acceptance.md) · [original request](brief.md).
 
@@ -165,6 +166,11 @@ deploy or external traffic is part of this development authorization.
 - Release review: native Hindi, screen-reader and deployment/legal gates already in repository
   remain open until their owners supply evidence. Development tests do not satisfy them implicitly.
 
-**Current implementation order:** a legacy-compatible A1/A2 birth slice first, then staged A0
-conversion and remaining A1 controls. Build B's reusable form next, then C/D/E. All work remains local or in reviewed draft PRs until
-the user separately authorizes merging/deployment.
+**Current implementation order (updated 12 November 2026):** the legacy-compatible A1/A2 birth
+slice is merged. The encrypted person-address/history and contact core plus a reusable smart-place
+form are implemented on `feature/profile-addresses-contacts`; see the
+[increment record](addresses-contacts-increment.md) for the verified boundary and remaining B/C/E
+gates. **Next is D — reusable family/ancestral addresses**, with source-owner consent for an
+independently shared copy and the remaining C privacy/proposal gates. Then continue F/G and the
+provider-readiness evaluations H–J. Work remains local or in reviewed PRs until separately merged
+or deployed.

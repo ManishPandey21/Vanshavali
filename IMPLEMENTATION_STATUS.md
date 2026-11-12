@@ -6,17 +6,21 @@ Requirement-level mapping: [docs/requirements-traceability.md](docs/requirements
 
 ## Family profile and communications programme (12 November 2026)
 
-**PARTIAL — first birth-editing slice verified; programme continues.** [Repository audit](docs/architecture/family-profile-communications/audit.md),
+**PARTIAL — birth editing plus the encrypted address/contact core are verified; programme continues.** [Repository audit](docs/architecture/family-profile-communications/audit.md),
 [accepted ADR-0031](docs/architecture/adr/0031-family-profile-addresses-and-communications.md),
 [phased plan](docs/architecture/family-profile-communications/plan.md), and
 [acceptance matrix](docs/architecture/family-profile-communications/acceptance.md).
 The owner chose staged legacy-access retention and explicit source-owner consent for independent
-address-copy sharing. Initial implementation reuses open #74's inline vital editor and adds focused
-birth actions, unknown-zone defaults, hidden-field write checks, revision conflicts and transactional
-reminder rescheduling. Verification and remaining scope are recorded in the
-[birth increment](docs/architecture/family-profile-communications/birth-increment.md).
-Strict field-policy conversion, addresses, contacts and new channels remain unimplemented.
-No schema migration, provider activation, merge or deployment is included.
+address-copy sharing. Delivered increments reuse the inline vital editor for focused birth actions,
+unknown-zone defaults, hidden-field write checks, revision conflicts and transactional reminder
+rescheduling, then add encrypted address/history and typed contact records, legacy plaintext
+conversion, masked reveal APIs, RLS/erasure coverage, and an Addresses & contacts profile tab.
+Verification and remaining scope are recorded in the
+[birth increment](docs/architecture/family-profile-communications/birth-increment.md) and
+[addresses/contacts increment](docs/architecture/family-profile-communications/addresses-contacts-increment.md).
+Strict field-policy conversion, review/proposal adapters, family-address reuse/ancestral sharing and
+new messaging channels remain. **Next: D — reusable family/ancestral addresses**, closing the
+remaining C privacy/proposal gates along the way. No provider activation or deployment is included.
 
 ## Earlier milestone verification
 

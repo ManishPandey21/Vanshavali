@@ -33,8 +33,9 @@ import { AstrologyTab } from "./AstrologyTab";
 import { DocumentsTab, PropertyInterestsSection } from "./DocumentsTab";
 import { ApiError } from "../../../api/client";
 import { ClaimInviteDialog } from "../../../components/consent/ClaimInviteShare";
+import { AddressesContactsTab } from "./AddressesContactsTab";
 
-const TABS = ["overview", "family", "events", "timeline", "photos", "heritage", "documents", "astrology", "property", "sources", "households", "visualizations", "history", "privacy"] as const;
+const TABS = ["overview", "family", "addresses", "events", "timeline", "photos", "heritage", "documents", "astrology", "property", "sources", "households", "visualizations", "history", "privacy"] as const;
 type TabId = (typeof TABS)[number];
 
 export function PersonProfilePage() {
@@ -147,6 +148,7 @@ export function PersonProfilePage() {
       >
         {tab === "overview" && <OverviewTab person={p} />}
         {tab === "family" && <FamilyTab person={p} />}
+        {tab === "addresses" && <AddressesContactsTab personId={p.id} canEdit={!!p.can_edit} />}
         {tab === "events" && <EventsTab person={p} />}
         {tab === "timeline" && <TimelineTab person={p} />}
         {tab === "photos" && <PhotosTab person={p} />}

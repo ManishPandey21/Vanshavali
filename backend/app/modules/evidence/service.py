@@ -23,6 +23,7 @@ from app.models import (
     LandParcel,
     NameRecord,
     Person,
+    PersonAddress,
     Property,
     PropertyEvent,
     PropertyInterest,
@@ -47,6 +48,7 @@ _TARGET_MODELS = {
     CitationTarget.PROPERTY_EVENT: PropertyEvent,
     CitationTarget.HOUSEHOLD: Household,
     CitationTarget.TRADITION: TraditionEntry,
+    CitationTarget.ADDRESS: PersonAddress,
 }
 
 _PROPERTY_TARGETS = {
@@ -204,6 +206,13 @@ def _check_target_visible(ctx: TreeContext, target_type: CitationTarget, target_
     elif target_type == CitationTarget.RELATIONSHIP:
         lookup.get_person(ctx, obj.person_a_id)  # type: ignore[attr-defined]
         person_id = obj.person_b_id  # type: ignore[attr-defined]
+    elif target_type == CitationTarget.ADDRESS:
+        from app.authz.privacy import FieldGroup, can_view_field
+
+        subject = lookup.get_person_subject(ctx, obj.person_id)  # type: ignore[attr-defined]
+        if not can_view_field(ctx, subject, FieldGroup.ADDRESS):
+            raise NotFound("Citation target not found")
+        person_id = obj.person_id  # type: ignore[attr-defined]
     if person_id is not None:
         lookup.get_person(ctx, person_id)
     if target_type in _PROPERTY_TARGETS and not ctx.has(Permission.PROPERTY_READ):

@@ -8144,7 +8144,7 @@
        "application/json": {
         "schema": {
          "items": {
-          "$ref": "#/components/schemas/ContactOut"
+          "$ref": "#/components/schemas/app__modules__notifications__schemas__ContactOut"
          },
          "type": "array",
          "title": "Response List Contacts Api V1 Me Notification Contacts Get"
@@ -8165,7 +8165,7 @@
      "content": {
       "application/json": {
        "schema": {
-        "$ref": "#/components/schemas/ContactIn"
+        "$ref": "#/components/schemas/app__modules__notifications__schemas__ContactIn"
        }
       }
      },
@@ -8177,7 +8177,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/ContactOut"
+         "$ref": "#/components/schemas/app__modules__notifications__schemas__ContactOut"
         }
        }
       }
@@ -8230,7 +8230,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/ContactOut"
+         "$ref": "#/components/schemas/app__modules__notifications__schemas__ContactOut"
         }
        }
       }
@@ -15853,6 +15853,930 @@
     }
    }
   },
+  "/api/v1/trees/{tree_id}/people/{person_id}/addresses": {
+   "get": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "List Addresses",
+    "operationId": "list_addresses_api_v1_trees__tree_id__people__person_id__addresses_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_AddressOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Create Address",
+    "operationId": "create_address_api_v1_trees__tree_id__people__person_id__addresses_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AddressIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}": {
+   "patch": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Update Address",
+    "operationId": "update_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__patch",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AddressUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Delete Address",
+    "operationId": "delete_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__delete",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "revision",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Revision"
+      }
+     },
+     {
+      "name": "reason",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 500
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Reason"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}/move": {
+   "post": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Move Address",
+    "operationId": "move_address_api_v1_trees__tree_id__people__person_id__addresses__address_id__move_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/MoveAddressIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MoveAddressOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/addresses/{address_id}/history": {
+   "get": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Address History",
+    "operationId": "address_history_api_v1_trees__tree_id__people__person_id__addresses__address_id__history_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "address_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Address Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_RevisionSnapshot_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/contacts": {
+   "get": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "List Contacts",
+    "operationId": "list_contacts_api_v1_trees__tree_id__people__person_id__contacts_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_ContactOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Create Contact",
+    "operationId": "create_contact_api_v1_trees__tree_id__people__person_id__contacts_post",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/app__modules__profile_details__schemas__ContactIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/app__modules__profile_details__schemas__ContactOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/contacts/{contact_id}": {
+   "patch": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Update Contact",
+    "operationId": "update_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__patch",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "contact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Contact Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ContactUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/app__modules__profile_details__schemas__ContactOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Delete Contact",
+    "operationId": "delete_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__delete",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "contact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Contact Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "revision",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "title": "Revision"
+      }
+     },
+     {
+      "name": "reason",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 500
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Reason"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Message"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/contacts/{contact_id}/reveal": {
+   "get": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Reveal Contact",
+    "operationId": "reveal_contact_api_v1_trees__tree_id__people__person_id__contacts__contact_id__reveal_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "contact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Contact Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ContactReveal"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/people/{person_id}/contacts/{contact_id}/history": {
+   "get": {
+    "tags": [
+     "profile details"
+    ],
+    "summary": "Contact History",
+    "operationId": "contact_history_api_v1_trees__tree_id__people__person_id__contacts__contact_id__history_get",
+    "parameters": [
+     {
+      "name": "person_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Person Id"
+      }
+     },
+     {
+      "name": "contact_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Contact Id"
+      }
+     },
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 200,
+       "minimum": 1,
+       "default": 50,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_RevisionSnapshot_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/documents": {
    "post": {
     "tags": [
@@ -17781,6 +18705,747 @@
  },
  "components": {
   "schemas": {
+   "AddressIn": {
+    "properties": {
+     "building": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Building"
+     },
+     "street": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Street"
+     },
+     "landmark": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Landmark"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 1000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "as_recorded": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Recorded"
+     },
+     "gram_panchayat": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gram Panchayat"
+     },
+     "post_office": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Post Office"
+     },
+     "purpose": {
+      "$ref": "#/components/schemas/AddressPurpose"
+     },
+     "status": {
+      "$ref": "#/components/schemas/AddressStatus"
+     },
+     "is_primary_current": {
+      "type": "boolean",
+      "title": "Is Primary Current",
+      "default": false
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "sub_district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 160
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country_code": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2,
+        "minLength": 2
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country Code"
+     },
+     "postal_code": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 24
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Postal Code"
+     },
+     "valid_from": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "valid_until": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "idempotency_key": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idempotency Key"
+     }
+    },
+    "type": "object",
+    "required": [
+     "purpose",
+     "status"
+    ],
+    "title": "AddressIn"
+   },
+   "AddressOut": {
+    "properties": {
+     "building": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Building"
+     },
+     "street": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Street"
+     },
+     "landmark": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Landmark"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 1000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "as_recorded": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Recorded"
+     },
+     "gram_panchayat": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gram Panchayat"
+     },
+     "post_office": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Post Office"
+     },
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "purpose": {
+      "$ref": "#/components/schemas/AddressPurpose"
+     },
+     "status": {
+      "$ref": "#/components/schemas/AddressStatus"
+     },
+     "is_primary_current": {
+      "type": "boolean",
+      "title": "Is Primary Current"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "sub_district": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country Code"
+     },
+     "postal_code": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Postal Code"
+     },
+     "valid_from": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Valid From"
+     },
+     "valid_until": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Valid Until"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "person_id",
+     "purpose",
+     "status",
+     "is_primary_current",
+     "place_id",
+     "locality",
+     "sub_district",
+     "district",
+     "state",
+     "country_code",
+     "postal_code",
+     "valid_from",
+     "valid_until",
+     "revision",
+     "source",
+     "created_at",
+     "updated_at"
+    ],
+    "title": "AddressOut"
+   },
+   "AddressPurpose": {
+    "type": "string",
+    "enum": [
+     "unknown",
+     "current_residence",
+     "permanent",
+     "previous_residence",
+     "ancestral_home",
+     "native_place",
+     "correspondence",
+     "other"
+    ],
+    "title": "AddressPurpose"
+   },
+   "AddressStatus": {
+    "type": "string",
+    "enum": [
+     "unknown",
+     "current",
+     "former"
+    ],
+    "title": "AddressStatus"
+   },
+   "AddressUpdate": {
+    "properties": {
+     "building": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Building"
+     },
+     "street": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Street"
+     },
+     "landmark": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 300
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Landmark"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 1000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "as_recorded": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "As Recorded"
+     },
+     "gram_panchayat": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gram Panchayat"
+     },
+     "post_office": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Post Office"
+     },
+     "revision": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Revision"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AddressPurpose"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "status": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/AddressStatus"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "is_primary_current": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Primary Current"
+     },
+     "place_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Place Id"
+     },
+     "locality": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Locality"
+     },
+     "sub_district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 160
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub District"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "state": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 120
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "State"
+     },
+     "country_code": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2,
+        "minLength": 2
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Country Code"
+     },
+     "postal_code": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 24
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Postal Code"
+     },
+     "valid_from": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "valid_until": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision"
+    ],
+    "title": "AddressUpdate"
+   },
    "AgeOrderOut": {
     "properties": {
      "chain_index": {
@@ -21139,7 +22804,8 @@
      "property_interest",
      "property_event",
      "household",
-     "tradition"
+     "tradition",
+     "address"
     ],
     "title": "CitationTarget"
    },
@@ -22408,59 +24074,145 @@
     ],
     "title": "ConsentOut"
    },
-   "ContactIn": {
-    "properties": {
-     "channel": {
-      "$ref": "#/components/schemas/NotificationChannel"
-     },
-     "address": {
-      "type": "string",
-      "maxLength": 20,
-      "minLength": 8,
-      "title": "Address",
-      "description": "E.164 phone number, e.g. +919876543210"
-     }
-    },
-    "type": "object",
-    "required": [
-     "channel",
-     "address"
+   "ContactKind": {
+    "type": "string",
+    "enum": [
+     "email",
+     "mobile",
+     "whatsapp",
+     "telegram",
+     "instagram",
+     "legacy_note"
     ],
-    "title": "ContactIn"
+    "title": "ContactKind"
    },
-   "ContactOut": {
+   "ContactReveal": {
     "properties": {
      "id": {
       "type": "string",
       "format": "uuid",
       "title": "Id"
      },
-     "channel": {
-      "$ref": "#/components/schemas/NotificationChannel"
-     },
-     "address_hint": {
+     "value": {
       "type": "string",
-      "title": "Address Hint"
+      "title": "Value"
      },
-     "verified": {
-      "type": "boolean",
-      "title": "Verified"
-     },
-     "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Created At"
+     "profile_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Profile Url"
      }
     },
     "type": "object",
     "required": [
      "id",
-     "channel",
-     "address_hint",
-     "verified",
-     "created_at"
+     "value"
     ],
-    "title": "ContactOut"
+    "title": "ContactReveal"
+   },
+   "ContactUpdate": {
+    "properties": {
+     "revision": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Revision"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 80
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Purpose"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 16
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "is_preferred": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Preferred"
+     },
+     "copied_from_contact_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Copied From Contact Id"
+     },
+     "copied_from_revision": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Copied From Revision"
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision"
+    ],
+    "title": "ContactUpdate"
    },
    "ConventionOut": {
     "properties": {
@@ -29019,6 +30771,70 @@
     "title": "MonthConvention",
     "description": "How a lunar month is bounded: new moon to new moon, or full moon to full moon."
    },
+   "MoveAddressIn": {
+    "properties": {
+     "revision": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Revision"
+     },
+     "idempotency_key": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Idempotency Key"
+     },
+     "valid_until": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/GenealogicalDate"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason",
+      "default": "Moved"
+     },
+     "new_address": {
+      "$ref": "#/components/schemas/AddressIn"
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision",
+     "idempotency_key",
+     "new_address"
+    ],
+    "title": "MoveAddressIn"
+   },
+   "MoveAddressOut": {
+    "properties": {
+     "former_address": {
+      "$ref": "#/components/schemas/AddressOut"
+     },
+     "new_address": {
+      "$ref": "#/components/schemas/AddressOut"
+     }
+    },
+    "type": "object",
+    "required": [
+     "former_address",
+     "new_address"
+    ],
+    "title": "MoveAddressOut"
+   },
    "NameIn": {
     "properties": {
      "type": {
@@ -30316,6 +32132,33 @@
     "title": "OwnershipOut",
     "description": "A record's owner and any pending transfer, for its owner (ADR-0027 \u00a72)."
    },
+   "Page_AddressOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/AddressOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[AddressOut]"
+   },
    "Page_AuditEventOut_": {
     "properties": {
      "items": {
@@ -30342,6 +32185,33 @@
      "items"
     ],
     "title": "Page[AuditEventOut]"
+   },
+   "Page_ContactOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/app__modules__profile_details__schemas__ContactOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[ContactOut]"
    },
    "Page_DeliveryOut_": {
     "properties": {
@@ -30531,6 +32401,33 @@
      "items"
     ],
     "title": "Page[RevisionOut]"
+   },
+   "Page_RevisionSnapshot_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/RevisionSnapshot"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items"
+    ],
+    "title": "Page[RevisionSnapshot]"
    },
    "Page_SourceOut_": {
     "properties": {
@@ -37855,6 +39752,68 @@
     ],
     "title": "RevisionOut"
    },
+   "RevisionSnapshot": {
+    "properties": {
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "operation": {
+      "type": "string",
+      "title": "Operation"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     },
+     "before": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Before"
+     },
+     "after": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "After"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "revision",
+     "operation",
+     "reason",
+     "before",
+     "after",
+     "created_at"
+    ],
+    "title": "RevisionSnapshot"
+   },
    "Role": {
     "type": "string",
     "enum": [
@@ -42353,6 +44312,242 @@
      "items"
     ],
     "title": "VocabularyTermsOut"
+   },
+   "app__modules__notifications__schemas__ContactIn": {
+    "properties": {
+     "channel": {
+      "$ref": "#/components/schemas/NotificationChannel"
+     },
+     "address": {
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 8,
+      "title": "Address",
+      "description": "E.164 phone number, e.g. +919876543210"
+     }
+    },
+    "type": "object",
+    "required": [
+     "channel",
+     "address"
+    ],
+    "title": "ContactIn"
+   },
+   "app__modules__notifications__schemas__ContactOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "channel": {
+      "$ref": "#/components/schemas/NotificationChannel"
+     },
+     "address_hint": {
+      "type": "string",
+      "title": "Address Hint"
+     },
+     "verified": {
+      "type": "boolean",
+      "title": "Verified"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "channel",
+     "address_hint",
+     "verified",
+     "created_at"
+    ],
+    "title": "ContactOut"
+   },
+   "app__modules__profile_details__schemas__ContactIn": {
+    "properties": {
+     "kind": {
+      "$ref": "#/components/schemas/ContactKind"
+     },
+     "value": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Value"
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 80
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Purpose"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 16
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "is_preferred": {
+      "type": "boolean",
+      "title": "Is Preferred",
+      "default": false
+     },
+     "copied_from_contact_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Copied From Contact Id"
+     },
+     "copied_from_revision": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Copied From Revision"
+     },
+     "idempotency_key": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idempotency Key"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "value"
+    ],
+    "title": "ContactIn"
+   },
+   "app__modules__profile_details__schemas__ContactOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "person_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Person Id"
+     },
+     "kind": {
+      "$ref": "#/components/schemas/ContactKind"
+     },
+     "hint": {
+      "type": "string",
+      "title": "Hint"
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Purpose"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "is_preferred": {
+      "type": "boolean",
+      "title": "Is Preferred"
+     },
+     "copied_from_contact_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Copied From Contact Id"
+     },
+     "copy_outdated": {
+      "type": "boolean",
+      "title": "Copy Outdated"
+     },
+     "revision": {
+      "type": "integer",
+      "title": "Revision"
+     },
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "person_id",
+     "kind",
+     "hint",
+     "purpose",
+     "language",
+     "is_preferred",
+     "copied_from_contact_id",
+     "copy_outdated",
+     "revision",
+     "source",
+     "created_at",
+     "updated_at"
+    ],
+    "title": "ContactOut"
    },
    "app__modules__review__schemas__DecisionIn": {
     "properties": {

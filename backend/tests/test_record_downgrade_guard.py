@@ -22,6 +22,7 @@ from tests.test_migrations import _cfg
 from tests.test_tradition_ownership_recovery import _drop, _entry, _fresh, _orphan, _seed, _version
 
 GUARD_REVISION = "a4d7e2c9b153"
+HEAD_REVISION = "c8f4a2d7e901"
 DOCUMENTS = "3f6a8c1d2e94"  # its downgrade: ONLY_ME → PRIVATE_SELF, SELECTED_MEMBERS → CUSTOM, owner dropped
 COLLECTIONS = "b5c1e7a93d42"  # its downgrade: collection grants deleted, tables dropped
 TAKEDOWN = "d9b4f2c6a713"  # its downgrade: suspended_at dropped, every suspension lifted
@@ -192,6 +193,9 @@ def test_a_lossy_record_downgrade_is_refused_atomically(case):
         cfg = _cfg()
         cfg.set_main_option("sqlalchemy.url", url)
         command.upgrade(cfg, "head")
+        # This test isolates the older record-sharing guard. A newer, independently guarded
+        # profile-details migration is allowed to step down before this guard is exercised.
+        command.downgrade(cfg, GUARD_REVISION)
         engine = create_engine(url)
         with engine.begin() as conn:
             ids = _seed(conn)
@@ -213,7 +217,7 @@ def test_a_lossy_record_downgrade_is_refused_atomically(case):
         command.downgrade(cfg, lowest)  # stops above the lossy downgrade
         command.upgrade(cfg, "head")
         with engine.connect() as conn:
-            assert _version(conn) == head
+            assert _version(conn) == HEAD_REVISION
             after = _snapshot(conn)
         if case == "active_suspension":  # the takedown step was not run
             assert after == before
@@ -292,7 +296,7 @@ def test_a_downgrade_that_changes_no_access_runs_and_the_upgrade_re_runs():
             }
         command.upgrade(cfg, "head")
         with engine.connect() as conn:
-            assert _version(conn) == GUARD_REVISION
+            assert _version(conn) == HEAD_REVISION
             got = dict(conn.execute(text("SELECT id, owner_membership_id FROM document")).all())
             assert got == {fam: ids["m_author"], admins: ids["m_author"]}
         engine.dispose()
@@ -307,10 +311,10 @@ def test_an_offline_sql_downgrade_through_a_guarded_revision_is_refused():
         command.downgrade(cfg, f"{GUARD_REVISION}:c7e3a1f5b829", sql=True)
 
 
-def test_the_record_guard_revision_is_the_single_head():
+def test_the_latest_revision_is_the_single_head():
     from alembic.script import ScriptDirectory
 
-    assert ScriptDirectory.from_config(_cfg()).get_heads() == [GUARD_REVISION]
+    assert ScriptDirectory.from_config(_cfg()).get_heads() == [HEAD_REVISION]
 
 
 def test_a_downgrade_that_stops_exactly_at_the_tradition_revision_is_allowed():

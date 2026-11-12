@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
@@ -60,6 +61,106 @@ def test_upgrade_check_downgrade_roundtrip():
     finally:
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{DB}" WITH (FORCE)'))
+        admin.dispose()
+
+
+def test_legacy_profile_details_are_encrypted_verbatim_and_restore_on_downgrade():
+    """c8f4a2d7e901: plaintext legacy values move once into VAULT records and can safely roll back."""
+    import uuid
+
+    from app.core.encrypted_json import decrypt_json
+
+    db = DB + "_profile_details"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as connection:
+        connection.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        connection.execute(text(f'CREATE DATABASE "{db}"'))
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "a4d7e2c9b153")
+        engine = create_engine(url)
+        tree_id, person_id = uuid.uuid4(), uuid.uuid4()
+        address = "घर १२, Secret Lane — जैसा दर्ज है"
+        contact = "पुराना संपर्क: +91 98xx"
+        with engine.begin() as connection:
+            connection.execute(
+                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'Family', :slug)"),
+                {"id": tree_id, "slug": str(tree_id)},
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO person (id, tree_id, preferred_display_name, residential_address, contact_info) "
+                    "VALUES (:id, :tree, 'Legacy Person', :address, :contact)"
+                ),
+                {"id": person_id, "tree": tree_id, "address": address, "contact": contact},
+            )
+        command.upgrade(cfg, "head")
+        with engine.connect() as connection:
+            person = connection.execute(
+                text("SELECT residential_address, contact_info FROM person WHERE id = :id"),
+                {"id": person_id},
+            ).one()
+            assert person == (None, None)
+            address_row = connection.execute(
+                text(
+                    "SELECT id, payload_enc, purpose, status, is_primary_current "
+                    "FROM person_address WHERE person_id = :id AND legacy_imported"
+                ),
+                {"id": person_id},
+            ).one()
+            contact_row = connection.execute(
+                text(
+                    "SELECT id, value_enc FROM person_contact_method "
+                    "WHERE person_id = :id AND legacy_imported"
+                ),
+                {"id": person_id},
+            ).one()
+            assert address not in address_row.payload_enc and contact not in contact_row.value_enc
+            assert (address_row.purpose, address_row.status, address_row.is_primary_current) == (
+                "unknown",
+                "unknown",
+                False,
+            )
+            assert (
+                decrypt_json(address_row.payload_enc, f"person-address:{address_row.id}")["as_recorded"]
+                == address
+            )
+            assert decrypt_json(contact_row.value_enc, f"person-contact:{contact_row.id}")["value"] == contact
+        with engine.begin() as connection:
+            connection.execute(
+                text("UPDATE person_address SET revision = 2 WHERE person_id = :id"),
+                {"id": person_id},
+            )
+        with pytest.raises(RuntimeError, match="cannot be represented"):
+            command.downgrade(cfg, "a4d7e2c9b153")
+        with engine.connect() as connection:
+            assert (
+                connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "c8f4a2d7e901"
+            )
+            assert (
+                connection.execute(
+                    text("SELECT residential_address FROM person WHERE id = :id"), {"id": person_id}
+                ).scalar()
+                is None
+            )
+        with engine.begin() as connection:
+            connection.execute(
+                text("UPDATE person_address SET revision = 1 WHERE person_id = :id"),
+                {"id": person_id},
+            )
+        command.downgrade(cfg, "a4d7e2c9b153")
+        with engine.connect() as connection:
+            restored = connection.execute(
+                text("SELECT residential_address, contact_info FROM person WHERE id = :id"),
+                {"id": person_id},
+            ).one()
+            assert restored == (address, contact)
+        engine.dispose()
+    finally:
+        with admin.connect() as connection:
+            connection.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
 
 

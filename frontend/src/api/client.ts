@@ -202,6 +202,7 @@ export const api = {
   post: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: "POST", body: body ?? {} }),
   put: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: "PUT", body }),
   patch: <T>(path: string, body?: unknown) => apiRequest<T>(path, { method: "PATCH", body }),
-  del: <T>(path: string) => apiRequest<T>(path, { method: "DELETE" }),
+  del: <T>(path: string, query?: RequestOptions["query"]) =>
+    apiRequest<T>(path, { method: "DELETE", query }),
   upload: <T>(path: string, form: FormData) => apiRequest<T>(path, { method: "POST", form }),
 };

@@ -28,6 +28,7 @@ from app.modules.merge.router import router as merge_router
 from app.modules.notifications.router import router as reminders_router
 from app.modules.notifications.router import user_router as notifications_user_router
 from app.modules.ownership.router import router as ownership_router
+from app.modules.profile_details.router import router as profile_details_router
 from app.modules.property.router import router as property_router
 from app.modules.public.router import router as public_router
 from app.modules.render.router import files_router as render_files_router
@@ -72,6 +73,7 @@ api_router.include_router(attestation_router)
 api_router.include_router(claim_invites_router)
 api_router.include_router(merge_router)
 api_router.include_router(property_router)
+api_router.include_router(profile_details_router)
 api_router.include_router(documents_router)
 api_router.include_router(document_files_router)
 api_router.include_router(extraction_router)
