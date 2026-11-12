@@ -275,7 +275,14 @@
     "deathPlace": "Death place",
     "died": "Died",
     "editDetails": "Edit details",
-    "editVitalsInTimeline": "Edit birth and death details on the Events tab.",
+    "vitalAdd": {
+      "birth": "Add birth",
+      "death": "Add death"
+    },
+    "vitalEdit": {
+      "birth": "Edit birth",
+      "death": "Edit death"
+    },
     "err": {
       "fixErrors": "Please fix the errors above before saving.",
       "nameRequired": "Enter at least a given name, surname or the full name as recorded."

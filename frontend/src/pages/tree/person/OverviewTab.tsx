@@ -3,7 +3,8 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit3, Plus, Star, Trash2 } from "lucide-react";
 import type { NameOut, PersonOut, ProfileStatus, SexAtBirth, VitalSummary } from "../../../api/types";
-import { useAddName, useDeleteName, useUpdateName, useUpdatePerson } from "../../../api/hooks/people";
+import { useAddName, useDeleteName, usePersonEvents, useUpdateName, useUpdatePerson } from "../../../api/hooks/people";
+import { EventDialog } from "./EventDialog";
 import { useTreeCtx } from "../../../lib/tree-context";
 import { PersonTraditions } from "../TraditionsPage";
 import { nameText } from "../../../lib/names";
@@ -26,14 +27,36 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export function VitalRows({ vital, kind, redacted }: { vital: VitalSummary | null | undefined; kind: "birth" | "death"; redacted: string[] }) {
+export function VitalRows({
+  vital,
+  kind,
+  redacted,
+  onEdit,
+}: {
+  vital: VitalSummary | null | undefined;
+  kind: "birth" | "death";
+  redacted: string[];
+  /** Present only for editors: opens the event editor for this vital. */
+  onEdit?: () => void;
+}) {
   const { t } = useTranslation();
   const r = new Set([...(vital?.redacted_fields ?? []), ...(kind === "birth" ? redacted : [])]);
   const place = vital?.place_as_recorded || vital?.place_name;
   return (
     <>
       <Row label={t(`person.${kind}Date`)}>
-        {vital?.date ? <DateText date={vital.date} /> : <span className="text-ink-muted">{t("person.notRecorded")}</span>}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span>{vital?.date ? <DateText date={vital.date} /> : <span className="text-ink-muted">{t("person.notRecorded")}</span>}</span>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex min-h-11 min-w-11 items-center rounded px-3 text-sm font-medium underline hover:bg-parchment-deep"
+            >
+              {t(vital?.event_id ? `person.vitalEdit.${kind}` : `person.vitalAdd.${kind}`)}
+            </button>
+          )}
+        </div>
         {kind === "birth" && r.has("birth_date_full") && (
           <div>
             <RedactionNotice label={t("privacy.fullDateHidden")} />
@@ -73,6 +96,7 @@ export function OverviewTab({ person }: { person: PersonOut }) {
   const { t } = useTranslation();
   const redacted = person.redacted_fields ?? [];
   const [editing, setEditing] = useState(false);
+  const [vitalAction, setVitalAction] = useState<"birth" | "death" | null>(null);
   const gated = (value: string | null | undefined, group: string) =>
     redacted.includes(group) ? <RedactionNotice /> : value ? <span className="whitespace-pre-wrap">{value}</span> : <span className="text-ink-muted">{t("person.notRecorded")}</span>;
 
@@ -90,8 +114,10 @@ export function OverviewTab({ person }: { person: PersonOut }) {
           )}
         </div>
         <dl className="divide-y divide-stone-100">
-          <VitalRows vital={person.birth} kind="birth" redacted={redacted} />
-          {(person.profile_status === "deceased" || person.death) && <VitalRows vital={person.death} kind="death" redacted={redacted} />}
+          <VitalRows vital={person.birth} kind="birth" redacted={redacted} onEdit={person.can_edit ? () => setVitalAction("birth") : undefined} />
+          {(person.profile_status === "deceased" || person.death) && (
+            <VitalRows vital={person.death} kind="death" redacted={redacted} onEdit={person.can_edit ? () => setVitalAction("death") : undefined} />
+          )}
           <Row label={t("person.sexAtBirth")}>{person.sex_at_birth ? t(`enum.sex.${person.sex_at_birth}`) : <span className="text-ink-muted">{t("person.notRecorded")}</span>}</Row>
           {(person.gender_identity || redacted.includes("gender_identity")) && <Row label={t("person.genderIdentity")}>{gated(person.gender_identity, "gender_identity")}</Row>}
           <Row label={t("person.occupation")}>{person.occupation || <span className="text-ink-muted">{t("person.notRecorded")}</span>}</Row>
@@ -99,16 +125,43 @@ export function OverviewTab({ person }: { person: PersonOut }) {
           {(person.residential_address || redacted.includes("address")) && <Row label={t("person.address")}>{gated(person.residential_address, "address")}</Row>}
           {(person.notes || redacted.includes("notes")) && <Row label={t("person.notes")}>{gated(person.notes, "notes")}</Row>}
         </dl>
-        {person.birth?.event_id && <p className="mt-2 text-xs text-ink-muted">{t("person.editVitalsInTimeline")}</p>}
       </section>
       <NamesSection person={person} />
       <SurnameTimeline person={person} />
       <div className="lg:col-span-2">
         <PersonTraditions personId={person.id} />
       </div>
+      {vitalAction && <VitalEventDialog person={person} kind={vitalAction} onClose={() => setVitalAction(null)} />}
       {editing && <EditDetailsDialog person={person} onClose={() => setEditing(false)} />}
     </div>
   );
+}
+
+/** Opens the canonical event editor for a birth/death; the person's events are fetched only once an action is used. */
+function VitalEventDialog({ person, kind, onClose }: { person: PersonOut; kind: "birth" | "death"; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { treeId } = useTreeCtx();
+  const eventId = (kind === "birth" ? person.birth : person.death)?.event_id;
+  const events = usePersonEvents(treeId, person.id, !!eventId);
+  if (!eventId) return <EventDialog personId={person.id} event={null} initialType={kind} onClose={onClose} />;
+  if (events.error) {
+    return (
+      <Dialog
+        open
+        onClose={onClose}
+        title={t(`person.vitalEdit.${kind}`)}
+        footer={
+          <Button variant="secondary" onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+        }
+      >
+        <ErrorAlert error={events.error} />
+      </Dialog>
+    );
+  }
+  const event = events.data?.find((e) => e.id === eventId);
+  return event ? <EventDialog personId={person.id} event={event} onClose={onClose} /> : null;
 }
 
 const rangeYear = (r: unknown, key: "from" | "to"): number | null => {
