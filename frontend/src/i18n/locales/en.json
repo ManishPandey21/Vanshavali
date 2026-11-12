@@ -2251,6 +2251,22 @@
     "removalRequested": "Done. Your profile is now hidden from everyone except the tree admins, and we've asked them to erase it. You don't need to do anything else."
   },
   "landing": {
+    "support": {
+      "nav": "Support",
+      "kicker": "GROWING TOGETHER",
+      "heading": "Our growing community",
+      "intro": "Every family story helps preserve our shared heritage. See the community grow, or support the work of keeping memories safe.",
+      "impactTitle": "Community at a glance",
+      "families": "Family trees created",
+      "visitors": "Unique visiting browsers · last 30 days",
+      "countNote": "Family trees are active registered trees, not necessarily distinct households. Visitor numbers are approximate 30-day browser counts and are shown only when optional privacy-conscious measurement is enabled. No family records are exposed.",
+      "donateTitle": "Support Vanshavali",
+      "donateLead": "Make a voluntary contribution to help sustain the platform.",
+      "chooseAmount": "Choose an amount",
+      "donateAmount": "Contribute ₹{{amount}}",
+      "notConfigured": "Secure donation checkout is not available yet. No payment will be collected.",
+      "paymentNote": "A configured contribution opens a secure external payment page. Contributions do not change access to family records."
+    },
     "announce": "A living archive of Indian family heritage",
     "nav": {
       "label": "Page sections",
