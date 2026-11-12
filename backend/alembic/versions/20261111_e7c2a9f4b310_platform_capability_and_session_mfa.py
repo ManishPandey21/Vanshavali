@@ -1,7 +1,7 @@
 """platform capability grants and session-level MFA
 
 Revision ID: e7c2a9f4b310
-Revises: d9b4f2c6a713
+Revises: a4d7e2c9b153
 Create Date: 2026-11-11
 
 ADR-0028 §7, increment 1. ``platform_capability_grant`` records which named person holds a platform
@@ -24,7 +24,7 @@ from alembic import op
 from app.models.rls import GRANT_APP_ROLE_SQL
 
 revision: str = "e7c2a9f4b310"
-down_revision: str | None = "d9b4f2c6a713"
+down_revision: str | None = "a4d7e2c9b153"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

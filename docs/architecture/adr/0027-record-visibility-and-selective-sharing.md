@@ -555,3 +555,36 @@ unchanged and legal-request routing stays open.
 - **Not built:** a takedown screen (API and notices only), legal-request routing (open).
 - **Tests.** `tests/test_record_takedown.py` (11 cases) and `tests/test_takedown_ownership.py` (7
   cases, two of them with two real database transactions in each order); threat model T62.
+
+## Proposed amendment (9 Nov 2026, PR #51 follow-up): ownership recovery and rollback — **not accepted**
+Status: **Proposed.** Everything below waits for the owner's review; the decisions D1–D5 are listed
+in `docs/operations/tradition-ownership-recovery.md` §6 with options and a recommendation. The code
+in this follow-up only enforces what §2, §3 and §10 already say, plus fail-closed rollback safety.
+
+- **Findings verified** (tests in `tests/test_tradition_ownership_recovery.py`): an orphaned private
+  entry is unreadable by every role on every route and stays with its grantees (as §2 says); a
+  re-invited author or recipient gets no ownership, grant or offer back (as §3 says). Not as the
+  ADR says: (1) an offer made before the owner left could still be accepted, so an orphan *could*
+  be claimed; (2) a tree admin could narrow an orphan to Only me, leaving it readable by nobody;
+  (3) the previous release, run on the new schema by `rollback.sh`, writes `PRIVATE_SELF` without an
+  owner, which the record evaluator shows to the tree OWNER and not to the author; (4) the downgrade
+  of `8d2e6b4f1a37` widens Selected members to admins, discards grants and transfers, and lets a
+  re-upgrade make a re-invited author the owner again.
+- **Enforced now:** (1) an offer cannot be accepted or listed once its owner's membership is gone;
+  (2) Only me is refused on an ownerless record (`422 orphan_only_me`); (3) migration `f2a9c4e7d815`
+  narrows leftover tradition `PRIVATE_SELF` to `ONLY_ME`, and a trigger stores any future
+  `PRIVATE_SELF` as `ONLY_ME` and gives an entry inserted without an owner its author's current
+  membership; (4) the same migration refuses, atomically and with counts only, a downgrade that
+  would run `8d2e6b4f1a37`'s downgrade while that would change who can read or own an entry.
+  `8d2e6b4f1a37` itself is not edited.
+- **Proposed, not decided:** a recovery path for authors who return (D1, recommended: none now,
+  pre-departure "keep for me" next); whether entries backfilled to an author re-invited before the
+  upgrade stay owned (D2, recommended: yes); what to do about ownerless rows written by old code
+  before `f2a9c4e7d815` (D3); whether a refused downgrade may ever be overridden (D4, recommended:
+  no — restore from backup instead). Admin reassignment or admin read access to orphans is **not**
+  proposed (§8).
+- **Same shape elsewhere:** the lossy downgrades of documents (`3f6a8c1d2e94`), photo collections
+  (`b5c1e7a93d42`) and takedown (`d9b4f2c6a713`, which would make every suspended record readable
+  again) are guarded by `a4d7e2c9b153` the same way (shared helper `app/core/downgrade_guard.py`,
+  counts only, fail closed, no override; threat T64). Documents written by pre-ADR-0027 code are
+  still ownerless.
