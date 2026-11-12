@@ -256,7 +256,7 @@ to subsequent reads and sends. Proposed field-controller recovery is not an admi
 
 ## Landing-page impact counts and voluntary support (PR #78; not yet released)
 
-`LP-` identifiers are provisional, as for the family-profile programme. Design notes:
+`LP-` identifiers are provisional, as for the family-profile programme. Decision: [ADR-0032](../architecture/adr/0032-landing-visitor-measurement-cookie.md). Design notes:
 [landing-impact-and-support.md](../architecture/landing-impact-and-support.md).
 
 | ID | Threat | Control | Tests |

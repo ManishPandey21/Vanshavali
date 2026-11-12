@@ -383,7 +383,7 @@ not override erasure. Profile contacts never establish verified account contact 
 - **Aggregate only.** `GET /api/v1/public/site-impact` returns the number of non-deleted family trees
   and, optionally, an approximate count of distinct browsers over 30 days. No name, identifier or
   per-tree figure is returned.
-- **Visitor measurement is opt-in at deployment** (`VSH_VISITOR_STATS_ENABLED=false` by default) and
+- **Visitor measurement is opt-in at deployment** ([ADR-0032](../architecture/adr/0032-landing-visitor-measurement-cookie.md); activation needs a public bilingual notice and counsel on Q20) (`VSH_VISITOR_STATS_ENABLED=false` by default) and
   must not be switched on before the visitor privacy notice is reviewed. When on, a random signed
   first-party HttpOnly cookie (90 days, path `/api/v1/public`) identifies the browser; only its HMAC
   digest reaches Redis HyperLogLog buckets that expire after 35 days. IP addresses are used only as a
