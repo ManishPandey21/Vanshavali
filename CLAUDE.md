@@ -25,7 +25,8 @@ Modular monolith (ADR-0001):
   in `docs/operations/`, go-live checklist in `docs/release/pilot-go-live-checklist.md`.
 - `ops/factory/` — optional local agent ticket factory integration (ADR-0029, runbook
   `docs/operations/code-factory.md`): trusted suite wrapper, pytest kind classifier, config
-  generator. Builders it launches may not edit existing tests/snapshots, manifests, lockfiles,
+  generator (toolkit 0.5.0: strict model routing, diff-selected specialist reviews and a risk gate
+  in `REVIEW_POLICY`). Builders it launches may not edit existing tests/snapshots, manifests, lockfiles,
   `*.config.*` or `ops/factory/`. Visual baselines: `e2e/visual/` (`playwright.visual.config.ts`).
 - Architecture, domain model and decisions: `docs/architecture/`. Security/privacy: `docs/security/`.
 

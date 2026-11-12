@@ -143,7 +143,7 @@ def _consume_token(db: Session, token: str, purpose: AuthTokenPurpose) -> tuple[
 
 
 def verify_email(db: Session, token: str, info: RequestInfo) -> User:
-    enforce(f"token-ip:{info.ip}", 30)
+    enforce(f"token-ip:{info.ip}", get_settings().token_rate_limit_per_minute)
     row, user = _consume_token(db, token, AuthTokenPurpose.VERIFY_EMAIL)
     now = dt.datetime.now(dt.UTC)
     row.used_at = now
@@ -196,7 +196,7 @@ def request_password_reset(db: Session, email: str, info: RequestInfo) -> None:
 
 
 def confirm_password_reset(db: Session, token: str, new_password: str, info: RequestInfo) -> User:
-    enforce(f"token-ip:{info.ip}", 30)
+    enforce(f"token-ip:{info.ip}", get_settings().token_rate_limit_per_minute)
     row, user = _consume_token(db, token, AuthTokenPurpose.PASSWORD_RESET)
     problems = password_problems(new_password)
     if problems:
