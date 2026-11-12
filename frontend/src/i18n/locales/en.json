@@ -2265,7 +2265,14 @@
       "chooseAmount": "Choose an amount",
       "donateAmount": "Contribute ₹{{amount}}",
       "notConfigured": "Secure donation checkout is not available yet. No payment will be collected.",
-      "paymentNote": "A configured contribution opens a secure external payment page. Contributions do not change access to family records."
+      "paymentNote": "A configured contribution opens a secure external payment page. Contributions do not change access to family records.",
+      "otherAmount": "Other amount",
+      "enterAmount": "Your contribution (₹)",
+      "invalidAmount": "Enter a whole-rupee amount from ₹1 to ₹1,00,000.",
+      "otherAmountNote": "Enter any whole-rupee amount from ₹1 to ₹1,00,000.",
+      "enterValidAmount": "Enter a valid amount to continue.",
+      "continueCustom": "Continue to secure payment page",
+      "confirmCustom": "You entered ₹{{amount}}. Re-enter and confirm this amount on the secure payment page before paying."
     },
     "announce": "A living archive of Indian family heritage",
     "nav": {
