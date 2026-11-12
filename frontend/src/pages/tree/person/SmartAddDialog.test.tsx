@@ -7,6 +7,7 @@ import { SmartAddDialog } from "./SmartAddDialog";
 const anchor = { id: "a1", display_name: "Aarav Sharma", profile_status: "living" as const, sex_at_birth: "male" as const };
 const mother = { id: "m1", display_name: "Sunita Sharma", profile_status: "deceased" as const, sex_at_birth: "female" as const };
 const nana = { id: "g1", display_name: "Gopal Verma", profile_status: "deceased" as const, sex_at_birth: "male" as const };
+const ancestralVillage = { assertion_id: "av1", branch_id: "b1", label: "Bhadohi", place_id: null };
 
 const terms = [
   { code: "brother", group: "direct", hops: [{ relation: "sibling", sex: "male", age: null }], asks_relative_age: true },
@@ -27,9 +28,10 @@ function planFor(term: string, choices: string[]) {
         { kind: "existing", person: anchor },
         { kind: "new", relation: "sibling", link: "explicit_sibling", age: null },
       ],
+      ancestral_villages: [ancestralVillage],
     };
   }
-  if (!choices.length) return { term, anchor, steps: [{ ...stepBase, candidates: [mother] }], complete: false, preview: [] };
+  if (!choices.length) return { term, anchor, steps: [{ ...stepBase, candidates: [mother] }], complete: false, preview: [], ancestral_villages: [ancestralVillage] };
   return {
     term,
     anchor,
@@ -41,6 +43,7 @@ function planFor(term: string, choices: string[]) {
       { kind: "existing", person: mother, relation: "parent", link: "parent" },
       { kind: "new", relation: "sibling", link: "shared_parents", age: null },
     ],
+    ancestral_villages: [ancestralVillage],
   };
 }
 
@@ -66,6 +69,27 @@ function server() {
 const commits = (fetchMock: ReturnType<typeof server>) => fetchMock.mock.calls.filter(([u]) => String(u).endsWith("/smart-add"));
 
 describe("SmartAddDialog", () => {
+  it("explicitly accepts a recorded ancestral village without treating it as birthplace or residence", async () => {
+    const fetchMock = server();
+    vi.stubGlobal("fetch", vi.fn(attested(fetchMock)));
+    renderWithProviders(<SmartAddDialog anchor={anchor} onClose={() => undefined} />);
+    const dialog = screen.getByRole("dialog");
+    await userEvent.click(await within(dialog).findByRole("button", { name: /^Brother/ }));
+    await userEvent.type(await within(dialog).findByLabelText("Given name"), "Mohan");
+    await userEvent.selectOptions(
+      within(dialog).getByLabelText("Ancestral village"),
+      "recorded:av1",
+    );
+    expect(within(dialog).getByText(/assertion only.*does not set birthplace or residence/i)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Review" }));
+    expect(await within(dialog).findByText(/Record Bhadohi as this person's ancestral village/)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Confirm and add" }));
+    await waitFor(() => expect(commits(fetchMock)).toHaveLength(1));
+    const body = JSON.parse(String(commits(fetchMock)[0][1]!.body));
+    expect(body.ancestral_village).toEqual({ choice: "recorded", assertion_id: "av1" });
+    expect(body.new_person.birth).toBeUndefined();
+  });
+
   it("adds a Mama through the recorded mother, previewing before anything is saved", async () => {
     document.cookie = "vsh_csrf=csrf-token";
     const fetchMock = server();

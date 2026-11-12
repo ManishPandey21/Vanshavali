@@ -2,9 +2,11 @@
 
 Status: **Accepted for phased development**. The owner chose staged retention of legacy access
 and explicit source-owner consent before independent address-copy sharing (ADR-0031 §11).
-The birth-editing slice is merged and the encrypted person-address/history and typed-contact slice
-is implemented from audited main `a8529e7`. Strict field-policy conversion and reusable shared
-family-address schemas remain unimplemented. No factory tickets are queued.
+The birth-editing slice and encrypted person-address/history and typed-contact slice are merged.
+Increment D (reusable family/ancestral addresses) is implemented on
+`feature/reusable-family-addresses`; its verified boundary is recorded in
+[reusable-addresses-increment.md](reusable-addresses-increment.md). Strict field-policy conversion
+and the later invitation/reminder/provider increments remain open. No factory tickets are queued.
 [Audit](audit.md) · [ADR-0031](../adr/0031-family-profile-addresses-and-communications.md) ·
 [Acceptance matrix](acceptance.md) · [original request](brief.md).
 
@@ -166,11 +168,16 @@ deploy or external traffic is part of this development authorization.
 - Release review: native Hindi, screen-reader and deployment/legal gates already in repository
   remain open until their owners supply evidence. Development tests do not satisfy them implicitly.
 
-**Current implementation order (updated 12 November 2026):** the legacy-compatible A1/A2 birth
-slice is merged. The encrypted person-address/history and contact core plus a reusable smart-place
-form are implemented on `feature/profile-addresses-contacts`; see the
-[increment record](addresses-contacts-increment.md) for the verified boundary and remaining B/C/E
-gates. **Next is D — reusable family/ancestral addresses**, with source-owner consent for an
-independently shared copy and the remaining C privacy/proposal gates. Then continue F/G and the
-provider-readiness evaluations H–J. Work remains local or in reviewed PRs until separately merged
-or deployed.
+**Current implementation order (updated 12 November 2026):** A1/A2 and the C/E address/contact core
+are merged. **D — reusable family/ancestral addresses is implemented and verified on its feature
+branch**: immutable encrypted versions, pinned links, independent copies with retained policy
+ceilings, canonical ancestral-assertion reuse, membership-bound grants, controller revocation and
+explicit source-version/audience consent for independent re-sharing. Source withdrawal, retirement,
+membership loss, selected-reader widening and populated rollback all fail closed. The picker also
+reauthorizes membership-scoped recents, and Smart Add records an ancestral village only after an
+explicit recorded/new/unknown choice without setting birthplace or residence. See the
+[increment record](reusable-addresses-increment.md). **Next planned product increment: F — the
+invitation front door**, followed by G reminder UX and H–J provider-readiness evaluations. A0's
+strict field-controller conversion, the remaining B smart-address refinements and C proposal/export
+hardening remain named release gates rather than being silently treated as complete. Work remains
+local or in reviewed PRs until separately merged or deployed.

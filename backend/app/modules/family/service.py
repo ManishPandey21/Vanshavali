@@ -120,6 +120,21 @@ def update_branch(ctx: TreeContext, branch_id: uuid.UUID, body: BranchUpdate) ->
 def delete_branch(ctx: TreeContext, branch_id: uuid.UUID) -> None:
     b = get_branch(ctx, branch_id)
     ctx.require(Permission.TREE_MANAGE)
+    from app.models import Assertion
+    from app.models.enums import HeritageAttribute
+    from app.modules.family_addresses import service as family_addresses
+
+    ancestral_assertion_ids = set(
+        ctx.db.scalars(
+            select(Assertion.id).where(
+                Assertion.tree_id == ctx.tree_id,
+                Assertion.branch_id == b.id,
+                Assertion.attribute == HeritageAttribute.ANCESTRAL_VILLAGE.value,
+            )
+        )
+    )
+    for assertion_id in ancestral_assertion_ids:
+        family_addresses.revoke_ancestral_source(ctx, assertion_id)
     ctx.db.execute(
         sa_delete(BranchMembership).where(
             BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id

@@ -4,9 +4,11 @@ import datetime as dt
 import hashlib
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import or_, select
 
 from app.authz.context import TreeContext
+from app.authz.family_addresses import person_address_source_allows
 from app.authz.permissions import Permission
 from app.authz.privacy import FieldGroup, can_view_field
 from app.core import audit
@@ -15,8 +17,16 @@ from app.core.encrypted_json import decrypt_json as _dec
 from app.core.encrypted_json import encrypt_json as _enc
 from app.core.errors import Conflict, Forbidden, Unprocessable
 from app.core.ids import uuid7
-from app.models import Person, PersonAddress, PersonContactMethod, PersonDetailRevision
-from app.models.enums import AddressStatus, ContactKind
+from app.models import (
+    Citation,
+    FamilyAddress,
+    FamilyAddressVersion,
+    Person,
+    PersonAddress,
+    PersonContactMethod,
+    PersonDetailRevision,
+)
+from app.models.enums import AddressStatus, CitationTarget, ContactKind
 from app.modules.genealogy import lookup
 from app.modules.profile_details.schemas import (
     AddressIn,
@@ -47,22 +57,23 @@ def _subject(ctx: TreeContext, person_id: uuid.UUID, group: str, *, write: bool 
 
 
 def _address_payload(body: AddressIn | AddressUpdate) -> dict:
-    return {
-        key: getattr(body, key)
-        for key in (
-            "building",
-            "street",
-            "landmark",
-            "notes",
-            "as_recorded",
-            "postal_code",
-            "gram_panchayat",
-            "post_office",
-        )
-    }
+    return {key: getattr(body, key) for key in _address_payload_keys()}
 
 
-def _address_snapshot(row: PersonAddress) -> dict:
+def _address_payload_keys() -> tuple[str, ...]:
+    return (
+        "building",
+        "street",
+        "landmark",
+        "notes",
+        "as_recorded",
+        "postal_code",
+        "gram_panchayat",
+        "post_office",
+    )
+
+
+def address_snapshot(row: PersonAddress) -> dict:
     return {
         "id": str(row.id),
         "person_id": str(row.person_id),
@@ -99,8 +110,56 @@ def _contact_snapshot(row: PersonContactMethod) -> dict:
     }
 
 
-def project_address(row: PersonAddress) -> AddressOut:
+def _reuse_metadata(ctx: TreeContext, row: PersonAddress) -> dict:
+    version_id = row.linked_family_address_version_id or row.source_family_address_version_id
+    version = (
+        ctx.db.scalar(
+            select(FamilyAddressVersion).where(
+                FamilyAddressVersion.tree_id == ctx.tree_id,
+                FamilyAddressVersion.id == version_id,
+            )
+        )
+        if version_id
+        else None
+    )
+    family = (
+        ctx.db.scalar(
+            select(FamilyAddress).where(
+                FamilyAddress.tree_id == ctx.tree_id,
+                FamilyAddress.id == version.family_address_id,
+            )
+        )
+        if version
+        else None
+    )
+    update = (
+        family.current_version
+        if row.linked_family_address_version_id
+        and family
+        and version
+        and family.current_version > version.version
+        else None
+    )
+    return {
+        "reuse_mode": row.reuse_mode,
+        "family_address_id": family.id if family else None,
+        "family_address_version": version.version if version else None,
+        "family_update_available": update,
+        "ancestral_assertion_id": row.ancestral_assertion_id,
+    }
+
+
+def project_address(row: PersonAddress, ctx: TreeContext | None = None) -> AddressOut:
     payload = _dec(row.payload_enc, _payload_aad("address", row.id))
+    reuse = {
+        "reuse_mode": row.reuse_mode,
+        "family_address_id": None,
+        "family_address_version": None,
+        "family_update_available": None,
+        "ancestral_assertion_id": row.ancestral_assertion_id,
+    }
+    if ctx is not None:
+        reuse = _reuse_metadata(ctx, row)
     return AddressOut(
         id=row.id,
         person_id=row.person_id,
@@ -119,6 +178,7 @@ def project_address(row: PersonAddress) -> AddressOut:
         source=row.source,
         created_at=row.created_at,
         updated_at=row.updated_at,
+        **reuse,
         **payload,
     )
 
@@ -247,6 +307,147 @@ def _get_address(
     return row
 
 
+def get_reusable_address(
+    ctx: TreeContext, person_id: uuid.UUID, address_id: uuid.UUID, *, lock: bool = False
+) -> PersonAddress:
+    """Public reuse seam: subject authorization plus source-ceiling enforcement."""
+    _subject(ctx, person_id, FieldGroup.ADDRESS)
+    row = _get_address(ctx, person_id, address_id, lock=lock)
+    if not person_address_source_allows(ctx, row):
+        from app.core.errors import NotFound
+
+        raise NotFound("Address not found")
+    return row
+
+
+def adopt_family_snapshot(
+    ctx: TreeContext,
+    person_id: uuid.UUID,
+    address_id: uuid.UUID,
+    *,
+    expected_revision: int,
+    snapshot: dict,
+    linked_version_id: uuid.UUID,
+    root_version_id: uuid.UUID,
+) -> PersonAddress:
+    """Replace one linked snapshot while preserving profile-detail history invariants."""
+    _subject(ctx, person_id, FieldGroup.ADDRESS, write=True)
+    _lock_person(ctx, person_id)
+    row = _get_address(ctx, person_id, address_id, lock=True)
+    if row.revision != expected_revision:
+        raise Conflict("Address changed since it was loaded", code="stale_revision")
+    if row.linked_family_address_version_id is None:
+        raise Unprocessable("Only a linked family address can adopt a version", code="not_linked")
+    before = address_snapshot(row)
+    for field in ("place_id", "locality", "sub_district", "district", "state", "country_code"):
+        setattr(row, field, snapshot.get(field))
+    row.payload_enc = _enc(
+        {key: snapshot.get(key) for key in _address_payload_keys()},
+        _payload_aad("address", row.id),
+    )
+    row.linked_family_address_version_id = linked_version_id
+    row.root_source_family_address_version_id = root_version_id
+    row.revision += 1
+    row.updated_by = ctx.user_id
+    _history(
+        ctx,
+        "address",
+        row.id,
+        person_id,
+        row.revision,
+        "family_adopted",
+        before,
+        address_snapshot(row),
+    )
+    ctx.db.flush()
+    return row
+
+
+def purge_reused_address_derivatives(
+    ctx: TreeContext,
+    *,
+    source_address_ids: set[uuid.UUID] | None = None,
+    source_family_version_ids: set[uuid.UUID] | None = None,
+    ancestral_assertion_ids: set[uuid.UUID] | None = None,
+) -> set[uuid.UUID]:
+    """Irreversibly blank every downstream profile copy and leave a fail-closed tombstone."""
+    source_address_ids = set(source_address_ids or ())
+    source_family_version_ids = set(source_family_version_ids or ())
+    ancestral_assertion_ids = set(ancestral_assertion_ids or ())
+    affected: dict[uuid.UUID, PersonAddress] = {}
+    frontier = source_address_ids
+
+    # The first pass finds direct family/assertion derivatives as well as person copies.
+    while True:
+        conditions = []
+        if frontier:
+            conditions.append(PersonAddress.copied_from_person_address_id.in_(frontier))
+        if source_family_version_ids:
+            conditions.extend(
+                (
+                    PersonAddress.linked_family_address_version_id.in_(source_family_version_ids),
+                    PersonAddress.source_family_address_version_id.in_(source_family_version_ids),
+                    PersonAddress.root_source_family_address_version_id.in_(source_family_version_ids),
+                )
+            )
+        if ancestral_assertion_ids:
+            conditions.append(PersonAddress.ancestral_assertion_id.in_(ancestral_assertion_ids))
+        if not conditions:
+            break
+        rows = ctx.db.scalars(
+            select(PersonAddress).where(
+                PersonAddress.tree_id == ctx.tree_id,
+                PersonAddress.id.not_in(affected),
+                or_(*conditions),
+            )
+        ).all()
+        new_rows = [row for row in rows if row.id not in affected]
+        if not new_rows:
+            break
+        affected.update({row.id: row for row in new_rows})
+        frontier = {row.id for row in new_rows}
+        # Family/assertion roots are only needed on the initial pass; later passes follow copies.
+        source_family_version_ids = set()
+        ancestral_assertion_ids = set()
+
+    if not affected:
+        return set()
+    now = dt.datetime.now(dt.UTC)
+    ids = set(affected)
+    ctx.db.execute(
+        sa_delete(PersonDetailRevision).where(
+            PersonDetailRevision.tree_id == ctx.tree_id,
+            PersonDetailRevision.record_type == "address",
+            PersonDetailRevision.record_id.in_(ids),
+        )
+    )
+    ctx.db.execute(
+        sa_delete(Citation).where(
+            Citation.tree_id == ctx.tree_id,
+            Citation.target_type == CitationTarget.ADDRESS,
+            Citation.target_id.in_(ids),
+        )
+    )
+    blank = dict.fromkeys(_address_payload_keys())
+    for row in affected.values():
+        row.place_id = None
+        row.locality = None
+        row.sub_district = None
+        row.district = None
+        row.state = None
+        row.country_code = None
+        row.payload_enc = _enc(blank, _payload_aad("address", row.id))
+        row.valid_from = None
+        row.valid_until = None
+        row.is_primary_current = False
+        row.source_revoked_at = now
+        row.withdrawn_at = now
+        row.revision += 1
+        row.updated_by = ctx.user_id
+    ctx.db.flush()
+    return ids
+
+
 def _lock_person(ctx: TreeContext, person_id: uuid.UUID) -> None:
     """Serialize detail writes even when no primary or idempotency row exists yet."""
     ctx.db.scalar(
@@ -258,7 +459,7 @@ def list_addresses(
     ctx: TreeContext, person_id: uuid.UUID, *, offset: int = 0, limit: int = 51
 ) -> list[PersonAddress]:
     _subject(ctx, person_id, FieldGroup.ADDRESS)
-    return list(
+    rows = list(
         ctx.db.scalars(
             select(PersonAddress)
             .where(
@@ -267,10 +468,10 @@ def list_addresses(
                 PersonAddress.withdrawn_at.is_(None),
             )
             .order_by(PersonAddress.is_primary_current.desc(), PersonAddress.created_at, PersonAddress.id)
-            .offset(offset)
-            .limit(limit)
         )
     )
+    visible = [row for row in rows if person_address_source_allows(ctx, row)]
+    return visible[offset : offset + limit]
 
 
 def create_address(
@@ -303,7 +504,7 @@ def create_address(
             )
             .with_for_update()
         ):
-            before = _address_snapshot(old)
+            before = address_snapshot(old)
             old.is_primary_current = False
             old.revision += 1
             old.updated_by = ctx.user_id
@@ -315,7 +516,7 @@ def create_address(
                 old.revision,
                 "primary_reassigned",
                 before,
-                _address_snapshot(old),
+                address_snapshot(old),
             )
     row = PersonAddress(
         id=row_id,
@@ -341,7 +542,7 @@ def create_address(
     )
     ctx.db.add(row)
     ctx.db.flush()
-    _history(ctx, "address", row.id, person_id, 1, "created", None, _address_snapshot(row))
+    _history(ctx, "address", row.id, person_id, 1, "created", None, address_snapshot(row))
     audit.log(
         ctx,
         "person_address.created",
@@ -358,13 +559,18 @@ def update_address(
     _subject(ctx, person_id, FieldGroup.ADDRESS, write=True)
     _lock_person(ctx, person_id)
     row = _get_address(ctx, person_id, address_id, lock=True)
+    if row.linked_family_address_version_id is not None:
+        raise Unprocessable(
+            "A linked address is immutable; copy it or adopt a shared version",
+            code="linked_address_immutable",
+        )
     if row.revision != body.revision:
         raise Conflict(
             "Address changed since it was loaded",
             code="stale_revision",
             details={"current_revision": row.revision},
         )
-    before = _address_snapshot(row)
+    before = address_snapshot(row)
     fields = body.model_dump(
         exclude_unset=True,
         exclude={
@@ -404,7 +610,7 @@ def update_address(
     vf = GenealogicalDate.model_validate(row.valid_from) if row.valid_from else None
     vu = GenealogicalDate.model_validate(row.valid_until) if row.valid_until else None
     _dates(vf, vu)
-    _require_address_identity(_address_snapshot(row))
+    _require_address_identity(address_snapshot(row))
     if row.is_primary_current and row.status != AddressStatus.CURRENT:
         raise Unprocessable("a primary address must be current")
     if row.is_primary_current:
@@ -419,7 +625,7 @@ def update_address(
             )
             .with_for_update()
         ):
-            old_before = _address_snapshot(old)
+            old_before = address_snapshot(old)
             old.is_primary_current = False
             old.revision += 1
             old.updated_by = ctx.user_id
@@ -431,7 +637,7 @@ def update_address(
                 old.revision,
                 "primary_reassigned",
                 old_before,
-                _address_snapshot(old),
+                address_snapshot(old),
             )
     row.revision += 1
     row.updated_by = ctx.user_id
@@ -443,7 +649,7 @@ def update_address(
         row.revision,
         "updated",
         before,
-        _address_snapshot(row),
+        address_snapshot(row),
         body.reason,
     )
     audit.log(
@@ -470,6 +676,11 @@ def move_address(
         )
     )
     old = _get_address(ctx, person_id, address_id, lock=True)
+    if old.linked_family_address_version_id is not None:
+        raise Unprocessable(
+            "A linked address is immutable; copy it before recording a move",
+            code="linked_address_immutable",
+        )
     if existing:
         return old, existing
     if old.revision != body.revision:
@@ -478,7 +689,7 @@ def move_address(
             code="stale_revision",
             details={"current_revision": old.revision},
         )
-    before = _address_snapshot(old)
+    before = address_snapshot(old)
     old.status = AddressStatus.FORMER
     old.is_primary_current = False
     old_from = GenealogicalDate.model_validate(old.valid_from) if old.valid_from else None
@@ -494,7 +705,7 @@ def move_address(
         old.revision,
         "moved_from",
         before,
-        _address_snapshot(old),
+        address_snapshot(old),
         body.reason,
     )
     new_body = body.new_address.model_copy(
@@ -514,12 +725,8 @@ def move_address(
 def withdraw_address(
     ctx: TreeContext, person_id: uuid.UUID, address_id: uuid.UUID, revision: int, reason: str | None
 ) -> None:
-    _subject(ctx, person_id, FieldGroup.ADDRESS, write=True)
-    _lock_person(ctx, person_id)
-    row = _get_address(ctx, person_id, address_id, lock=True)
-    if row.revision != revision:
-        raise Conflict("Address changed since it was loaded", code="stale_revision")
-    before = _address_snapshot(row)
+    row = require_address_withdrawal(ctx, person_id, address_id, revision)
+    before = address_snapshot(row)
     row.withdrawn_at = dt.datetime.now(dt.UTC)
     row.is_primary_current = False
     row.revision += 1
@@ -531,6 +738,18 @@ def withdraw_address(
         target_id=row.id,
         details={"person_id": str(person_id)},
     )
+
+
+def require_address_withdrawal(
+    ctx: TreeContext, person_id: uuid.UUID, address_id: uuid.UUID, revision: int
+) -> PersonAddress:
+    """Authorize and lock an address before cross-module derivative revocation."""
+    _subject(ctx, person_id, FieldGroup.ADDRESS, write=True)
+    _lock_person(ctx, person_id)
+    row = _get_address(ctx, person_id, address_id, lock=True)
+    if row.revision != revision:
+        raise Conflict("Address changed since it was loaded", code="stale_revision")
+    return row
 
 
 def address_history(
@@ -932,6 +1151,18 @@ def set_legacy_address(ctx: TreeContext, person_id: uuid.UUID, value: str | None
             source="legacy_profile",
             legacy=True,
         )
+
+
+def active_legacy_address_id(ctx: TreeContext, person_id: uuid.UUID) -> uuid.UUID | None:
+    """Public lifecycle seam for callers that must revoke derivatives before legacy withdrawal."""
+    return ctx.db.scalar(
+        select(PersonAddress.id).where(
+            PersonAddress.tree_id == ctx.tree_id,
+            PersonAddress.person_id == person_id,
+            PersonAddress.legacy_imported.is_(True),
+            PersonAddress.withdrawn_at.is_(None),
+        )
+    )
 
 
 def set_legacy_contact(ctx: TreeContext, person_id: uuid.UUID, value: str | None) -> None:

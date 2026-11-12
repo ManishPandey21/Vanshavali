@@ -572,6 +572,12 @@ class GrantResource(StrEnum):
     PROPERTY = "property"
     TRADITION = "tradition"  # ADR-0027: family traditions archive entries
     COLLECTION = "collection"  # ADR-0027 §6: standalone photo collections
+    FAMILY_ADDRESS = "family_address"  # ADR-0031 §5: reusable postal records
+
+
+class AddressReuseMode(StrEnum):
+    LINK = "link"
+    COPY = "copy"
 
 
 class JobStatus(StrEnum):

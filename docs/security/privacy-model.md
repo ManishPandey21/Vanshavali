@@ -374,6 +374,36 @@ A date edit recomputes existing personal reminders as each recipient and cancels
 deliveries in the same transaction. Event-row locks order edits and sends; a send already accepted
 before an edit cannot be recalled. No edit creates a subscription or channel consent.
 
-Future address copies retain their source ceiling unless the source owner explicitly consents to
-independent sharing, with version, recipient, audience and purpose bound to the consent. This does
-not override erasure. Profile contacts never establish verified account contact or messaging consent.
+Reusable family-address records now have a current pointer plus immutable, encrypted versions.
+Linking a person address pins one version; corrections never update linked people silently and an
+authorized affected-record preview omits hidden people rather than returning a hidden count. Copying
+creates editable values while retaining the source policy ceiling. Source rights are checked at
+commit and again when a derivative is listed; source retirement, controller-membership removal and
+grant revocation therefore fail closed. Family, branch, ancestral and linked-profile sources are
+filtered before cursor pagination. Recently reused identifiers are scoped to the current membership
+and reauthorized into the Recent group on every read; they are not a value cache. “My address” is
+unavailable without a linked profile.
+
+The canonical heritage `ancestral_village` assertion remains the fact: reuse stores its assertion
+and Place reference and preserves the as-recorded label without creating a second ancestry fact or
+a residential-street grant. Optional household, branch and property references do not imply
+membership, residence, title or any property access.
+
+Smart Add lists only authorized ancestral-village assertions attached to the anchor's recorded
+branches. The user must explicitly use a recorded value, choose another, enter a new value or leave
+it unknown. Confirmation creates a person heritage assertion only; it never fills birthplace,
+residence or branch-derived identity automatically.
+
+A copied record may become an independently shared family address only after explicit consent from
+every controller in its version-ancestor chain, each bound to that source version, destination,
+exact audience, purpose, notice version and timestamp. The preview names the members who would gain
+access and lists every required controller. Normal view/copy permission is not consent. Withdrawal
+stops the independent audience and reapplies all source ceilings; already exported information
+cannot be recalled. Source-person erasure, branch deletion or explicit ancestral-assertion removal
+irreversibly blanks and withdraws every downstream profile/family snapshot and its history. Person
+erasure and branch deletion invoke that purge before bulk/cascade deletion, leaving only fail-closed
+tombstones. Ordinary source withdrawal, source-family retirement and controller removal are checked
+again even after release. Adding a selected-reader grant withdraws the prior chain consents, so the
+new audience needs a fresh preview and every source controller's fresh approval. A populated schema
+downgrade is refused before it can delete these ciphertexts/consents or forget their ceilings.
+Profile contacts never establish verified account contact or messaging consent.

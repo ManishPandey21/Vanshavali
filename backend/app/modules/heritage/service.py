@@ -12,9 +12,10 @@ from typing import Any
 
 from sqlalchemy import select
 
+from app.authz.assertions import assertion_allows
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
-from app.authz.privacy import FieldGroup, Subject, can_view_field, level_allows
+from app.authz.privacy import Subject
 from app.core import audit
 from app.core.errors import NotFound, Unprocessable
 from app.models import Assertion, FamilyBranch, Place
@@ -23,7 +24,6 @@ from app.models.enums import (
     CitationTarget,
     HeritageAttribute,
     PlaceType,
-    PrivacyLevel,
     Role,
     ValueStatus,
 )
@@ -38,13 +38,6 @@ from app.modules.heritage.schemas import (
     HeritageProfileOut,
 )
 from app.modules.review import policy as review_policy
-
-ATTRIBUTE_GROUP = {
-    HeritageAttribute.JATI_OR_SUBGROUP.value: FieldGroup.JATI,
-    HeritageAttribute.COMMUNITY.value: FieldGroup.COMMUNITY,
-    HeritageAttribute.RELIGION.value: FieldGroup.RELIGION,
-}
-
 
 MULTI_VALUED = {
     HeritageAttribute.RECORDED_PARENT_NAME.value,
@@ -70,26 +63,8 @@ VOCABULARY_FOR = {
 TEMPLE_ATTRIBUTES = {HeritageAttribute.KULADEVATA.value, HeritageAttribute.KULADEVI.value}
 
 
-def _group(attribute: str) -> str:
-    return ATTRIBUTE_GROUP.get(attribute, FieldGroup.HERITAGE)
-
-
 def _visible(ctx: TreeContext, a: Assertion, subject: Subject | None) -> bool:
-    if subject is not None:
-        if not can_view_field(ctx, subject, _group(a.attribute)):
-            return False
-        if a.privacy_level is not None and not level_allows(ctx, a.privacy_level, subject=subject):
-            return False
-        return True
-    # branch assertions
-    if a.attribute in ATTRIBUTE_GROUP:
-        default = (
-            PrivacyLevel.PRIVATE_TREE_ADMINS
-            if a.attribute == HeritageAttribute.JATI_OR_SUBGROUP.value
-            else PrivacyLevel.TREE_MEMBERS
-        )
-        return level_allows(ctx, a.privacy_level or default)
-    return level_allows(ctx, a.privacy_level or PrivacyLevel.TREE_MEMBERS)
+    return assertion_allows(ctx, a, subject)
 
 
 def _out(
@@ -266,6 +241,10 @@ def delete_assertion(ctx: TreeContext, assertion_id: uuid.UUID) -> None:
     else:
         ctx.require(Permission.FAMILY_WRITE)
     review_policy.require_direct(ctx, "structure", [a.person_id], [a])
+    if a.attribute == HeritageAttribute.ANCESTRAL_VILLAGE.value:
+        from app.modules.family_addresses import service as family_addresses
+
+        family_addresses.revoke_ancestral_source(ctx, a.id)
     ctx.db.delete(a)
     audit.log(
         ctx,

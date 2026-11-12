@@ -26,6 +26,8 @@ erDiagram
   PERSON ||--o{ NAME_RECORD : "has (type, script, language)"
   PERSON ||--o{ PERSON_ADDRESS : "has current/former postal details"
   PLACE |o--o{ PERSON_ADDRESS : "optional geographic reference"
+  FAMILY_ADDRESS_VERSION |o--o{ PERSON_ADDRESS : "pinned link or policy-ceiling source"
+  ASSERTION |o--o{ PERSON_ADDRESS : "canonical ancestral-village source"
   PERSON ||--o{ PERSON_CONTACT_METHOD : "has private contact methods"
   PERSON_ADDRESS ||--o{ PERSON_DETAIL_REVISION : "encrypted history"
   PERSON_CONTACT_METHOD ||--o{ PERSON_DETAIL_REVISION : "encrypted history"
@@ -60,6 +62,16 @@ erDiagram
   HOUSEHOLD ||--o{ HOUSEHOLD_MEMBERSHIP : "members over time (karta, head…)"
   PERSON ||--o{ HOUSEHOLD_MEMBERSHIP : lives
   HOUSEHOLD }o--o| FAMILY_BRANCH : "of branch"
+  TREE_MEMBERSHIP ||--o{ FAMILY_ADDRESS : "controls (no role-derived ownership)"
+  FAMILY_ADDRESS ||--|{ FAMILY_ADDRESS_VERSION : "immutable encrypted snapshots"
+  FAMILY_ADDRESS_VERSION |o--o{ FAMILY_ADDRESS_VERSION : "original copy-chain ceiling"
+  FAMILY_ADDRESS_VERSION ||--o{ FAMILY_ADDRESS_RELEASE_CONSENT : "source version"
+  FAMILY_ADDRESS ||--o{ FAMILY_ADDRESS_RELEASE_CONSENT : "destination audience release"
+  FAMILY_ADDRESS }o--o| FAMILY_BRANCH : "optional association / audience"
+  FAMILY_ADDRESS }o--o| HOUSEHOLD : "optional association"
+  FAMILY_ADDRESS }o--o| PROPERTY : "optional reference; no legal interest"
+  FAMILY_ADDRESS }o--o| ASSERTION : "canonical ancestral-village source"
+  FAMILY_ADDRESS }o--o| PLACE : "geographic reference"
 
   SOURCE ||--o{ CITATION : "cited by"
   CITATION }o--|| CLAIM : "supports person / name / event / relationship / assertion / astrology / property*"
@@ -140,6 +152,7 @@ graph LR
 | Incomplete dates keep their precision: nothing is padded, calendars are preserved, sort ranges are derived | `core/dates.GenealogicalDate` |
 | A person can have several current/former addresses but only one explicitly primary current address. Move retains the selected old record and atomically creates a new current record; correction updates one record under optimistic revision. Street/building/landmark/post office/gram-panchayat text/postal code/notes, revision reasons and snapshots are AES-GCM encrypted. A record needs at least one identifying place/postal detail. Legacy free text is preserved verbatim with unknown purpose/status/dates. Sources cite addresses through `citation.target_type = address`. | `person_address`, `person_detail_revision`, `citation`, `profile_details.service` (ADR-0031) |
 | Profile contacts are typed, encrypted and masked by default. Reveal is a separate authorized/audited read; one contact per kind can be preferred. “Same as mobile” stores the copied source revision and becomes outdated when that mobile changes; it never silently synchronizes. Profile methods never become verified user endpoints or messaging consent. Telegram/Instagram links use fixed validated HTTPS hosts. | `person_contact_method`, `profile_details.service` (ADR-0031) |
+| A reusable family address has immutable encrypted versions. A profile link pins one version; a copy is editable but carries every source-version policy ceiling. Cycle-safe person-source provenance and the full ancestor set are separate same-tree tables. Independent re-sharing previews added readers and requires exact-audience consent from every current source controller. Source erasure or ancestral-assertion removal blanks and withdraws every derivative before a provenance key can disappear. | `family_address`, `family_address_version`, `family_address_version_source`, `family_address_version_ancestor`, `family_address_release_consent`, `authz.family_addresses` (ADR-0031) |
 | Approximate birth times are never exact. Exact requires a document-grade source. | `core/dates.GenealogicalTime` validator |
 | Competing claims coexist (several births, assertions, astrology profiles). One is preferred. Nothing is overwritten. | `is_preferred` + evidence status |
 | Heritage values are never inferred | No code path derives them. Enforced by a regression test. |
@@ -198,7 +211,8 @@ erDiagram
 
 [ADR-0031](adr/0031-family-profile-addresses-and-communications.md) is being delivered in stages.
 Migration `c8f4a2d7e901` implements person-address associations, encrypted revision history and typed
-encrypted profile contacts. Birth facts remain events and ancestral villages remain assertions
-linked to places. Strict field-controller conversion, immutable shared family-address versions,
-ceiling-aware copy/link and independently consented copy sharing remain the next stages; they are
-not represented as current tables here.
+encrypted profile contacts. Migration `d4a8e6f1b209` adds immutable reusable family-address
+versions, cycle-safe provenance, copy-chain ceilings, selected-member grants and controller-bound
+release consent. Birth facts remain events and ancestral villages remain assertions linked to
+places. Strict field-controller conversion and the remaining proposal/export/backup hardening stay
+as release gates; they are not represented as completed here.

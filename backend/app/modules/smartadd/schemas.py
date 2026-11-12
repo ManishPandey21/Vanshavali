@@ -60,6 +60,20 @@ class SmartAddTargetOut(ApiModel):
     blocked: str | None = None  # why the new person cannot be added here, if so
 
 
+class SmartAddAncestralVillageOut(ApiModel):
+    assertion_id: uuid.UUID
+    branch_id: uuid.UUID
+    label: str
+    place_id: uuid.UUID | None = None
+
+
+class SmartAddAncestralVillageIn(ApiModel):
+    choice: Literal["unknown", "recorded", "new"] = "unknown"
+    assertion_id: uuid.UUID | None = None
+    value_text: str | None = Field(default=None, max_length=300)
+    place_id: uuid.UUID | None = None
+
+
 class SmartAddPreviewItem(ApiModel):
     kind: Literal["existing", "provisional", "new"]
     person: PersonSummary | None = None
@@ -75,6 +89,7 @@ class SmartAddPlanOut(ApiModel):
     complete: bool  # every intermediate step has a choice
     target: SmartAddTargetOut | None = None  # once complete
     preview: list[SmartAddPreviewItem] = []  # anchor → … → new person, once complete
+    ancestral_villages: list[SmartAddAncestralVillageOut] = []
 
 
 class SmartAddCommitIn(ApiModel):
@@ -87,6 +102,7 @@ class SmartAddCommitIn(ApiModel):
     provisional_sex_at_birth: list[SexAtBirth | None] = Field(default=[], max_length=4)
     # only for terms that do not fix it (brother, sister): the new person vs the previous person
     relative_age: Literal["elder", "younger"] | None = None
+    ancestral_village: SmartAddAncestralVillageIn = SmartAddAncestralVillageIn()
 
 
 class SmartAddCommitOut(ApiModel):

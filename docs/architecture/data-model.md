@@ -127,7 +127,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_tree_invitation_tree_id (
 |---|---|---|---|
 | `membership_id` | UUID | no | → tree_membership (composite, same tree) |
 | `user_id` | UUID | no | → app_user |
-| `resource_type` | enum(person, document, property, tradition, collection) | no |  |
+| `resource_type` | enum(person, document, property, tradition, collection, family_address) | no |  |
 | `resource_id` | UUID | no |  |
 | `permission` | enum(view, download) | no |  |
 | `expires_at` | DATETIME | yes |  |
@@ -1602,6 +1602,11 @@ Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `IN
 - `auth_token`
 - `calendar_feed`
 - `external_identity`
+- `family_address`
+- `family_address_release_consent`
+- `family_address_version`
+- `family_address_version_ancestor`
+- `family_address_version_source`
 - `panchang_day`
 - `person_address`
 - `person_contact_method`

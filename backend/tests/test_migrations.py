@@ -136,8 +136,10 @@ def test_legacy_profile_details_are_encrypted_verbatim_and_restore_on_downgrade(
         with pytest.raises(RuntimeError, match="cannot be represented"):
             command.downgrade(cfg, "a4d7e2c9b153")
         with engine.connect() as connection:
+            # Alembic runs the requested multi-revision downgrade transactionally. Once D is the
+            # head, c8's refusal rolls the preceding D downgrade back as well.
             assert (
-                connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "c8f4a2d7e901"
+                connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "d4a8e6f1b209"
             )
             assert (
                 connection.execute(

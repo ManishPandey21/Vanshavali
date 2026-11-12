@@ -21,7 +21,7 @@ from sqlalchemy import select
 
 from app.authz.context import TreeContext
 from app.core.dates import GenealogicalDate
-from app.models import BranchMembership, Event, EventParticipant, Person
+from app.models import BranchMembership, Event, EventParticipant, Person, TreeMembership, User
 from app.models.enums import (
     PRIVATE_RECORD_LEVELS,
     EventType,
@@ -270,8 +270,37 @@ def record_allows(
     owner_membership_id: uuid.UUID | None,
     audience_branch_id: uuid.UUID | None = None,
     grant: tuple[GrantResource, uuid.UUID] | None = None,
+    viewer_membership_id: uuid.UUID | None = None,
 ) -> bool:
     """Can the viewer see a record kept at ``level``? (ADR-0027 §1)"""
+    if viewer_membership_id is not None and viewer_membership_id != ctx.membership_id:
+        membership = ctx.db.scalar(
+            select(TreeMembership).where(
+                TreeMembership.tree_id == ctx.tree_id,
+                TreeMembership.id == viewer_membership_id,
+            )
+        )
+        if membership is None:
+            return False
+        user = ctx.db.scalar(select(User).where(User.id == membership.user_id))
+        if user is None:
+            return False
+        viewer_ctx = TreeContext(
+            db=ctx.db,
+            tree=ctx.tree,
+            user=user,
+            membership=membership,
+            roles=frozenset(Role(role) for role in membership.roles),
+            permissions=frozenset(),
+            request=ctx.request,
+        )
+        return record_allows(
+            viewer_ctx,
+            level,
+            owner_membership_id=owner_membership_id,
+            audience_branch_id=audience_branch_id,
+            grant=grant,
+        )
     if ctx.public or not ctx.is_member:
         return False  # no public records in v1 (ADR-0027, open point 4)
     if is_record_owner(ctx, owner_membership_id):

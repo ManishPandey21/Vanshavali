@@ -188,6 +188,73 @@ describe("private addresses and contacts", () => {
     expect(screen.getByRole("button", { name: /Find in the Local Government Directory/i })).toBeInTheDocument();
   });
 
+  it("searches authorized reusable sources and adopts a linked version explicitly", async () => {
+    const linked = {
+      id: "a1",
+      person_id: "p1",
+      purpose: "ancestral_home",
+      status: "current",
+      is_primary_current: false,
+      place_id: null,
+      building: "Iyer Illam",
+      street: "12 Agraharam Street",
+      locality: "Palakkad",
+      sub_district: null,
+      district: "Palakkad",
+      state: "Kerala",
+      country_code: "IN",
+      postal_code: "678001",
+      landmark: null,
+      gram_panchayat: null,
+      post_office: null,
+      notes: null,
+      as_recorded: null,
+      valid_from: null,
+      valid_until: null,
+      revision: 1,
+      source: "family_address",
+      reuse_mode: "link",
+      family_address_id: "fa1",
+      family_address_version: 1,
+      family_update_available: 2,
+      ancestral_assertion_id: null,
+      created_at: "2026-11-12T00:00:00Z",
+      updated_at: "2026-11-12T00:00:00Z",
+    };
+    const writes: Array<Record<string, unknown>> = [];
+    const fetch = vi.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (method === "GET" && url.endsWith("/addresses")) return Promise.resolve(jsonResponse({ items: [linked], next_cursor: null }));
+      if (method === "GET" && url.endsWith("/contacts")) return Promise.resolve(jsonResponse({ items: [], next_cursor: null }));
+      if (method === "GET" && url.includes("/family-addresses/sources")) return Promise.resolve(jsonResponse({ items: [{ source_kind: "family_address", source_id: "fa1", version: 2, label: "Iyer ancestral house", group: "Family", snapshot: { building: "Iyer Illam", street: "14 Agraharam Street", locality: "Palakkad", district: "Palakkad", state: "Kerala", country_code: "IN", postal_code: "678001" }, link_allowed: true }], next_cursor: null }));
+      if (method === "POST" && (url.endsWith("/addresses/reuse") || url.endsWith("/addresses/a1/adopt-family-version"))) {
+        writes.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+        return Promise.resolve(jsonResponse({ ...linked, family_address_version: 2, family_update_available: null, street: "14 Agraharam Street", revision: 2 }, url.endsWith("/addresses/reuse") ? 201 : 200));
+      }
+      throw new Error(`Unexpected request ${method} ${url}`);
+    });
+    vi.stubGlobal("fetch", fetch);
+    const user = userEvent.setup();
+    renderWithProviders(<AddressesContactsTab personId="p1" canEdit />);
+    expect(await screen.findByText("Linked · v1")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit address" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Reuse address" }));
+    const reuseDialog = await screen.findByRole("dialog", { name: "Reuse a family address" });
+    await screen.findByRole("option", { name: "Iyer ancestral house" });
+    await user.selectOptions(within(reuseDialog).getByLabelText(/Address source/), "fa1");
+    await user.selectOptions(within(reuseDialog).getByLabelText(/Reuse as/), "copy");
+    await user.click(within(reuseDialog).getByRole("button", { name: "Use address" }));
+    await waitFor(() => expect(writes[0]).toMatchObject({ source_id: "fa1", source_version: 2, mode: "copy" }));
+
+    await user.click(screen.getByRole("button", { name: "Review update" }));
+    const adoptDialog = screen.getByRole("dialog", { name: "Adopt the shared address update?" });
+    expect(within(adoptDialog).getByText(/version 1 with version 2/)).toBeInTheDocument();
+    await user.click(within(adoptDialog).getByRole("button", { name: "Adopt version" }));
+    await waitFor(() => expect(writes[1]).toEqual({ revision: 1, version: 2 }));
+  });
+
   it("reuses operation idempotency keys when a failed save is retried", async () => {
     const address = {
       id: "a1",
