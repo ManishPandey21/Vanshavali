@@ -385,6 +385,16 @@ def descendants(
     return engine.graph(ctx, person_id, "descendants", depth, set(lineage) if lineage else None)
 
 
+@router.get("/people/{person_id}/connected", response_model=GraphOut)
+def connected(
+    person_id: uuid.UUID,
+    ctx: TreeCtx,
+    depth: int = Query(default=25, ge=1, le=25),
+) -> GraphOut:
+    """Complete reachable family component within the documented safety budgets."""
+    return engine.connected_graph(ctx, person_id, max_depth=depth)
+
+
 @router.post(
     "/relative-age-orders",
     response_model=RelativeAgeOrderOut,
