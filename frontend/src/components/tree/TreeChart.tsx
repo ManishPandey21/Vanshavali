@@ -169,6 +169,12 @@ export function TreeChart({
   const edgePath = (sourceId: string, targetId: string) => {
     const s = layout.nodes.get(sourceId)!;
     const tt = layout.nodes.get(targetId)!;
+    if (s.y === tt.y) {
+      // Explicit sibling or non-parent connections in the complete tree.
+      const left = s.x < tt.x ? s : tt;
+      const right = s.x < tt.x ? tt : s;
+      return `M${left.x + NODE_W},${left.y + NODE_H / 2} H${right.x}`;
+    }
     // parent (source) → child (target); connect bottom of the upper box to top of the lower box
     const upper = s.y < tt.y ? s : tt;
     const lower = s.y < tt.y ? tt : s;
