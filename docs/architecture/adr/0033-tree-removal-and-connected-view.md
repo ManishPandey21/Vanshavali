@@ -61,3 +61,11 @@ three generations. It does not mean the entire connected component.
 ## Rollout
 Draft PR with unit, integration, frontend and E2E regression gates. Do not
 merge/deploy before this ADR is reviewed and accepted.
+
+## Review amendments — 13 November 2026 (proposed, not yet accepted)
+
+- **Explicit erasure lifecycle:** add nullable `person.erased_at`, set in the audited erasure transaction, and exclude from interactive graph/list projections using `erased_at IS NOT NULL`. **Never** infer status from the display name `Erased person`. Backfill only from the tree-and-record-ID-matched append-only `person.erased` audit action. If a legacy erasure lacks a matching audit event, it requires an exceptional administrative reconciliation; do not guess from names.
+- **Migration safety:** the `erased_at` column has an Alembic upgrade and a downgrade that refuses to discard non-null markers. Audit-backed backfills must be tested on realistic old data; schema documentation must match ORM.
+- **Completeness:** `connected_graph` returns at most 500 vertices/25 hops in this increment. The UI must explicitly state when the result is partial and must not call a capped chart the entire family. Add staged graph expansion/cursor pagination as a separately reviewed future enhancement, with stable frontier checkpoints and invalidation on graph revision changes; avoid massive unbounded query responses.
+- **Erasure UX:** include browser tests for explicit confirmation, mandatory reason, role-denied direct API requests and failure recovery. The action does not delete all documents; it unlinks and erases the person's protected profile data under existing retention rules. The archival structural record is excluded from interactive family views.
+- **Performance gates:** benchmark densely connected and multigeneration trees (100, 500, 1,000 and 10,000 people), DB query count, response time, chart render time, cycles/duplicate parent paths and privacy-hidden/erased bridges before declaring the connected view production-ready.
