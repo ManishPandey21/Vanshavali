@@ -173,7 +173,7 @@ function Panorama({ apexId, people }: { apexId: string; people: readonly PersonS
             className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium hover:bg-parchment-deep"
           >
             <Maximize2 className="size-4" aria-hidden />
-            {t("home.openFull")}
+            {t("home.exploreConnected")}
           </Link>
         </div>
       </div>
