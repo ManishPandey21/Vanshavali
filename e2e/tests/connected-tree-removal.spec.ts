@@ -16,8 +16,8 @@ test("open full tree includes both directions; removal leaves no private placeho
   }
 
   await page.goto(`/t/${treeId}`);
-  await expect(page.getByRole("link", { name: "Open full tree" })).toBeVisible();
-  await page.getByRole("link", { name: "Open full tree" }).click();
+  await expect(page.getByRole("link", { name: "Explore connected family" })).toBeVisible();
+  await page.getByRole("link", { name: "Explore connected family" }).click();
   await expect(page).toHaveURL(/dir=connected/);
   const chart = page.getByRole("group", { name: "Family tree chart" });
   for (const name of ["Ancestor Family", "Middle Family", "Grandchild Family", "Side Family"]) {
@@ -36,7 +36,7 @@ test("open full tree includes both directions; removal leaves no private placeho
   await expect(overview.getByRole("button", { name: /Ancestor Family/ })).toBeVisible();
   await expect(overview.getByRole("button", { name: /Side Family/ })).toBeVisible();
   await expect(overview.getByRole("button", { name: /Middle Family|Grandchild Family|Private person/ })).toHaveCount(0);
-  await page.getByRole("link", { name: "Open full tree" }).click();
+  await page.getByRole("link", { name: "Explore connected family" }).click();
   const full = page.getByRole("group", { name: "Family tree chart" });
   await expect(full.getByRole("button", { name: /Middle Family|Grandchild Family|Private person/ })).toHaveCount(0);
 });
