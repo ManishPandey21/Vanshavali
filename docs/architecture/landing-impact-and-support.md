@@ -1,7 +1,7 @@
 # Landing-page community impact and voluntary support
 
 Status: implementation proposal (12 November 2026). This is not approval to collect funds.
-The visitor cookie is decided in [ADR-0032](adr/0032-landing-visitor-measurement-cookie.md) (Proposed), including the conditions for switching it on.
+The visitor cookie is decided in [ADR-0032](adr/0032-landing-visitor-measurement-cookie.md) (Accepted 13 Nov 2026), including the conditions for switching it on.
 
 ## Visitor statistics
 
