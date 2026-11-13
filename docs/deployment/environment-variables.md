@@ -50,6 +50,8 @@ deployment-level variables of the pilot stack (`deploy/pilot`). See ADR-0014 for
 | `VSH_VAULT_DATA_KEY` | AES-256-GCM key for VAULT documents (birth certificates, property papers…) | yes | dev constant (refused) | 32 random bytes, base64, different from STANDARD; **escrow it** | **yes** |
 | `VSH_COOKIE_SECURE` | `Secure` cookies + HSTS from the API | fixed | `false` | `true` (compose.yml; refused otherwise) | no |
 | `VSH_SESSION_IDLE_DAYS` / `VSH_SESSION_ABSOLUTE_DAYS` | Server-side session lifetimes (ADR-0005) | no | `14` / `30` | leave | no |
+| `VSH_SESSION_RECORD_RETENTION_DAYS` | Sign-in records (IP, browser) deleted this long after the session ended (ADR-0033) | no | `365` (minimum) | leave | no |
+| `VSH_AUDIT_NETWORK_RETENTION_DAYS` | Audit entries lose their IP and browser this long after the event; the database refuses less than 365 (ADR-0033) | no | `365` (minimum) | leave | no |
 | `VSH_SESSION_COOKIE_NAME`, `VSH_CSRF_COOKIE_NAME`, `VSH_CSRF_HEADER_NAME` | Session cookie and double-submit CSRF names (the SPA sends the header) | no | `vsh_session`, `vsh_csrf`, `X-CSRF-Token` | leave (the SPA expects these) | no |
 | `VSH_CORS_ORIGINS` | JSON list of allowed browser origins | fixed | `["http://localhost:3000"]` | `["https://<VSH_DOMAIN>"]` (compose.yml); `*` refused | no |
 | `FORWARDED_ALLOW_IPS` | Proxies whose `X-Forwarded-For` uvicorn trusts (client IP for rate limits, audit, sessions; threat T30). **No `VSH_` prefix**: uvicorn reads it | fixed | `127.0.0.1` (image: `127.0.0.1,::1`) | exactly the Caddy address `172.30.0.10` (compose.yml). `*` or a `/0` network is refused at start-up; loopback-only logs a warning | no |

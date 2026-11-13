@@ -167,6 +167,9 @@ Status as of 2 Oct 2026: items marked *(prepared)* have everything they need in 
   reviewed (`docs/architecture/landing-impact-and-support.md`).
 
 ### Legal (pilot scope)
+- [ ] Counsel confirms the one-year retention of sign-in records and audit IP/browser (ADR-0033 legal
+  anchors: CERT-In 2022 directions, DPDP Rules 2025). The daily cron jobs `purge-sign-in-records`
+  and `scrub-audit-network` are installed (`bootstrap-host.sh`).
 - [ ] The public privacy notice (`/privacy`, English and Hindi) reviewed by counsel and approved by
   the owner. `VITE_PRIVACY_CONTACT_EMAIL` is set to a monitored mailbox in the frontend build.
 - [ ] Privacy notice and terms for the pilot participants, approved by the owner. Each invited

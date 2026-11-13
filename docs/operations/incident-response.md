@@ -106,7 +106,8 @@ password reset are blocked; nothing else is.
    - If an attacker changed the password, use the password-reset flow.
    - An admin can force a password change: `must_change_password`.
 2. Check the audit log (`/trees/{id}/audit`) for what the account did. `audit_event` is
-   append-only, so the record is reliable. Revert changes from the audit trail and person history.
+   append-only, so the record is reliable. IP addresses and browsers are kept for one year only
+   (ADR-0033); older entries still show who did what and when. Revert changes from the audit trail and person history.
 3. If the account was a tree owner or admin, review grants and invitations it created. Revoke
    unknown ones, and revoke pending claim links for affected people.
 4. If credential stuffing is suspected (many accounts):

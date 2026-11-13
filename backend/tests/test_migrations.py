@@ -374,3 +374,67 @@ def test_ownership_offers_column_and_downgrade():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_audit_network_scrub_trigger_upgrade_and_downgrade():
+    """a6e3d9b1f204 (ADR-0033): the scrub of year-old IPs is allowed after upgrade, strict again after downgrade."""
+    import uuid
+
+    from sqlalchemy.exc import DBAPIError
+
+    db = DB + "_audit_scrub"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    scrub = text("UPDATE audit_event SET ip = NULL, user_agent = NULL WHERE id = :id")
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "d4a8e6f1b209")
+        engine = create_engine(url)
+        old = uuid.uuid4()
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO audit_event (id, action, ip, user_agent, created_at)"
+                    " VALUES (:id, 'x', '203.0.113.7', 'B', now() - interval '400 days')"
+                ),
+                {"id": old},
+            )
+        with pytest.raises(DBAPIError, match="append-only"), engine.begin() as conn:
+            conn.execute(scrub, {"id": old})
+
+        command.upgrade(cfg, "a6e3d9b1f204")
+        with engine.begin() as conn:
+            conn.execute(scrub, {"id": old})
+            assert (
+                conn.execute(text("SELECT ip FROM audit_event WHERE id = :id"), {"id": old}).scalar() is None
+            )
+            assert (
+                conn.execute(
+                    text("SELECT count(*) FROM pg_indexes WHERE indexname = 'ix_audit_event_network_scrub'")
+                ).scalar()
+                == 1
+            )
+        with pytest.raises(DBAPIError, match="append-only"), engine.begin() as conn:
+            conn.execute(text("DELETE FROM audit_event WHERE id = :id"), {"id": old})
+
+        command.downgrade(cfg, "d4a8e6f1b209")
+        with engine.begin() as conn:
+            assert (
+                conn.execute(
+                    text("SELECT count(*) FROM pg_indexes WHERE indexname = 'ix_audit_event_network_scrub'")
+                ).scalar()
+                == 0
+            )
+        with pytest.raises(DBAPIError, match="append-only"), engine.begin() as conn:
+            conn.execute(
+                text("UPDATE audit_event SET ip = NULL, user_agent = NULL WHERE id = :id"), {"id": old}
+            )
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()
