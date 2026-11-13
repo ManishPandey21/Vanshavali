@@ -85,7 +85,10 @@ def list_people(
             p.id: p
             for p in ctx.db.scalars(
                 select(Person).where(
-                    Person.tree_id == ctx.tree_id, Person.id.in_(order), Person.deleted_at.is_(None), Person.preferred_display_name != "Erased person"
+                    Person.tree_id == ctx.tree_id,
+                    Person.id.in_(order),
+                    Person.deleted_at.is_(None),
+                    Person.preferred_display_name != "Erased person",
                 )
             )
         }
@@ -98,7 +101,11 @@ def list_people(
         page = ranked[offset : offset + limit]
         more = len(ranked) > offset + limit
     else:
-        stmt = select(Person).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_(None), Person.preferred_display_name != "Erased person")
+        stmt = select(Person).where(
+            Person.tree_id == ctx.tree_id,
+            Person.deleted_at.is_(None),
+            Person.preferred_display_name != "Erased person",
+        )
         if status_:
             stmt = stmt.where(Person.profile_status == status_)
         if only is not None:
