@@ -12,6 +12,7 @@ from sqlalchemy import or_, select, text
 
 from app.authz.context import TreeContext
 from app.core.config import get_settings
+from app.core.errors import NotFound
 from app.models import Person, Relationship
 from app.models.enums import PARENT_TYPES, UNION_TYPES, EvidenceStatus, Lineage, RelationshipType, SexAtBirth
 from app.modules.genealogy import ageorder, lookup, provisional
@@ -44,7 +45,7 @@ def _removed_person_ids(ctx: TreeContext) -> frozenset[uuid.UUID]:
                 Person.tree_id == ctx.tree_id,
                 or_(
                     Person.deleted_at.is_not(None),
-                    Person.preferred_display_name == "Erased person",
+                    Person.erased_at.is_not(None),
                 ),
             )
         )
@@ -60,6 +61,8 @@ def _lineage_filter(lineages: set[Lineage] | None, rel: Any) -> bool:
 # --------------------------------------------------------------------------- family unit
 def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None = None) -> FamilyOut:
     subject = lookup.get_person_subject(ctx, person_id)
+    if subject.person.erased_at is not None:
+        raise NotFound("Person not found")
     pid = subject.id
     rels = list(
         ctx.db.scalars(
@@ -292,7 +295,9 @@ def graph(
     lineages: set[Lineage] | None,
     max_nodes: int = 500,
 ) -> GraphOut:
-    lookup.get_person_subject(ctx, root_id)
+    root_subject = lookup.get_person_subject(ctx, root_id)
+    if root_subject.person.erased_at is not None:
+        raise NotFound("Person not found")
     depth = max(1, min(depth, get_settings().max_traversal_depth))
     rows = _walk(ctx, root_id, direction, depth, lineages)
     excluded = provisional.concealed_ids(ctx) | _removed_person_ids(ctx)
@@ -407,7 +412,9 @@ def connected_graph(
     Invisible-but-nondeleted people retain the existing opaque-placeholder policy.
     A disconnected tree is NOT fabricated into a single genealogy.
     """
-    lookup.get_person_subject(ctx, root_id)
+    root_subject = lookup.get_person_subject(ctx, root_id)
+    if root_subject.person.erased_at is not None:
+        raise NotFound("Person not found")
     budget = max(1, min(max_nodes, 500))
     depth_budget = max(1, min(max_depth or get_settings().max_traversal_depth, 25))
     excluded = provisional.concealed_ids(ctx) | _removed_person_ids(ctx)
