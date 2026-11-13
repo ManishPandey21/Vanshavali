@@ -438,3 +438,24 @@ Profile contacts never establish verified account contact or messaging consent.
   off or unavailable, and never shows a false zero.
 - **Donations** open an external hosted payment page. Vanshavali receives no payment or donor data in
   this increment, and contributing never changes access to any family record.
+
+
+## Removed and erased people in interactive tree projections (ADR-0033, proposed)
+
+A soft-removed person (`deleted_at` set) is omitted **entirely** from ancestor,
+descendant, family and connected-component graphs, with incident edges removed.
+It must never appear as a "Private person" placeholder. The backend must not
+traverse through that vertex to make unrelated surviving people appear connected.
+Restoration by an authorized manager can re-expose the preserved relationships.
+
+The existing irreversible person-erasure service deletes personal details while
+retaining a privacy-safe structural record for archival integrity. Interactive
+family charts omit the erased vertex and all its incident edges, and ordinary
+person lists exclude that record. A genuinely private, *nondeleted* person
+continues to follow the existing anonymous-placeholder policy. Hidden provisional
+people continue to be concealed completely.
+
+Complete connected views are strictly tree-scoped, deny unapproved roots, use
+the existing field-redacting serializer and supply no raw IDs/names for hidden
+people. Root choice must not reveal hidden people. The chart reports incomplete
+results when depth or node budgets are reached.
