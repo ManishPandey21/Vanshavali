@@ -1,6 +1,8 @@
 # ADR-0032: Anonymous landing-page visitor estimate with a first-party cookie
 
-- Status: **Proposed** · Date: 2026-11-12
+- Status: **Accepted** 2026-11-13 (owner decision) · Date: 2026-11-12. The code was merged in PR #78
+  with measurement switched off. Accepting the design does **not** switch it on: activation
+  conditions 1–3 below still apply, including counsel's answer to Q20.
 - Scope: the optional `unique_visitors_30d` figure of `GET /api/v1/public/site-impact` and its
   `vsh_impact_visitor` cookie (PR #78). The family-tree count on the same endpoint is an aggregate of
   existing rows, sets nothing on the browser and is **not** governed by this ADR.
@@ -90,7 +92,7 @@ real visitors reach:
    this. Before activation it still needs:
    - counsel's review of the wording, in both languages;
    - `VITE_PRIVACY_CONTACT_EMAIL` set to a monitored mailbox.
-2. Counsel's view on the lawful basis (Q20), and product-owner approval of this ADR.
+2. Counsel's view on the lawful basis (Q20). (Product-owner approval of this ADR: given 2026-11-13.)
 3. `VSH_RATE_LIMIT_BACKEND=redis` in that environment. Per-process memory limiting would multiply
    the inflation cap by the number of backend replicas.
 4. A review date 90 days after activation. If nobody uses the figure, switch it off.

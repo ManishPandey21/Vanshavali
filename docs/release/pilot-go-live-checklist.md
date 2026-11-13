@@ -159,7 +159,7 @@ Status as of 2 Oct 2026: items marked *(prepared)* have everything they need in 
 - [ ] `VSH_VISITOR_STATS_ENABLED` stays `false` (the default) unless **all** of these hold:
   - a public English and Hindi privacy notice describes the `vsh_impact_visitor` cookie;
   - counsel has answered Q20;
-  - the owner has approved ADR-0032;
+  - the owner has approved ADR-0032 (done: accepted 13 Nov 2026);
   - `VSH_RATE_LIMIT_BACKEND=redis`.
 
   Record the activation date and a review date 90 days later.
