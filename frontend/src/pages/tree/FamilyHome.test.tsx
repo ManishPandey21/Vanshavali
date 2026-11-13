@@ -75,7 +75,7 @@ describe("family home", () => {
     expect(within(chart).getByRole("button", { name: /^Gopal Rao/ })).toBeInTheDocument();
     // it climbed from the viewer, not from the earliest recorded birth (Kiran, 1950)
     expect(calls.some((c) => c.startsWith("/api/v1/trees/tree-1/people/p-me/ancestors"))).toBe(true);
-    expect(screen.getByRole("link", { name: /Open full tree/ })).toHaveAttribute("href", "/t/tree-1/tree/p-gp?dir=connected&view=chart");
+    expect(screen.getByRole("link", { name: /Explore connected family/ })).toHaveAttribute("href", "/t/tree-1/tree/p-gp?dir=connected&view=chart");
     // the old stat tiles are still one click away
     expect(screen.getByRole("link", { name: /4 People/ })).toHaveAttribute("href", "/t/tree-1/people");
   });
