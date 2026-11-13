@@ -109,3 +109,62 @@ def test_connected_view_does_not_expose_hidden_names_or_cross_tree_data(owner, t
     other_tree = new_tree(owner, "Separate Family")
     foreign = create_person(owner, other_tree["id"], "OtherTree")
     assert viewer.get(f"/trees/{other_tree['id']}/people/{foreign['id']}/connected").status_code == 404
+
+
+def test_literal_erased_person_name_is_not_an_erasure_marker(owner, tree):
+    """Names are user data: a living record may legitimately be named 'Erased person'."""
+    t = tree["id"]
+    named = create_person(owner, t, "Erased", "person")
+    # These are semantically different from an irreversible erasure operation.
+    from tests.conftest import owner_session
+    from sqlalchemy import select
+    from app.models import Person
+
+    with owner_session() as db:
+        obj = db.scalar(select(Person).where(Person.id == named["id"]))
+        assert obj is not None
+        obj.preferred_display_name = "Erased person"
+        db.commit()
+
+    listed = owner.get(f"/trees/{t}/people")
+    assert listed.status_code == 200
+    assert named["id"] in {person["id"] for person in listed.json()["items"]}
+    result = owner.get(f"/trees/{t}/people/{named['id']}/connected")
+    assert result.status_code == 200
+    assert named["id"] in ids(result.json())
+
+
+def test_erased_person_cannot_be_used_as_graph_root(owner, tree):
+    t = tree["id"]
+    erased = create_person(owner, t, "EraseRoot")
+    assert owner.post(
+        f"/trees/{t}/people/{erased['id']}/erase",
+        json={"reason": "Erasure request", "confirm": True},
+    ).status_code == 200
+    for path in ("connected", "descendants", "ancestors"):
+        response = owner.get(f"/trees/{t}/people/{erased['id']}/{path}")
+        assert response.status_code == 404
+
+
+def test_connected_traversal_reports_node_limit_without_claiming_completeness(owner, tree):
+    t = tree["id"]
+    root = create_person(owner, t, "Root")
+    # Explicit parent-child links avoid relying on hidden/private family members.
+    previous = root
+    for index in range(4):
+        child = create_person(owner, t, f"Node{index}")
+        link(owner, t, previous["id"], child["id"], "biological_parent")
+        previous = child
+    from app.authz.context import load_tree_context, RequestInfo
+    from app.models import User
+    from tests.conftest import owner_session
+    from app.modules.genealogy.engine import connected_graph
+    from sqlalchemy import select
+
+    with owner_session() as db:
+        user = db.scalar(select(User).where(User.id == owner.user["id"]))
+        assert user is not None
+        ctx = load_tree_context(db, tree_id=__import__("uuid").UUID(t), user=user, request=RequestInfo())
+        response = connected_graph(ctx, __import__("uuid").UUID(root["id"]), max_nodes=3)
+        assert response.truncated is True
+        assert len(response.nodes) == 3
