@@ -255,3 +255,21 @@ T numbers after refreshing open branches. See the
 Residual: an authorized person can retain a screenshot or externally copied value; an already
 accepted external message cannot be recalled. In-app source revocation still applies immediately
 to subsequent reads and sends. Proposed field-controller recovery is not an admin permission.
+
+## Landing-page impact counts and voluntary support (PR #78; not yet released)
+
+`LP-` identifiers are provisional, as for the family-profile programme. Decision: [ADR-0032](../architecture/adr/0032-landing-visitor-measurement-cookie.md). Design notes:
+[landing-impact-and-support.md](../architecture/landing-impact-and-support.md).
+
+| ID | Threat | Control | Tests |
+|---|---|---|---|
+| LP-LEAK | The unauthenticated `/public/site-impact` endpoint discloses tree names, people or per-tree data | Returns two integers only; counts `tree` rows with `deleted_at IS NULL`, never reads person/relationship/document/membership tables | `test_site_impact.py::test_public_impact_counts_active_trees_without_names` |
+| LP-TRACK | The visitor cookie becomes a cross-site or long-lived tracking identifier | Off by default (`VSH_VISITOR_STATS_ENABLED`); random token, HMAC-signed, HttpOnly, `SameSite=Lax`, path `/api/v1/public`, `Secure` with `VSH_COOKIE_SECURE`, 90 days; only an HMAC digest reaches Redis; daily buckets expire after 35 days; `Sec-GPC: 1` / `DNT: 1` browsers are neither counted nor given the cookie | `test_visitor_cookie_deduplicates_browser_and_does_not_expose_id`, `test_privacy_signal_is_neither_counted_nor_tagged`, `test_disabled_measurement_sets_no_cookie` |
+| LP-FORGE | A forged or tampered cookie is trusted or used to probe the store | Signature checked with `hmac.compare_digest`; any invalid cookie is replaced by a fresh signed one | `test_forged_cookie_is_not_trusted` |
+| LP-INFLATE | A cookie-less script inflates the published visitor estimate | New browsers are capped at 20 per client address per hour (shared limiter); returning browsers are deduplicated. Distributed bots can still inflate it: the figure is labelled an approximate browser count, never verified people | `test_cookieless_flood_from_one_address_is_capped` |
+| LP-OUTAGE | A Redis outage breaks the landing page or shows a false zero | Redis/limiter errors are caught; the estimate becomes `null` and the UI hides it | `test_visitor_service_failure_does_not_falsely_show_zero`, `Landing.test.tsx` |
+| LP-CACHE | A shared cache replays one browser's `Set-Cookie` to others | `Cache-Control: no-store` on the response | `test_visitor_cookie_deduplicates_browser_and_does_not_expose_id` |
+| LP-PAY | A malicious or mistyped build setting sends donors to a phishing page, or a typed amount is trusted as a payment instruction | Checkout links accepted only as HTTPS on an allow-listed Razorpay host without credentials; the custom amount is validated locally and never forwarded; no card/UPI data, payment ids or webhooks are handled; no success is ever simulated | `donations.test.ts`, `Landing.test.tsx` |
+
+Residual: the payment provider's own page, receipts and refunds are outside this codebase and need
+a human checkout review before any link is configured.

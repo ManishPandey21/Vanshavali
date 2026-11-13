@@ -157,6 +157,19 @@ each is enforced server-side today, and changing the enforcing code means changi
 | You decide who sees what (roles, per-person level; public pages off by default, deceased-only, marked one by one) | `ROLE_PERMISSIONS`, `Person.privacy_level` / `field_privacy`; `PublicMode.OFF` default; public branch of `level_allows` |
 | Your records stay yours (GEDCOM / family archive export) | `gedcom.export` (Owner, Family admin, Contributor) in gedcom and archive services |
 
+**Public privacy notice (`/privacy`).** `frontend/src/pages/public/PrivacyPage.tsx`, copy in
+`privacyNotice.*` in both locales, linked from the landing footer. Like "Kept in trust", every
+statement must stay true of the code. Change the copy in the same PR as any change to:
+- the data collected at sign-up or sign-in;
+- cookie or browser-storage keys (a test checks every key is named);
+- processors (hosting, email, messaging, Google, payment);
+- retention, OCR/AI processing, or subject rights.
+
+The contact line uses the build-time `VITE_PRIVACY_CONTACT_EMAIL`. Without it, the page points
+to the pilot support contact and never invents an address. The notice states two gaps openly:
+sign-in records and the audit log have no retention period yet, and there is no named grievance
+officer (DEFERRED below).
+
 **Landing-page sketch ("plant your tree").** Signed-out visitors can type up to four names (self,
 father, mother, paternal grandfather) on the public landing page to preview a tree. The names are
 kept only in that browser tab's `sessionStorage` (`vsh.treeDraft`, ≤120 chars each), are never sent
@@ -407,3 +420,21 @@ again even after release. Adding a selected-reader grant withdraws the prior cha
 new audience needs a fresh preview and every source controller's fresh approval. A populated schema
 downgrade is refused before it can delete these ciphertexts/consents or forget their ceilings.
 Profile contacts never establish verified account contact or messaging consent.
+
+## Landing-page community counts and voluntary support (PR #78; not yet released)
+
+- **Aggregate only.** `GET /api/v1/public/site-impact` returns the number of non-deleted family trees
+  and, optionally, an approximate count of distinct browsers over 30 days. No name, identifier or
+  per-tree figure is returned.
+- **Visitor measurement is opt-in at deployment** ([ADR-0032](../architecture/adr/0032-landing-visitor-measurement-cookie.md); activation needs a public bilingual notice and counsel on Q20) (`VSH_VISITOR_STATS_ENABLED=false` by default) and
+  must not be switched on before the visitor privacy notice is reviewed. When on, a random signed
+  first-party HttpOnly cookie (90 days, path `/api/v1/public`) identifies the browser; only its HMAC
+  digest reaches Redis HyperLogLog buckets that expire after 35 days. IP addresses are used only as a
+  short-lived (one-hour) rate-limit key against cookie-less inflation, never stored with the digest.
+  User agents, accounts and family data are not used.
+- **Browser privacy signals are honoured:** a request with `Sec-GPC: 1` or `DNT: 1` is never counted
+  and never receives the cookie; it still sees the aggregate figures.
+- **Never presented as people.** The UI labels the figure as browsers, hides it when measurement is
+  off or unavailable, and never shows a false zero.
+- **Donations** open an external hosted payment page. Vanshavali receives no payment or donor data in
+  this increment, and contributing never changes access to any family record.

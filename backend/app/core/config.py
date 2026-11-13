@@ -72,6 +72,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://vanshavali:vanshavali@localhost:5432/vanshavali"
     redis_url: str = "redis://localhost:6379/0"
+    # Anonymous 30-day landing visitor estimates; opt-in at deployment after privacy review.
+    visitor_stats_enabled: bool = False
     # Per-statement timeout for API/worker connections (0 disables); protects against runaway queries.
     statement_timeout_ms: int = 15000
     # Connection pool per worker process. Keep workers x (size + overflow) under PostgreSQL's

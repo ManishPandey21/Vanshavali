@@ -1,4 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../api/client";
+import type { SiteImpactOut } from "../../api/types";
+import { DONATION_AMOUNTS, parseVoluntaryAmount, safeHostedDonationLink } from "./donations";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, BookOpenText, Download, EyeOff, Heart, Lock, Network, ScrollText, ShieldCheck, Sprout, UserCog, Users, type LucideIcon } from "lucide-react";
@@ -141,6 +145,7 @@ export function LandingPage() {
     navLinks[0]!,
     { href: "#how", label: t("landing.nav.how") },
     { href: "#trust", label: t("landing.nav.trust") },
+    { href: "#support", label: t("landing.support.nav") },
     ...navLinks.slice(1),
   ];
 
@@ -512,6 +517,9 @@ export function LandingPage() {
           </div>
         </section>
 
+        {/* ---------------------------------------------------------------- community impact + support */}
+        <CommunityImpactAndSupport />
+
         {/* ---------------------------------------------------------------- join */}
         <section aria-labelledby="join-title" className="bg-terracotta px-4 py-24 text-center text-cream sm:py-28">
           <Reveal className="mx-auto max-w-2xl">
@@ -567,6 +575,9 @@ export function LandingPage() {
           <FooterColumn title={t("landing.footer.family")}>
             <Link to={startTo} className="hover:text-gold">
               {startLabel}
+            </Link>
+            <Link to="/privacy" className="hover:text-gold">
+              {t("landing.footer.privacy")}
             </Link>
             {!signedIn && (
               <>
@@ -738,6 +749,163 @@ function KeptInTrust({ startTo, startLabel, btnText }: { startTo: string; startL
             <ArrowRight className="size-4" aria-hidden />
           </Link>
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+
+/**
+ * Each environment variable must point to a hosted checkout with that amount already
+ * configured server-side. This site never collects card or UPI credentials. Do not
+ * supply a generic payment link that accepts arbitrary client-selected amounts.
+ */
+const DONATION_LINKS: Record<number, string | undefined> = {
+  10: import.meta.env.VITE_DONATION_LINK_10,
+  50: import.meta.env.VITE_DONATION_LINK_50,
+  100: import.meta.env.VITE_DONATION_LINK_100,
+  1000: import.meta.env.VITE_DONATION_LINK_1000,
+  10000: import.meta.env.VITE_DONATION_LINK_10000,
+};
+
+function safeDonationLink(amount: number): string | null {
+  return safeHostedDonationLink(DONATION_LINKS[amount]);
+}
+
+function CommunityImpactAndSupport() {
+  const { t, i18n } = useTranslation();
+  const hindi = i18n.language.startsWith("hi");
+  const [amount, setAmount] = useState<number>(100);
+  const [isOtherAmount, setIsOtherAmount] = useState(false);
+  const [otherAmountText, setOtherAmountText] = useState("");
+  const impact = useQuery({
+    queryKey: ["public", "site-impact"],
+    queryFn: () => api.get<SiteImpactOut>("/public/site-impact"),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const enteredAmount = parseVoluntaryAmount(otherAmountText);
+  // A variable-amount hosted page must ask donors to enter and confirm the amount again.
+  // We do not send an untrusted number through URL parameters or declare a payment successful.
+  const checkout = isOtherAmount
+    ? enteredAmount !== null ? safeHostedDonationLink(import.meta.env.VITE_DONATION_LINK_CUSTOM) : null
+    : safeDonationLink(amount);
+  const number = (value: number) => new Intl.NumberFormat(hindi ? "hi-IN" : "en-IN").format(value);
+
+  return (
+    <section id="support" aria-labelledby="support-title" className="scroll-mt-20 bg-sand px-4 py-20 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        <Reveal className="text-center">
+          <Eyebrow center>{t("landing.support.kicker")}</Eyebrow>
+          <h2 id="support-title" className="mt-5 font-heritage text-4xl font-bold sm:text-5xl">
+            {t("landing.support.heading")}
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-umber">{t("landing.support.intro")}</p>
+        </Reveal>
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          <div className="border border-cocoa/10 bg-cream p-7 sm:p-9">
+            <h3 className="font-heritage text-2xl font-bold">{t("landing.support.impactTitle")}</h3>
+            <dl className="mt-6 grid grid-cols-2 gap-4">
+              <div>
+                <dt className="text-sm text-umber">{t("landing.support.families")}</dt>
+                <dd className="mt-1 font-heritage text-4xl text-rust">
+                  {impact.data ? number(impact.data.family_trees) : "—"}
+                </dd>
+              </div>
+              {/* Null means measurement is off or unavailable: show nothing rather than a dash or a false zero. */}
+              {impact.data?.unique_visitors_30d != null && (
+                <div>
+                  <dt className="text-sm text-umber">{t("landing.support.visitors")}</dt>
+                  <dd className="mt-1 font-heritage text-4xl text-rust">{number(impact.data.unique_visitors_30d)}</dd>
+                </div>
+              )}
+            </dl>
+            <p className="mt-5 text-xs leading-relaxed text-umber">{t("landing.support.countNote")}</p>
+          </div>
+          <div className="border border-cocoa/10 bg-cream p-7 sm:p-9">
+            <h3 className="font-heritage text-2xl font-bold">{t("landing.support.donateTitle")}</h3>
+            <p className="mt-2 text-sm text-umber">{t("landing.support.donateLead")}</p>
+            <fieldset className="mt-6">
+              <legend className="mb-3 text-sm font-semibold">{t("landing.support.chooseAmount")}</legend>
+              <div className="flex flex-wrap gap-2">
+                {DONATION_AMOUNTS.map((option) => (
+                  <label key={option} className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-rust ${!isOtherAmount && amount === option ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
+                    <input
+                      type="radio"
+                      name="donation-amount"
+                      value={option}
+                      checked={!isOtherAmount && amount === option}
+                      onChange={() => { setAmount(option); setIsOtherAmount(false); }}
+                      className="sr-only"
+                    />
+                    ₹{number(option)}
+                  </label>
+                ))}
+                <label className={`cursor-pointer border px-3 py-2 text-sm font-semibold transition has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-rust ${isOtherAmount ? "border-rust bg-rust text-white" : "border-cocoa/20 hover:border-rust"}`}>
+                  <input
+                    type="radio"
+                    name="donation-amount"
+                    checked={isOtherAmount}
+                    onChange={() => setIsOtherAmount(true)}
+                    className="sr-only"
+                  />
+                  {t("landing.support.otherAmount")}
+                </label>
+              </div>
+              {isOtherAmount && (
+                <div className="mt-4">
+                  <label htmlFor="voluntary-donation-amount" className="block text-sm font-semibold">
+                    {t("landing.support.enterAmount")}
+                  </label>
+                  <div className="mt-2 flex max-w-xs items-center border border-cocoa/30 bg-white focus-within:border-rust">
+                    <span className="px-3 text-lg text-umber" aria-hidden>₹</span>
+                    <input
+                      id="voluntary-donation-amount"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={6}
+                      value={otherAmountText}
+                      onChange={(event) => setOtherAmountText(event.target.value)}
+                      aria-invalid={otherAmountText.length > 0 && enteredAmount === null}
+                      aria-describedby="voluntary-donation-note"
+                      placeholder="250"
+                      className="w-full min-w-0 bg-transparent px-2 py-3 outline-none"
+                    />
+                  </div>
+                  <p id="voluntary-donation-note" className="mt-2 text-xs text-umber" role="status">
+                    {otherAmountText && enteredAmount === null
+                      ? t("landing.support.invalidAmount")
+                      : t("landing.support.otherAmountNote")}
+                  </p>
+                </div>
+              )}
+            </fieldset>
+            {checkout ? (
+              <a
+                href={checkout}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center justify-center gap-2 bg-cocoa px-6 py-3 text-sm font-semibold text-cream hover:bg-cocoa-soft"
+              >
+                <Heart className="size-4" aria-hidden />
+                {isOtherAmount ? t("landing.support.continueCustom") : t("landing.support.donateAmount", { amount: number(amount) })}
+              </a>
+            ) : (
+              <p className="mt-6 text-sm text-umber" role="status">
+                {isOtherAmount && enteredAmount === null
+                  ? t("landing.support.enterValidAmount")
+                  : t("landing.support.notConfigured")}
+              </p>
+            )}
+            {checkout && isOtherAmount && enteredAmount !== null && (
+              <p className="mt-3 text-xs font-medium text-umber">
+                {t("landing.support.confirmCustom", { amount: number(enteredAmount) })}
+              </p>
+            )}
+            <p className="mt-3 text-xs text-umber">{t("landing.support.paymentNote")}</p>
+          </div>
+        </div>
       </div>
     </section>
   );

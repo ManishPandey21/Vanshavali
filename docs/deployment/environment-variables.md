@@ -33,6 +33,7 @@ deployment-level variables of the pilot stack (`deploy/pilot`). See ADR-0014 for
 | `VSH_API_PREFIX` | API path prefix | no | `/api/v1` | leave | no |
 | `VSH_DATABASE_URL` | PostgreSQL URL. **App/worker: the non-owner role** (RLS applies). Migrate: the owner | yes | local `vanshavali` | `postgresql+psycopg://vanshavali_app:…@<host>:5432/vanshavali?sslmode=verify-full&sslrootcert=<CA file>` | **yes** (password) |
 | `VSH_REDIS_URL` | Job queue and rate-limit counters | fixed | `redis://localhost:6379/0` | `redis://redis:6379/0` (VM-local container) | no |
+| `VSH_VISITOR_STATS_ENABLED` | Anonymous 30-day landing-page browser estimate (signed first-party cookie + Redis HyperLogLog; `docs/architecture/landing-impact-and-support.md`) | no | `false` | leave `false` until the visitor privacy notice is reviewed | no |
 | `VSH_STATEMENT_TIMEOUT_MS` | Per-statement timeout for app connections | no | `15000` | leave | no |
 | `VSH_DB_POOL_SIZE` / `VSH_DB_MAX_OVERFLOW` | Connections per backend process | no | `5` / `10` | keep `replicas × (size + overflow)` + workers + headroom under the DB's `max_connections` | no |
 | `VSH_DB_POOL_TIMEOUT_S` | Wait for a pooled connection before a 503 | no | `5.0` | leave | no |
@@ -125,6 +126,17 @@ deployment-level variables of the pilot stack (`deploy/pilot`). See ADR-0014 for
 | `VSH_METRICS_TOKEN` | see Security | yes | — | — | yes |
 | Error-reporting DSN (Sentry etc.) | **Not supported** by the code; errors go to the JSON logs and the 5xx alerts. Adding one is a privacy decision (payload scrubbing) for a later ADR | — | — | — | — |
 | `VSH_TLS` | Caddy: ACME contact email (production) or `internal` (drills without DNS) | yes | — | the operations mailbox | no |
+
+## Frontend build (Vite)
+
+Read by `npm run build` and compiled **into the public JavaScript bundle**: every value is visible to
+anyone. Never put a secret here. Typed in `frontend/src/vite-env.d.ts`.
+
+| Variable | Purpose | Req. | Default | Recommendation |
+|---|---|---|---|---|
+| `VITE_DONATION_LINK_10` / `_50` / `_100` / `_1000` / `_10000` | Hosted Razorpay checkout for each fixed landing-page amount. HTTPS on `pages.razorpay.com`, `rzp.io` or `razorpay.me` only; anything else is ignored | no | unset (no checkout offered) | set only after the checkout, receipts and refunds are reviewed; each link's amount must match its name |
+| `VITE_PRIVACY_CONTACT_EMAIL` | Address for privacy questions and requests, shown as a `mailto:` link on `/privacy`. Plain addresses only; anything else is ignored | yes, before public launch | unset (page points to the support contact) | a monitored mailbox for privacy requests |
+| `VITE_DONATION_LINK_CUSTOM` | Hosted page on which the donor enters and confirms their own amount ("Other amount"). The typed amount is never sent to it | no | unset | same review as above |
 
 ## Deployment-only (scripts)
 

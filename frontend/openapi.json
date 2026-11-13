@@ -9659,6 +9659,28 @@
     }
    }
   },
+  "/api/v1/public/site-impact": {
+   "get": {
+    "tags": [
+     "public"
+    ],
+    "summary": "Site Impact",
+    "description": "Aggregate family trees and opt-in 30-day browser visitors for the landing page.",
+    "operationId": "site_impact_api_v1_public_site_impact_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SiteImpactOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/v1/trees/{tree_id}/sources": {
    "get": {
     "tags": [
@@ -42514,6 +42536,32 @@
      "kind"
     ],
     "title": "SiblingOut"
+   },
+   "SiteImpactOut": {
+    "properties": {
+     "family_trees": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Family Trees"
+     },
+     "unique_visitors_30d": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unique Visitors 30D"
+     }
+    },
+    "type": "object",
+    "required": [
+     "family_trees"
+    ],
+    "title": "SiteImpactOut"
    },
    "SmartAddAncestralVillageIn": {
     "properties": {

@@ -155,7 +155,20 @@ Status as of 2 Oct 2026: items marked *(prepared)* have everything they need in 
 - [ ] Native-Hindi language review of priorities 1–4 (consent, privacy, registration, email),
   signed off in `docs/localization/hindi-review-checklist.md`.
 
+### Landing-page visitor estimate (ADR-0032)
+- [ ] `VSH_VISITOR_STATS_ENABLED` stays `false` (the default) unless **all** of these hold:
+  - a public English and Hindi privacy notice describes the `vsh_impact_visitor` cookie;
+  - counsel has answered Q20;
+  - the owner has approved ADR-0032;
+  - `VSH_RATE_LIMIT_BACKEND=redis`.
+
+  Record the activation date and a review date 90 days later.
+- [ ] No `VITE_DONATION_LINK_*` is set until the hosted checkouts, receipts and refunds have been
+  reviewed (`docs/architecture/landing-impact-and-support.md`).
+
 ### Legal (pilot scope)
+- [ ] The public privacy notice (`/privacy`, English and Hindi) reviewed by counsel and approved by
+  the owner. `VITE_PRIVACY_CONTACT_EMAIL` is set to a monitored mailbox in the frontend build.
 - [ ] Privacy notice and terms for the pilot participants, approved by the owner. Each invited
   family is told it is a pilot.
 - [ ] If the pilot includes families outside the owner's circle: legal review of the consent and

@@ -2251,6 +2251,29 @@
     "removalRequested": "Done. Your profile is now hidden from everyone except the tree admins, and we've asked them to erase it. You don't need to do anything else."
   },
   "landing": {
+    "support": {
+      "nav": "Support",
+      "kicker": "GROWING TOGETHER",
+      "heading": "Our growing community",
+      "intro": "Every family story helps preserve our shared heritage. See the community grow, or support the work of keeping memories safe.",
+      "impactTitle": "Community at a glance",
+      "families": "Family trees created",
+      "visitors": "Unique visiting browsers · last 30 days",
+      "countNote": "Family trees are active registered trees, not necessarily distinct households. Visitor numbers are approximate 30-day browser counts and are shown only when optional privacy-conscious measurement is enabled. No family records are exposed.",
+      "donateTitle": "Support Vanshavali",
+      "donateLead": "Make a voluntary contribution to help sustain the platform.",
+      "chooseAmount": "Choose an amount",
+      "donateAmount": "Contribute ₹{{amount}}",
+      "notConfigured": "Secure donation checkout is not available yet. No payment will be collected.",
+      "paymentNote": "A configured contribution opens a secure external payment page. Contributions do not change access to family records.",
+      "otherAmount": "Other amount",
+      "enterAmount": "Your contribution (₹)",
+      "invalidAmount": "Enter a whole-rupee amount from ₹1 to ₹1,00,000.",
+      "otherAmountNote": "Enter any whole-rupee amount from ₹1 to ₹1,00,000.",
+      "enterValidAmount": "Enter a valid amount to continue.",
+      "continueCustom": "Continue to secure payment page",
+      "confirmCustom": "You entered ₹{{amount}}. Re-enter and confirm this amount on the secure payment page before paying."
+    },
     "announce": "A living archive of Indian family heritage",
     "nav": {
       "label": "Page sections",
@@ -2530,7 +2553,8 @@
       "builtWithA": "Built with",
       "builtWithB": "for preserving Indian family heritage.",
       "love": "love",
-      "dataCredit": "Place names: Local Government Directory, Government of India, and India Post, under the Government Open Data Licence – India."
+      "dataCredit": "Place names: Local Government Directory, Government of India, and India Post, under the Government Open Data Licence – India.",
+      "privacy": "Privacy notice"
     },
     "plant": {
       "kicker": "Try it now — no sign-up",
@@ -4009,5 +4033,118 @@
     "addChosen_other": "Add {{count}} photos",
     "noPhotosToAdd": "No other photos you can see.",
     "photosToAdd": "Photos you can add"
+  },
+  "privacyNotice": {
+    "title": "Privacy notice",
+    "updated": "Last updated: 12 November 2026",
+    "intro": "Vanshavali is a private archive for Indian family history. This notice explains what we collect when you visit or use it, why, who else is involved, how long we keep it and what you can do about it. It describes what the software actually does today.",
+    "contents": "On this page",
+    "backHome": "Back to the home page",
+    "sections": {
+      "collect": {
+        "title": "What we collect",
+        "points": {
+          "account": "Your account: your name, email address and a one-way scrambled form of your password (we cannot read your password). Your language choice and, if you turn it on, your two-step sign-in secret.",
+          "google": "If you sign in with Google: only Google's fixed identifier for you and the email address at the time you linked it. We do not receive your Google password, contacts or photo.",
+          "sessions": "When you sign in: the time, the internet (IP) address and the browser you used, so that you can see and sign out of your devices and so that we can detect misuse.",
+          "family": "Family records that you and your relatives add to a tree: names, relationships, dates, places, life events, stories, traditions, addresses and contact details of family members, photos and documents.",
+          "reminders": "If you turn on SMS or WhatsApp reminders: your phone number, which we encrypt and confirm before use.",
+          "audit": "A security record of important actions in a tree (who did what and when, with the internet address and browser used), so that families can see changes and we can investigate misuse."
+        }
+      },
+      "protect": {
+        "title": "How family records are protected",
+        "points": {
+          "private": "Every tree is private and invite-only. Only the people the tree's admins invite can see it, and each person's details have their own privacy level.",
+          "living": "Living relatives are protected by default: full birth date, birth time, address and contact details are visible only to the tree's admins unless someone with the right permission chooses otherwise.",
+          "minors": "Children under 18 are never shown on a public page, whatever the settings say.",
+          "public": "Public pages are off by default. If a tree owner turns them on, they show only people who have died and who have been marked public one by one, with year-only dates.",
+          "encrypted": "Postal addresses, contact details, phone numbers for reminders and uploaded files are stored encrypted. Uploaded files are checked for malware before they are stored."
+        }
+      },
+      "never": {
+        "title": "What we do not do",
+        "points": {
+          "sell": "We do not sell your data or anyone's family records, and we show no advertising.",
+          "analytics": "We use no third-party analytics, advertising or tracking scripts.",
+          "email": "Our emails contain no tracking images and no rewritten links.",
+          "ai": "Text in uploaded documents is read by software running on our own servers. We do not send your documents to outside AI services. Anything the software reads stays a suggestion until a person in the family confirms it.",
+          "inference": "We never guess caste, community, gotra or religion from surnames, places or relatives.",
+          "search": "We ask search engines not to index the site."
+        }
+      },
+      "sharing": {
+        "title": "Who else handles data",
+        "lead": "We use a small number of service providers, only for the purpose shown:",
+        "points": {
+          "hosting": "Our hosting provider stores the database, files and encrypted backups in a data centre region in India.",
+          "email": "An email delivery service sends account emails (verification, password reset) and, if you choose, reminder emails.",
+          "messaging": "If you turn on SMS or WhatsApp reminders, a messaging provider receives your phone number and a short message that contains no names or places.",
+          "google": "Google, only if you choose to sign in with Google.",
+          "payment": "A payment provider, only if you choose to make a voluntary contribution (see below)."
+        },
+        "law": "We may disclose information if Indian law requires it."
+      },
+      "storage": {
+        "title": "Cookies and storage in your browser",
+        "lead": "We use only first-party cookies and browser storage. None of them follow you to other websites.",
+        "points": {
+          "session": "vsh_session: keeps you signed in. It ends after 14 days without use, and after 30 days at most.",
+          "csrf": "vsh_csrf: protects your account from forged requests made by other websites.",
+          "visitor": "vsh_impact_visitor: only if anonymous visitor counting is switched on (see the next section). It lasts 90 days.",
+          "language": "vsh_lang (browser storage): remembers the language you chose.",
+          "recent": "vsh_recent_… (browser storage): the internal reference numbers of people you looked at recently, so the app can offer them again. It holds no names.",
+          "draft": "vsh.treeDraft (this tab only): the names you type into the “plant your family tree” preview on the home page. It is never sent to us, and it is erased when you clear the names or close the tab."
+        }
+      },
+      "visitors": {
+        "title": "Anonymous visitor count",
+        "points": {
+          "what": "We may show how many different browsers visited in the last 30 days. This is switched off unless we turn it on, and is shown on the home page only while it is on.",
+          "how": "When it is on, your browser gets a random code in the vsh_impact_visitor cookie. It contains nothing about you and is never linked to your account. Only a scrambled form of it is added to a daily count that cannot list or return individual visitors. Those counts are deleted after 35 days.",
+          "signals": "If your browser sends Global Privacy Control or Do Not Track, you are not counted and get no cookie. You can also delete the cookie at any time.",
+          "estimate": "The number is an estimate of browsers, not people: different devices, private windows and cleared cookies count separately."
+        }
+      },
+      "retention": {
+        "title": "How long we keep data",
+        "points": {
+          "family": "Family records stay in the tree until someone with permission removes or erases them. Removed records can be restored by a tree admin for a while; erasing a profile cannot be undone.",
+          "links": "Links in our emails expire: email verification after 48 hours and password reset after 1 hour.",
+          "logs": "Our servers' operational logs record only the type of request, never its contents, cookies or your internet address, and our web server keeps no access log.",
+          "records": "Sign-in records and the security record of actions are currently kept without a fixed end date. We will set and publish a retention period.",
+          "backups": "Backups are encrypted before they leave the database server and are kept in India."
+        }
+      },
+      "rights": {
+        "title": "Your choices and rights",
+        "points": {
+          "control": "Claim your own profile in a family tree and then control its privacy yourself.",
+          "remove": "If someone shares a claim link with you and it is about you, you can choose “Remove me”: your profile is hidden from everyone except the tree's admins straight away, and they are asked to erase it.",
+          "correct": "Ask the tree's admins to correct, hide or erase anything about you. Erasing a profile is permanent and leaves only an anonymous placeholder.",
+          "export": "Download your family tree as a GEDCOM file, the standard format used by family-history software.",
+          "attestation": "Withdraw the statement you gave when you started adding relatives.",
+          "close": "Close your account from your account page. We remove your name and email address from it, sign you out everywhere and remove you from every tree. Records you added stay with the family's tree unless they are erased.",
+          "grievance": "You may also complain to the Data Protection Board of India."
+        }
+      },
+      "children": {
+        "title": "Children",
+        "body": "You must be 18 or older to claim a profile. Family members may add children to a private tree; their details are never shown on public pages."
+      },
+      "donations": {
+        "title": "Voluntary contributions",
+        "body": "If contributions are available, choosing an amount opens the payment provider's own secure page. We do not receive or store your card, UPI or bank details. Contributing never changes who can see any family records."
+      },
+      "changes": {
+        "title": "Changes to this notice",
+        "body": "When we change how we handle data, we update this page and the date at the top."
+      },
+      "contact": {
+        "title": "Contact us",
+        "withEmail": "For any privacy question or request, write to {{email}}.",
+        "withoutEmail": "For any privacy question or request, use the support contact you were given when you joined, or ask an admin of your family tree."
+      }
+    }
   }
 }
