@@ -3262,7 +3262,8 @@
     "emptyBody": "Add yourself, a parent or the eldest ancestor you know. The family will grow here, generation by generation, as you add relatives.",
     "addFirst": "Add the first person",
     "onlyOne": "No children are recorded for {{name}} yet",
-    "addRelatives": "Add their children, spouse or parents"
+    "addRelatives": "Add their children, spouse or parents",
+    "exploreConnected": "Explore connected family"
   },
   "smartAdd": {
     "open": "Add a relative",
