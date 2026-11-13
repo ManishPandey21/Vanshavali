@@ -31,6 +31,26 @@ from app.modules.genealogy.serialize import Serializer, relationship_out
 _EXCLUDED_EVIDENCE = (EvidenceStatus.DISPROVEN, EvidenceStatus.SUPERSEDED)
 
 
+def _removed_person_ids(ctx: TreeContext) -> frozenset[uuid.UUID]:
+    """Non-displayable vertices. Privacy-hidden people are intentionally NOT included.
+
+    The irreversible erasure path retains an anonymous structural record for archival
+    integrity; it must not surface as a person, placeholder or traversable bridge in
+    any interactive family graph.
+    """
+    return frozenset(
+        ctx.db.scalars(
+            select(Person.id).where(
+                Person.tree_id == ctx.tree_id,
+                or_(
+                    Person.deleted_at.is_not(None),
+                    Person.preferred_display_name == "Erased person",
+                ),
+            )
+        )
+    )
+
+
 def _lineage_filter(lineages: set[Lineage] | None, rel: Any) -> bool:
     if not lineages:
         return True
@@ -50,8 +70,8 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
         )
     )
     # concealed provisional people are left out entirely: no "private relative" placeholder
-    concealed = provisional.concealed_ids(ctx)
-    rels = [r for r in rels if r.person_a_id not in concealed and r.person_b_id not in concealed]
+    excluded = provisional.concealed_ids(ctx) | _removed_person_ids(ctx)
+    rels = [r for r in rels if r.person_a_id not in excluded and r.person_b_id not in excluded]
     parent_edges = [
         r for r in rels if r.type in PARENT_TYPES and r.person_b_id == pid and _lineage_filter(lineages, r)
     ]
@@ -77,7 +97,7 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
                 )
             )
         )
-        shared = [r for r in shared if r.person_b_id not in concealed]
+        shared = [r for r in shared if r.person_b_id not in excluded]
     union_partner_ids = {r.person_b_id if r.person_a_id == pid else r.person_a_id for r in union_edges}
     all_ids = (
         {pid}
@@ -275,9 +295,9 @@ def graph(
     lookup.get_person_subject(ctx, root_id)
     depth = max(1, min(depth, get_settings().max_traversal_depth))
     rows = _walk(ctx, root_id, direction, depth, lineages)
-    concealed = provisional.concealed_ids(ctx)
-    if concealed:
-        rows = _reachable_without(rows, root_id, direction, concealed)
+    excluded = provisional.concealed_ids(ctx) | _removed_person_ids(ctx)
+    if excluded:
+        rows = _reachable_without(rows, root_id, direction, excluded)
     gen: dict[uuid.UUID, int] = {root_id: 0}
     for r in rows:
         node = r.parent if direction == "ancestors" else r.child
@@ -320,6 +340,7 @@ def graph(
             )
         )
         partner_gen: dict[uuid.UUID, int] = {}
+        union_rows = [u for u in union_rows if u.person_a_id not in excluded and u.person_b_id not in excluded]
         for u in union_rows:
             for inside, other in ((u.person_a_id, u.person_b_id), (u.person_b_id, u.person_a_id)):
                 if inside in gen and other not in gen:
