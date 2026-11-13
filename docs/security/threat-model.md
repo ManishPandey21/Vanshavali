@@ -273,3 +273,13 @@ to subsequent reads and sends. Proposed field-controller recovery is not an admi
 
 Residual: the payment provider's own page, receipts and refunds are outside this codebase and need
 a human checkout review before any link is configured.
+
+
+## Connected-tree and deletion regression threats (ADR-0033, proposed)
+
+| ID | Threat | Control | Regression test |
+| --- | --- | --- | --- |
+| TREE-REMOVE | A removed person appears as `Private person` due to a dangling relationship | Exclude removed/erased vertices and incident edges before adding graph nodes; do not traverse through them | `test_connected_tree.py::test_soft_removed_person_does_not_return_as_private_placeholder_or_bridge` |
+| TREE-HIDDEN | An anonymous relative's name or tree identity leaks through full-component traversal | Reuse authorized root, RLS, privacy-redacting serializer, opaque hidden aliases; conceal pending provisional records | `test_connected_tree.py::test_connected_view_does_not_expose_hidden_names_or_cross_tree_data` |
+| TREE-ERASE | A privacy-erased person's residual archive marker is visible in interactive charts | Exclude erased marker and all associated edges from display, with irreversible action restricted to tree managers | `test_connected_tree.py::test_erased_person_is_not_drawn_or_listed` |
+| TREE-SCALE | Excessive full-tree traversal exhausts DB/chart capacity or silently omits relatives | Bound to 25 relationship hops / 500 vertices, report `truncated` instead of claiming completeness | `connected_graph` bounds; performance testing required before release |
