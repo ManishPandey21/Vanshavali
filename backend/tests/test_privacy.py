@@ -209,7 +209,7 @@ def test_minor_is_protected_even_if_marked_public(owner, tree, member_factory):
     assert body["birth"]["date"]["precision"] == "year_only"
 
 
-def test_privacy_erasure_keeps_structure(owner, tree, member_factory):
+def test_privacy_erasure_keeps_archival_record_but_omits_interactive_tree(owner, tree, member_factory):
     t = tree["id"]
     parent = create_person(owner, t, "Parent")
     p = _living(owner, t)
@@ -231,12 +231,13 @@ def test_privacy_erasure_keeps_structure(owner, tree, member_factory):
     body = owner.get(f"/trees/{t}/people/{p['id']}").text
     for leak in ("Priya", "Secret", "04:17", "Atri", "98xxxxxx"):
         assert leak not in body
-    assert (
-        owner.get(f"/trees/{t}/people/{parent['id']}/family").json()["other_children"][0]["person"][
-            "display_name"
-        ]
-        == "Erased person"
-    )
+    # Erasure keeps a redacted archive entry but must not leave a "Private person"
+    # or "Erased person" box in interactive family projections.
+    assert "Erased person" in body
+    family = owner.get(f"/trees/{t}/people/{parent['id']}/family").json()
+    assert family["other_children"] == []
+    graph = owner.get(f"/trees/{t}/people/{parent['id']}/descendants").json()
+    assert len(graph["nodes"]) == 1 and not graph["nodes"][0]["hidden"]
 
 
 def test_close_account(owner, tree, make_client):
