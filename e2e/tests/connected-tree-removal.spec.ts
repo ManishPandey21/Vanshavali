@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { api, createPerson, registerWithTree } from "./helpers";
+import { api, createPerson, registerWithTree, registerVerified, uniqueEmail } from "./helpers";
 
 /** The exact overview → complete chart → remove regression from a family tree. */
 test("open full tree includes both directions; removal leaves no private placeholder", async ({ page, context, baseURL }) => {
@@ -39,4 +39,71 @@ test("open full tree includes both directions; removal leaves no private placeho
   await page.getByRole("link", { name: "Open full tree" }).click();
   const full = page.getByRole("group", { name: "Family tree chart" });
   await expect(full.getByRole("button", { name: /Middle Family|Grandchild Family|Private person/ })).toHaveCount(0);
+});
+
+test("permanent delete requires a reason, preserves failure recovery, and denies a viewer", async ({ browser, page, context, baseURL }) => {
+  const { treeId } = await registerWithTree(context, baseURL!, "Deletion protection");
+  const target = await createPerson(context, baseURL!, treeId, "DeleteCandidate", "Pandey", { profile_status: "deceased" });
+
+  await page.goto(`/t/${treeId}/people/${target.id}`);
+  await page.getByRole("button", { name: "Delete permanently" }).click();
+  const confirmation = page.getByRole("dialog");
+  await expect(confirmation).toBeVisible();
+  const eraseAction = confirmation.getByRole("button", { name: "Delete permanently" });
+  await expect(eraseAction).toBeDisabled();
+  await confirmation.getByLabel("Reason for permanent deletion").fill("No");
+  await expect(eraseAction).toBeDisabled();
+  await confirmation.getByLabel("Reason for permanent deletion").fill("Remove duplicate profile");
+  await expect(eraseAction).toBeEnabled();
+
+  // A failing API must not navigate away or misreport success, and the reason
+  // must remain available for a correction/retry.
+  await page.route(`**/api/v1/trees/${treeId}/people/${target.id}/erase`, async (route) => {
+    await route.fulfill({
+      status: 500, contentType: "application/json",
+      body: JSON.stringify({ error: { code: "simulated_failure", message: "Simulated erasure failure" } }),
+    });
+  });
+  await eraseAction.click();
+  await expect(confirmation.getByRole("alert")).toContainText("Simulated erasure failure");
+  await expect(page).toHaveURL(new RegExp(`/people/${target.id}$`));
+  await expect(confirmation.getByLabel("Reason for permanent deletion")).toHaveValue("Remove duplicate profile");
+  await page.unroute(`**/api/v1/trees/${treeId}/people/${target.id}/erase`);
+
+  // A genuine viewer has read access but must not see delete controls or
+  // succeed in an API-level erasure, even with their own valid CSRF token.
+  const viewerCtx = await browser.newContext({ baseURL });
+  const email = uniqueEmail("eraserviewer");
+  await registerVerified(viewerCtx, baseURL!, email);
+  const invite = await api<{ token: string }>(
+    context, "POST", `/trees/${treeId}/invitations`,
+    { email, roles: ["VIEWER"] }, baseURL!,
+  );
+  await api(viewerCtx, "POST", `/invitations/${invite.token}/accept`, {}, baseURL!);
+  const viewerPage = await viewerCtx.newPage();
+  await viewerPage.goto(`/t/${treeId}/people/${target.id}`);
+  await expect(viewerPage.getByRole("heading", { name: "DeleteCandidate Pandey" })).toBeVisible();
+  await expect(viewerPage.getByRole("button", { name: "Delete permanently" })).toHaveCount(0);
+  const viewerCsrf = (await viewerCtx.cookies()).find((cookie) => cookie.name === "vsh_csrf")?.value ?? "";
+  const denied = await viewerCtx.request.post(
+    `${baseURL}/api/v1/trees/${treeId}/people/${target.id}/erase`, {
+      data: { reason: "Not authorized", confirm: true },
+      headers: { "X-CSRF-Token": viewerCsrf },
+    },
+  );
+  expect(denied.status()).toBe(403);
+  await viewerCtx.close();
+
+  // Retrying after removing the simulated failure must use the server's
+  // real irreversible erasure path, not a client-side optimistic state.
+  await eraseAction.click();
+  await expect(page).toHaveURL(new RegExp(`/t/${treeId}/people$`));
+  const archive = await api<{ display_name: string }>(
+    context, "GET", `/trees/${treeId}/people/${target.id}`, undefined, baseURL!,
+  );
+  expect(archive.display_name).toBe("Erased person");
+  const listed = await api<{ items: { id: string }[] }>(
+    context, "GET", `/trees/${treeId}/people`, undefined, baseURL!,
+  );
+  expect(listed.items.map((p) => p.id)).not.toContain(target.id);
 });
