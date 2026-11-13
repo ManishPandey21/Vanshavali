@@ -459,3 +459,6 @@ Complete connected views are strictly tree-scoped, deny unapproved roots, use
 the existing field-redacting serializer and supply no raw IDs/names for hidden
 people. Root choice must not reveal hidden people. The chart reports incomplete
 results when depth or node budgets are reached.
+
+
+**Erasure-state correction (ADR-0033, proposed).** `person.erased_at` is the durable source of truth for intentional irreversible erasure. It is set during the erasure transaction; migration uses the append-only `person.erased` audit event scoped by tree and target person to backfill earlier records. Interactive family graphs and public/internal person listings exclude erased records based on the lifecycle marker, never their name; archival access follows the existing explicit permission checks. A populated downgrade that drops the marker must fail closed.
