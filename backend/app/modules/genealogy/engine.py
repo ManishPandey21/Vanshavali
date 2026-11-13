@@ -340,7 +340,9 @@ def graph(
             )
         )
         partner_gen: dict[uuid.UUID, int] = {}
-        union_rows = [u for u in union_rows if u.person_a_id not in excluded and u.person_b_id not in excluded]
+        union_rows = [
+            u for u in union_rows if u.person_a_id not in excluded and u.person_b_id not in excluded
+        ]
         for u in union_rows:
             for inside, other in ((u.person_a_id, u.person_b_id), (u.person_b_id, u.person_a_id)):
                 if inside in gen and other not in gen:
@@ -426,17 +428,13 @@ def connected_graph(
                     Relationship.tree_id == ctx.tree_id,
                     Relationship.type.in_(allowed_types),
                     Relationship.evidence_status.notin_(list(_EXCLUDED_EVIDENCE)),
-                    (Relationship.person_a_id.in_(frontier))
-                    | (Relationship.person_b_id.in_(frontier)),
+                    (Relationship.person_a_id.in_(frontier)) | (Relationship.person_b_id.in_(frontier)),
                 )
                 .order_by(Relationship.id)
             )
         )
         # Do not expose a deleted/erased edge even when the other end is live.
-        found = [
-            r for r in found
-            if r.person_a_id not in excluded and r.person_b_id not in excluded
-        ]
+        found = [r for r in found if r.person_a_id not in excluded and r.person_b_id not in excluded]
         nxt: list[uuid.UUID] = []
         for r in found:
             a, b = r.person_a_id, r.person_b_id
@@ -485,8 +483,13 @@ def connected_graph(
             # Unlike a parent edge, an explicit sibling link must not invent ancestry.
             edges.append(GraphEdge(source=alias[a], target=alias[b], type=r.type, lineage=r.lineage))
     return GraphOut(
-        root_id=root_id, direction="connected", depth=depth_budget,
-        truncated=truncated, nodes=nodes, edges=edges, unions=unions,
+        root_id=root_id,
+        direction="connected",
+        depth=depth_budget,
+        truncated=truncated,
+        nodes=nodes,
+        edges=edges,
+        unions=unions,
     )
 
 
