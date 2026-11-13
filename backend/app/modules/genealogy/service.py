@@ -1262,6 +1262,7 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
             created_by=ctx.user_id,
         )
     )
+    person.erased_at = dt.datetime.now(dt.UTC)
     person.preferred_display_name = "Erased person"
     person.sex_at_birth = None
     person.gender_identity = None
