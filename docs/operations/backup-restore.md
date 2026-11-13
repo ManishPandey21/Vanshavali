@@ -73,7 +73,8 @@ The drill runs these steps (full options are in the script header):
      the app role when RLS is on);
    - the STANDARD and VAULT documents download through the signed-URL flow and their sha256 matches
      `document.checksum_sha256`, which proves both data keys decrypt the restored objects;
-   - `UPDATE` and `DELETE` on `audit_event` are still rejected by the append-only trigger.
+   - `UPDATE` and `DELETE` on `audit_event` are still rejected by the append-only trigger (apart
+     from erasing IP and browser on entries over a year old, ADR-0033).
 
 Negative control: `verify.py` run with a different `VSH_VAULT_DATA_KEY` reports
 `[FAIL] download VAULT document … file 500, sha256 match False` and exits 1. It must run against

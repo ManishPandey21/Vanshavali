@@ -121,6 +121,11 @@ class Settings(BaseSettings):
     storage_local_path: str = "./var/storage"
     # Soft-deleted documents stay restorable this long, then the maintenance purge removes them.
     document_purge_after_days: int = 30
+    # ADR-0033: sign-in records (with IP and browser) are deleted this long after the session ended,
+    # and audit entries lose their IP and browser this long after the event (the database refuses
+    # anything under 365 days for the audit log).
+    session_record_retention_days: int = Field(default=365, ge=365)
+    audit_network_retention_days: int = Field(default=365, ge=365)
     s3_endpoint_url: str | None = None
     s3_bucket: str = "vanshavali"
     s3_region: str = "ap-south-1"

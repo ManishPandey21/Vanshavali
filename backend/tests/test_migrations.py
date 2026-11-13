@@ -9,6 +9,7 @@ import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
+from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, text
 
 from alembic import command
@@ -136,10 +137,11 @@ def test_legacy_profile_details_are_encrypted_verbatim_and_restore_on_downgrade(
         with pytest.raises(RuntimeError, match="cannot be represented"):
             command.downgrade(cfg, "a4d7e2c9b153")
         with engine.connect() as connection:
-            # Alembic runs the requested multi-revision downgrade transactionally. Once D is the
-            # head, c8's refusal rolls the preceding D downgrade back as well.
+            # Alembic runs the requested multi-revision downgrade transactionally, so c8's refusal
+            # rolls back every later downgrade step too: the database stays at the head it started at.
             assert (
-                connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "d4a8e6f1b209"
+                connection.execute(text("SELECT version_num FROM alembic_version")).scalar()
+                == ScriptDirectory.from_config(cfg).get_current_head()
             )
             assert (
                 connection.execute(
@@ -369,6 +371,70 @@ def test_ownership_offers_column_and_downgrade():
                 )
                 assert "pending_owner_membership_id" not in cols, table
             assert conn.execute(text("SELECT owner_membership_id FROM tradition_entry")).scalar() == m1
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()
+
+
+def test_audit_network_scrub_trigger_upgrade_and_downgrade():
+    """a6e3d9b1f204 (ADR-0033): the scrub of year-old IPs is allowed after upgrade, strict again after downgrade."""
+    import uuid
+
+    from sqlalchemy.exc import DBAPIError
+
+    db = DB + "_audit_scrub"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    scrub = text("UPDATE audit_event SET ip = NULL, user_agent = NULL WHERE id = :id")
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "d4a8e6f1b209")
+        engine = create_engine(url)
+        old = uuid.uuid4()
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO audit_event (id, action, ip, user_agent, created_at)"
+                    " VALUES (:id, 'x', '203.0.113.7', 'B', now() - interval '400 days')"
+                ),
+                {"id": old},
+            )
+        with pytest.raises(DBAPIError, match="append-only"), engine.begin() as conn:
+            conn.execute(scrub, {"id": old})
+
+        command.upgrade(cfg, "a6e3d9b1f204")
+        with engine.begin() as conn:
+            conn.execute(scrub, {"id": old})
+            assert (
+                conn.execute(text("SELECT ip FROM audit_event WHERE id = :id"), {"id": old}).scalar() is None
+            )
+            assert (
+                conn.execute(
+                    text("SELECT count(*) FROM pg_indexes WHERE indexname = 'ix_audit_event_network_scrub'")
+                ).scalar()
+                == 1
+            )
+        with pytest.raises(DBAPIError, match="append-only"), engine.begin() as conn:
+            conn.execute(text("DELETE FROM audit_event WHERE id = :id"), {"id": old})
+
+        command.downgrade(cfg, "d4a8e6f1b209")
+        with engine.begin() as conn:
+            assert (
+                conn.execute(
+                    text("SELECT count(*) FROM pg_indexes WHERE indexname = 'ix_audit_event_network_scrub'")
+                ).scalar()
+                == 0
+            )
+        with pytest.raises(DBAPIError, match="append-only"), engine.begin() as conn:
+            conn.execute(
+                text("UPDATE audit_event SET ip = NULL, user_agent = NULL WHERE id = :id"), {"id": old}
+            )
         engine.dispose()
     finally:
         with admin.connect() as c:

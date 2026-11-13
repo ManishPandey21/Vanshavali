@@ -4036,7 +4036,7 @@
   },
   "privacyNotice": {
     "title": "Privacy notice",
-    "updated": "Last updated: 12 November 2026",
+    "updated": "Last updated: 13 November 2026",
     "intro": "Vanshavali is a private archive for Indian family history. This notice explains what we collect when you visit or use it, why, who else is involved, how long we keep it and what you can do about it. It describes what the software actually does today.",
     "contents": "On this page",
     "backHome": "Back to the home page",
@@ -4112,7 +4112,7 @@
           "family": "Family records stay in the tree until someone with permission removes or erases them. Removed records can be restored by a tree admin for a while; erasing a profile cannot be undone.",
           "links": "Links in our emails expire: email verification after 48 hours and password reset after 1 hour.",
           "logs": "Our servers' operational logs record only the type of request, never its contents, cookies or your internet address, and our web server keeps no access log.",
-          "records": "Sign-in records and the security record of actions are currently kept without a fixed end date. We will set and publish a retention period.",
+          "records": "Sign-in records (time, internet address and browser) are deleted one year after the session ends. In the security record of actions, the internet address and browser are erased after one year; the record of who did what and when stays with the family's tree.",
           "backups": "Backups are encrypted before they leave the database server and are kept in India."
         }
       },

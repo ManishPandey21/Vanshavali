@@ -124,6 +124,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 41 20 * * * $DEPLOY_USER $APP_DIR/deploy/pilot/scripts/backup.sh nightly >>$STATE/backup.log 2>&1
 30 21 * * * $DEPLOY_USER cd $APP_DIR && source deploy/pilot/scripts/lib.sh && dc --profile tools run --rm tools python -m app.cli.maintenance purge-deleted-documents >>$STATE/maintenance.log 2>&1
 45 21 * * 0 $DEPLOY_USER cd $APP_DIR && source deploy/pilot/scripts/lib.sh && dc --profile tools run --rm tools python -m app.cli.maintenance sweep-orphans >>$STATE/maintenance.log 2>&1
+# ADR-0033: sign-in records and audit IP/browser are kept for one year.
+35 21 * * * $DEPLOY_USER cd $APP_DIR && source deploy/pilot/scripts/lib.sh && dc --profile tools run --rm tools python -m app.cli.maintenance purge-sign-in-records >>$STATE/maintenance.log 2>&1
+40 21 * * * $DEPLOY_USER cd $APP_DIR && source deploy/pilot/scripts/lib.sh && dc --profile tools run --rm tools python -m app.cli.maintenance scrub-audit-network >>$STATE/maintenance.log 2>&1
 15 22 * * 0 root docker image prune -af --filter "until=720h" >/dev/null 2>&1
 CRON
 chmod 644 /etc/cron.d/vanshavali

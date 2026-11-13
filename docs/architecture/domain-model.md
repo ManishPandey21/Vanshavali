@@ -160,7 +160,7 @@ graph LR
 | Documented ownership shares ≤ 1 per property at any date. Asserted or disputed claims may overlap. | Property service (ADR-0010) |
 | Places keep their historical names. Renames append history. | `place.historical_names` |
 | Merges are reversible | `merge_record.changes` |
-| The audit log is append-only | DB trigger |
+| The audit log is append-only; the only change allowed is erasing IP and browser from entries over 365 days old (ADR-0033) | DB trigger |
 | A platform capability (master-data console) belongs to one named person, is granted only by the operator CLI and never by the application, and gives no tree access; it counts only on a session opened with password + TOTP after the current enrolment, and writes need a recent step-up | `platform_capability_grant` (read-only to the application role), `user_session.mfa_verified_at` / `mfa_step_up_at`, `authz.platform` (ADR-0028 §7–§8) |
 | A life-event category refines, never replaces, the structural event type | `CATEGORY_EVENT_TYPE` (ADR-0015) |
 | An event's own privacy level gates every lookup of it (album, reminders, charts, renders) | `genealogy.service.get_event_checked` |

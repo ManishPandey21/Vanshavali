@@ -166,9 +166,9 @@ statement must stay true of the code. Change the copy in the same PR as any chan
 - retention, OCR/AI processing, or subject rights.
 
 The contact line uses the build-time `VITE_PRIVACY_CONTACT_EMAIL`. Without it, the page points
-to the pilot support contact and never invents an address. The notice states two gaps openly:
-sign-in records and the audit log have no retention period yet, and there is no named grievance
-officer (DEFERRED below).
+to the pilot support contact and never invents an address. The notice states the retention of
+sign-in records and audit network identifiers (ADR-0033) and one gap openly: there is no named
+grievance officer (DEFERRED below).
 
 **Landing-page sketch ("plant your tree").** Signed-out visitors can type up to four names (self,
 father, mother, paternal grandfather) on the public landing page to preview a tree. The names are
@@ -438,3 +438,18 @@ Profile contacts never establish verified account contact or messaging consent.
   off or unavailable, and never shows a false zero.
 - **Donations** open an external hosted payment page. Vanshavali receives no payment or donor data in
   this increment, and contributing never changes access to any family record.
+
+## Sign-in records and audit network identifiers (ADR-0033)
+
+- **Sign-in records** (`user_session`: time, IP address, browser) are deleted 365 days after the
+  session ended (revoked, or its idle or absolute expiry passed). Live sessions are never touched.
+- **Audit entries** keep the family's change history (actor, action, target, summary, details,
+  time) for the life of the tree. Their `ip` and `user_agent` are erased 365 days after the event.
+  No API ever returned those two fields.
+- **Enforced by the database.** The append-only trigger allows only that erasure, only on entries
+  older than 365 days, with the rest of the row unchanged; `DELETE` is still refused. The settings
+  `VSH_SESSION_RECORD_RETENTION_DAYS` / `VSH_AUDIT_NETWORK_RETENTION_DAYS` can lengthen the
+  periods but not shorten them below a year.
+- Daily cron jobs `purge-sign-in-records` and `scrub-audit-network` run as the app role. Restored
+  backups older than the period are cleaned again by the next run.
+- Tests: `test_sign_in_audit_retention.py`, `test_migrations.py::test_audit_network_scrub_trigger_upgrade_and_downgrade`.

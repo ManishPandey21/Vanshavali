@@ -109,7 +109,8 @@ The general rules below still apply to any topology:
 - **Scheduled maintenance (daily)**, as the app role:
   `python -m app.cli.maintenance purge-deleted-documents`, then
   `python -m app.cli.maintenance sweep-orphans` (a report; add `--delete` once you have reviewed it).
-  See ADR-0004 §7.
+  See ADR-0004 §7. Also daily: `purge-sign-in-records` and `scrub-audit-network` (ADR-0033: sign-in
+  records and audit IP/browser are kept for one year).
 - **Frontend security headers:** they live in `frontend/nginx-security-headers.conf`, which is
   included at server level *and* in every `location` that has its own `add_header`. nginx does not
   inherit `add_header` into such locations. Keep that rule when adding locations; the weekly DAST

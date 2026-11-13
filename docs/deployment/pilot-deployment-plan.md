@@ -271,7 +271,8 @@ An unknown host name gets no certificate. Evidence: `docs/release/evidence/pilot
   - minor-version upgrades in the provider's maintenance window (announced to the pilot);
   - major upgrades (PostgreSQL 17+) rehearsed on staging first, from a restored copy;
   - `ANALYZE`/autovacuum are left on (defaults);
-  - daily `purge-deleted-documents` and a weekly orphan report run from cron.
+  - daily `purge-deleted-documents`, `purge-sign-in-records` and `scrub-audit-network` (ADR-0033),
+    and a weekly orphan report, run from cron.
 
 ## 12. Object storage production setup
 Applies to every document class: photos, birth certificates, property records, Kundli, GEDCOM

@@ -37,3 +37,4 @@ into 0003, 0009 and 0010.
 | 0030 | [Factory changed-test gate inside the builder command](0030-factory-changed-test-gate.md) | Proposed |
 | 0031 | [Family profile fields, private addresses and communications](0031-family-profile-addresses-and-communications.md) | Accepted — phased rollout; legacy access retained until explicit conversion |
 | 0032 | [Anonymous landing-page visitor estimate with a first-party cookie](0032-landing-visitor-measurement-cookie.md) | Accepted (measurement off until the activation conditions hold) |
+| 0033 | [Retention of sign-in records and audit-log network identifiers](0033-sign-in-and-audit-network-retention.md) | Accepted |

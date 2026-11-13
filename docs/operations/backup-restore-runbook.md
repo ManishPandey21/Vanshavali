@@ -87,7 +87,8 @@ shred -u /root/backup.key                                # the identity goes bac
    - every table's row count lies within the manifest's before/after range;
    - the alembic version matches;
    - the object count is at least the manifest's;
-   - `audit_event` still rejects UPDATE and DELETE (append-only trigger).
+   - `audit_event` still rejects UPDATE and DELETE (append-only trigger; the only update it allows
+     is erasing IP and browser from entries over a year old, ADR-0033).
 7. **Reports:** writes `/var/lib/vanshavali/last-restore.json` with per-step timings.
 
 **Manual steps that remain** (not automatable here):
