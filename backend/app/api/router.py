@@ -16,6 +16,7 @@ from app.modules.documents.router import router as documents_router
 from app.modules.evidence.router import router as evidence_router
 from app.modules.extraction.router import router as extraction_router
 from app.modules.family.router import router as family_router
+from app.modules.family_addresses.router import router as family_addresses_router
 from app.modules.gedcom.router import router as gedcom_router
 from app.modules.genealogy.router import router as genealogy_router
 from app.modules.geo.router import router as geo_router
@@ -77,6 +78,7 @@ api_router.include_router(claim_invites_router)
 api_router.include_router(merge_router)
 api_router.include_router(property_router)
 api_router.include_router(profile_details_router)
+api_router.include_router(family_addresses_router)
 api_router.include_router(documents_router)
 api_router.include_router(document_files_router)
 api_router.include_router(extraction_router)

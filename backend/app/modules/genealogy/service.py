@@ -36,6 +36,7 @@ from app.models.enums import (
     EventType,
     EvidenceStatus,
     GeoLevel,
+    HeritageAttribute,
     LifeEventCategory,
     LocationPrecision,
     ParticipantRole,
@@ -663,6 +664,12 @@ def update_person(ctx: TreeContext, person_id: uuid.UUID, body: PersonUpdate) ->
         from app.modules.profile_details import service as profile_details
 
         if "residential_address" in legacy:
+            if legacy["residential_address"] is None:
+                from app.modules.family_addresses import service as family_addresses
+
+                legacy_address_id = profile_details.active_legacy_address_id(ctx, person.id)
+                if legacy_address_id is not None:
+                    family_addresses.revoke_person_address_source(ctx, legacy_address_id)
             profile_details.set_legacy_address(ctx, person.id, legacy["residential_address"])
         if "contact_info" in legacy:
             profile_details.set_legacy_contact(ctx, person.id, legacy["contact_info"])
@@ -1101,6 +1108,20 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
     ctx.require(Permission.TREE_MANAGE)
     person = lookup.get_in_tree(ctx, Person, person_id, "Person")
     db = ctx.db
+    from app.modules.family_addresses import service as family_addresses
+
+    family_addresses.revoke_person_sources(ctx, person.id)
+    ancestral_assertion_ids = set(
+        db.scalars(
+            select(Assertion.id).where(
+                Assertion.tree_id == ctx.tree_id,
+                Assertion.person_id == person.id,
+                Assertion.attribute == HeritageAttribute.ANCESTRAL_VILLAGE.value,
+            )
+        )
+    )
+    for assertion_id in ancestral_assertion_ids:
+        family_addresses.revoke_ancestral_source(ctx, assertion_id)
     ev_ids = list(
         db.scalars(
             select(EventParticipant.event_id).where(

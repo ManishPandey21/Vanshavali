@@ -38,6 +38,8 @@ interface Details {
   birthYear: string;
   relativeAge: "" | "elder" | "younger";
   otherParentId: string;
+  ancestralChoice: "unknown" | "new" | `recorded:${string}`;
+  ancestralVillage: string;
   /** names accepted from a transliteration suggestion (ADR-0025), saved after the typed one */
   extraNames?: NameDraft[];
 }
@@ -73,7 +75,7 @@ export function SmartAddDialog({ anchor, onClose }: { anchor: PersonSummary; onC
   const plan = useSmartAddPlan(treeId, anchor.id, term?.code ?? null, choices);
   const commit = useSmartAddCommit(treeId, anchor.id);
   const undo = useSmartAddUndo(treeId);
-  const [details, setDetails] = useState<Details>({ given: "", surname: "", status: "unknown", sex: "", birthYear: "", relativeAge: "", otherParentId: "" });
+  const [details, setDetails] = useState<Details>({ given: "", surname: "", status: "unknown", sex: "", birthYear: "", relativeAge: "", otherParentId: "", ancestralChoice: "unknown", ancestralVillage: "" });
   const [provisionalSex, setProvisionalSex] = useState<(SexAtBirth | "")[]>([]);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [result, setResult] = useState<SmartAddCommitOut | null>(null);
@@ -122,6 +124,10 @@ export function SmartAddDialog({ anchor, onClose }: { anchor: PersonSummary; onC
       setDetailsError(t("smartAdd.err.year"));
       return;
     }
+    if (details.ancestralChoice === "new" && !details.ancestralVillage.trim()) {
+      setDetailsError(t("smartAdd.err.ancestralVillage"));
+      return;
+    }
     setDetailsError(null);
     setStage("preview");
   };
@@ -136,6 +142,11 @@ export function SmartAddDialog({ anchor, onClose }: { anchor: PersonSummary; onC
         other_parent_id: details.otherParentId || null,
         relative_age: details.relativeAge || null,
         provisional_sex_at_birth: provisionalSex.map((s) => s || null),
+        ancestral_village: details.ancestralChoice.startsWith("recorded:")
+          ? { choice: "recorded", assertion_id: details.ancestralChoice.slice("recorded:".length) }
+          : details.ancestralChoice === "new"
+            ? { choice: "new", value_text: details.ancestralVillage.trim() }
+            : { choice: "unknown" },
       },
       { onSuccess: (r) => (setResult(r), setStage("done")) },
     );
@@ -212,6 +223,8 @@ export function SmartAddDialog({ anchor, onClose }: { anchor: PersonSummary; onC
                 relativeAge={details.relativeAge}
                 provisionalSex={provisionalSex}
                 onProvisionalSex={setProvisionalSex}
+                ancestralChoice={details.ancestralChoice}
+                ancestralVillage={details.ancestralVillage}
               />
             )}
             <ErrorAlert error={commit.error} />
@@ -372,6 +385,7 @@ function DetailsForm({
   const ageName = useId();
   const blocked = plan?.target?.blocked;
   const otherParents = plan?.target?.other_parent_options ?? [];
+  const villages = plan?.ancestral_villages ?? [];
   return (
     <form id="smart-add-details" onSubmit={onSubmit} noValidate className="space-y-4">
       {blocked && (
@@ -476,6 +490,27 @@ function DetailsForm({
           </div>
         </fieldset>
       )}
+      <section className="space-y-2 rounded-lg border border-stone-200 p-3">
+        <Field label={t("smartAdd.ancestralVillage.label")} hint={t("smartAdd.ancestralVillage.hint")}>
+          {(p) => (
+            <Select {...p} value={value.ancestralChoice} onChange={(e) => set({ ancestralChoice: e.target.value as Details["ancestralChoice"], ancestralVillage: "" })}>
+              <option value="unknown">{t("smartAdd.ancestralVillage.unknown")}</option>
+              {villages.map((v, index) => (
+                <option key={v.assertion_id} value={`recorded:${v.assertion_id}`}>
+                  {t(index === 0 ? "smartAdd.ancestralVillage.accept" : "smartAdd.ancestralVillage.choose", { village: v.label })}
+                </option>
+              ))}
+              <option value="new">{t("smartAdd.ancestralVillage.enter")}</option>
+            </Select>
+          )}
+        </Field>
+        {value.ancestralChoice === "new" && (
+          <Field label={t("smartAdd.ancestralVillage.newLabel")} required>
+            {(p) => <TextInput {...p} value={value.ancestralVillage} onChange={(e) => set({ ancestralVillage: e.target.value })} />}
+          </Field>
+        )}
+        <p className="text-xs text-ink-muted">{t("smartAdd.ancestralVillage.notice")}</p>
+      </section>
       <p className="text-xs text-ink-muted">{t("smartAdd.moreLater")}</p>
       {error && (
         <p role="alert" className="field-error text-sm">
@@ -492,12 +527,16 @@ function Preview({
   relativeAge,
   provisionalSex,
   onProvisionalSex,
+  ancestralChoice,
+  ancestralVillage,
 }: {
   plan: SmartAddPlan;
   newName: string;
   relativeAge: Details["relativeAge"];
   provisionalSex: (SexAtBirth | "")[];
   onProvisionalSex: (v: (SexAtBirth | "")[]) => void;
+  ancestralChoice: Details["ancestralChoice"];
+  ancestralVillage: string;
 }) {
   const { t } = useTranslation();
   const rows = useMemo(() => (plan.preview ?? []).slice(1), [plan.preview]);
@@ -549,6 +588,15 @@ function Preview({
           </li>
         ))}
       </ol>
+      <p className="rounded-lg bg-parchment-deep px-3 py-2 text-sm">
+        {ancestralChoice === "unknown"
+          ? t("smartAdd.ancestralVillage.previewUnknown")
+          : ancestralChoice === "new"
+            ? t("smartAdd.ancestralVillage.previewNew", { village: ancestralVillage })
+            : t("smartAdd.ancestralVillage.previewRecorded", {
+                village: plan.ancestral_villages?.find((v) => `recorded:${v.assertion_id}` === ancestralChoice)?.label ?? "",
+              })}
+      </p>
       <p className="text-xs text-ink-muted">{t("smartAdd.previewFooter")}</p>
     </div>
   );

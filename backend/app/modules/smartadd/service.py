@@ -14,19 +14,31 @@ from typing import Literal
 
 from sqlalchemy import and_, or_, select
 
+from app.authz.assertions import assertion_allows
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
-from app.models import AuditEvent, Person, Relationship, RelativeAgeOrder
-from app.models.enums import PARENT_TYPES, UNION_TYPES, ProfileStatus, RelationshipType, SexAtBirth
+from app.models import Assertion, AuditEvent, BranchMembership, Person, Relationship, RelativeAgeOrder
+from app.models.enums import (
+    PARENT_TYPES,
+    UNION_TYPES,
+    AssertionSubject,
+    HeritageAttribute,
+    ProfileStatus,
+    RelationshipType,
+    SexAtBirth,
+)
 from app.modules.genealogy import ageorder, engine, lookup, provisional
 from app.modules.genealogy import service as genealogy
 from app.modules.genealogy.schemas import PersonCreate, PersonSummary, RelatedPerson, RelativeIn
 from app.modules.genealogy.serialize import Serializer
+from app.modules.heritage import service as heritage
+from app.modules.heritage.schemas import AssertionIn
 from app.modules.smartadd.schemas import (
     Choice,
     LinkMode,
+    SmartAddAncestralVillageOut,
     SmartAddCommitIn,
     SmartAddHopOut,
     SmartAddPlanIn,
@@ -130,6 +142,37 @@ class _Resolved:
     complete: bool
 
 
+def _ancestral_villages(ctx: TreeContext, anchor_id: uuid.UUID) -> list[SmartAddAncestralVillageOut]:
+    branch_ids = set(
+        ctx.db.scalars(
+            select(BranchMembership.branch_id).where(
+                BranchMembership.tree_id == ctx.tree_id,
+                BranchMembership.person_id == anchor_id,
+            )
+        )
+    )
+    if not branch_ids:
+        return []
+    assertions = ctx.db.scalars(
+        select(Assertion).where(
+            Assertion.tree_id == ctx.tree_id,
+            Assertion.branch_id.in_(branch_ids),
+            Assertion.attribute == HeritageAttribute.ANCESTRAL_VILLAGE.value,
+            Assertion.is_preferred.is_(True),
+        )
+    ).all()
+    return [
+        SmartAddAncestralVillageOut(
+            assertion_id=row.id,
+            branch_id=row.branch_id,
+            label=row.value_text or "Recorded ancestral village",
+            place_id=row.place_id,
+        )
+        for row in assertions
+        if row.branch_id is not None and assertion_allows(ctx, row)
+    ]
+
+
 def _resolve(ctx: TreeContext, anchor_id: uuid.UUID, term: Term, choices: list[Choice]) -> _Resolved:
     ctx.require(Permission.PERSON_WRITE)
     anchor = _summary(ctx, anchor_id)
@@ -214,7 +257,13 @@ def _step_person(step: SmartAddStepOut) -> PersonSummary | None:
 def plan(ctx: TreeContext, anchor_id: uuid.UUID, body: SmartAddPlanIn) -> SmartAddPlanOut:
     term = _term(body.term)
     res = _resolve(ctx, anchor_id, term, body.choices)
-    out = SmartAddPlanOut(term=term.code, anchor=res.anchor, steps=res.steps, complete=res.complete)
+    out = SmartAddPlanOut(
+        term=term.code,
+        anchor=res.anchor,
+        steps=res.steps,
+        complete=res.complete,
+        ancestral_villages=_ancestral_villages(ctx, anchor_id),
+    )
     if not res.complete:
         return out
     target = _target(ctx, res)
@@ -246,6 +295,7 @@ class _Written:
     people: list[uuid.UUID] = field(default_factory=list)
     relationships: list[uuid.UUID] = field(default_factory=list)
     age_orders: list[uuid.UUID] = field(default_factory=list)
+    assertions: list[uuid.UUID] = field(default_factory=list)
 
 
 def _union_between(ctx: TreeContext, a: uuid.UUID, b: uuid.UUID) -> Relationship | None:
@@ -323,6 +373,66 @@ def _record_age(
         written.age_orders.append(row.id)
 
 
+def _record_ancestral_village(
+    ctx: TreeContext,
+    anchor_id: uuid.UUID,
+    person_id: uuid.UUID,
+    body: SmartAddCommitIn,
+    written: _Written,
+) -> None:
+    choice = body.ancestral_village
+    if choice.choice == "unknown":
+        if choice.assertion_id or choice.place_id or (choice.value_text or "").strip():
+            raise Unprocessable("Unknown ancestral village cannot carry a value", code="invalid_village")
+        return
+    source = None
+    if choice.choice == "recorded":
+        source = next(
+            (
+                item
+                for item in _ancestral_villages(ctx, anchor_id)
+                if item.assertion_id == choice.assertion_id
+            ),
+            None,
+        )
+        if source is None:
+            raise Unprocessable("Choose an authorized recorded ancestral village", code="invalid_village")
+        source_row = ctx.db.scalar(
+            select(Assertion).where(
+                Assertion.tree_id == ctx.tree_id,
+                Assertion.id == source.assertion_id,
+            )
+        )
+        if source_row is None or not assertion_allows(ctx, source_row):
+            raise Unprocessable("Choose an authorized recorded ancestral village", code="invalid_village")
+        value_text = source_row.value_text
+        place_id = source_row.place_id
+        privacy_level = source_row.privacy_level
+    else:
+        if choice.assertion_id is not None:
+            raise Unprocessable("A new ancestral village cannot name an assertion", code="invalid_village")
+        value_text = (choice.value_text or "").strip() or None
+        place_id = choice.place_id
+        privacy_level = None
+        if value_text is None and place_id is None:
+            raise Unprocessable("Enter an ancestral village", code="invalid_village")
+        if place_id is not None:
+            lookup.get_place(ctx, place_id)
+    assertion = heritage.create_assertion(
+        ctx,
+        AssertionSubject.PERSON,
+        person_id,
+        AssertionIn(
+            attribute=HeritageAttribute.ANCESTRAL_VILLAGE,
+            value_text=value_text,
+            place_id=place_id,
+            privacy_level=privacy_level,
+            is_preferred=True,
+        ),
+    )
+    written.assertions.append(assertion.id)
+
+
 def commit(
     ctx: TreeContext, anchor_id: uuid.UUID, body: SmartAddCommitIn
 ) -> tuple[AuditEvent, Person, _Written]:
@@ -374,6 +484,7 @@ def commit(
     target = genealogy.create_person(ctx, body.new_person)
     written.people.append(target.id)
     _link(ctx, current, target.id, target_hop, written, other_parent_id=body.other_parent_id)
+    _record_ancestral_village(ctx, anchor_id, target.id, body, written)
     age = target_hop.age or body.relative_age
     if age is not None and target_hop.relation == "sibling":
         _record_age(ctx, target.id, current, age, written)
@@ -389,6 +500,7 @@ def commit(
             "person_ids": [str(p) for p in written.people],
             "relationship_ids": [str(r) for r in written.relationships],
             "relative_age_order_ids": [str(a) for a in written.age_orders],
+            "assertion_ids": [str(a) for a in written.assertions],
         },
     )
     ctx.db.flush()
@@ -422,6 +534,7 @@ def undo(ctx: TreeContext, operation_id: uuid.UUID) -> None:
     people = [uuid.UUID(p) for p in event.details.get("person_ids", [])]
     rels = {uuid.UUID(r) for r in event.details.get("relationship_ids", [])}
     ages = [uuid.UUID(a) for a in event.details.get("relative_age_order_ids", [])]
+    assertions = [uuid.UUID(a) for a in event.details.get("assertion_ids", [])]
     for pid in people:
         person = ctx.db.scalar(select(Person).where(Person.tree_id == ctx.tree_id, Person.id == pid))
         if person is None or person.deleted_at is not None:
@@ -445,6 +558,8 @@ def undo(ctx: TreeContext, operation_id: uuid.UUID) -> None:
         )
         if row is not None:
             ctx.db.delete(row)
+    for assertion_id in assertions:
+        heritage.delete_assertion(ctx, assertion_id)
     for pid in people:
         genealogy.delete_person(ctx, pid)
     provisional.revoke_creator_grants(ctx, people)  # after the deletes, which need to see them

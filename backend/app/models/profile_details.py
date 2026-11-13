@@ -18,7 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TreeScopedMixin, enum_column, tree_fk, tree_unique
-from app.models.enums import AddressPurpose, AddressStatus, ContactKind
+from app.models.enums import AddressPurpose, AddressReuseMode, AddressStatus, ContactKind
 
 
 class PersonAddress(TreeScopedMixin, Base):
@@ -27,10 +27,44 @@ class PersonAddress(TreeScopedMixin, Base):
         tree_unique("person_address"),
         tree_fk(["person_id"], "person"),
         tree_fk(["place_id"], "place", ondelete="SET NULL"),
+        tree_fk(
+            ["linked_family_address_version_id"],
+            "family_address_version",
+            ondelete="SET NULL",
+            name="fk_person_addr_link_family_version",
+        ),
+        tree_fk(
+            ["source_family_address_version_id"],
+            "family_address_version",
+            ondelete="SET NULL",
+            name="fk_person_addr_source_family_version",
+        ),
+        tree_fk(
+            ["root_source_family_address_version_id"],
+            "family_address_version",
+            ondelete="SET NULL",
+            name="fk_person_addr_root_family_version",
+        ),
+        tree_fk(
+            ["ancestral_assertion_id"],
+            "assertion",
+            ondelete="SET NULL",
+            name="fk_person_addr_ancestral_assertion",
+        ),
+        tree_fk(
+            ["copied_from_person_address_id"],
+            "person_address",
+            ondelete="SET NULL",
+            name="fk_person_addr_copied_from",
+        ),
         UniqueConstraint("tree_id", "person_id", "idempotency_key", name="uq_person_address_idempotency"),
         CheckConstraint(
             "NOT is_primary_current OR (status = 'current' AND withdrawn_at IS NULL)",
             name="primary_is_current",
+        ),
+        CheckConstraint(
+            "NOT (linked_family_address_version_id IS NOT NULL AND source_family_address_version_id IS NOT NULL)",
+            name="one_family_address_reuse_source",
         ),
         Index("ix_person_address_person", "tree_id", "person_id"),
         Index("ix_person_address_person_purpose", "tree_id", "person_id", "purpose"),
@@ -66,6 +100,13 @@ class PersonAddress(TreeScopedMixin, Base):
     revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     idempotency_key: Mapped[str | None] = mapped_column(String(100))
     source: Mapped[str] = mapped_column(String(40), default="manual", server_default="manual")
+    reuse_mode: Mapped[AddressReuseMode | None] = mapped_column(enum_column(AddressReuseMode))
+    linked_family_address_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    source_family_address_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    root_source_family_address_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    ancestral_assertion_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    copied_from_person_address_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    source_revoked_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     legacy_imported: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     withdrawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 

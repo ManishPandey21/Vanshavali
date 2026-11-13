@@ -68,6 +68,55 @@ def test_plan_writes_nothing_and_offers_the_recorded_mother(owner, tree):
     assert _plan(owner, t, me["id"], "mama", ["new"]).status_code == 422
 
 
+def test_smart_add_explicitly_offers_and_records_ancestral_village_without_birthplace(owner, tree):
+    t = tree["id"]
+    anchor = create_person(owner, t, "Aarav", status="living")
+    branch = owner.post(f"/trees/{t}/branches", json={"name": "Sharma branch"}).json()
+    owner.post(f"/trees/{t}/branches/{branch['id']}/members", json={"person_ids": [anchor["id"]]})
+    source = owner.post(
+        f"/trees/{t}/branches/{branch['id']}/heritage",
+        json={"attribute": "ancestral_village", "value_text": "Bhadohi"},
+    )
+    assert source.status_code == 201, source.text
+    plan = _plan(owner, t, anchor["id"], "brother").json()
+    assert plan["ancestral_villages"] == [
+        {
+            "assertion_id": source.json()["id"],
+            "branch_id": branch["id"],
+            "label": "Bhadohi",
+            "place_id": None,
+        }
+    ]
+    committed = _commit(
+        owner,
+        t,
+        anchor["id"],
+        "brother",
+        person_body("Mohan"),
+        ancestral_village={"choice": "recorded", "assertion_id": source.json()["id"]},
+    )
+    assert committed.status_code == 201, committed.text
+    person = committed.json()["person"]
+    profile = owner.get(f"/trees/{t}/people/{person['id']}/heritage").json()
+    ancestral = next(item for item in profile["attributes"] if item["attribute"] == "ancestral_village")
+    assert ancestral["preferred"]["value_text"] == "Bhadohi"
+    detail = owner.get(f"/trees/{t}/people/{person['id']}").json()
+    assert detail["birth"] is None
+    assert owner.get(f"/trees/{t}/people/{person['id']}/addresses").json()["items"] == []
+
+    unknown = _commit(
+        owner,
+        t,
+        anchor["id"],
+        "brother",
+        person_body("Rohan"),
+        ancestral_village={"choice": "unknown"},
+    )
+    assert unknown.status_code == 201, unknown.text
+    unknown_profile = owner.get(f"/trees/{t}/people/{unknown.json()['person']['id']}/heritage").json()
+    assert unknown_profile["attributes"] == []
+
+
 def test_mama_through_recorded_grandparents_is_a_real_sibling(owner, tree):
     t = tree["id"]
     me = create_person(owner, t, "Aarav", status="living", sex="male")

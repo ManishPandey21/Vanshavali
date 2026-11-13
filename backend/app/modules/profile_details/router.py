@@ -33,21 +33,21 @@ def list_addresses(
     offset = decode_cursor(cursor)
     rows = service.list_addresses(ctx, person_id, offset=offset, limit=limit + 1)
     return Page(
-        items=[service.project_address(row) for row in rows[:limit]],
+        items=[service.project_address(row, ctx) for row in rows[:limit]],
         next_cursor=encode_cursor(offset + limit) if len(rows) > limit else None,
     )
 
 
 @router.post("/addresses", response_model=AddressOut, status_code=status.HTTP_201_CREATED)
 def create_address(person_id: uuid.UUID, body: AddressIn, ctx: TreeCtx) -> AddressOut:
-    return service.project_address(service.create_address(ctx, person_id, body))
+    return service.project_address(service.create_address(ctx, person_id, body), ctx)
 
 
 @router.patch("/addresses/{address_id}", response_model=AddressOut)
 def update_address(
     person_id: uuid.UUID, address_id: uuid.UUID, body: AddressUpdate, ctx: TreeCtx
 ) -> AddressOut:
-    return service.project_address(service.update_address(ctx, person_id, address_id, body))
+    return service.project_address(service.update_address(ctx, person_id, address_id, body), ctx)
 
 
 @router.post("/addresses/{address_id}/move", response_model=MoveAddressOut)
@@ -56,7 +56,7 @@ def move_address(
 ) -> MoveAddressOut:
     former, new = service.move_address(ctx, person_id, address_id, body)
     return MoveAddressOut(
-        former_address=service.project_address(former), new_address=service.project_address(new)
+        former_address=service.project_address(former, ctx), new_address=service.project_address(new, ctx)
     )
 
 
@@ -74,18 +74,6 @@ def address_history(
         items=[RevisionSnapshot.model_validate(item) for item in rows[:limit]],
         next_cursor=encode_cursor(offset + limit) if len(rows) > limit else None,
     )
-
-
-@router.delete("/addresses/{address_id}", response_model=Message)
-def delete_address(
-    person_id: uuid.UUID,
-    address_id: uuid.UUID,
-    ctx: TreeCtx,
-    revision: int = Query(ge=1),
-    reason: str | None = Query(default=None, max_length=500),
-) -> Message:
-    service.withdraw_address(ctx, person_id, address_id, revision, reason)
-    return Message(message="Address removed")
 
 
 @router.get("/contacts", response_model=Page[ContactOut])

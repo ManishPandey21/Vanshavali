@@ -8,7 +8,7 @@ from pydantic import Field, field_validator, model_validator
 
 from app.api.schemas import ApiModel
 from app.core.dates import GenealogicalDate
-from app.models.enums import AddressPurpose, AddressStatus, ContactKind
+from app.models.enums import AddressPurpose, AddressReuseMode, AddressStatus, ContactKind
 
 
 class AddressPayload(ApiModel):
@@ -97,6 +97,11 @@ class AddressOut(AddressPayload):
     valid_until: dict | None
     revision: int
     source: str
+    reuse_mode: AddressReuseMode | None = None
+    family_address_id: uuid.UUID | None = None
+    family_address_version: int | None = None
+    family_update_available: int | None = None
+    ancestral_assertion_id: uuid.UUID | None = None
     created_at: dt.datetime
     updated_at: dt.datetime
 
@@ -112,6 +117,11 @@ class MoveAddressIn(ApiModel):
 class MoveAddressOut(ApiModel):
     former_address: AddressOut
     new_address: AddressOut
+
+
+class AdoptFamilyAddressVersionIn(ApiModel):
+    revision: int = Field(ge=1)
+    version: int = Field(ge=1)
 
 
 class RevisionSnapshot(ApiModel):

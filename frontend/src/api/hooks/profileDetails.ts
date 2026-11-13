@@ -3,7 +3,10 @@ import { api } from "../client";
 import type {
   AddressIn,
   AddressOut,
+  AddressReuseIn,
   AddressUpdate,
+  AdoptFamilyAddressVersionIn,
+  FamilyAddressSourceOut,
   PersonContactIn,
   PersonContactOut,
   ContactReveal,
@@ -19,7 +22,32 @@ const base = (treeId: string, personId: string) => `/trees/${treeId}/people/${pe
 const keys = {
   addresses: (treeId: string, personId: string) => ["tree", treeId, "person", personId, "addresses"] as const,
   contacts: (treeId: string, personId: string) => ["tree", treeId, "person", personId, "contacts"] as const,
+  familyAddressSources: (treeId: string, query: string) => ["tree", treeId, "family-address-sources", query] as const,
 };
+
+export function useFamilyAddressSources(treeId: string, query: string) {
+  return useQuery({
+    queryKey: keys.familyAddressSources(treeId, query),
+    queryFn: () => api.get<Page<FamilyAddressSourceOut>>(`/trees/${treeId}/family-addresses/sources`, query ? { q: query } : undefined),
+    retry: false,
+  });
+}
+
+export function useReuseAddress(treeId: string, personId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AddressReuseIn) => api.post<AddressOut>(`${base(treeId, personId)}/addresses/reuse`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.addresses(treeId, personId) }),
+  });
+}
+
+export function useAdoptFamilyAddressVersion(treeId: string, personId: string, addressId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AdoptFamilyAddressVersionIn) => api.post<AddressOut>(`${base(treeId, personId)}/addresses/${addressId}/adopt-family-version`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.addresses(treeId, personId) }),
+  });
+}
 
 export function usePersonAddresses(treeId: string, personId: string) {
   return useQuery({

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Eye, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { Eye, Link2, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type {
   AddressIn,
   AddressOut,
   AddressPurpose,
   AddressStatus,
+  AddressReuseMode,
   PersonContactIn,
   ContactKind,
   PersonContactOut,
@@ -22,6 +23,9 @@ import {
   useRevealContact,
   useUpdateAddress,
   useUpdateContact,
+  useAdoptFamilyAddressVersion,
+  useFamilyAddressSources,
+  useReuseAddress,
 } from "../../../api/hooks/profileDetails";
 import { emptyPlace, PlacePicker, type PlaceValue } from "../../../components/pickers";
 import { Badge } from "../../../components/ui/Badge";
@@ -52,6 +56,9 @@ export function AddressesContactsTab({ personId, canEdit }: { personId: string; 
   const deleteContact = useDeleteContact(treeId, personId);
   const reveal = useRevealContact(treeId, personId);
   const [addressEdit, setAddressEdit] = useState<AddressOut | "new" | null>(null);
+  const [reuseOpen, setReuseOpen] = useState(false);
+  const [adoptAddress, setAdoptAddress] = useState<AddressOut | null>(null);
+  const adopt = useAdoptFamilyAddressVersion(treeId, personId, adoptAddress?.id ?? "");
   const [moveFrom, setMoveFrom] = useState<AddressOut | null>(null);
   const [historyId, setHistoryId] = useState<string | null>(null);
   const [contactEdit, setContactEdit] = useState<{ row: PersonContactOut | null; value: string } | null>(null);
@@ -68,7 +75,7 @@ export function AddressesContactsTab({ personId, canEdit }: { personId: string; 
             <h2 id="addresses-heading" className="font-display text-lg font-semibold">{t("profileDetails.addresses.title")}</h2>
             <p className="text-sm text-ink-muted">{t("profileDetails.addresses.description")}</p>
           </div>
-          {canEdit && <Button size="sm" icon={<Plus className="size-4" aria-hidden />} onClick={() => setAddressEdit("new")}>{t("profileDetails.addresses.add")}</Button>}
+          {canEdit && <div className="flex flex-wrap gap-2"><Button variant="secondary" size="sm" icon={<Link2 className="size-4" aria-hidden />} onClick={() => setReuseOpen(true)}>{t("profileDetails.addresses.reuse")}</Button><Button size="sm" icon={<Plus className="size-4" aria-hidden />} onClick={() => setAddressEdit("new")}>{t("profileDetails.addresses.add")}</Button></div>}
         </div>
         {!addresses.data?.items.length && <EmptyState title={t("profileDetails.addresses.emptyTitle")}>{t("profileDetails.addresses.emptyBody")}</EmptyState>}
         <ul className="space-y-3">
@@ -76,14 +83,15 @@ export function AddressesContactsTab({ personId, canEdit }: { personId: string; 
             <li key={address.id} className="card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-2 font-semibold"><MapPin className="size-4 text-kumkum-700" aria-hidden />{label(address.purpose)} {address.is_primary_current && <Badge tone="green">{t("profileDetails.values.primary")}</Badge>} {address.status === "former" && <Badge>{label("former")}</Badge>}</p>
+                  <p className="flex flex-wrap items-center gap-2 font-semibold"><MapPin className="size-4 text-kumkum-700" aria-hidden />{label(address.purpose)} {address.is_primary_current && <Badge tone="green">{t("profileDetails.values.primary")}</Badge>} {address.status === "former" && <Badge>{label("former")}</Badge>} {address.reuse_mode === "link" && <Badge tone="blue">{t("profileDetails.addresses.linkedVersion", { version: address.family_address_version })}</Badge>} {address.reuse_mode === "copy" && <Badge>{t("profileDetails.addresses.copied")}</Badge>} {address.ancestral_assertion_id && <Badge tone="green">{t("profileDetails.addresses.ancestralSource")}</Badge>}</p>
                   <p className="mt-1 whitespace-pre-wrap text-sm">{addressLine(address, t("profileDetails.addresses.noDetails"))}</p>
                   {(address.locality || address.sub_district || address.district || address.state || address.postal_code) && <p className="text-sm text-ink-muted">{[address.locality, address.sub_district, address.district, address.state, address.postal_code, address.country_code].filter(Boolean).join(", ")}</p>}
                   {address.landmark && <p className="mt-1 text-xs text-ink-muted">{t("profileDetails.fields.landmark")}: {address.landmark}</p>}
+                  {address.family_update_available && <p className="mt-2 text-xs font-medium text-amber-800">{t("profileDetails.addresses.updateAvailable", { version: address.family_update_available })}</p>}
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-1">
                   <Button variant="ghost" size="sm" onClick={() => setHistoryId(address.id)}>{t("profileDetails.addresses.history")}</Button>
-                  {canEdit && <>{address.status === "current" && <Button variant="ghost" size="sm" onClick={() => setMoveFrom(address)}>{t("profileDetails.addresses.moved")}</Button>}<Button variant="ghost" size="sm" aria-label={t("profileDetails.addresses.edit")} icon={<Pencil className="size-4" aria-hidden />} onClick={() => setAddressEdit(address)} /><Button variant="ghost" size="sm" aria-label={t("profileDetails.addresses.remove")} icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setRemove({ type: "address", id: address.id, revision: address.revision, label: addressLine(address, t("profileDetails.addresses.noDetails")) })} /></>}
+                  {canEdit && <>{address.family_update_available && <Button variant="secondary" size="sm" onClick={() => setAdoptAddress(address)}>{t("profileDetails.addresses.reviewUpdate")}</Button>}{address.reuse_mode !== "link" && <>{address.status === "current" && <Button variant="ghost" size="sm" onClick={() => setMoveFrom(address)}>{t("profileDetails.addresses.moved")}</Button>}<Button variant="ghost" size="sm" aria-label={t("profileDetails.addresses.edit")} icon={<Pencil className="size-4" aria-hidden />} onClick={() => setAddressEdit(address)} /></>}<Button variant="ghost" size="sm" aria-label={t("profileDetails.addresses.remove")} icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setRemove({ type: "address", id: address.id, revision: address.revision, label: addressLine(address, t("profileDetails.addresses.noDetails")) })} /></>}
                 </div>
               </div>
             </li>
@@ -113,12 +121,58 @@ export function AddressesContactsTab({ personId, canEdit }: { personId: string; 
       </section>
 
       {addressEdit && <AddressDialog treeId={treeId} personId={personId} address={addressEdit === "new" ? null : addressEdit} moveFrom={null} onClose={() => setAddressEdit(null)} />}
+      {reuseOpen && <ReuseAddressDialog treeId={treeId} personId={personId} onClose={() => setReuseOpen(false)} />}
       {moveFrom && <AddressDialog treeId={treeId} personId={personId} address={null} moveFrom={moveFrom} onClose={() => setMoveFrom(null)} />}
       {historyId && <AddressHistoryDialog treeId={treeId} personId={personId} addressId={historyId} onClose={() => setHistoryId(null)} />}
       {contactEdit && <ContactDialog treeId={treeId} personId={personId} contacts={contacts.data?.items ?? []} contact={contactEdit.row} initialValue={contactEdit.value} onClose={() => setContactEdit(null)} />}
       <ConfirmDialog open={!!remove} onClose={() => setRemove(null)} title={t("profileDetails.remove.title", { type: remove ? t(`profileDetails.remove.${remove.type}`) : t("profileDetails.remove.item") })} body={remove ? t("profileDetails.remove.body", { label: remove.label }) : ""} confirmLabel={t("profileDetails.remove.confirm")} danger loading={deleteAddress.isPending || deleteContact.isPending} onConfirm={() => { if (!remove) return; const done = { onSuccess: () => setRemove(null) }; if (remove.type === "address") deleteAddress.mutate(remove, done); else deleteContact.mutate(remove, done); }} />
+      <ConfirmDialog open={!!adoptAddress} onClose={() => setAdoptAddress(null)} title={t("profileDetails.addresses.adoptTitle")} body={adoptAddress ? t("profileDetails.addresses.adoptBody", { current: adoptAddress.family_address_version, next: adoptAddress.family_update_available }) : ""} confirmLabel={t("profileDetails.addresses.adoptConfirm")} loading={adopt.isPending} onConfirm={() => { if (!adoptAddress?.family_update_available) return; adopt.mutate({ revision: adoptAddress.revision, version: adoptAddress.family_update_available }, { onSuccess: () => setAdoptAddress(null) }); }} />
     </div>
   );
+}
+
+function ReuseAddressDialog({ treeId, personId, onClose }: { treeId: string; personId: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [query, setQuery] = useState("");
+  const sources = useFamilyAddressSources(treeId, query);
+  const reuse = useReuseAddress(treeId, personId);
+  const [sourceId, setSourceId] = useState("");
+  const [mode, setMode] = useState<AddressReuseMode>("copy");
+  const [purpose, setPurpose] = useState<AddressPurpose>("ancestral_home");
+  const [status, setStatus] = useState<AddressStatus>("current");
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const selected = sources.data?.items.find((item) => item.source_id === sourceId);
+  const groups = ["Recent", "My addresses", "Family", "Branch", "Ancestral"] as const;
+  const choose = (id: string) => {
+    setSourceId(id);
+    const source = sources.data?.items.find((item) => item.source_id === id);
+    if (source && !source.link_allowed) setMode("copy");
+  };
+  const save = () => {
+    if (!selected) return;
+    reuse.mutate({
+      source_kind: selected.source_kind,
+      source_id: selected.source_id,
+      source_version: selected.version,
+      mode,
+      purpose,
+      status,
+      is_primary_current: false,
+      idempotency_key: idempotencyKey,
+    }, { onSuccess: onClose });
+  };
+  return <Dialog open onClose={onClose} title={t("profileDetails.addresses.reuseTitle")} description={t("profileDetails.addresses.reuseDescription")} footer={<><Button variant="secondary" onClick={onClose}>{t("common.cancel")}</Button><Button disabled={!selected} loading={reuse.isPending} onClick={save}>{t("profileDetails.addresses.reuseConfirm")}</Button></>}>
+    <div className="space-y-4">
+      <Field label={t("profileDetails.addresses.searchSources")}>{(p) => <TextInput {...p} value={query} onChange={(event) => { setQuery(event.target.value); setSourceId(""); }} />}</Field>
+      {sources.isLoading && <Spinner />}
+      <ErrorAlert error={sources.error ?? reuse.error} />
+      {!sources.isLoading && !sources.data?.items.length && <EmptyState title={t("profileDetails.addresses.noSources")} />}
+      {!!sources.data?.items.length && <Field label={t("profileDetails.addresses.source")} required>{(p) => <Select {...p} value={sourceId} onChange={(event) => choose(event.target.value)}><option value="">{t("profileDetails.addresses.chooseSource")}</option>{groups.map((group) => { const rows = sources.data!.items.filter((item) => item.group === group); return rows.length ? <optgroup key={group} label={group}>{rows.map((item) => <option key={`${item.source_kind}-${item.source_id}`} value={item.source_id}>{item.label}</option>)}</optgroup> : null; })}</Select>}</Field>}
+      {selected && <div className="rounded-xl border border-line bg-surface-subtle p-3"><p className="font-semibold">{selected.label}</p><p className="mt-1 text-sm">{[selected.snapshot.building, selected.snapshot.street, selected.snapshot.as_recorded, selected.snapshot.locality, selected.snapshot.district, selected.snapshot.state].filter(Boolean).join(", ")}</p><p className="mt-2 text-xs text-ink-muted">{selected.source_kind === "ancestral_assertion" ? t("profileDetails.addresses.ancestralNotice") : t("profileDetails.addresses.sourcePolicyNotice")}</p></div>}
+      {selected?.link_allowed && <Field label={t("profileDetails.addresses.reuseMode")} required>{(p) => <Select {...p} value={mode} onChange={(event) => setMode(event.target.value as AddressReuseMode)}><option value="link">{t("profileDetails.addresses.linkMode")}</option><option value="copy">{t("profileDetails.addresses.copyMode")}</option></Select>}</Field>}
+      <div className="grid gap-4 sm:grid-cols-2"><Field label={t("profileDetails.fields.purpose")} required>{(p) => <Select {...p} value={purpose} onChange={(event) => setPurpose(event.target.value as AddressPurpose)}>{PURPOSES.map((value) => <option key={value} value={value}>{t(`profileDetails.values.${value}`)}</option>)}</Select>}</Field><Field label={t("profileDetails.fields.status")} required>{(p) => <Select {...p} value={status} onChange={(event) => setStatus(event.target.value as AddressStatus)}><option value="current">{t("profileDetails.values.current")}</option><option value="former">{t("profileDetails.values.former")}</option></Select>}</Field></div>
+    </div>
+  </Dialog>;
 }
 
 function addressLine(address: AddressOut, fallback = ""): string {

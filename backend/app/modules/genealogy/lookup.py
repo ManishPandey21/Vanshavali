@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app.authz.context import TreeContext
 from app.authz.privacy import Subject, can_view_person, load_subjects
+from app.authz.subjects import get_person_subject as _get_person_subject
 from app.core.errors import NotFound
 from app.models import Event, NameRecord, Person, Place, Relationship
 from app.models.base import Base
@@ -26,17 +27,7 @@ def get_in_tree(ctx: TreeContext, model: type[M], obj_id: uuid.UUID, label: str 
 
 
 def get_person_subject(ctx: TreeContext, person_id: uuid.UUID) -> Subject:
-    person = ctx.db.scalar(
-        select(Person).where(
-            Person.tree_id == ctx.tree_id, Person.id == person_id, Person.deleted_at.is_(None)
-        )
-    )
-    if person is None:
-        raise NotFound("Person not found")
-    subject = load_subjects(ctx, [person])[person.id]
-    if not can_view_person(ctx, subject):
-        raise NotFound("Person not found")
-    return subject
+    return _get_person_subject(ctx, person_id)
 
 
 def get_person(ctx: TreeContext, person_id: uuid.UUID) -> Person:
