@@ -390,6 +390,111 @@ def graph(
     )
 
 
+# --------------------------------------------------------------------------- complete connected component
+def connected_graph(
+    ctx: TreeContext,
+    root_id: uuid.UUID,
+    *,
+    max_nodes: int = 500,
+    max_depth: int | None = None,
+) -> GraphOut:
+    """Return the bounded connected component around an authorized person.
+
+    Parent, partner and explicitly recorded sibling edges connect vertices. A
+    relationship is never traversed through a removed, erased or concealed person.
+    Invisible-but-nondeleted people retain the existing opaque-placeholder policy.
+    A disconnected tree is NOT fabricated into a single genealogy.
+    """
+    lookup.get_person_subject(ctx, root_id)
+    budget = max(1, min(max_nodes, 500))
+    depth_budget = max(1, min(max_depth or get_settings().max_traversal_depth, 25))
+    excluded = provisional.concealed_ids(ctx) | _removed_person_ids(ctx)
+    seen: dict[uuid.UUID, int] = {root_id: 0}
+    generation: dict[uuid.UUID, int] = {root_id: 0}
+    frontier = [root_id]
+    edge_by_id: dict[uuid.UUID, Relationship] = {}
+    truncated = False
+    allowed_types = list(PARENT_TYPES | UNION_TYPES | {RelationshipType.SIBLING})
+    for step in range(depth_budget + 1):
+        if not frontier:
+            break
+        # Composite SQL predicates and RLS prevent joining another tree.
+        found = list(
+            ctx.db.scalars(
+                select(Relationship)
+                .join(
+                    Person,
+                    (Person.tree_id == Relationship.tree_id)
+                    & (Person.id == Relationship.person_a_id),
+                )
+                .join(
+                    Person.__table__.alias("other"),
+                    (Relationship.person_b_id == Person.__table__.c.id),
+                )
+                .where(
+                    Relationship.tree_id == ctx.tree_id,
+                    Relationship.type.in_(allowed_types),
+                    Relationship.evidence_status.notin_(list(_EXCLUDED_EVIDENCE)),
+                    (Relationship.person_a_id.in_(frontier))
+                    | (Relationship.person_b_id.in_(frontier)),
+                )
+                .order_by(Relationship.id)
+            )
+        )
+        # Do not expose a deleted/erased edge even when the other end is live.
+        found = [
+            r for r in found
+            if r.person_a_id not in excluded and r.person_b_id not in excluded
+        ]
+        nxt: list[uuid.UUID] = []
+        for r in found:
+            a, b = r.person_a_id, r.person_b_id
+            source = a if a in frontier else b
+            target = b if source == a else a
+            if target not in seen:
+                if step == depth_budget or len(seen) >= budget:
+                    truncated = True
+                    continue
+                seen[target] = step + 1
+                delta = 0
+                if r.type in PARENT_TYPES:
+                    delta = 1 if source == a else -1
+                generation[target] = generation[source] + delta
+                nxt.append(target)
+            if a in seen and b in seen:
+                edge_by_id[r.id] = r
+        frontier = nxt
+
+    subjects = lookup.visible_subjects(ctx, seen)
+    summaries = Serializer(ctx).summaries(subjects)
+    alias: dict[uuid.UUID, str] = {}
+    nodes: list[GraphNode] = []
+    # UUID tie-breaker keeps aliases local to this response and order stable.
+    for i, pid in enumerate(sorted(seen, key=lambda p: (generation[p], str(p)))):
+        if pid in summaries:
+            alias[pid] = str(pid)
+            nodes.append(GraphNode(id=str(pid), person=summaries[pid], generation=generation[pid]))
+        elif not ctx.public:
+            alias[pid] = f"hidden-{i}"
+            nodes.append(GraphNode(id=alias[pid], person=None, hidden=True, generation=generation[pid]))
+
+    edges: list[GraphEdge] = []
+    unions: list[dict[str, str]] = []
+    for r in edge_by_id.values():
+        a, b = r.person_a_id, r.person_b_id
+        if a not in alias or b not in alias:
+            continue
+        if r.type in PARENT_TYPES:
+            edges.append(GraphEdge(source=alias[a], target=alias[b], type=r.type, lineage=r.lineage))
+        elif r.type in UNION_TYPES and a in summaries and b in summaries:
+            unions.append({"id": str(r.id), "a": str(a), "b": str(b), "type": r.type.value})
+        # Explicit siblings are connectivity evidence, not genealogical parent edges.
+    return GraphOut(
+        root_id=root_id, direction="connected", depth=depth_budget,
+        truncated=truncated, nodes=nodes, edges=edges, unions=unions,
+    )
+
+
 # --------------------------------------------------------------------------- relationship calculator
 _ORDINAL = {
     1: "first",
