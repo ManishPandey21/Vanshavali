@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Flag, MessageCircle, Network, Route, Trash2 } from "lucide-react";
+import { Flag, MessageCircle, Network, Route, Trash2, UserMinus } from "lucide-react";
 import { useMe } from "../../../api/hooks/auth";
-import { useDeletePerson, usePerson, usePersonEvents } from "../../../api/hooks/people";
+import { useDeletePerson, useErasePerson, usePerson, usePersonEvents } from "../../../api/hooks/people";
 import { useRequestClaim } from "../../../api/hooks/heritage";
 import { useTreeCtx } from "../../../lib/tree-context";
 import { Perm } from "../../../lib/permissions";
@@ -49,7 +49,10 @@ export function PersonProfilePage() {
   const [claimOpen, setClaimOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [erasing, setErasing] = useState(false);
+  const [eraseReason, setEraseReason] = useState("");
   const del = useDeletePerson(treeId);
+  const erase = useErasePerson(treeId);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -127,8 +130,13 @@ export function PersonProfilePage() {
               </Button>
             )}
             {p.can_edit && (
-              <Button variant="ghost" size="sm" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setDeleting(true)}>
+              <Button variant="ghost" size="sm" icon={<UserMinus className="size-4" aria-hidden />} onClick={() => setDeleting(true)}>
                 {t("person.remove")}
+              </Button>
+            )}
+            {can(Perm.TREE_MANAGE) && (
+              <Button variant="ghost" size="sm" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setErasing(true)}>
+                {t("person.deletePermanently")}
               </Button>
             )}
           </div>
@@ -184,6 +192,45 @@ export function PersonProfilePage() {
       >
         <ErrorAlert error={del.error} />
       </ConfirmDialog>
+      <Dialog
+        open={erasing}
+        onClose={() => { if (!erase.isPending) setErasing(false); }}
+        title={t("person.deletePermanentTitle", { name: p.display_name })}
+        description={t("person.deletePermanentBody")}
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setErasing(false)}>{t("common.cancel")}</Button>
+            <button
+              type="button"
+              disabled={erase.isPending || eraseReason.trim().length < 3}
+              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => erase.mutate({ id: p.id, reason: eraseReason.trim() }, {
+                onSuccess: () => {
+                  forgetPerson(treeId, p.id);
+                  navigate(`/t/${treeId}/people`);
+                },
+              })}
+            >
+              {t("person.deletePermanently")}
+            </button>
+          </>
+        }
+      >
+        <Field label={t("person.deleteReason")} required hint={t("person.deleteReasonHint")}>
+          {(field) => (
+            <TextArea
+              {...field}
+              value={eraseReason}
+              onChange={(event) => setEraseReason(event.target.value)}
+              minLength={3}
+              maxLength={500}
+              required
+            />
+          )}
+        </Field>
+        <ErrorAlert error={erase.error} />
+      </Dialog>
     </article>
   );
 }
