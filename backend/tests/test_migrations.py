@@ -374,3 +374,63 @@ def test_ownership_offers_column_and_downgrade():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_erasure_marker_backfill_is_audit_scoped_and_downgrade_is_lossless():
+    """A display name alone is not an erasure signal; older audited erasures are."""
+    import uuid
+
+    db_name = DB + "_erasure"
+    url = f"{_BASE}/{db_name}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as connection:
+        connection.execute(text(f'DROP DATABASE IF EXISTS "{db_name}" WITH (FORCE)'))
+        connection.execute(text(f'CREATE DATABASE "{db_name}"'))
+    engine = None
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "d4a8e6f1b209")
+        engine = create_engine(url)
+        tree_id = uuid.uuid4()
+        erased_id, named_id = uuid.uuid4(), uuid.uuid4()
+        with engine.begin() as connection:
+            connection.execute(
+                text("INSERT INTO tree (id, name, slug) VALUES (:id, 'Legacy tree', :slug)"),
+                {"id": tree_id, "slug": str(tree_id)},
+            )
+            for pid in (erased_id, named_id):
+                connection.execute(
+                    text(
+                        "INSERT INTO person (id, tree_id, preferred_display_name) "
+                        "VALUES (:pid, :tree, 'Erased person')"
+                    ),
+                    {"pid": pid, "tree": tree_id},
+                )
+            connection.execute(
+                text(
+                    "INSERT INTO audit_event (id, tree_id, target_id, target_type, action) "
+                    "VALUES (:id, :tree, :target, 'person', 'person.erased')"
+                ),
+                {"id": uuid.uuid4(), "tree": tree_id, "target": erased_id},
+            )
+        command.upgrade(cfg, "head")
+        with engine.connect() as connection:
+            records = dict(
+                connection.execute(
+                    text(
+                        "SELECT id, erased_at FROM person WHERE tree_id = :tree"
+                    ),
+                    {"tree": tree_id},
+                ).all()
+            )
+            assert records[erased_id] is not None
+            assert records[named_id] is None
+        with pytest.raises(RuntimeError, match="lossy downgrade refused"):
+            command.downgrade(cfg, "d4a8e6f1b209")
+    finally:
+        if engine is not None:
+            engine.dispose()
+        with admin.connect() as connection:
+            connection.execute(text(f'DROP DATABASE IF EXISTS "{db_name}" WITH (FORCE)'))
+        admin.dispose()
