@@ -88,7 +88,7 @@ def list_people(
                     Person.tree_id == ctx.tree_id,
                     Person.id.in_(order),
                     Person.deleted_at.is_(None),
-                    Person.preferred_display_name != "Erased person",
+                    Person.erased_at.is_(None),
                 )
             )
         }
@@ -104,7 +104,7 @@ def list_people(
         stmt = select(Person).where(
             Person.tree_id == ctx.tree_id,
             Person.deleted_at.is_(None),
-            Person.preferred_display_name != "Erased person",
+            Person.erased_at.is_(None),
         )
         if status_:
             stmt = stmt.where(Person.profile_status == status_)
