@@ -38,7 +38,52 @@ function sexRank(n: GraphNode | undefined): number {
   return s === "male" ? 0 : s === "female" ? 1 : n?.hidden ? 3 : 2;
 }
 
+/** Connected graph: display every API node, including ancestors and side branches.
+ * The API supplies the authorized component and relative generations; do not infer
+ * links or join isolated people here. A simple deterministic layered chart gives
+ * every returned person a place even where no single ancestor is common to all.
+ */
+function layoutConnected(graph: GraphOut): Layout {
+  const sorted = [...graph.nodes].sort(
+    (a, b) => a.generation - b.generation ||
+      sexRank(a) - sexRank(b) ||
+      (a.person?.birth_year ?? 9999) - (b.person?.birth_year ?? 9999) ||
+      a.id.localeCompare(b.id),
+  );
+  const min = Math.min(0, ...sorted.map((n) => n.generation));
+  const max = Math.max(0, ...sorted.map((n) => n.generation));
+  const groups = new Map<number, GraphNode[]>();
+  for (const node of sorted) {
+    groups.set(node.generation, [...(groups.get(node.generation) ?? []), node]);
+  }
+  const rowWidth = Math.max(1, ...[...groups.values()].map((group) => group.length)) * (NODE_W + H_GAP) - H_GAP;
+  const nodes = new Map<string, LaidOutNode>();
+  const rows = new Map<number, string[]>();
+  for (const [generation, group] of [...groups].sort(([a], [b]) => a - b)) {
+    const groupWidth = group.length * (NODE_W + H_GAP) - H_GAP;
+    const left = Math.max(0, (rowWidth - groupWidth) / 2);
+    rows.set(generation, group.map((n) => n.id));
+    group.forEach((node, index) => {
+      nodes.set(node.id, {
+        node, x: left + index * (NODE_W + H_GAP),
+        y: (generation - min) * ROW_H, children: [],
+        hiddenDescendants: 0, collapsed: false,
+      });
+    });
+  }
+  const edges = graph.edges.filter((e) => nodes.has(e.source) && nodes.has(e.target));
+  const couples = (graph.unions ?? [])
+    .map((u) => ({ a: String(u.a), b: String(u.b), type: String(u.type ?? "spouse") }))
+    .filter((u) => nodes.has(u.a) && nodes.has(u.b) && nodes.get(u.a)!.y === nodes.get(u.b)!.y);
+  return {
+    nodes, edges, couples, width: rowWidth,
+    height: (max - min) * ROW_H + NODE_H,
+    rows, rootId: String(graph.root_id),
+  };
+}
+
 export function layoutGraph(graph: GraphOut, collapsed: ReadonlySet<string> = new Set()): Layout {
+  if (graph.direction === "connected") return layoutConnected(graph);
   const direction = graph.direction === "ancestors" ? "ancestors" : "descendants";
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
   const rootId = String(graph.root_id);
