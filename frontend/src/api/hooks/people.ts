@@ -289,12 +289,21 @@ export function useGraph(
   direction: "ancestors" | "descendants",
   depth: number,
   lineage: Lineage[],
+  enabled = true,
 ) {
   return useQuery({
     queryKey: peopleKeys.graph(treeId, personId, direction, depth, lineage.join(",")),
     queryFn: () => api.get<GraphOut>(`/trees/${treeId}/people/${personId}/${direction}`, { depth, lineage }),
-    enabled: !!personId,
+    enabled: enabled && !!personId,
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useConnectedGraph(treeId: string, personId: string, enabled = true) {
+  return useQuery({
+    queryKey: peopleKeys.graph(treeId, personId, "connected", 25, ""),
+    queryFn: () => api.get<GraphOut>(`/trees/${treeId}/people/${personId}/connected`),
+    enabled: enabled && !!personId,
   });
 }
 
