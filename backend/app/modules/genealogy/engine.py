@@ -479,7 +479,11 @@ def connected_graph(
             edges.append(GraphEdge(source=alias[a], target=alias[b], type=r.type, lineage=r.lineage))
         elif r.type in UNION_TYPES and a in summaries and b in summaries:
             unions.append({"id": str(r.id), "a": str(a), "b": str(b), "type": r.type.value})
-        # Explicit siblings are connectivity evidence, not genealogical parent edges.
+            if generation[a] != generation[b]:
+                edges.append(GraphEdge(source=alias[a], target=alias[b], type=r.type, lineage=r.lineage))
+        elif r.type == RelationshipType.SIBLING:
+            # Unlike a parent edge, an explicit sibling link must not invent ancestry.
+            edges.append(GraphEdge(source=alias[a], target=alias[b], type=r.type, lineage=r.lineage))
     return GraphOut(
         root_id=root_id, direction="connected", depth=depth_budget,
         truncated=truncated, nodes=nodes, edges=edges, unions=unions,
