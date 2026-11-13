@@ -314,8 +314,8 @@
     "occupation": "Occupation",
     "privatePerson": "Private person",
     "remove": "Remove",
-    "removeBody": "The person will be hidden from the tree. A tree admin can restore them.",
-    "removeBodyAdmin": "The person will be hidden from the tree. You can restore them later from the audit trail.",
+    "removeBody": "The person and their links will disappear from the visible family tree. A tree admin can restore them.",
+    "removeBodyAdmin": "The person and their links will disappear from the visible family tree. You may restore them from Restore people.",
     "removeTitle": "Remove {{name}} from the tree?",
     "sections": "Profile sections",
     "sexAtBirth": "Sex at birth",
@@ -346,7 +346,12 @@
       "place": "Edit birthplace",
       "unavailable": "This event could not be loaded. Reload it or close this dialog and refresh the profile.",
       "reload": "Reload event"
-    }
+    },
+    "deletePermanently": "Delete permanently",
+    "deletePermanentTitle": "Permanently delete {{name}}'s personal information?",
+    "deletePermanentBody": "This action permanently erases personal details, names and documents linked to this person. The person will disappear from the visible family tree, and cannot be restored. An anonymous archival record may remain to preserve historical relationship integrity.",
+    "deleteReason": "Reason for permanent deletion",
+    "deleteReasonHint": "At least 3 characters. This irreversible action is available only to tree managers."
   },
   "names": {
     "add": "Add name",
@@ -869,7 +874,8 @@
     "nodeLabel": "{{name}}, {{years}}, generation {{generation}}. Press Enter to open.",
     "none": {
       "ancestors": "No ancestors recorded yet",
-      "descendants": "No descendants recorded yet"
+      "descendants": "No descendants recorded yet",
+      "connected": "No relatives recorded yet"
     },
     "noneHint": "Add parents or children from the person's Family tab.",
     "parentsAre": "Parents:",
@@ -881,7 +887,7 @@
     "subtitle": "Generation by generation; only people you're allowed to see are named",
     "title": "Family tree",
     "titleFor": "Family tree of {{name}}",
-    "truncated": "This view is very large; only the nearest people are shown. Centre on someone further away to see more.",
+    "truncated": "This view has reached its safety limit and may be incomplete. Centre on another relative to explore further.",
     "viewMode": "View as",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
@@ -937,7 +943,9 @@
       "sibling": "Sibling"
     },
     "you": "You",
-    "youLabel": "This is you"
+    "youLabel": "This is you",
+    "connected": "Complete connected family",
+    "connectedHint": "Showing the recorded relatives connected to this person through parent, partner, or sibling links. Separate family components are not automatically joined."
   },
   "claim": {
     "button": "This is me",
