@@ -40,7 +40,12 @@ def visible_subjects(ctx: TreeContext, person_ids: Iterable[uuid.UUID]) -> dict[
     if not ids:
         return {}
     persons = ctx.db.scalars(
-        select(Person).where(Person.tree_id == ctx.tree_id, Person.id.in_(ids), Person.deleted_at.is_(None))
+        select(Person).where(
+            Person.tree_id == ctx.tree_id,
+            Person.id.in_(ids),
+            Person.deleted_at.is_(None),
+            Person.erased_at.is_(None),
+        )
     ).all()
     subjects = load_subjects(ctx, persons)
     return {pid: s for pid, s in subjects.items() if can_view_person(ctx, s)}
