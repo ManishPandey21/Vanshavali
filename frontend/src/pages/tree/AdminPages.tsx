@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Check, Copy, Globe2, Trash2, UserPlus, X } from "lucide-react";
-import type { InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, ReviewPolicy, Role } from "../../api/types";
+import type { ClaimInviteOut, InvitationOut, MemberOut, MemberUpdate, PersonSummary, PrivacyLevel, PublicMode, ReviewPolicy, Role } from "../../api/types";
 import { PersonPicker } from "../../components/pickers";
 import {
   useAdminNominations,
@@ -34,6 +34,9 @@ import { EmptyState, ErrorAlert, LiveRegion, PageHeader, Spinner } from "../../c
 import { Checkbox, Field, Select, TextArea, TextInput } from "../../components/ui/form";
 import { Badge } from "../../components/ui/Badge";
 import { AdminNominationsPanel, NominateDialog } from "../../components/tree/AdminNominations";
+import { ClaimInviteShare } from "../../components/consent/ClaimInviteShare";
+import { useClaimInvites, useRevokeClaimInvite } from "../../api/hooks/onboarding";
+import type { Tone } from "../../components/ui/Badge";
 
 export const ROLES: Role[] = ["OWNER", "FAMILY_ADMIN", "BRANCH_ADMIN", "CONTRIBUTOR", "REVIEWER", "RESEARCHER", "VIEWER", "DOCUMENT_CUSTODIAN", "PROPERTY_CUSTODIAN"];
 
@@ -262,17 +265,23 @@ function EditMemberDialog({ member, onClose }: { member: MemberOut; onClose: () 
 
 export function InvitationsPage() {
   const { t, i18n } = useTranslation();
-  const { treeId, can } = useTreeCtx();
-  const invites = useInvitations(treeId, can(Perm.MEMBERS_MANAGE));
+  const { treeId, can, isAdmin } = useTreeCtx();
+  const canInviteByEmail = can(Perm.MEMBERS_MANAGE);
+  const canInviteToClaim = can(Perm.PERSON_WRITE);
+  const invites = useInvitations(treeId, canInviteByEmail);
+  const claimInvites = useClaimInvites(treeId, undefined, canInviteToClaim);
   const create = useCreateInvitation(treeId);
   const revoke = useRevokeInvitation(treeId);
+  const revokeClaim = useRevokeClaimInvite(treeId);
   const branches = useBranches(treeId);
+  const [mode, setMode] = useState<"email" | "claim">(canInviteByEmail ? "email" : "claim");
   const [email, setEmail] = useState("");
   const [roles, setRoles] = useState<Role[]>(["VIEWER"]);
   const [branch, setBranch] = useState("");
+  const [person, setPerson] = useState<PersonSummary | null>(null);
   const [created, setCreated] = useState<InvitationOut | null>(null);
   const [copied, setCopied] = useState(false);
-  if (!can(Perm.MEMBERS_MANAGE)) return <Navigate to={`/t/${treeId}/admin/members`} replace />;
+  if (!canInviteByEmail && !canInviteToClaim) return <Navigate to={`/t/${treeId}`} replace />;
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !roles.length) return;
@@ -287,92 +296,159 @@ export function InvitationsPage() {
       },
     );
   };
-  const status = (i: InvitationOut) =>
-    i.accepted_at ? ["green", t("invitations.accepted")] : i.revoked_at ? ["stone", t("invitations.revoked")] : new Date(i.expires_at) < new Date() ? ["red", t("invitations.expired")] : ["saffron", t("invitations.pending")];
+  const emailStatus = (i: InvitationOut): [Tone, string] =>
+    i.accepted_at ? ["green", t("invitations.accepted")] : i.revoked_at ? ["stone", t("invitations.revoked")] : new Date(i.expires_at) < new Date() ? ["red", t("invitations.expired")] : ["blue", t("invitations.created")];
+  const claimStatus = (i: ClaimInviteOut): [Tone, string] => {
+    if (i.state === "revoked") return ["stone", t("invitations.revoked")];
+    if (i.state === "expired") return ["red", t("invitations.expired")];
+    if (i.state === "declined") return ["stone", t("invitations.declined")];
+    if (i.claim_status === "approved") return ["green", t("invitations.accepted")];
+    if (i.claim_status === "rejected") return ["red", t("invitations.rejected")];
+    if (i.claim_status === "withdrawn") return ["stone", t("invitations.withdrawn")];
+    if (i.claim_status === "requested") return ["saffron", t(i.claim_kind === "removal" ? "invitations.removalRequested" : "invitations.claimRequested")];
+    if (i.state === "used") return ["stone", t("invitations.used")];
+    return ["blue", t("invitations.created")];
+  };
   return (
     <div>
       <PageHeader title={t("invitations.title")} subtitle={t("invitations.subtitle")} />
-      <div className="grid gap-6 lg:grid-cols-2">
-        <form onSubmit={submit} className="card space-y-3 p-4" noValidate>
-          <h2 className="font-display text-lg font-semibold">{t("invitations.create")}</h2>
-          <Field label={t("auth.email")} required>
-            {(p) => <TextInput {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />}
-          </Field>
-          <RolePicker value={roles} onChange={setRoles} legend={t("members.roles")} />
-          <Field label={t("members.branchScope")}>
-            {(p) => (
-              <Select {...p} value={branch} onChange={(e) => setBranch(e.target.value)}>
-                <option value="">{t("members.wholeTree")}</option>
-                {branches.data?.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
-          <ErrorAlert error={create.error} />
-          <Button type="submit" loading={create.isPending} disabled={!email.trim() || !roles.length}>
-            {t("invitations.send")}
-          </Button>
-          {created?.invite_url && (
-            <div role="status" className="rounded-lg border border-leaf-700/30 bg-leaf-50 p-3 text-sm">
-              <p className="font-semibold text-leaf-700">{t("invitations.createdTitle", { email: created.email })}</p>
-              <p className="mt-1 text-xs">{t("invitations.copyHint")}</p>
-              <div className="mt-2 flex gap-2">
-                <label className="sr-only" htmlFor="invite-url">
-                  {t("invitations.link")}
-                </label>
-                <input id="invite-url" readOnly className="input font-mono text-xs" value={created.invite_url} onFocus={(e) => e.target.select()} />
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  icon={copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
-                  onClick={() => {
-                    void navigator.clipboard?.writeText(created.invite_url!).then(() => setCopied(true));
-                  }}
-                >
-                  {copied ? t("common.copied") : t("common.copy")}
-                </Button>
-              </div>
-              <LiveRegion message={copied ? t("common.copied") : ""} />
-            </div>
-          )}
-        </form>
-        <section className="card p-4" aria-labelledby="inv-list">
-          <h2 id="inv-list" className="font-display text-lg font-semibold">
-            {t("invitations.list")}
-          </h2>
-          {invites.isLoading && <Spinner />}
-          <ErrorAlert error={invites.error || revoke.error} />
-          {invites.data?.length === 0 && <p className="text-sm text-ink-muted">{t("invitations.none")}</p>}
-          <ul className="divide-y divide-stone-100">
-            {invites.data?.map((i) => {
-              const [tone, label] = status(i);
-              const pending = !i.accepted_at && !i.revoked_at && new Date(i.expires_at) >= new Date();
-              return (
-                <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <div>
-                    <p className="text-sm font-medium">{i.email}</p>
-                    <p className="text-xs text-ink-muted">
-                      {i.roles.map((r) => t(`enum.role.${r}`)).join(", ")} · {t("invitations.expires", { date: new Date(i.expires_at).toLocaleDateString(i18n.language) })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge tone={tone as "green"}>{label}</Badge>
-                    {pending && (
-                      <Button size="sm" variant="ghost" icon={<X className="size-4" aria-hidden />} loading={revoke.isPending && revoke.variables === i.id} onClick={() => revoke.mutate(i.id)}>
-                        {t("invitations.revoke")}
-                      </Button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+      <div className="mb-5 grid gap-3 sm:grid-cols-2" aria-label={t("invitations.chooseMode")}>
+        {canInviteByEmail && (
+          <button type="button" aria-pressed={mode === "email"} onClick={() => setMode("email")} className={`card p-4 text-left ${mode === "email" ? "ring-2 ring-kumkum-700" : "hover:border-kumkum-300"}`}>
+            <span className="font-semibold">{t("invitations.modeEmailTitle")}</span>
+            <span className="mt-1 block text-sm text-ink-muted">{t("invitations.modeEmailBody")}</span>
+          </button>
+        )}
+        {canInviteToClaim && (
+          <button type="button" aria-pressed={mode === "claim"} onClick={() => setMode("claim")} className={`card p-4 text-left ${mode === "claim" ? "ring-2 ring-kumkum-700" : "hover:border-kumkum-300"}`}>
+            <span className="font-semibold">{t("invitations.modeClaimTitle")}</span>
+            <span className="mt-1 block text-sm text-ink-muted">{t("invitations.modeClaimBody")}</span>
+          </button>
+        )}
       </div>
-    </div>
+
+      <section className="card mb-6 space-y-3 p-4" aria-labelledby="inv-create">
+        <h2 id="inv-create" className="font-display text-lg font-semibold">
+          {t(mode === "email" ? "invitations.emailFormTitle" : "invitations.claimFormTitle")}
+        </h2>
+        <div hidden={mode !== "email"}>
+          <form onSubmit={submit} className="space-y-3" noValidate>
+            <p className="text-sm text-ink-muted">{t("invitations.emailIdentity")}</p>
+            <Field label={t("auth.email")} required>
+              {(p) => <TextInput {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />}
+            </Field>
+            <RolePicker value={roles} onChange={setRoles} legend={t("members.roles")} />
+            <Field label={t("members.branchScope")}>
+              {(p) => (
+                <Select {...p} value={branch} onChange={(e) => setBranch(e.target.value)}>
+                  <option value="">{t("members.wholeTree")}</option>
+                  {branches.data?.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </Field>
+            <ErrorAlert error={create.error} />
+            <Button type="submit" loading={create.isPending} disabled={!email.trim() || !roles.length}>
+              {t("invitations.send")}
+            </Button>
+            {created?.invite_url && (
+              <div role="status" className="rounded-lg border border-leaf-700/30 bg-leaf-50 p-3 text-sm">
+                <p className="font-semibold text-leaf-700">{t("invitations.createdTitle", { email: created.email })}</p>
+                <p className="mt-1 text-xs">{t("invitations.copyHint")}</p>
+                <div className="mt-2 flex gap-2">
+                  <label className="sr-only" htmlFor="invite-url">
+                    {t("invitations.link")}
+                  </label>
+                  <input id="invite-url" readOnly className="input font-mono text-xs" value={created.invite_url} onFocus={(e) => e.target.select()} />
+                  <Button size="sm" variant="secondary" icon={copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />} onClick={() => void navigator.clipboard?.writeText(created.invite_url!).then(() => setCopied(true))}>
+                    {copied ? t("common.copied") : t("common.copy")}
+                  </Button>
+                </div>
+                <LiveRegion message={copied ? t("common.copied") : ""} />
+              </div>
+            )}
+          </form>
+        </div>
+        <div hidden={mode !== "claim"}>
+          <div className="space-y-3">
+            <p className="text-sm text-ink-muted">{t("invitations.claimSafety")}</p>
+            {mode === "claim" && <PersonPicker treeId={treeId} label={t("invitations.claimPerson")} value={person} onChange={setPerson} hint={t("invitations.claimPersonHint")} />}
+            {person && <ClaimInviteShare key={person.id} treeId={treeId} personId={person.id} personName={person.display_name} canOfferContributor={isAdmin} />}
+          </div>
+        </div>
+      </section>
+
+      <section className="card p-4" aria-labelledby="inv-list">
+        <h2 id="inv-list" className="font-display text-lg font-semibold">
+          {t("invitations.list")}
+        </h2>
+        {(invites.isLoading || claimInvites.isLoading) && <Spinner />}
+        <ErrorAlert error={invites.error || claimInvites.error || revoke.error || revokeClaim.error} />
+        {canInviteByEmail && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold">{t("invitations.emailHistory")}</h3>
+            {invites.data?.length === 0 && <p className="text-sm text-ink-muted">{t("invitations.noEmail")}</p>}
+            <ul className="divide-y divide-stone-100">
+              {invites.data?.map((i) => {
+                const [tone, label] = emailStatus(i);
+                const active = !i.accepted_at && !i.revoked_at && new Date(i.expires_at) >= new Date();
+                return (
+                  <li key={i.id} aria-label={t("invitations.emailItemLabel", { email: i.email })} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <div>
+                      <p className="text-sm font-medium">{i.email}</p>
+                      <p className="text-xs text-ink-muted">
+                        {i.roles.map((r) => t(`enum.role.${r}`)).join(", ")} · {t("invitations.expires", { date: new Date(i.expires_at).toLocaleDateString(i18n.language) })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge tone={tone}>{label}</Badge>
+                      {active && (
+                        <Button size="sm" variant="ghost" icon={<X className="size-4" aria-hidden />} loading={revoke.isPending && revoke.variables === i.id} onClick={() => revoke.mutate(i.id)}>
+                          {t("invitations.revoke")}
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        {canInviteToClaim && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold">{t("invitations.claimHistory")}</h3>
+            {claimInvites.data?.length === 0 && <p className="text-sm text-ink-muted">{t("invitations.noClaim")}</p>}
+            <ul className="divide-y divide-stone-100">
+              {claimInvites.data?.map((i) => {
+                const [tone, label] = claimStatus(i);
+                return (
+                  <li key={i.id} aria-label={t("invitations.profileItemLabel", { name: i.person_name ?? t("common.unknown") })} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <div>
+                      <p className="text-sm font-medium">{i.person_name ?? t("common.unknown")}</p>
+                      <p className="text-xs text-ink-muted">
+                        {t(`enum.role.${i.offered_role}`)} · {t("invitations.expires", { date: new Date(i.expires_at).toLocaleDateString(i18n.language) })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge tone={tone}>{label}</Badge>
+                      {i.state === "active" && (
+                        <Button size="sm" variant="ghost" icon={<X className="size-4" aria-hidden />} loading={revokeClaim.isPending && revokeClaim.variables === i.id} onClick={() => revokeClaim.mutate(i.id)}>
+                          {t("invitations.revoke")}
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        <p className="mt-4 text-xs text-ink-muted">{t("invitations.manualStatus")}</p>
+      </section>
+      </div>
   );
 }
 

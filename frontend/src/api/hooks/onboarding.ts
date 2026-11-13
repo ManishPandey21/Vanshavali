@@ -51,10 +51,11 @@ export function useAttest() {
   });
 }
 
-export function useClaimInvites(treeId: string, personId?: string) {
+export function useClaimInvites(treeId: string, personId?: string, enabled = true) {
   return useQuery({
     queryKey: onboardingKeys.claimInvites(treeId, personId),
     queryFn: () => api.get<ClaimInviteOut[]>(`/trees/${treeId}/claim-invites`, { person_id: personId }),
+    enabled,
   });
 }
 

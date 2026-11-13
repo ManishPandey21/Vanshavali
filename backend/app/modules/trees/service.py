@@ -15,6 +15,7 @@ from app.authz.permissions import Permission, permissions_for
 from app.core import audit
 from app.core.config import get_settings
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound, Unprocessable
+from app.core.ratelimit import enforce
 from app.core.security import new_token, token_hash
 from app.models import AccessGrant, FamilyBranch, Tree, TreeInvitation, TreeMembership, User
 from app.models.enums import GrantResource, Role
@@ -91,6 +92,7 @@ def create_invitation(
 ) -> tuple[TreeInvitation, str]:
     ctx.require(Permission.MEMBERS_MANAGE)
     _validate_roles(ctx, roles, branch_id)
+    enforce(f"tree-invite:create:{ctx.user_id}", 30, 3600)
     token = new_token()
     inv = TreeInvitation(
         tree_id=ctx.tree_id,

@@ -57,6 +57,11 @@ class ClaimInviteOut(ApiModel):
     used_at: dt.datetime | None
     revoked_at: dt.datetime | None
     state: InviteState = "active"
+    # Tree-side projection only. Creation responses keep these null so the bearer-link response
+    # does not grow a second source of person or review data.
+    person_name: str | None = None
+    claim_status: ClaimStatus | None = None
+    claim_kind: ClaimKind | None = None
 
 
 class ClaimInviteCreated(ClaimInviteOut):
@@ -107,8 +112,21 @@ def _state(inv: ProfileClaimInvite) -> InviteState:
     return "active"
 
 
-def _out(inv: ProfileClaimInvite) -> ClaimInviteOut:
-    return ClaimInviteOut.model_validate(inv).model_copy(update={"state": _state(inv)})
+def _out(
+    inv: ProfileClaimInvite,
+    *,
+    person_name: str | None = None,
+    claim_status: ClaimStatus | None = None,
+    claim_kind: ClaimKind | None = None,
+) -> ClaimInviteOut:
+    return ClaimInviteOut.model_validate(inv).model_copy(
+        update={
+            "state": _state(inv),
+            "person_name": person_name,
+            "claim_status": claim_status,
+            "claim_kind": claim_kind,
+        }
+    )
 
 
 def claim_url(token: str) -> str:
@@ -171,7 +189,26 @@ def list_claim_invites(ctx: TreeCtx, person_id: uuid.UUID | None = None) -> list
         q = q.where(ProfileClaimInvite.person_id == person_id)
     rows = list(ctx.db.scalars(q.order_by(ProfileClaimInvite.created_at.desc())))
     visible = lookup.visible_subjects(ctx, [r.person_id for r in rows])
-    return [_out(r) for r in rows if r.person_id in visible]
+    visible_rows = [r for r in rows if r.person_id in visible]
+    claims = {
+        invite_id: (claim_status, claim_kind)
+        for invite_id, claim_status, claim_kind in ctx.db.execute(
+            select(ProfileClaim.invite_id, ProfileClaim.status, ProfileClaim.kind).where(
+                ProfileClaim.tree_id == ctx.tree_id,
+                ProfileClaim.invite_id.in_([r.id for r in visible_rows]),
+            )
+        )
+        if invite_id is not None
+    }
+    return [
+        _out(
+            row,
+            person_name=visible[row.person_id].person.preferred_display_name,
+            claim_status=claims.get(row.id, (None, None))[0],
+            claim_kind=claims.get(row.id, (None, None))[1],
+        )
+        for row in visible_rows
+    ]
 
 
 @router.delete("/trees/{tree_id}/claim-invites/{invite_id}", response_model=Message)
@@ -179,9 +216,10 @@ def revoke_claim_invite(invite_id: uuid.UUID, ctx: TreeCtx) -> Message:
     inv = lookup.get_in_tree(ctx, ProfileClaimInvite, invite_id, "Invite")
     if not ctx.is_admin and inv.created_by != ctx.user_id:
         raise NotFound("Invite not found")
-    if inv.revoked_at is None:
-        inv.revoked_at = dt.datetime.now(dt.UTC)
-        audit.log(ctx, "profile.claim_invite_revoked", target_type="person", target_id=inv.person_id)
+    if _state(inv) != "active":
+        raise Conflict("Only an active invitation can be revoked", code="invite_not_active")
+    inv.revoked_at = dt.datetime.now(dt.UTC)
+    audit.log(ctx, "profile.claim_invite_revoked", target_type="person", target_id=inv.person_id)
     return Message(message="Invite revoked")
 
 

@@ -3,7 +3,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import i18n from "../../i18n";
 import { jsonResponse, makeTree, renderWithProviders } from "../../test/utils";
-import { inviteMessage, whatsappShareUrl } from "../../components/consent/ClaimInviteShare";
+import { inviteMessage, telegramShareUrl, whatsappShareUrl } from "../../components/consent/ClaimInviteShare";
 import { WelcomePage } from "./WelcomePage";
 import { ClaimInvitePage, tokenFromHash } from "./ClaimInvitePage";
 
@@ -41,6 +41,16 @@ describe("WhatsApp invite message", () => {
     expect(decodeURIComponent(share.slice("https://wa.me/?text=".length))).toBe(msg);
     // the fragment survives encoding (so the token still never reaches a server)
     expect(share).toContain(encodeURIComponent(`#${TOKEN}`));
+  });
+
+  it("shares the same generic link through Telegram without addressing a user", () => {
+    const url = `https://vanshavali.example/claim#${TOKEN}`;
+    const msg = inviteMessage(i18n.t.bind(i18n), url);
+    const share = new URL(telegramShareUrl(msg, url));
+    expect(`${share.origin}${share.pathname}`).toBe("https://t.me/share/url");
+    expect(share.searchParams.get("url")).toBe(url);
+    expect(share.searchParams.get("text")).toBe(msg.replace(url, "").trim());
+    expect(share.searchParams.has("to")).toBe(false);
   });
 });
 
