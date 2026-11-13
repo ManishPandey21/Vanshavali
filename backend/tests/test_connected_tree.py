@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import uuid
+
 from tests.conftest import new_tree
 from tests.helpers import create_person, link
 
@@ -121,7 +123,7 @@ def test_literal_erased_person_name_is_not_an_erasure_marker(owner, tree):
     from app.models import Person
 
     with owner_session() as db:
-        obj = db.scalar(select(Person).where(Person.id == named["id"]))
+        obj = db.scalar(select(Person).where(Person.id == uuid.UUID(named["id"])))
         assert obj is not None
         obj.preferred_display_name = "Erased person"
         db.commit()
@@ -141,6 +143,13 @@ def test_erased_person_cannot_be_used_as_graph_root(owner, tree):
         f"/trees/{t}/people/{erased['id']}/erase",
         json={"reason": "Erasure request", "confirm": True},
     ).status_code == 200
+    from tests.conftest import owner_session
+    from sqlalchemy import select
+    from app.models import Person
+
+    with owner_session() as db:
+        state = db.scalar(select(Person).where(Person.id == uuid.UUID(erased["id"])))
+        assert state is not None and state.erased_at is not None
     for path in ("connected", "descendants", "ancestors"):
         response = owner.get(f"/trees/{t}/people/{erased['id']}/{path}")
         assert response.status_code == 404
@@ -164,7 +173,7 @@ def test_connected_traversal_reports_node_limit_without_claiming_completeness(ow
     with owner_session() as db:
         user = db.scalar(select(User).where(User.id == owner.user["id"]))
         assert user is not None
-        ctx = load_tree_context(db, tree_id=__import__("uuid").UUID(t), user=user, request=RequestInfo())
-        response = connected_graph(ctx, __import__("uuid").UUID(root["id"]), max_nodes=3)
+        ctx = load_tree_context(db, tree_id=uuid.UUID(t), user=user, request=RequestInfo())
+        response = connected_graph(ctx, uuid.UUID(root["id"]), max_nodes=3)
         assert response.truncated is True
         assert len(response.nodes) == 3
