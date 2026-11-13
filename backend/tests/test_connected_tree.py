@@ -1,4 +1,5 @@
 """Regression tests for full-tree navigation and removed-person graph privacy."""
+
 from __future__ import annotations
 
 from tests.conftest import new_tree
@@ -20,9 +21,13 @@ def test_connected_view_includes_ancestors_descendants_side_branches_and_partner
     grandson = create_person(owner, t, "Grandson")
     unrelated = create_person(owner, t, "Unrelated")
     for parent, child in [
-        (grandfather, father), (grandmother, father),
-        (grandfather, aunt), (grandmother, aunt),
-        (father, daughter), (mother, daughter), (daughter, grandson),
+        (grandfather, father),
+        (grandmother, father),
+        (grandfather, aunt),
+        (grandmother, aunt),
+        (father, daughter),
+        (mother, daughter),
+        (daughter, grandson),
     ]:
         link(owner, t, parent["id"], child["id"], "biological_parent")
     link(owner, t, father["id"], mother["id"], "spouse")
@@ -32,8 +37,13 @@ def test_connected_view_includes_ancestors_descendants_side_branches_and_partner
     assert data["direction"] == "connected"
     assert data["truncated"] is False
     assert ids(data) == {
-        grandfather["id"], grandmother["id"], father["id"], aunt["id"],
-        mother["id"], daughter["id"], grandson["id"],
+        grandfather["id"],
+        grandmother["id"],
+        father["id"],
+        aunt["id"],
+        mother["id"],
+        daughter["id"],
+        grandson["id"],
     }
     assert unrelated["id"] not in ids(data)
     assert data["edges"] and data["unions"]
@@ -62,7 +72,9 @@ def test_soft_removed_person_does_not_return_as_private_placeholder_or_bridge(ow
     restored = owner.post(f"/trees/{t}/people/{middle['id']}/restore")
     assert restored.status_code == 200, restored.text
     assert ids(owner.get(f"/trees/{t}/people/{grandfather['id']}/connected").json()) == {
-        grandfather["id"], middle["id"], grandchild["id"],
+        grandfather["id"],
+        middle["id"],
+        grandchild["id"],
     }
 
 
