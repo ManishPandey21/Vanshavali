@@ -9,6 +9,7 @@ import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
+from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, text
 
 from alembic import command
@@ -136,10 +137,11 @@ def test_legacy_profile_details_are_encrypted_verbatim_and_restore_on_downgrade(
         with pytest.raises(RuntimeError, match="cannot be represented"):
             command.downgrade(cfg, "a4d7e2c9b153")
         with engine.connect() as connection:
-            # Alembic runs the requested multi-revision downgrade transactionally. Once D is the
-            # head, c8's refusal rolls the preceding D downgrade back as well.
+            # Alembic runs the requested multi-revision downgrade transactionally, so c8's refusal
+            # rolls back every later downgrade step too: the database stays at the head it started at.
             assert (
-                connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "d4a8e6f1b209"
+                connection.execute(text("SELECT version_num FROM alembic_version")).scalar()
+                == ScriptDirectory.from_config(cfg).get_current_head()
             )
             assert (
                 connection.execute(
