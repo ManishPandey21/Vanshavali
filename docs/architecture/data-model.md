@@ -161,6 +161,7 @@ Constraints/indexes: `UNIQUE (tree_id, membership_id, resource_type, resource_id
 | `contact_info` | TEXT | yes |  |
 | `residential_address` | TEXT | yes |  |
 | `deleted_at` | DATETIME | yes |  |
+| `erased_at` | DATETIME | yes |  |
 | `merged_into_id` | UUID | yes | → person (composite, same tree) |
 | `is_provisional` | BOOLEAN | no |  |
 | `id` | UUID | no | PK |
