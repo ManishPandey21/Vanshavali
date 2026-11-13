@@ -422,15 +422,6 @@ def connected_graph(
         found = list(
             ctx.db.scalars(
                 select(Relationship)
-                .join(
-                    Person,
-                    (Person.tree_id == Relationship.tree_id)
-                    & (Person.id == Relationship.person_a_id),
-                )
-                .join(
-                    Person.__table__.alias("other"),
-                    (Relationship.person_b_id == Person.__table__.c.id),
-                )
                 .where(
                     Relationship.tree_id == ctx.tree_id,
                     Relationship.type.in_(allowed_types),
