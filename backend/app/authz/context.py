@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.authz.permissions import ADMIN_ROLES, BRANCH_SCOPED_WRITES, Permission, permissions_for
 from app.core.db import bind_tree
 from app.core.errors import Forbidden, NotFound
-from app.models import AccessGrant, BranchMembership, Tree, TreeMembership, User
+from app.models import AccessGrant, BranchMembership, Person, Tree, TreeMembership, User
 from app.models.enums import GrantPermission, GrantResource, PublicMode, Role
 
 
@@ -38,6 +38,8 @@ class TreeContext:
     # provisional people this viewer may not discover at all (genealogy.provisional, ADR-0020 §4)
     _concealed: frozenset[uuid.UUID] | None = None
     _provisional_states: dict[uuid.UUID, Any] | None = None
+    # removed and permanently deleted people (authz.lifecycle, ADR-0034)
+    _inactive_people: frozenset[uuid.UUID] | None = None
 
     # ---- identity ----
     @property
@@ -108,11 +110,19 @@ class TreeContext:
                 if self.membership.branch_id:
                     ids.add(self.membership.branch_id)
                 if self.membership.linked_person_id:
+                    # a removed linked profile lends no branch audience (ADR-0034)
                     ids |= set(
                         self.db.scalars(
-                            select(BranchMembership.branch_id).where(
+                            select(BranchMembership.branch_id)
+                            .join(
+                                Person,
+                                (Person.tree_id == BranchMembership.tree_id)
+                                & (Person.id == BranchMembership.person_id),
+                            )
+                            .where(
                                 BranchMembership.tree_id == self.tree_id,
                                 BranchMembership.person_id == self.membership.linked_person_id,
+                                Person.deleted_at.is_(None),
                             )
                         )
                     )

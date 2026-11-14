@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 
-from tests.conftest import join_tree, new_tree
+from sqlalchemy import text
+
+from tests.conftest import join_tree, new_tree, owner_session
 from tests.helpers import create_person, exact, link, person_body
 
 SECRET_DOB = {"precision": "exact", "year": 1985, "month": 7, "day": 23}
@@ -209,7 +211,9 @@ def test_minor_is_protected_even_if_marked_public(owner, tree, member_factory):
     assert body["birth"]["date"]["precision"] == "year_only"
 
 
-def test_privacy_erasure_keeps_structure(owner, tree, member_factory):
+def test_permanent_delete_removes_personal_data_and_leaves_no_placeholder(owner, tree, member_factory):
+    """Was ``test_privacy_erasure_keeps_structure``. ADR-0034 §3 replaced "an anonymous placeholder
+    keeps the structure" with "the person and their links are gone"; nobody else is deleted."""
     t = tree["id"]
     parent = create_person(owner, t, "Parent")
     p = _living(owner, t)
@@ -228,15 +232,32 @@ def test_privacy_erasure_keeps_structure(owner, tree, member_factory):
         ).status_code
         == 200
     )
-    body = owner.get(f"/trees/{t}/people/{p['id']}").text
-    for leak in ("Priya", "Secret", "04:17", "Atri", "98xxxxxx"):
-        assert leak not in body
-    assert (
-        owner.get(f"/trees/{t}/people/{parent['id']}/family").json()["other_children"][0]["person"][
-            "display_name"
-        ]
-        == "Erased person"
-    )
+    assert owner.get(f"/trees/{t}/people/{p['id']}").status_code == 404
+    with owner_session() as s:
+        row = s.execute(
+            text(
+                "SELECT preferred_display_name, notes, contact_info, residential_address, occupation,"
+                " sex_at_birth, erased_at IS NOT NULL FROM person WHERE id = :p"
+            ),
+            {"p": p["id"]},
+        ).one()
+        assert tuple(row) == ("Erased person", None, None, None, None, None, True)
+        for table in ("event_participant", "assertion"):
+            n = s.execute(text(f"SELECT count(*) FROM {table} WHERE person_id = :p"), {"p": p["id"]}).scalar()
+            assert n == 0, table
+        stored = str(
+            s.execute(
+                text("SELECT row_to_json(n) FROM name_record n WHERE person_id = :p"), {"p": p["id"]}
+            ).all()
+        )
+        for leak in ("Priya", "Secret", "04:17", "Atri", "98xxxxxx"):
+            assert leak not in stored
+    for viewer in (owner, member_factory(["VIEWER"])):
+        fam = viewer.get(f"/trees/{t}/people/{parent['id']}/family").json()
+        assert fam["other_children"] == [] and fam["unions"] == []
+        graph = viewer.get(f"/trees/{t}/people/{parent['id']}/descendants").json()
+        assert [n["id"] for n in graph["nodes"]] == [parent["id"]] and not graph["nodes"][0]["hidden"]
+    assert owner.get(f"/trees/{t}/people/{parent['id']}").status_code == 200  # the parent is untouched
 
 
 def test_close_account(owner, tree, make_client):

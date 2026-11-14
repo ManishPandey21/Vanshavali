@@ -322,8 +322,8 @@ def is_private_record_level(level: RecordPrivacyLevel | str) -> bool:
 
 
 def can_view_person(ctx: TreeContext, subject: Subject) -> bool:
-    if subject.person.deleted_at is not None:
-        return False
+    if subject.person.deleted_at is not None or subject.person.erased_at is not None:
+        return False  # removed or permanently deleted: absent for everyone (ADR-0034)
     return level_allows(
         ctx, subject.person.privacy_level, subject=subject, grant=(GrantResource.PERSON, subject.id)
     )

@@ -10,6 +10,7 @@ from typing import Any, NamedTuple
 
 from sqlalchemy import or_, select, text
 
+from app.authz import lifecycle
 from app.authz.context import TreeContext
 from app.core.config import get_settings
 from app.models import Person, Relationship
@@ -31,6 +32,17 @@ from app.modules.genealogy.serialize import Serializer, relationship_out
 _EXCLUDED_EVIDENCE = (EvidenceStatus.DISPROVEN, EvidenceStatus.SUPERSEDED)
 
 
+def absent_ids(ctx: TreeContext) -> frozenset[uuid.UUID]:
+    """People who are not part of the tree for this viewer: no node, edge, placeholder or count, and
+    nothing is reached through them.
+
+    Removed and permanently deleted people (ADR-0034) for everyone, plus provisional people concealed
+    from this viewer (ADR-0020 §6). People hidden by *privacy* are deliberately not here: they are
+    active family members and keep their anonymous placeholder.
+    """
+    return lifecycle.inactive_person_ids(ctx) | provisional.concealed_ids(ctx)
+
+
 def _lineage_filter(lineages: set[Lineage] | None, rel: Any) -> bool:
     if not lineages:
         return True
@@ -49,8 +61,9 @@ def family(ctx: TreeContext, person_id: uuid.UUID, lineages: set[Lineage] | None
             )
         )
     )
-    # concealed provisional people are left out entirely: no "private relative" placeholder
-    concealed = provisional.concealed_ids(ctx)
+    # removed, permanently deleted and concealed provisional people are left out entirely: no
+    # "private relative" placeholder
+    concealed = absent_ids(ctx)
     rels = [r for r in rels if r.person_a_id not in concealed and r.person_b_id not in concealed]
     parent_edges = [
         r for r in rels if r.type in PARENT_TYPES and r.person_b_id == pid and _lineage_filter(lineages, r)
@@ -275,7 +288,7 @@ def graph(
     lookup.get_person_subject(ctx, root_id)
     depth = max(1, min(depth, get_settings().max_traversal_depth))
     rows = _walk(ctx, root_id, direction, depth, lineages)
-    concealed = provisional.concealed_ids(ctx)
+    concealed = absent_ids(ctx)
     if concealed:
         rows = _reachable_without(rows, root_id, direction, concealed)
     gen: dict[uuid.UUID, int] = {root_id: 0}
@@ -319,6 +332,9 @@ def graph(
                 )
             )
         )
+        union_rows = [
+            u for u in union_rows if u.person_a_id not in concealed and u.person_b_id not in concealed
+        ]
         partner_gen: dict[uuid.UUID, int] = {}
         for u in union_rows:
             for inside, other in ((u.person_a_id, u.person_b_id), (u.person_b_id, u.person_a_id)):
@@ -458,12 +474,8 @@ class _LazyGraph:
         self.loaded: set[uuid.UUID] = set()
         self.seen_edges: set[uuid.UUID] = set()
         self.virtual: set[uuid.UUID] = set()
-        # deleted people and concealed provisional people are not walked through at all
-        self.deleted = set(
-            ctx.db.scalars(
-                select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None))
-            )
-        ) | provisional.concealed_ids(ctx)
+        # removed, permanently deleted and concealed provisional people are not walked through at all
+        self.deleted = absent_ids(ctx)
         self._parents: Adjacency = {}
         self._children: Adjacency = {}
         self._spouses: Adjacency = {}

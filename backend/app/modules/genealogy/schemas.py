@@ -619,6 +619,59 @@ class GraphOut(ApiModel):
     unions: list[dict[str, str]] = []
 
 
+class FamilyGraphNode(ApiModel):
+    # the person's id, or an opaque per-response alias for someone hidden from the viewer
+    id: str
+    person: PersonSummary | None
+    hidden: bool = False
+    generation: int  # row, relative to the first person of the group (0)
+    component: int  # which connected group of the response this person belongs to
+
+
+class FamilyGraphEdge(ApiModel):
+    source: str  # parent
+    target: str  # child
+    type: RelationshipType
+    lineage: Lineage | None = None
+
+
+class FamilyGraphLink(ApiModel):
+    """A recorded link that is not parent/child: a union, an explicit sibling pair, or "other"."""
+
+    a: str
+    b: str
+    kind: Literal["union", "sibling", "other"]
+    type: RelationshipType
+
+
+class FamilyGraphComponent(ApiModel):
+    index: int
+    size: int  # nodes, placeholders included
+    people: int  # people the viewer may see
+
+
+class FamilyGraphOut(ApiModel):
+    """One page of the complete family graph (ADR-0034 §4).
+
+    ``complete`` is true only on the last page. Until then the client holds a *partial* family and
+    must say so. ``total_nodes`` and ``total_people`` describe the whole authorised result, not the
+    page. ``components`` is sent with the first page only.
+    """
+
+    scope: Literal["connected", "all"]
+    root_id: uuid.UUID | None
+    revision: str
+    total_nodes: int
+    total_people: int
+    offset: int
+    nodes: list[FamilyGraphNode]
+    edges: list[FamilyGraphEdge]
+    links: list[FamilyGraphLink]
+    components: list[FamilyGraphComponent] = []
+    complete: bool
+    next_cursor: str | None = None
+
+
 class AgeOrderOut(ApiModel):
     """Whether the person reached by a sibling word in ``chain`` is older or younger than the person
     that word starts from (e.g. the uncle vs the *father*), and on what basis (ADR-0020 §5)."""

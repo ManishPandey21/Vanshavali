@@ -54,7 +54,7 @@ from app.models.enums import (
 )
 from app.modules.documents.access import can_view_document
 from app.modules.genealogy import geo, lookup, provisional
-from app.modules.genealogy.engine import _EXCLUDED_EVIDENCE, _reachable_without, _walk
+from app.modules.genealogy.engine import _EXCLUDED_EVIDENCE, _reachable_without, _walk, absent_ids
 from app.modules.genealogy.schemas import EventOut
 from app.modules.genealogy.serialize import Serializer, _pick_vitals, _sort_key
 from app.modules.visualization.schemas import (
@@ -175,7 +175,7 @@ def build_people(
     parents: dict[uuid.UUID, int] = {}
     sourced: set[uuid.UUID] = set()
     if completeness:
-        concealed = provisional.concealed_ids(ctx)
+        concealed = absent_ids(ctx)
         for child, parent in ctx.db.execute(
             select(Relationship.person_b_id, Relationship.person_a_id).where(
                 Relationship.tree_id == ctx.tree_id,
@@ -262,7 +262,7 @@ def _parent_rows(
     out: dict[uuid.UUID, list[Relationship]] = defaultdict(list)
     if not child_ids:
         return out
-    concealed = provisional.concealed_ids(ctx)  # never placeheld, never walked through
+    concealed = absent_ids(ctx)  # never placeheld, never walked through
     for r in ctx.db.scalars(
         select(Relationship).where(
             Relationship.tree_id == ctx.tree_id,
@@ -385,7 +385,7 @@ def neighbourhood(
     frontier = {root_id}
     visible_ids: set[uuid.UUID] = {root_id}
     truncated = False
-    concealed = provisional.concealed_ids(ctx)
+    concealed = absent_ids(ctx)
     for d in range(1, radius + 1):
         if not frontier:
             break
@@ -481,7 +481,7 @@ def lifespans(
         gen_of[root_id] = 0
         for direction, sign in (("ancestors", -1), ("descendants", 1)):
             walked = _walk(ctx, root_id, direction, depth, None)
-            concealed = provisional.concealed_ids(ctx)
+            concealed = absent_ids(ctx)
             if concealed:
                 walked = _reachable_without(walked, root_id, direction, concealed)
             for r in walked:

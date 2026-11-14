@@ -161,6 +161,7 @@ Constraints/indexes: `UNIQUE (tree_id, membership_id, resource_type, resource_id
 | `contact_info` | TEXT | yes |  |
 | `residential_address` | TEXT | yes |  |
 | `deleted_at` | DATETIME | yes |  |
+| `erased_at` | DATETIME | yes |  |
 | `merged_into_id` | UUID | yes | → person (composite, same tree) |
 | `is_provisional` | BOOLEAN | no |  |
 | `id` | UUID | no | PK |
@@ -174,7 +175,7 @@ Constraints/indexes: `UNIQUE (tree_id, membership_id, resource_type, resource_id
 | `review_state_by` | UUID | yes |  |
 | `review_state_at` | DATETIME | yes |  |
 
-Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_person_tree_id (tree_id)`
+Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_person_inactive (tree_id)`; `INDEX ix_person_tree_id (tree_id)`
 
 ### `name_record`
 
@@ -1594,7 +1595,7 @@ Constraints/indexes: `UNIQUE (tree_id, id)`; `INDEX ix_gedcom_extension_person (
 | `user_agent` | VARCHAR(400) | yes |  |
 | `created_at` | DATETIME | no |  |
 
-Constraints/indexes: `INDEX ix_audit_event_target (target_type, target_id)`; `INDEX ix_audit_event_tree_time (tree_id, created_at)`
+Constraints/indexes: `INDEX ix_audit_event_network_scrub (created_at)`; `INDEX ix_audit_event_target (target_type, target_id)`; `INDEX ix_audit_event_tree_time (tree_id, created_at)`
 
 ## Other
 

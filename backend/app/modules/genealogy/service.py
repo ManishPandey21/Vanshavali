@@ -10,6 +10,7 @@ from sqlalchemy import delete as sa_delete
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.exc import IntegrityError
 
+from app.authz import lifecycle
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.authz.privacy import Subject, require_birth_fields_visible
@@ -22,11 +23,13 @@ from app.models import (
     Event,
     EventParticipant,
     FamilyBranch,
+    HouseholdMembership,
     NameRecord,
     Person,
     Place,
     ProfileClaimInvite,
     Relationship,
+    RelativeAgeOrder,
 )
 from app.models.enums import (
     CATEGORY_EVENT_TYPE,
@@ -723,18 +726,46 @@ def set_privacy(ctx: TreeContext, subject: Subject, body: PrivacyUpdate) -> Pers
 
 
 def delete_person(ctx: TreeContext, person_id: uuid.UUID) -> None:
+    """Remove from the tree (restorable). The person and everything reached only through them leave
+    every view at once; their relationship rows are kept for a restore (ADR-0034 §2)."""
     person = lookup.get_person(ctx, person_id)
     ctx.require(Permission.PERSON_WRITE, person_id=person.id)
     review_policy.require_direct(ctx, "all", [person.id], [person])
-    person.deleted_at = dt.datetime.now(dt.UTC)
-    person.updated_by = ctx.user_id
+    # Row lock: a concurrent remove, restore or permanent delete of the same person waits here and
+    # then sees the new state, so two requests cannot both "succeed" with different outcomes.
+    locked = ctx.db.scalar(
+        select(Person)
+        .where(Person.tree_id == ctx.tree_id, Person.id == person.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)  # re-read under the lock, not from the session
+    )
+    if locked is None or not lifecycle.is_active(locked):
+        raise NotFound("Person not found")
+    locked.deleted_at = dt.datetime.now(dt.UTC)
+    locked.updated_by = ctx.user_id
+    lifecycle.forget(ctx)
+    provisional_people.forget(ctx)
     audit.log(ctx, "person.deleted", target_type="person", target_id=person.id)
 
 
 def restore_person(ctx: TreeContext, person_id: uuid.UUID) -> Person:
     ctx.require(Permission.TREE_MANAGE)
-    person = lookup.get_in_tree(ctx, Person, person_id, "Person")
+    person = ctx.db.scalar(
+        select(Person)
+        .where(Person.tree_id == ctx.tree_id, Person.id == person_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)  # re-read under the lock, not from the session
+    )
+    # A permanently deleted person does not exist for anyone, including admins (ADR-0034 §3).
+    if person is None or person.erased_at is not None:
+        raise NotFound("Person not found")
+    if person.merged_into_id is not None:
+        raise Conflict("This record was merged into another; undo the merge instead", code="person_merged")
+    if person.deleted_at is None:
+        raise Conflict("This person is not removed from the tree", code="person_not_removed")
     person.deleted_at = None
+    lifecycle.forget(ctx)
+    provisional_people.forget(ctx)
     audit.log(ctx, "person.restored", target_type="person", target_id=person.id)
     return person
 
@@ -821,6 +852,12 @@ def create_relationship(ctx: TreeContext, body: RelationshipIn, **provenance: An
                         Relationship.type == RelationshipType.BIOLOGICAL_PARENT,
                         Relationship.evidence_status.notin_(
                             [EvidenceStatus.DISPROVEN, EvidenceStatus.SUPERSEDED, EvidenceStatus.DISPUTED]
+                        ),
+                        # a removed parent no longer counts: a replacement can be recorded (ADR-0034)
+                        Relationship.person_a_id.notin_(
+                            select(Person.id).where(
+                                Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None)
+                            )
                         ),
                     )
                 )
@@ -1106,8 +1143,15 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
     from app.models.enums import CitationTarget
 
     ctx.require(Permission.TREE_MANAGE)
-    person = lookup.get_in_tree(ctx, Person, person_id, "Person")
     db = ctx.db
+    person = db.scalar(
+        select(Person)
+        .where(Person.tree_id == ctx.tree_id, Person.id == person_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)  # re-read under the lock, not from the session
+    )
+    if person is None or person.erased_at is not None:
+        raise NotFound("Person not found")  # already permanently deleted: nothing left to delete
     from app.modules.family_addresses import service as family_addresses
 
     family_addresses.revoke_person_sources(ctx, person.id)
@@ -1222,16 +1266,49 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
             TraditionLink.target_id == person.id,
         )
     )
-    for rel in db.scalars(
-        select(Relationship).where(
-            Relationship.tree_id == ctx.tree_id,
-            (Relationship.person_a_id == person.id) | (Relationship.person_b_id == person.id),
+    # ADR-0034 §3: a permanently deleted person keeps no links. Their relationship rows go (with the
+    # citations on them); a child edge that named one of their unions keeps its own parent and loses
+    # only the union reference (FK ON DELETE SET NULL). Nobody else's record is deleted, and no
+    # relative is re-linked to stand in for the person who is gone.
+    rel_ids = list(
+        db.scalars(
+            select(Relationship.id).where(
+                Relationship.tree_id == ctx.tree_id,
+                (Relationship.person_a_id == person.id) | (Relationship.person_b_id == person.id),
+            )
+        )
+    )
+    if rel_ids:
+        db.execute(
+            sa_delete(Citation).where(
+                Citation.tree_id == ctx.tree_id,
+                Citation.target_type == CitationTarget.RELATIONSHIP,
+                Citation.target_id.in_(rel_ids),
+            )
+        )
+        db.execute(
+            sa_delete(Relationship).where(Relationship.tree_id == ctx.tree_id, Relationship.id.in_(rel_ids))
+        )
+    db.execute(
+        sa_delete(RelativeAgeOrder).where(
+            RelativeAgeOrder.tree_id == ctx.tree_id,
+            (RelativeAgeOrder.elder_person_id == person.id)
+            | (RelativeAgeOrder.younger_person_id == person.id),
+        )
+    )
+    for branch in db.scalars(
+        select(FamilyBranch).where(
+            FamilyBranch.tree_id == ctx.tree_id, FamilyBranch.founder_person_id == person.id
         )
     ):
-        rel.notes = None
-        rel.legal_status = None
-        rel.start_date = None
-        rel.end_date = None
+        branch.founder_person_id = None
+    # memberships describe the person, not the branch or household, which stay
+    for membership_model in (BranchMembership, HouseholdMembership):
+        db.execute(
+            sa_delete(membership_model).where(
+                membership_model.tree_id == ctx.tree_id, membership_model.person_id == person.id
+            )
+        )
     for m in db.scalars(
         select(TreeMembership).where(
             TreeMembership.tree_id == ctx.tree_id, TreeMembership.linked_person_id == person.id
@@ -1262,6 +1339,12 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
             created_by=ctx.user_id,
         )
     )
+    now = dt.datetime.now(dt.UTC)
+    person.erased_at = now
+    person.deleted_at = person.deleted_at or now
+    person.merged_into_id = None
+    person.is_provisional = False
+    person.profile_status = ProfileStatus.UNKNOWN
     person.preferred_display_name = "Erased person"
     person.sex_at_birth = None
     person.gender_identity = None
@@ -1276,6 +1359,8 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
     from app.modules.sharing.core import enforce_person_ceiling
 
     enforce_person_ceiling(ctx, person.id)
+    lifecycle.forget(ctx)
+    provisional_people.forget(ctx)
     audit.log(
         ctx, "person.erased", target_type="person", target_id=person.id, details={"reason": reason[:200]}
     )

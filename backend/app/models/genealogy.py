@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -50,7 +51,11 @@ from app.models.enums import (
 
 class Person(TreeScopedMixin, ReviewMixin, Base):
     __tablename__ = "person"
-    __table_args__ = (tree_unique("person"), tree_fk(["merged_into_id"], "person", ondelete="SET NULL"))
+    __table_args__ = (
+        tree_unique("person"),
+        tree_fk(["merged_into_id"], "person", ondelete="SET NULL"),
+        Index("ix_person_inactive", "tree_id", postgresql_where=text("deleted_at IS NOT NULL")),
+    )
 
     profile_status: Mapped[ProfileStatus] = mapped_column(
         enum_column(ProfileStatus), default=ProfileStatus.UNKNOWN, server_default=ProfileStatus.UNKNOWN.value
@@ -74,7 +79,11 @@ class Person(TreeScopedMixin, ReviewMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text)
     contact_info: Mapped[str | None] = mapped_column(Text)
     residential_address: Mapped[str | None] = mapped_column(Text)
+    # removed from the tree; restorable while erased_at is NULL (authz.lifecycle, ADR-0034)
     deleted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    # permanently deleted: an inert tombstone. Set together with deleted_at, never cleared, and
+    # never inferred from a name (ADR-0034).
+    erased_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     merged_into_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     # Origin: added as "unknown for now" by Smart Add (ADR-0020 §4). Never cleared by adding a name;
     # needs-details and verified states are derived in genealogy.provisional.

@@ -487,8 +487,11 @@ def test_remove_me_hides_at_once_and_admin_erases(owner, tree, member_factory, m
     r = owner.post(f"/trees/{t}/claims/{claim['id']}/approve", json={})
     assert r.status_code == 200, r.text
     assert r.json()["message"] is None  # the request's free text goes with the profile
-    body = owner.get(f"/trees/{t}/people/{meera['id']}").text
-    assert "Meera" not in body and "Teacher" not in body and "Erased person" in body
+    # ADR-0034 §3: a permanently deleted profile is gone for the owner as well, and is not listed
+    gone = owner.get(f"/trees/{t}/people/{meera['id']}")
+    assert gone.status_code == 404 and "Meera" not in gone.text and "Teacher" not in gone.text
+    listed = owner.get(f"/trees/{t}/people").text
+    assert meera["id"] not in listed and "Erased person" not in listed
     assert rel.get("/trees").json() == []  # erasure never grants membership
 
 

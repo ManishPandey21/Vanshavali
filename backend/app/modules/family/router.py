@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from app.api.deps import TreeCtx
 from app.api.schemas import ApiModel, Message
+from app.authz import lifecycle
 from app.core.dates import GenealogicalDate
 from app.models import BranchMembership, FamilyBranch, Household, HouseholdMembership, Place
 from app.modules.family import service
@@ -41,7 +42,8 @@ def _member_counts(ctx, person_ids: Iterable[uuid.UUID]) -> dict[str, int]:  # t
     provisional members *this viewer can see* (creator, tree admins, explicit grants), so it is 0
     for everyone else and reveals nothing about people concealed from them.
     """
-    ids = set(person_ids)
+    # removed and permanently deleted people are not members of anything (ADR-0034)
+    ids = lifecycle.active_only(ctx, person_ids)
     pending = provisional.pending_ids(ctx)
     concealed = provisional.concealed_ids(ctx)
     return {
@@ -80,7 +82,7 @@ def get_branch(branch_id: uuid.UUID, ctx: TreeCtx) -> BranchDetailOut:
             BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id
         )
     ).all()
-    concealed = provisional.concealed_ids(ctx)
+    concealed = provisional.concealed_ids(ctx) | lifecycle.inactive_person_ids(ctx)
     rows = [r for r in rows if r[0] not in concealed]
     subjects = lookup.visible_subjects(ctx, [r[0] for r in rows])
     summaries = Serializer(ctx).summaries(subjects)
@@ -159,7 +161,7 @@ def get_household(household_id: uuid.UUID, ctx: TreeCtx) -> HouseholdDetailOut:
             )
         )
     )
-    concealed = provisional.concealed_ids(ctx)
+    concealed = provisional.concealed_ids(ctx) | lifecycle.inactive_person_ids(ctx)
     ms = [m for m in ms if m.person_id not in concealed]
     subjects = lookup.visible_subjects(ctx, [m.person_id for m in ms])
     summaries = Serializer(ctx).summaries(subjects)
