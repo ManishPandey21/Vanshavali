@@ -4,10 +4,10 @@ import { Route, Routes } from "react-router-dom";
 import { jsonResponse, makeTree, renderWithProviders } from "../../test/utils";
 import { TreeLayout } from "./TreeLayout";
 
-function renderAt(path: string) {
+function renderAt(path: string, tree = makeTree()) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) => (String(url).includes("/trees/tree-1") ? jsonResponse(makeTree()) : jsonResponse({}))),
+    vi.fn(async (url: string) => (String(url).includes("/trees/tree-1") ? jsonResponse(tree) : jsonResponse({}))),
   );
   renderWithProviders(
     <Routes>
@@ -36,5 +36,14 @@ describe("mobile bottom navigation", () => {
     const bar = screen.getByRole("navigation", { name: "Main sections" });
     expect(bar.querySelector("button[aria-haspopup='dialog']")).not.toHaveAttribute("aria-current");
     expect(bar.querySelector("a[aria-current='page']")).toHaveTextContent("People");
+  });
+
+  it("offers the invitation front door to a contributor who may create claim links", async () => {
+    renderAt(
+      "/t/tree-1/people",
+      makeTree({ my_roles: ["CONTRIBUTOR"], my_permissions: ["tree.read", "person.write"] }),
+    );
+    await screen.findByText("page content");
+    expect(screen.getAllByRole("link", { name: "Invitations" }).length).toBeGreaterThan(0);
   });
 });

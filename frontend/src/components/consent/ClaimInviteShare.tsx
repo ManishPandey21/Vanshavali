@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { Copy, MessageCircle, Share2, UserPlus } from "lucide-react";
+import { Copy, MessageCircle, Send, Share2, UserPlus } from "lucide-react";
 import { useCreateClaimInvite } from "../../api/hooks/onboarding";
 import type { ClaimInviteCreated } from "../../api/types";
 import { Button, buttonClass } from "../ui/Button";
@@ -20,6 +20,12 @@ export function inviteMessage(t: TFunction, url: string): string {
 /** A WhatsApp share link without a phone number: the user picks the chat, and we never collect numbers. */
 export function whatsappShareUrl(message: string): string {
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
+
+/** Telegram's generic share composer. No username or chat id is supplied or collected. */
+export function telegramShareUrl(message: string, url: string): string {
+  const params = new URLSearchParams({ url, text: message.replace(url, "").trim() });
+  return `https://t.me/share/url?${params.toString()}`;
 }
 
 /**
@@ -42,6 +48,13 @@ export function ClaimInviteShare({
   const [contributor, setContributor] = useState(false);
   const [invite, setInvite] = useState<ClaimInviteCreated | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // A one-time URL is bound to exactly one profile. Never carry it across a prop change.
+  useEffect(() => {
+    setContributor(false);
+    setInvite(null);
+    setCopied(false);
+  }, [personId]);
 
   if (!invite) {
     return (
@@ -76,6 +89,16 @@ export function ClaimInviteShare({
           {t("claimInvite.whatsapp")}
           <span className="sr-only"> {t("common.opensInNewTab")}</span>
         </a>
+        <a
+          href={telegramShareUrl(message, invite.url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonClass("secondary", "md")}
+        >
+          <Send className="size-4" aria-hidden />
+          {t("claimInvite.telegram")}
+          <span className="sr-only"> {t("common.opensInNewTab")}</span>
+        </a>
         {canNativeShare && (
           <Button variant="secondary" icon={<Share2 className="size-4" aria-hidden />} onClick={() => void navigator.share({ text: message }).catch(() => undefined)}>
             {t("claimInvite.shareOther")}
@@ -84,7 +107,7 @@ export function ClaimInviteShare({
         <Button
           variant="secondary"
           icon={<Copy className="size-4" aria-hidden />}
-          onClick={() => void navigator.clipboard?.writeText(invite.url).then(() => setCopied(true))}
+          onClick={() => void navigator.clipboard?.writeText(message).then(() => setCopied(true))}
         >
           {copied ? t("common.copied") : t("claimInvite.copyLink")}
         </Button>

@@ -219,6 +219,26 @@ def test_claim_invite_happy_path(owner, tree, make_client):
     assert owner.get(f"/trees/{t}/claim-invites").json()[0]["state"] == "used"
 
 
+def test_claim_invite_list_projects_visible_person_and_pending_claim_status(owner, tree, make_client):
+    t = tree["id"]
+    meera = _living(owner, t)
+    inv = _invite(owner, t, meera["id"]).json()
+
+    created = owner.get(f"/trees/{t}/claim-invites").json()[0]
+    assert created["person_name"] == "Meera Iyer"
+    assert created["claim_status"] is None
+
+    rel = _relative(make_client)
+    assert _accept(rel, inv["token"]).status_code == 201
+    requested = owner.get(f"/trees/{t}/claim-invites").json()[0]
+    assert requested["person_name"] == "Meera Iyer"
+    assert requested["claim_status"] == "requested"
+    assert requested["claim_kind"] == "claim"
+    cannot_revoke = owner.delete(f"/trees/{t}/claim-invites/{inv['id']}")
+    assert cannot_revoke.status_code == 409
+    assert cannot_revoke.json()["error"]["code"] == "invite_not_active"
+
+
 def test_admin_can_offer_contributor_role(owner, tree, make_client):
     t = tree["id"]
     meera = _living(owner, t)

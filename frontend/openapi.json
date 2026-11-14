@@ -24451,6 +24451,37 @@
       "title": "State",
       "default": "active"
      },
+     "person_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Name"
+     },
+     "claim_status": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClaimStatus"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "claim_kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClaimKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
      "url": {
       "type": "string",
       "title": "Url"
@@ -24547,6 +24578,37 @@
       ],
       "title": "State",
       "default": "active"
+     },
+     "person_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Person Name"
+     },
+     "claim_status": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClaimStatus"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "claim_kind": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ClaimKind"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",

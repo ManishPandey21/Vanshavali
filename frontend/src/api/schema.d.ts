@@ -5968,6 +5968,10 @@ export interface components {
              * @enum {string}
              */
             state?: "active" | "used" | "declined" | "expired" | "revoked";
+            /** Person Name */
+            person_name?: string | null;
+            claim_status?: components["schemas"]["ClaimStatus"] | null;
+            claim_kind?: components["schemas"]["ClaimKind"] | null;
             /** Url */
             url: string;
             /** Token */
@@ -6008,6 +6012,10 @@ export interface components {
              * @enum {string}
              */
             state?: "active" | "used" | "declined" | "expired" | "revoked";
+            /** Person Name */
+            person_name?: string | null;
+            claim_status?: components["schemas"]["ClaimStatus"] | null;
+            claim_kind?: components["schemas"]["ClaimKind"] | null;
         };
         /** ClaimInvitePreview */
         ClaimInvitePreview: {

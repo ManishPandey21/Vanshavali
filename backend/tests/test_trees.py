@@ -62,6 +62,21 @@ def test_invitation_single_use_and_revocable(owner, tree, make_client):
     assert d.post(f"/invitations/{r2.json()['token']}/accept").status_code == 404
 
 
+def test_membership_invitation_creation_is_rate_limited(owner, tree):
+    for index in range(30):
+        response = owner.post(
+            f"/trees/{tree['id']}/invitations",
+            json={"email": f"relative-{index}@example.com", "roles": ["VIEWER"]},
+        )
+        assert response.status_code == 201, response.text
+
+    limited = owner.post(
+        f"/trees/{tree['id']}/invitations",
+        json={"email": "one-too-many@example.com", "roles": ["VIEWER"]},
+    )
+    assert limited.status_code == 429
+
+
 def test_only_owner_can_grant_admin(member_factory, tree, make_client):
     admin = member_factory(["FAMILY_ADMIN"])
     r = admin.post(

@@ -85,7 +85,7 @@ export function TreeLayout() {
       { to: `${base}/review`, label: t("nav.review"), icon: ClipboardCheck, group: "research" },
     ];
     list.push({ to: `${base}/admin/members`, label: t("nav.members"), icon: ShieldCheck, group: "admin" });
-    if (ctx.can(Perm.MEMBERS_MANAGE)) list.push({ to: `${base}/admin/invitations`, label: t("nav.invitations"), icon: UserPlus, group: "admin" });
+    if (ctx.can(Perm.MEMBERS_MANAGE) || ctx.can(Perm.PERSON_WRITE)) list.push({ to: `${base}/admin/invitations`, label: t("nav.invitations"), icon: UserPlus, group: "admin" });
     list.push({ to: `${base}/admin/claims`, label: t("nav.claims"), icon: ClipboardList, group: "admin" });
     if (ctx.can(Perm.AUDIT_READ)) list.push({ to: `${base}/admin/audit`, label: t("nav.audit"), icon: ClipboardList, group: "admin" });
     if (ctx.can(Perm.AUDIT_READ) && ctx.can(Perm.TREE_MANAGE)) list.push({ to: `${base}/admin/restore`, label: t("nav.restore"), icon: ArchiveRestore, group: "admin" });
