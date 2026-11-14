@@ -136,7 +136,7 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Remove a fact / unlink a relationship | Delete event, assertion or relationship (audited) |
 | Hide a profile | Set its privacy level (e.g. `PRIVATE_TREE_ADMINS`) |
 | Remove from tree | `DELETE /people/{id}`: the person leaves every view at once (no card, no placeholder, no count). Their records and links are kept; a tree admin can restore them (ADR-0034 §1–§2) |
-| Permanent delete | `POST /people/{id}/erase` (proposed in ADR-0034 §3, replacing "leaves an anonymous placeholder"): irreversible; personal data **and the person's relationship links** are deleted; only an inert tombstone and the audit entry remain, shown nowhere. Nobody else's record is deleted |
+| Permanent delete | `POST /people/{id}/erase` (ADR-0034 §3, replacing "leaves an anonymous placeholder"): irreversible; personal data **and the person's relationship links** are deleted; only an inert tombstone and the audit entry remain, shown nowhere. Nobody else's record is deleted |
 | Delete uploaded file | Document soft delete plus retention (restore available) |
 | Close account | `POST /auth/close-account`: deactivates, revokes sessions, kills emailed links, leaves trees. Refused for a sole tree owner. |
 | Export own data / tree | GEDCOM export (the full archival package is tracked in `IMPLEMENTATION_STATUS.md`) |
@@ -454,7 +454,7 @@ Profile contacts never establish verified account contact or messaging consent.
   backups older than the period are cleaned again by the next run.
 - Tests: `test_sign_in_audit_retention.py`, `test_migrations.py::test_audit_network_scrub_trigger_upgrade_and_downgrade`.
 
-## Person lifecycle and the complete family graph (ADR-0034, proposed)
+## Person lifecycle and the complete family graph (ADR-0034)
 
 - **Three states, decided in one place.** A person is active, removed from the tree (restorable) or
   permanently deleted. `app/authz/lifecycle.py` decides whether a person is still part of the tree;

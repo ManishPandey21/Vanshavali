@@ -275,7 +275,7 @@ to subsequent reads and sends. Proposed field-controller recovery is not an admi
 Residual: the payment provider's own page, receipts and refunds are outside this codebase and need
 a human checkout review before any link is configured.
 
-## Person lifecycle and the complete family graph (ADR-0034, proposed)
+## Person lifecycle and the complete family graph (ADR-0034)
 
 | ID | Threat | Implemented control | Evidence |
 |---|---|---|---|

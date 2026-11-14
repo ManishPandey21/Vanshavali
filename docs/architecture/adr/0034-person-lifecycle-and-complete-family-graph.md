@@ -1,8 +1,8 @@
 # ADR-0034: Person lifecycle (remove, restore, permanently delete) and the complete family graph
 
-- Status: **Proposed** 2026-11-14. Implemented on a draft pull request for review; not to be merged
-  or deployed until the owner accepts this ADR. §3 changes an accepted privacy rule and is
-  irreversible in its effect on data.
+- Status: **Accepted** 2026-11-14 (owner decision), including §3 (permanent delete removes the
+  person's relationship links; a family may split) and §5.3 (how far the walk goes past a hidden
+  person). Implemented on PR #86; merging and deployment remain separate owner decisions.
 - Amends: [ADR-0003](0003-genealogy-relationship-model.md) (tree views are computed projections),
   the privacy model §4–§5 (PRS §54: "privacy erasure leaves an anonymous placeholder") and
   [ADR-0017](0017-visualizations-and-animated-exports.md) (what charts show).
