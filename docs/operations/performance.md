@@ -170,6 +170,37 @@ Overall p95 is still above the 500 ms target in a closed loop with no think time
 tail is CPU queueing on the shared box, not a single dominant endpoint: every route sits at a
 similar p95. Re-measure on a dedicated host before sizing.
 
+## Complete family graph (ADR-0034, 14 Nov 2026)
+
+`GET /trees/{t}/family-graph` returns the whole authorised family in pages. The first page runs
+the traversal; later pages reuse its plan (kept in the worker for two minutes, keyed by the tree's
+revision) and only load their own people. Same synthetic tree as above (`benchmark.build`),
+in-process, single client, owner role, development container, with another test suite running on
+the same machine, so these are upper bounds rather than a clean measurement:
+
+| Tree | Scope, page size | Pages | First page | Later pages (median / max) | Whole family | Payload |
+|---|---|---|---|---|---|---|
+| 1,000 people | connected, 1,000 | 1 | 178 ms | n/a | 0.2 s | 0.8 MB |
+| 1,000 people | all groups, 1,000 | 1 | 473 ms | n/a | 0.5 s | 0.8 MB |
+| 10,000 people | connected, 500 (the app's page size) | 20 | **2,009 ms** | 118 / 365 ms | 4.8 s | 8.1 MB |
+| 10,000 people | connected, 1,000 | 10 | (plan already cached) 167 ms | 184 / 336 ms | 2.4 s | 8.1 MB |
+| 10,000 people | all groups, 1,000 | 10 | **1,289 ms** | 206 / 491 ms | 3.8 s | 8.1 MB |
+
+- **Against the target (p95 < 500 ms):** later pages meet it; the **first page of a 10,000-person
+  family does not** (1.3–2.0 s). It is a whole-tree analysis, the class the target excludes, but it
+  is a user-facing wait and is shown as "Loading the family". Before the plan was reused, every
+  page cost about 1.8 s (19–37 s for the family).
+- **Where the first page goes** (profile at 10,000): about 45% deciding visibility for every person
+  reached (`visible_subjects`: people, birth dates, branch memberships), 25% loading edges a
+  frontier at a time, the rest ordering and row assignment in Python.
+- **Queries** grow with the number of hops, not people: `test_family_graph.py` holds a 2,000-person,
+  11-generation family under 150 statements per page.
+- **Browser:** `familyLayout.test.ts` lays out 5,000 people in under 3 s (a few hundred ms in
+  practice). The chart draws only what is on screen above 250 people and plain boxes below 30%
+  zoom. A 10,000-person render has **not** been measured in a real browser.
+- **Not measured:** concurrent users, the RLS application role at this size, more than 10,000
+  people, a dedicated host. With several workers each computes the plan once.
+
 ## Recommendations (ranked)
 1. **Relationship path: done (1a).** Original analysis: stop loading the whole edge set per request. The options, in order of
    preference:

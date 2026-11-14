@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse
@@ -14,12 +14,13 @@ from app.authz.privacy import can_view_person, load_subjects
 from app.core.textnorm import search_key
 from app.models import Person, Place
 from app.models.enums import EventType, Lineage, ProfileStatus
-from app.modules.genealogy import ageorder, engine, geo, lookup, provisional, service
+from app.modules.genealogy import ageorder, engine, familygraph, geo, lookup, provisional, service
 from app.modules.genealogy.provisional import ProvisionalState
 from app.modules.genealogy.schemas import (
     EventIn,
     EventOut,
     EventUpdate,
+    FamilyGraphOut,
     FamilyOut,
     GraphOut,
     NameIn,
@@ -135,7 +136,12 @@ def deleted_people(ctx: TreeCtx) -> list[PersonSummary]:
     ctx.require(Permission.TREE_MANAGE)
     rows = ctx.db.scalars(
         select(Person)
-        .where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None), Person.merged_into_id.is_(None))
+        .where(
+            Person.tree_id == ctx.tree_id,
+            Person.deleted_at.is_not(None),
+            Person.erased_at.is_(None),  # permanently deleted people are not restorable
+            Person.merged_into_id.is_(None),
+        )
         .order_by(Person.deleted_at.desc())
     ).all()
     subjects = load_subjects(ctx, rows)
@@ -180,17 +186,23 @@ class EraseIn(ApiModel):
 
 @router.post("/people/{person_id}/erase", response_model=Message)
 def erase_person(person_id: uuid.UUID, body: EraseIn, ctx: TreeCtx) -> Message:
-    """Irreversible privacy erasure; the person remains as an anonymous placeholder."""
+    """Permanently delete a person (ADR-0034 §3). Irreversible.
+
+    Their personal data and relationship links are deleted. Nobody else's record is deleted. Only an
+    inert tombstone (no name, no data, no links) and the audit entry remain; it appears in no view.
+    """
     if not body.confirm:
         from app.core.errors import Unprocessable
 
         raise Unprocessable("Set confirm=true to erase this person's data permanently")
     service.erase_person(ctx, person_id, body.reason)
-    return Message(message="Personal data erased; an anonymous placeholder keeps the tree structure intact")
+    return Message(message="Person permanently deleted")
 
 
 @router.post("/people/{person_id}/restore", response_model=PersonOut)
 def restore_person(person_id: uuid.UUID, ctx: TreeCtx) -> PersonOut:
+    """Put a removed person back. 409 ``person_not_removed`` if they are not removed; 404 for a
+    permanently deleted person."""
     service.restore_person(ctx, person_id)
     return _person_out(ctx, person_id)
 
@@ -383,6 +395,27 @@ def descendants(
     lineage: LineageQuery = None,
 ) -> GraphOut:
     return engine.graph(ctx, person_id, "descendants", depth, set(lineage) if lineage else None)
+
+
+@router.get("/family-graph", response_model=FamilyGraphOut)
+def family_graph(
+    ctx: TreeCtx,
+    scope: Literal["connected", "all"] = Query(
+        default="connected",
+        description="connected: everyone linked to person_id through recorded relationships. "
+        "all: every group of the tree, disconnected ones as separate components.",
+    ),
+    person_id: uuid.UUID | None = Query(default=None, description="Required for scope=connected"),
+    cursor: str | None = Query(default=None, max_length=600),
+    limit: int = Query(default=familygraph.PAGE_DEFAULT, ge=1, le=familygraph.PAGE_MAX),
+) -> FamilyGraphOut:
+    """The complete authorised family, in pages (ADR-0034 §4). No generation limit.
+
+    Follow ``next_cursor`` until ``complete`` is true. 409 ``graph_changed`` means the tree changed
+    between pages: start again without a cursor. For a small person-centred view use
+    ``/people/{id}/ancestors``, ``/descendants`` or ``/family``.
+    """
+    return familygraph.family_graph(ctx, scope, person_id, cursor, limit)
 
 
 @router.post(

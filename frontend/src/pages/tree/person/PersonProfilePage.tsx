@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Flag, MessageCircle, Network, Route, Trash2 } from "lucide-react";
+import { Flag, MessageCircle, Network, Route, Trash2, UserMinus } from "lucide-react";
 import { useMe } from "../../../api/hooks/auth";
 import { useDeletePerson, usePerson, usePersonEvents } from "../../../api/hooks/people";
 import { useRequestClaim } from "../../../api/hooks/heritage";
@@ -29,6 +29,7 @@ import { VisualizationsTab } from "./VisualizationsTab";
 import { FamilyTab } from "./FamilyTab";
 import { HouseholdsTab } from "./HouseholdsTab";
 import { PrivacyTab } from "./PrivacyTab";
+import { DeletePersonDialog } from "./ErasePanel";
 import { AstrologyTab } from "./AstrologyTab";
 import { DocumentsTab, PropertyInterestsSection } from "./DocumentsTab";
 import { ApiError } from "../../../api/client";
@@ -49,6 +50,7 @@ export function PersonProfilePage() {
   const [claimOpen, setClaimOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [erasing, setErasing] = useState(false);
   const del = useDeletePerson(treeId);
   const navigate = useNavigate();
 
@@ -126,9 +128,16 @@ export function PersonProfilePage() {
                 {t("claimInvite.button")}
               </Button>
             )}
+            {/* Two different actions (ADR-0034): a restorable removal, and an irreversible deletion
+                for tree admins. The server authorises both; these only hide what would be refused. */}
             {p.can_edit && (
-              <Button variant="ghost" size="sm" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setDeleting(true)}>
-                {t("person.remove")}
+              <Button variant="ghost" size="sm" icon={<UserMinus className="size-4" aria-hidden />} onClick={() => setDeleting(true)}>
+                {t("person.removeFromTree")}
+              </Button>
+            )}
+            {can(Perm.TREE_MANAGE) && (
+              <Button variant="ghost" size="sm" icon={<Trash2 className="size-4" aria-hidden />} onClick={() => setErasing(true)}>
+                {t("person.deletePerson")}
               </Button>
             )}
           </div>
@@ -168,22 +177,30 @@ export function PersonProfilePage() {
       <ConfirmDialog
         open={deleting}
         onClose={() => setDeleting(false)}
-        title={t("person.removeTitle", { name: p.display_name })}
-        body={isAdmin ? t("person.removeBodyAdmin") : t("person.removeBody")}
-        confirmLabel={t("person.remove")}
+        title={t("person.removeTitle")}
+        body={
+          <>
+            <span className="mb-2 block font-medium">{p.display_name}</span>
+            {isAdmin ? t("person.removeBodyAdmin") : t("person.removeBody")}
+          </>
+        }
+        confirmLabel={t("person.removeFromTree")}
         danger
         loading={del.isPending}
-        onConfirm={() =>
-          del.mutate(p.id, {
-            onSuccess: () => {
+        onConfirm={() => {
+          // awaited rather than a per-call onSuccess: see DeletePersonDialog
+          void del
+            .mutateAsync(p.id)
+            .then(() => {
               forgetPerson(treeId, p.id);
               navigate(`/t/${treeId}/people`);
-            },
-          })
-        }
+            })
+            .catch(() => undefined); // shown by ErrorAlert below
+        }}
       >
         <ErrorAlert error={del.error} />
       </ConfirmDialog>
+      {erasing && <DeletePersonDialog person={p} onClose={() => setErasing(false)} />}
     </article>
   );
 }

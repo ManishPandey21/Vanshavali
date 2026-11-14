@@ -108,7 +108,7 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 |---|---|---|
 | Person/event API | `modules/genealogy/serialize.py` (`Serializer`, `_redact_event_fields`) | `test_privacy.py` |
 | Lists, search, duplicates | `can_view_person` filtering **before** pagination. Hidden people are never counted or snippeted. | `test_privacy.py`, `test_search_consent.py` |
-| Family views and graphs | Hidden relatives become `{person: null, hidden: true}` placeholders. Public views drop them entirely. | `test_privacy.py::test_admin_only_person_is_invisible_to_viewer_everywhere` |
+| Family views and graphs | Relatives hidden **by privacy** become `{person: null, hidden: true}` placeholders. Public views drop them entirely. Removed and permanently deleted people are never placeholders: they are absent, and nothing is reached through them (ADR-0034 §2; `test_person_lifecycle.py`). | `test_privacy.py::test_admin_only_person_is_invisible_to_viewer_everywhere` |
 | Public pages | `ctx.public=True`: deceased and not protected and `PUBLIC_DECEASED_ONLY` only; year-only dates; no provenance, coordinates or notes | `test_privacy.py::test_public_tree_never_exposes_living_or_private` |
 | HTML and hydration | The SPA shell contains no data (ADR-0001). Nginx sets `X-Robots-Tag: noindex` | frontend build |
 | Heritage | Attribute → group mapping (jati, community, religion) plus per-assertion level | `test_heritage_family.py` |
@@ -135,8 +135,8 @@ under `address`. Responses list the redacted groups in `redacted_fields`, so the
 | Consent ledger | `consent_record` (grant, purpose, categories, basis incl. parent/guardian, expiry, withdrawal) |
 | Remove a fact / unlink a relationship | Delete event, assertion or relationship (audited) |
 | Hide a profile | Set its privacy level (e.g. `PRIVATE_TREE_ADMINS`) |
-| Remove from tree | Soft delete, restorable by an admin |
-| Privacy erasure | `POST /people/{id}/erase`: irreversible; leaves an anonymous placeholder |
+| Remove from tree | `DELETE /people/{id}`: the person leaves every view at once (no card, no placeholder, no count). Their records and links are kept; a tree admin can restore them (ADR-0034 §1–§2) |
+| Permanent delete | `POST /people/{id}/erase` (ADR-0034 §3, replacing "leaves an anonymous placeholder"): irreversible; personal data **and the person's relationship links** are deleted; only an inert tombstone and the audit entry remain, shown nowhere. Nobody else's record is deleted |
 | Delete uploaded file | Document soft delete plus retention (restore available) |
 | Close account | `POST /auth/close-account`: deactivates, revokes sessions, kills emailed links, leaves trees. Refused for a sole tree owner. |
 | Export own data / tree | GEDCOM export (the full archival package is tracked in `IMPLEMENTATION_STATUS.md`) |
@@ -453,3 +453,31 @@ Profile contacts never establish verified account contact or messaging consent.
 - Daily cron jobs `purge-sign-in-records` and `scrub-audit-network` run as the app role. Restored
   backups older than the period are cleaned again by the next run.
 - Tests: `test_sign_in_audit_retention.py`, `test_migrations.py::test_audit_network_scrub_trigger_upgrade_and_downgrade`.
+
+## Person lifecycle and the complete family graph (ADR-0034)
+
+- **Three states, decided in one place.** A person is active, removed from the tree (restorable) or
+  permanently deleted. `app/authz/lifecycle.py` decides whether a person is still part of the tree;
+  `app/authz/privacy.py` decides, separately, whether a viewer may see an active person.
+- **Absent is not the same as hidden.** A removed or permanently deleted person has no card, no
+  anonymous placeholder and no count in the tree views, the family unit, the charts, branch and
+  household counts or exports, and nothing is reached through them, for every role including the
+  Owner. A placeholder ("Private person") can only stand for an *active* relative the viewer may
+  not see. A reference to a person who does not exist never produces one.
+- **A family can split.** Removing or deleting the person who links two parts of a family leaves
+  two groups. No relative is re-linked to stand in and nobody else is removed.
+- **Permanent delete keeps no links.** The tombstone has no name data and no relationships; it is
+  not listed, not openable and not restorable, for admins too. Documents, photos and traditions
+  stay with their owners and lose only their link to the person.
+- **The complete family graph shows what the viewer may see, and says so.** "Whole family" follows
+  every recorded relationship with no generation limit, within one tree. Hidden active relatives
+  are placeholders under an opaque alias. The walk continues past a hidden person along
+  parent/child links only (as the ancestor and descendant views already do) and never through
+  their marriage or sibling links into another family. A group in which the viewer may see nobody
+  is neither returned nor counted. A hidden or absent person is never a valid starting point (404).
+- **Counts are the viewer's counts.** `total_people` and the group sizes count only what this
+  viewer receives; they are not the size of the tree.
+- **Partial is labelled partial.** The graph arrives in pages; the interface states loading, partly
+  loaded, stopped or complete, and only "complete" is described as everyone the viewer may see.
+- **Still open:** property interests, reminders and review proposals that point at a removed
+  person (ADR-0034 §8).

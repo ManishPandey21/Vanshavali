@@ -6,8 +6,9 @@ import uuid
 from collections import deque
 
 from sqlalchemy import delete as sa_delete
-from sqlalchemy import func, select
+from sqlalchemy import select
 
+from app.authz import lifecycle
 from app.authz.context import TreeContext
 from app.authz.permissions import Permission
 from app.core import audit
@@ -210,6 +211,7 @@ def derive_members(ctx: TreeContext, branch_id: uuid.UUID) -> tuple[int, int]:
         raise Unprocessable("Set a founder before deriving branch members", code="founder_required")
     if b.descent_rule == DescentRule.CUSTOM:
         raise Unprocessable("Custom branches are managed manually")
+    inactive = lifecycle.inactive_person_ids(ctx)
     children: dict[uuid.UUID, list[uuid.UUID]] = {}
     for parent, child in ctx.db.execute(
         select(Relationship.person_a_id, Relationship.person_b_id).where(
@@ -218,6 +220,8 @@ def derive_members(ctx: TreeContext, branch_id: uuid.UUID) -> tuple[int, int]:
             Relationship.evidence_status.notin_([EvidenceStatus.DISPROVEN, EvidenceStatus.SUPERSEDED]),
         )
     ):
+        if parent in inactive or child in inactive:
+            continue  # descent is never traced through a removed person (ADR-0034)
         children.setdefault(parent, []).append(child)
     sex = dict(
         ctx.db.execute(select(Person.id, Person.sex_at_birth).where(Person.tree_id == ctx.tree_id)).all()
@@ -243,13 +247,15 @@ def derive_members(ctx: TreeContext, branch_id: uuid.UUID) -> tuple[int, int]:
         found = [p for p in found if p in ctx.branch_people()]  # never pull outsiders into scope
     visible = lookup.visible_subjects(ctx, found)
     added = add_branch_members(ctx, b.id, [p for p in found if p in visible], basis="derived")
-    total = int(
-        ctx.db.scalar(
-            select(func.count())
-            .select_from(BranchMembership)
-            .where(BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id)
+    total = len(
+        lifecycle.active_only(
+            ctx,
+            ctx.db.scalars(
+                select(BranchMembership.person_id).where(
+                    BranchMembership.tree_id == ctx.tree_id, BranchMembership.branch_id == b.id
+                )
+            ),
         )
-        or 0
     )
     return added, total
 

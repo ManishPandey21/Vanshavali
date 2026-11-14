@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, Plus, RotateCcw } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Maximize, Minus, Plus, RotateCcw } from "lucide-react";
 import type { GraphOut } from "../../api/types";
 import { NODE_H, NODE_W, layoutGraph, neighbour, type Layout } from "../../lib/treeLayout";
 import { lifespan } from "../../lib/dates";
 
 const PAN_STEP = 120;
+/** Above this many people only what is on screen is drawn (the layout still holds everyone). */
+const CULL_ABOVE = 250;
+/** Below this zoom a card is a plain box: names are illegible anyway and 10,000 labels are slow. */
+const DETAIL_SCALE = 0.3;
 
 function truncate(s: string, n: number) {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s;
@@ -18,6 +22,9 @@ function truncate(s: string, n: number) {
  */
 export function TreeChart({
   graph,
+  layout: givenLayout,
+  viewKey,
+  centreOn,
   onOpen,
   onSelect,
   selectedId,
@@ -27,7 +34,14 @@ export function TreeChart({
   heightClass = "h-[65dvh] min-h-[360px]",
   minOpenScale,
 }: {
-  graph: GraphOut;
+  /** An ancestor or descendant graph, laid out here… */
+  graph?: GraphOut;
+  /** …or a layout computed by the caller (the complete family, `lib/familyLayout`). */
+  layout?: Layout;
+  /** With `layout`: the view is re-fitted only when this changes, not each time more people load. */
+  viewKey?: string;
+  /** With `layout`: bring this node to the middle and focus it (`seq` makes repeats count). */
+  centreOn?: { id: string; seq: number } | null;
   onOpen: (personId: string) => void;
   /** When given, a click selects the person (e.g. for a side panel); Enter still opens the profile. */
   onSelect?: (personId: string) => void;
@@ -45,7 +59,13 @@ export function TreeChart({
   minOpenScale?: number;
 }) {
   const { t } = useTranslation();
-  const layout: Layout = useMemo(() => layoutGraph(graph, collapsed), [graph, collapsed]);
+  const family = !!givenLayout;
+  const layout: Layout = useMemo(
+    () => givenLayout ?? layoutGraph(graph!, collapsed),
+    [givenLayout, graph, collapsed],
+  );
+  const [size, setSize] = useState({ w: 800, h: 500 });
+  const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
@@ -64,9 +84,13 @@ export function TreeChart({
     const w = el.clientWidth || 800;
     const h = el.clientHeight || 500;
     const pad = 32;
-    const k = Math.min(1.2, Math.max(0.3, Math.min((w - pad) / (layout.width + pad), (h - pad) / (layout.height + pad))));
-    setView({ k, x: (w - layout.width * k) / 2, y: Math.max(16, (h - layout.height * k) / 2) });
-  }, [layout.width, layout.height]);
+    // a whole family may need to go far smaller than a focused view before everyone fits
+    const floor = family ? 0.02 : 0.3;
+    // the complete family keeps clear of the toolbar, so the top row and group labels stay readable
+    const top = family ? 60 : 16;
+    const k = Math.min(1.2, Math.max(floor, Math.min((w - pad) / (layout.width + pad), (h - pad - (top - 16)) / (layout.height + pad))));
+    setView({ k, x: (w - layout.width * k) / 2, y: Math.max(top, (h - layout.height * k) / 2) });
+  }, [layout.width, layout.height, family]);
 
   /** The first view: fit everyone, or (when that would be illegible) a readable view around a focus. */
   const open = useCallback(() => {
@@ -85,9 +109,89 @@ export function TreeChart({
     setView({ k, x, y });
   }, [fit, layout, youNodeId, minOpenScale]);
 
+  const openRef = useRef(open);
+  openRef.current = open;
+  const hasNodes = layout.nodes.size > 0;
   useEffect(() => {
-    open();
-  }, [open, graph.root_id, graph.direction]);
+    if (!family) open();
+  }, [family, open, graph?.root_id, graph?.direction]);
+  // The complete family arrives in pages. Opening the view again on every page would throw the
+  // reader around, so it opens once per family and afterwards the starting person is held still.
+  useEffect(() => {
+    if (family && hasNodes) openRef.current();
+  }, [family, viewKey, hasNodes]);
+  const anchor = useRef<{ key?: string; id: string; x: number; y: number } | null>(null);
+  useEffect(() => {
+    if (!family) return;
+    const n = layout.nodes.get(layout.rootId);
+    const prev = anchor.current;
+    if (n && prev && prev.key === viewKey && prev.id === layout.rootId && (prev.x !== n.x || prev.y !== n.y)) {
+      setView((v) => ({ ...v, x: v.x + (prev.x - n.x) * v.k, y: v.y + (prev.y - n.y) * v.k }));
+    }
+    anchor.current = n ? { key: viewKey, id: layout.rootId, x: n.x, y: n.y } : null;
+  }, [family, layout, viewKey]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => setSize({ w: el.clientWidth || 800, h: el.clientHeight || 500 });
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const centreSeq = centreOn?.seq;
+  const centreId = centreOn?.id;
+  useEffect(() => {
+    if (!centreId) return;
+    const n = layout.nodes.get(centreId);
+    const el = containerRef.current;
+    if (!n || !el) return;
+    setView((v) => {
+      const k = Math.max(v.k, 0.8);
+      return { k, x: el.clientWidth / 2 - (n.x + NODE_W / 2) * k, y: el.clientHeight / 2 - (n.y + NODE_H / 2) * k };
+    });
+    setFocusId(centreId);
+    setPendingFocus(centreId);
+    // only when asked again: a growing layout must not keep re-centring
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centreId, centreSeq]);
+
+  // Draw only what is on screen once the family is large; the margin keeps keyboard neighbours mounted.
+  const cull = layout.nodes.size > CULL_ABOVE;
+  // only the complete family simplifies its cards; the focused chart keeps names at every zoom
+  const detailed = !family || view.k >= DETAIL_SCALE;
+  const bounds = useMemo(() => {
+    const mx = NODE_W * 2;
+    const my = NODE_H * 3;
+    return { x0: -view.x / view.k - mx, x1: (size.w - view.x) / view.k + mx, y0: -view.y / view.k - my, y1: (size.h - view.y) / view.k + my };
+  }, [view, size]);
+  const onScreen = useCallback(
+    (x: number, y: number, w = NODE_W, h = NODE_H) => !cull || (x + w >= bounds.x0 && x <= bounds.x1 && y + h >= bounds.y0 && y <= bounds.y1),
+    [cull, bounds],
+  );
+  const shown = useMemo(
+    () => [...layout.nodes.values()].filter((n) => n.node.id === focusId || onScreen(n.x, n.y)),
+    [layout, onScreen, focusId],
+  );
+  // focus follows once the node is actually drawn (it may have been off screen a moment ago)
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const el = nodeRefs.current.get(pendingFocus);
+    if (!el) return;
+    el.focus();
+    setPendingFocus(null);
+  }, [pendingFocus, shown]);
+  const spanOnScreen = (aId: string, bId: string) => {
+    const a = layout.nodes.get(aId);
+    const b = layout.nodes.get(bId);
+    if (!a || !b) return false;
+    const x = Math.min(a.x, b.x);
+    const y = Math.min(a.y, b.y);
+    return onScreen(x, y, Math.abs(a.x - b.x) + NODE_W, Math.abs(a.y - b.y) + NODE_H);
+  };
 
   useEffect(() => {
     if (!layout.nodes.has(focusId)) setFocusId(layout.rootId);
@@ -155,13 +259,13 @@ export function TreeChart({
       const target = neighbour(layout, id, e.key);
       if (target) {
         setFocusId(target);
-        nodeRefs.current.get(target)?.focus();
+        setPendingFocus(target); // it may not be drawn yet when only the visible part is rendered
         ensureVisible(target);
       }
     } else if (e.key === "Home") {
       e.preventDefault();
       setFocusId(layout.rootId);
-      nodeRefs.current.get(layout.rootId)?.focus();
+      setPendingFocus(layout.rootId); // like the arrows: it may be off screen and not drawn yet
       ensureVisible(layout.rootId);
     }
   };
@@ -176,6 +280,11 @@ export function TreeChart({
     const y1 = upper.y + NODE_H;
     const x2 = lower.x + NODE_W / 2;
     const y2 = lower.y;
+    if (s.y === tt.y) {
+      // a contradictory record put parent and child on one row: an arc above, never a zero-length line
+      const top = s.y - 18;
+      return `M${s.x + NODE_W / 2},${s.y} C${s.x + NODE_W / 2},${top - 24} ${tt.x + NODE_W / 2},${top - 24} ${tt.x + NODE_W / 2},${tt.y}`;
+    }
     const my = (y1 + y2) / 2;
     return `M${x1},${y1} V${my} H${x2} V${y2}`;
   };
@@ -192,9 +301,20 @@ export function TreeChart({
         <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={() => zoom(1 / 1.2)} aria-label={t("treeView.zoomOut")}>
           <Minus className="size-4" aria-hidden />
         </button>
-        <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={fit} aria-label={t("treeView.fit")}>
-          <RotateCcw className="size-4" aria-hidden />
-        </button>
+        {family ? (
+          <>
+            <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={fit} aria-label={t("treeView.fit")} title={t("treeView.fit")}>
+              <Maximize className="size-4" aria-hidden />
+            </button>
+            <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={open} aria-label={t("treeView.resetView")} title={t("treeView.resetView")}>
+              <RotateCcw className="size-4" aria-hidden />
+            </button>
+          </>
+        ) : (
+          <button type="button" className="rounded p-1.5 hover:bg-parchment-deep" onClick={fit} aria-label={t("treeView.fit")}>
+            <RotateCcw className="size-4" aria-hidden />
+          </button>
+        )}
         {/* Single-pointer alternative to drag-panning (WCAG 2.5.7 Dragging Movements). */}
         {(
           [
@@ -220,13 +340,42 @@ export function TreeChart({
       >
         <svg ref={svgRef} width="100%" height="100%" role="group" aria-label={t("treeView.chartLabel")} aria-describedby="tree-kbd-help">
           <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
-            {layout.couples.map((c) => {
+            {(layout.groups?.length ?? 0) > 1 &&
+              layout.groups!.filter((g) => onScreen(g.x - 16, g.y - 40, g.width + 32, g.height + 56)).map((g) => (
+                <g key={`group-${g.index}`} aria-hidden>
+                  <rect x={g.x - 16} y={g.y - 16} width={g.width + 32} height={g.height + 32} rx={16} fill="#fffdf8" fillOpacity={0.55} stroke="#c9b79c" strokeDasharray="2 5" />
+                  {detailed && (
+                    <text x={g.x - 8} y={g.y - 24} fontSize={13} fontWeight={600} fill="#5c4b3b">
+                      {t("treeView.groupLabel", { n: g.index + 1, count: g.people })}
+                    </text>
+                  )}
+                </g>
+              ))}
+            {(layout.links ?? []).filter((l) => spanOnScreen(l.a, l.b)).map((l) => {
+              const a = layout.nodes.get(l.a)!;
+              const b = layout.nodes.get(l.b)!;
+              const x1 = a.x + NODE_W / 2;
+              const x2 = b.x + NODE_W / 2;
+              const lift = Math.min(a.y, b.y) - 16;
+              return (
+                <path key={`link-${l.kind}-${l.a}-${l.b}`} d={`M${x1},${a.y} C${x1},${lift} ${x2},${lift} ${x2},${b.y}`} fill="none" stroke="#7a6a55" strokeWidth={1.5} strokeDasharray={l.kind === "sibling" ? "1 4" : "1 7"} strokeLinecap="round" aria-hidden />
+              );
+            })}
+            {layout.couples.filter((c) => spanOnScreen(c.a, c.b)).map((c) => {
               const a = layout.nodes.get(c.a)!;
               const b = layout.nodes.get(c.b)!;
               const left = a.x < b.x ? a : b;
               const right = a.x < b.x ? b : a;
               const y = left.y + NODE_H / 2;
               const divorced = c.type === "divorced_spouse" || c.type === "separated_spouse";
+              if (a.y !== b.y) {
+                // partners recorded on different rows (a marriage across generations): one curved line
+                const y2 = right.y + NODE_H / 2;
+                const mx = (left.x + NODE_W + right.x) / 2;
+                return (
+                  <path key={`${c.a}-${c.b}`} d={`M${left.x + NODE_W},${y} C${mx},${y} ${mx},${y2} ${right.x},${y2}`} fill="none" stroke="#b4441c" strokeWidth={2} strokeDasharray={divorced ? "4 3" : undefined} aria-hidden />
+                );
+              }
               return (
                 <g key={`${c.a}-${c.b}`} aria-hidden>
                   <line x1={left.x + NODE_W} y1={y - 2} x2={right.x} y2={y - 2} stroke="#b4441c" strokeWidth={1.5} strokeDasharray={divorced ? "4 3" : undefined} />
@@ -234,13 +383,13 @@ export function TreeChart({
                 </g>
               );
             })}
-            {layout.edges.map((e, i) => (
+            {layout.edges.filter((e) => spanOnScreen(e.source, e.target)).map((e, i) => (
               <path key={`${e.source}-${e.target}-${i}`} d={edgePath(e.source, e.target)} fill="none" stroke="#9c8667" strokeWidth={1.5} strokeDasharray={lineageDash(e.lineage, e.type)} aria-hidden />
             ))}
-            {[...layout.nodes.values()].map((n) => {
+            {shown.map((n) => {
               const p = n.node.person;
               const hidden = !p;
-              const isRoot = n.node.id === layout.rootId;
+              const isRoot = !layout.noRootHighlight && n.node.id === layout.rootId;
               const isYou = !!p && !!youId && p.id === youId;
               const years = p ? lifespan(p, t) ?? "" : "";
               // Everything the box shows visually (status bar, minor, lock) is also in the accessible name.
@@ -294,9 +443,11 @@ export function TreeChart({
                   {p && p.profile_status !== "living" && p.profile_status !== "deceased" && (
                     <rect width={4} height={NODE_H - 17} x={0.5} y={8.5} rx={2} fill="none" stroke="#8a7a66" />
                   )}
-                  <text x={14} y={26} fontSize={14} fontWeight={600} fill={hidden ? "#57534e" : "#231a12"} fontStyle={hidden ? "italic" : undefined}>
-                    {p ? truncate(p.display_name, 22) : t("person.privatePerson")}
-                  </text>
+                  {detailed && (
+                    <text x={14} y={26} fontSize={14} fontWeight={600} fill={hidden ? "#57534e" : "#231a12"} fontStyle={hidden ? "italic" : undefined}>
+                      {p ? truncate(p.display_name, 22) : t("person.privatePerson")}
+                    </text>
+                  )}
                   {isYou && (
                     <g transform={`translate(${NODE_W - 44},-10)`} aria-hidden>
                       <rect width={40} height={20} rx={10} fill="#9a3412" />
@@ -305,7 +456,7 @@ export function TreeChart({
                       </text>
                     </g>
                   )}
-                  {p && (
+                  {p && detailed && (
                     <text x={14} y={46} fontSize={12} fill="#5c4b3b">
                       {years || t("treeView.datesUnknown")}
                       {p.is_minor ? ` · ${t("person.badge.minor")}` : ""}
@@ -319,7 +470,7 @@ export function TreeChart({
                   )}
                   {n.children.length > 0 && (
                     <g
-                      transform={`translate(${NODE_W - 28},${graph.direction === "ancestors" ? 4 : NODE_H - 28})`}
+                      transform={`translate(${NODE_W - 28},${graph?.direction === "ancestors" ? 4 : NODE_H - 28})`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleCollapse(n.node.id);
@@ -341,7 +492,7 @@ export function TreeChart({
       </div>
       <p className="mt-2 text-xs text-ink-muted">{t("treeView.statusLegend")}</p>
       <p id="tree-kbd-help" className="mt-1 text-xs text-ink-muted">
-        {t("treeView.keyboardHelp")}
+        {t(family ? "treeView.keyboardHelpFamily" : "treeView.keyboardHelp")}
       </p>
     </div>
   );

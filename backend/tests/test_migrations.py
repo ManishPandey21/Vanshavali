@@ -440,3 +440,87 @@ def test_audit_network_scrub_trigger_upgrade_and_downgrade():
         with admin.connect() as c:
             c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
         admin.dispose()
+
+
+def test_person_erased_at_backfill_and_downgrade_refusal():
+    """b7f2c4e8d915 (ADR-0034): the marker is backfilled from the audit log only, never from a name,
+    and the downgrade refuses to drop it while any person carries it. (Cases from draft PR #82.)"""
+    import uuid
+
+    db = DB + "_erased_at"
+    url = f"{_BASE}/{db}"
+    admin = create_engine(_ADMIN_URL, isolation_level="AUTOCOMMIT")
+    with admin.connect() as c:
+        c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        c.execute(text(f'CREATE DATABASE "{db}"'))
+    try:
+        cfg = _cfg()
+        cfg.set_main_option("sqlalchemy.url", url)
+        command.upgrade(cfg, "a6e3d9b1f204")
+        engine = create_engine(url)
+        tree, other_tree = uuid.uuid4(), uuid.uuid4()
+        erased, removed_then_erased, named, live, foreign = (uuid.uuid4() for _ in range(5))
+        with engine.begin() as conn:
+            for t in (tree, other_tree):
+                conn.execute(
+                    text("INSERT INTO tree (id, name, slug) VALUES (:id, 'T', :slug)"),
+                    {"id": t, "slug": str(t)},
+                )
+            for pid, t, name, deleted in (
+                (erased, tree, "Erased person", None),
+                (removed_then_erased, tree, "Erased person", "2026-01-01T00:00:00Z"),
+                (named, tree, "Erased person", None),  # a real person recorded under that name
+                (live, tree, "Asha", None),
+                (foreign, other_tree, "Erased person", None),
+            ):
+                conn.execute(
+                    text(
+                        "INSERT INTO person (id, tree_id, preferred_display_name, deleted_at)"
+                        " VALUES (:id, :t, :n, :d)"
+                    ),
+                    {"id": pid, "t": t, "n": name, "d": deleted},
+                )
+            for pid, t, action, when in (
+                (erased, tree, "person.erased", "2026-03-01T10:00:00Z"),
+                (removed_then_erased, tree, "person.erased", "2026-04-01T10:00:00Z"),
+                (named, tree, "person.updated", "2026-05-01T10:00:00Z"),
+                # the same person id audited as erased in a *different* tree must not match
+                (foreign, tree, "person.erased", "2026-06-01T10:00:00Z"),
+            ):
+                conn.execute(
+                    text(
+                        "INSERT INTO audit_event (id, tree_id, action, target_type, target_id, created_at)"
+                        " VALUES (:id, :t, :a, 'person', :p, :w)"
+                    ),
+                    {"id": uuid.uuid4(), "t": t, "a": action, "p": pid, "w": when},
+                )
+        command.upgrade(cfg, "b7f2c4e8d915")
+        with engine.connect() as conn:
+            rows = {
+                r[0]: (r[1], r[2])
+                for r in conn.execute(
+                    text(
+                        "SELECT id, erased_at IS NOT NULL, to_char(deleted_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') FROM person"
+                    )
+                )
+            }
+        assert rows[erased] == (True, "2026-03-01")  # marked, and removed with it
+        assert rows[removed_then_erased] == (True, "2026-01-01")  # an earlier removal date is kept
+        assert rows[named] == (False, None)  # the name alone means nothing
+        assert rows[live] == (False, None)
+        assert rows[foreign] == (False, None)
+        with pytest.raises(Exception, match="lossy downgrade refused: 2 permanently deleted"):
+            command.downgrade(cfg, "a6e3d9b1f204")
+        with engine.connect() as conn:
+            assert conn.execute(text("SELECT count(*) FROM person WHERE erased_at IS NOT NULL")).scalar() == 2
+            assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "b7f2c4e8d915"
+        # with no marker left to lose, the downgrade goes through and comes back
+        with engine.begin() as conn:
+            conn.execute(text("UPDATE person SET erased_at = NULL"))
+        command.downgrade(cfg, "a6e3d9b1f204")
+        command.upgrade(cfg, "head")
+        engine.dispose()
+    finally:
+        with admin.connect() as c:
+            c.execute(text(f'DROP DATABASE IF EXISTS "{db}" WITH (FORCE)'))
+        admin.dispose()

@@ -19,6 +19,7 @@ def get_person_subject(ctx: TreeContext, person_id: uuid.UUID) -> Subject:
             Person.tree_id == ctx.tree_id,
             Person.id == person_id,
             Person.deleted_at.is_(None),
+            Person.erased_at.is_(None),
         )
     )
     if person is None:

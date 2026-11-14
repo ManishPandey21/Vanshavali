@@ -56,7 +56,10 @@ test("a relative can decline a link or ask to be removed, and the admin erases t
   await page.getByRole("dialog", { name: "Erase this profile permanently?" }).getByRole("button", { name: "Erase profile" }).click();
   await expect(page.getByText("Approved")).toBeVisible();
 
-  const after = await api<{ display_name: string; occupation: string | null }>(page.context(), "GET", `/trees/${treeId}/people/${meera.id}`, undefined, baseURL!);
-  expect(after.display_name).toBe("Erased person");
-  expect(after.occupation).toBeNull();
+  // ADR-0034: a permanently deleted profile is gone for everyone, the owner included: no profile,
+  // no "Erased person" entry in the list, and nothing to restore.
+  const after = await page.context().request.get(`${baseURL}/api/v1/trees/${treeId}/people/${meera.id}`);
+  expect(after.status()).toBe(404);
+  const people = await api<{ items: { id: string; display_name: string }[] }>(page.context(), "GET", `/trees/${treeId}/people`, undefined, baseURL!);
+  expect(people.items.some((p) => p.id === meera.id || p.display_name === "Erased person")).toBe(false);
 });

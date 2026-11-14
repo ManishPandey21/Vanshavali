@@ -314,9 +314,9 @@
     "occupation": "Occupation",
     "privatePerson": "Private person",
     "remove": "Remove",
-    "removeBody": "The person will be hidden from the tree. A tree admin can restore them.",
-    "removeBodyAdmin": "The person will be hidden from the tree. You can restore them later from the audit trail.",
-    "removeTitle": "Remove {{name}} from the tree?",
+    "removeBody": "This person will be removed from the family tree and will no longer appear in the tree or its people list. A tree admin can restore the record from Removed people.",
+    "removeBodyAdmin": "This person will be removed from the family tree and will no longer appear in the tree or its people list. You can restore the record from Removed people.",
+    "removeTitle": "Remove person from tree?",
     "sections": "Profile sections",
     "sexAtBirth": "Sex at birth",
     "sexHint": "Optional. Leave unrecorded if unknown.",
@@ -346,7 +346,9 @@
       "place": "Edit birthplace",
       "unavailable": "This event could not be loaded. Reload it or close this dialog and refresh the profile.",
       "reload": "Reload event"
-    }
+    },
+    "removeFromTree": "Remove from tree",
+    "deletePerson": "Delete person"
   },
   "names": {
     "add": "Add name",
@@ -937,7 +939,44 @@
       "sibling": "Sibling"
     },
     "you": "You",
-    "youLabel": "This is you"
+    "youLabel": "This is you",
+    "connected": "Whole family",
+    "subtitleFull": "Everyone connected by recorded relationships; only people you're allowed to see are named",
+    "resetView": "Reset view",
+    "keyboardHelpFamily": "Keyboard: Tab to the chart, arrow keys move between people, Enter opens a profile, Home returns to the starting person. Click a person to see their details beside the chart. Drag to pan; Ctrl + scroll or the buttons to zoom.",
+    "groupLabel_one": "Group {{n}} · {{count}} person",
+    "groupLabel_other": "Group {{n}} · {{count}} people",
+    "scope": {
+      "label": "How much of the tree to show",
+      "connected": "Connected family",
+      "all": "All groups in this tree",
+      "allHint": "Groups are families with no recorded relationship between them. They are shown apart; no link is assumed."
+    },
+    "full": {
+      "search": "Find a person in this view",
+      "searchPlaceholder": "Type a name…",
+      "searchResults": "Matching people",
+      "noMatch": "Nobody in this view has that name",
+      "noMatchYet": "Nobody loaded so far has that name; the family is still loading",
+      "partial": "Loading the family: {{loaded}} of {{total}} people so far. This is not everyone yet.",
+      "incomplete": "Loading stopped. {{loaded}} of {{total}} people are shown, so this is not the whole family.",
+      "failed": "The family could not be loaded.",
+      "resume": "Continue loading",
+      "completeConnected_one": "Everyone connected to {{name}} that you are allowed to see: {{count}} person",
+      "completeConnected_other": "Everyone connected to {{name}} that you are allowed to see: {{count}} people",
+      "completeAll_one": "Everyone in this tree that you are allowed to see: {{count}} person",
+      "completeAll_other": "Everyone in this tree that you are allowed to see: {{count}} people",
+      "groups_one": "{{count}} group",
+      "groups_other": "{{count}} separate groups",
+      "privateCount_one": "{{count}} private relative shown without a name",
+      "privateCount_other": "{{count}} private relatives shown without a name",
+      "alone": "No relatives are recorded for {{name}} yet",
+      "aloneHint": "Add parents, a spouse or children from the person's Family tab, or switch to all groups in this tree.",
+      "centreOnStart": "Centre on {{name}}",
+      "legend": "Solid lines: biological · dashed: adoptive/legal · dotted: step/foster · double line: couple · dotted arc: recorded sibling or other link",
+      "generationN": "Generation {{n}}",
+      "partnersAre": "Spouse / partner:"
+    }
   },
   "claim": {
     "button": "This is me",
@@ -966,7 +1005,7 @@
     "erase": "Erase profile",
     "keep": "Keep profile",
     "eraseTitle": "Erase this profile permanently?",
-    "eraseBody": "Their names, dates, notes and other personal details will be deleted and cannot be restored. An anonymous placeholder keeps the family structure intact."
+    "eraseBody": "Their names, dates, notes and other personal details, and their links to relatives, will be deleted and cannot be restored. They will no longer appear in the tree. No one else's record is deleted."
   },
   "consent": {
     "active": "Active",
@@ -2129,18 +2168,18 @@
     "confirm": "Yes, include and download"
   },
   "erase": {
-    "title": "Erase personal data",
-    "intro": "Permanently erases this person's names, dates, places, notes and other personal data. Use this for a data-erasure request. It can't be undone.",
-    "open": "Erase this person's data…",
-    "confirmTitle": "Permanently erase {{name}}?",
-    "confirmDescription": "This cannot be undone or restored.",
-    "point1": "Names, life events, heritage details, astrology and notes are deleted.",
-    "point2": "An anonymous placeholder (“Erased person”) stays in the tree so parents, children and spouses remain connected.",
-    "point3": "The erasure is recorded in the audit log with your reason.",
+    "title": "Delete person permanently",
+    "intro": "Permanently deletes this person's names, dates, places, notes and other personal data, and their relationship links. Use this for a deletion request, or for a record that should never have existed. It can't be undone. To take someone out of the tree and keep the option of bringing them back, use “Remove from tree” instead.",
+    "open": "Delete this person…",
+    "confirmTitle": "Permanently delete person?",
+    "confirmDescription": "This action will permanently delete eligible information associated with this person. It may also affect their relationships and associated records. This action cannot be undone after permanent deletion.",
+    "point1": "Their names, life events, heritage details, astrology, addresses and notes are deleted.",
+    "point2": "Their links to parents, children and partners are deleted. Relatives who were connected only through this person will no longer be connected in the tree. No one else's record is deleted.",
+    "point3": "Documents and photos stay in the vault but are no longer linked to this person. The deletion is recorded in the activity log with your reason.",
     "reason": "Reason",
-    "reasonHint": "For example, the person's own erasure request.",
+    "reasonHint": "For example, the person's own deletion request.",
     "typeName": "Type the name “{{name}}” to confirm",
-    "submit": "Erase permanently"
+    "submit": "Delete permanently"
   },
   "onboarding": {
     "title": "Start your family tree",
