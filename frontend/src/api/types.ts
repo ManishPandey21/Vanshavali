@@ -80,6 +80,10 @@ export type UnionOut = S["UnionOut"];
 export type SiblingOut = S["SiblingOut"];
 export type GraphOut = S["GraphOut"];
 export type GraphNode = S["GraphNode"];
+export type FamilyGraphOut = S["FamilyGraphOut"];
+export type FamilyGraphNode = S["FamilyGraphNode"];
+export type FamilyGraphEdge = S["FamilyGraphEdge"];
+export type FamilyGraphLink = S["FamilyGraphLink"];
 export type GraphEdge = S["GraphEdge"];
 export type RelationshipPathOut = S["RelationshipPathOut"];
 

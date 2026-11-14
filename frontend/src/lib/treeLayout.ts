@@ -30,6 +30,12 @@ export interface Layout {
   height: number;
   rows: Map<number, string[]>; // generation -> node ids ordered left→right
   rootId: string;
+  /** The whole tree has no starting person: `rootId` is then only where keyboard focus starts. */
+  noRootHighlight?: boolean;
+  /** Complete-family layout only: recorded sibling / "other" links, drawn as a dotted arc. */
+  links?: { a: string; b: string; kind: string }[];
+  /** Complete-family layout only: one box per connected group (never joined to another). */
+  groups?: { index: number; x: number; y: number; width: number; height: number; people: number }[];
 }
 
 function sexRank(n: GraphNode | undefined): number {
@@ -161,12 +167,15 @@ export function layoutGraph(graph: GraphOut, collapsed: ReadonlySet<string> = ne
 export function neighbour(layout: Layout, fromId: string, key: "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight"): string | null {
   const from = layout.nodes.get(fromId);
   if (!from) return null;
-  const gen = from.node.generation;
-  const row = layout.rows.get(gen) ?? [];
   if (key === "ArrowLeft" || key === "ArrowRight") {
-    const i = row.indexOf(fromId);
-    const j = key === "ArrowLeft" ? i - 1 : i + 1;
-    return row[j] ?? null;
+    // the same visual row; by position, so it also works where several groups share a row
+    let best: LaidOutNode | null = null;
+    for (const n of layout.nodes.values()) {
+      if (n.y !== from.y || n === from) continue;
+      if (key === "ArrowLeft" ? n.x >= from.x : n.x <= from.x) continue;
+      if (!best || Math.abs(n.x - from.x) < Math.abs(best.x - from.x)) best = n;
+    }
+    return best?.node.id ?? null;
   }
   // Up = visually above (smaller y). Ancestor rows have more negative generations.
   const targetY = key === "ArrowUp" ? from.y - ROW_H : from.y + ROW_H;

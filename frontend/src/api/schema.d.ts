@@ -807,7 +807,10 @@ export interface paths {
         put?: never;
         /**
          * Erase Person
-         * @description Irreversible privacy erasure; the person remains as an anonymous placeholder.
+         * @description Permanently delete a person (ADR-0034 §3). Irreversible.
+         *
+         *     Their personal data and relationship links are deleted. Nobody else's record is deleted. Only an
+         *     inert tombstone (no name, no data, no links) and the audit entry remain; it appears in no view.
          */
         post: operations["erase_person_api_v1_trees__tree_id__people__person_id__erase_post"];
         delete?: never;
@@ -825,7 +828,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Restore Person */
+        /**
+         * Restore Person
+         * @description Put a removed person back. 409 ``person_not_removed`` if they are not removed; 404 for a
+         *     permanently deleted person.
+         */
         post: operations["restore_person_api_v1_trees__tree_id__people__person_id__restore_post"];
         delete?: never;
         options?: never;
@@ -1053,6 +1060,30 @@ export interface paths {
         };
         /** Descendants */
         get: operations["descendants_api_v1_trees__tree_id__people__person_id__descendants_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trees/{tree_id}/family-graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Family Graph
+         * @description The complete authorised family, in pages (ADR-0034 §4). No generation limit.
+         *
+         *     Follow ``next_cursor`` until ``complete`` is true. 409 ``graph_changed`` means the tree changed
+         *     between pages: start again without a cursor. For a small person-centred view use
+         *     ``/people/{id}/ancestors``, ``/descendants`` or ``/family``.
+         */
+        get: operations["family_graph_api_v1_trees__tree_id__family_graph_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7281,6 +7312,95 @@ export interface components {
             /** Reason */
             reason: string;
             snapshot: components["schemas"]["FamilyAddressSnapshot"];
+        };
+        /** FamilyGraphComponent */
+        FamilyGraphComponent: {
+            /** Index */
+            index: number;
+            /** Size */
+            size: number;
+            /** People */
+            people: number;
+        };
+        /** FamilyGraphEdge */
+        FamilyGraphEdge: {
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+            type: components["schemas"]["RelationshipType"];
+            lineage?: components["schemas"]["Lineage"] | null;
+        };
+        /**
+         * FamilyGraphLink
+         * @description A recorded link that is not parent/child: a union, an explicit sibling pair, or "other".
+         */
+        FamilyGraphLink: {
+            /** A */
+            a: string;
+            /** B */
+            b: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "union" | "sibling" | "other";
+            type: components["schemas"]["RelationshipType"];
+        };
+        /** FamilyGraphNode */
+        FamilyGraphNode: {
+            /** Id */
+            id: string;
+            person: components["schemas"]["PersonSummary"] | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+            /** Generation */
+            generation: number;
+            /** Component */
+            component: number;
+        };
+        /**
+         * FamilyGraphOut
+         * @description One page of the complete family graph (ADR-0034 §4).
+         *
+         *     ``complete`` is true only on the last page. Until then the client holds a *partial* family and
+         *     must say so. ``total_nodes`` and ``total_people`` describe the whole authorised result, not the
+         *     page. ``components`` is sent with the first page only.
+         */
+        FamilyGraphOut: {
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "connected" | "all";
+            /** Root Id */
+            root_id: string | null;
+            /** Revision */
+            revision: string;
+            /** Total Nodes */
+            total_nodes: number;
+            /** Total People */
+            total_people: number;
+            /** Offset */
+            offset: number;
+            /** Nodes */
+            nodes: components["schemas"]["FamilyGraphNode"][];
+            /** Edges */
+            edges: components["schemas"]["FamilyGraphEdge"][];
+            /** Links */
+            links: components["schemas"]["FamilyGraphLink"][];
+            /**
+             * Components
+             * @default []
+             */
+            components?: components["schemas"]["FamilyGraphComponent"][];
+            /** Complete */
+            complete: boolean;
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** FamilyOut */
         FamilyOut: {
@@ -15679,6 +15799,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GraphOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    family_graph_api_v1_trees__tree_id__family_graph_get: {
+        parameters: {
+            query?: {
+                /** @description connected: everyone linked to person_id through recorded relationships. all: every group of the tree, disconnected ones as separate components. */
+                scope?: "connected" | "all";
+                /** @description Required for scope=connected */
+                person_id?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyGraphOut"];
                 };
             };
             /** @description Validation Error */

@@ -2661,7 +2661,7 @@
      "genealogy"
     ],
     "summary": "Erase Person",
-    "description": "Irreversible privacy erasure; the person remains as an anonymous placeholder.",
+    "description": "Permanently delete a person (ADR-0034 \u00a73). Irreversible.\n\nTheir personal data and relationship links are deleted. Nobody else's record is deleted. Only an\ninert tombstone (no name, no data, no links) and the audit entry remain; it appears in no view.",
     "operationId": "erase_person_api_v1_trees__tree_id__people__person_id__erase_post",
     "parameters": [
      {
@@ -2725,6 +2725,7 @@
      "genealogy"
     ],
     "summary": "Restore Person",
+    "description": "Put a removed person back. 409 ``person_not_removed`` if they are not removed; 404 for a\npermanently deleted person.",
     "operationId": "restore_person_api_v1_trees__tree_id__people__person_id__restore_post",
     "parameters": [
      {
@@ -4044,6 +4045,114 @@
        "application/json": {
         "schema": {
          "$ref": "#/components/schemas/GraphOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/trees/{tree_id}/family-graph": {
+   "get": {
+    "tags": [
+     "genealogy"
+    ],
+    "summary": "Family Graph",
+    "description": "The complete authorised family, in pages (ADR-0034 \u00a74). No generation limit.\n\nFollow ``next_cursor`` until ``complete`` is true. 409 ``graph_changed`` means the tree changed\nbetween pages: start again without a cursor. For a small person-centred view use\n``/people/{id}/ancestors``, ``/descendants`` or ``/family``.",
+    "operationId": "family_graph_api_v1_trees__tree_id__family_graph_get",
+    "parameters": [
+     {
+      "name": "tree_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Tree Id"
+      }
+     },
+     {
+      "name": "scope",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "connected",
+        "all"
+       ],
+       "type": "string",
+       "description": "connected: everyone linked to person_id through recorded relationships. all: every group of the tree, disconnected ones as separate components.",
+       "default": "connected",
+       "title": "Scope"
+      },
+      "description": "connected: everyone linked to person_id through recorded relationships. all: every group of the tree, disconnected ones as separate components."
+     },
+     {
+      "name": "person_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Required for scope=connected",
+       "title": "Person Id"
+      },
+      "description": "Required for scope=connected"
+     },
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 600
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 1000,
+       "minimum": 1,
+       "default": 500,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FamilyGraphOut"
         }
        }
       }
@@ -28616,6 +28725,232 @@
      "snapshot"
     ],
     "title": "FamilyAddressVersionIn"
+   },
+   "FamilyGraphComponent": {
+    "properties": {
+     "index": {
+      "type": "integer",
+      "title": "Index"
+     },
+     "size": {
+      "type": "integer",
+      "title": "Size"
+     },
+     "people": {
+      "type": "integer",
+      "title": "People"
+     }
+    },
+    "type": "object",
+    "required": [
+     "index",
+     "size",
+     "people"
+    ],
+    "title": "FamilyGraphComponent"
+   },
+   "FamilyGraphEdge": {
+    "properties": {
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "target": {
+      "type": "string",
+      "title": "Target"
+     },
+     "type": {
+      "$ref": "#/components/schemas/RelationshipType"
+     },
+     "lineage": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Lineage"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "source",
+     "target",
+     "type"
+    ],
+    "title": "FamilyGraphEdge"
+   },
+   "FamilyGraphLink": {
+    "properties": {
+     "a": {
+      "type": "string",
+      "title": "A"
+     },
+     "b": {
+      "type": "string",
+      "title": "B"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "union",
+       "sibling",
+       "other"
+      ],
+      "title": "Kind"
+     },
+     "type": {
+      "$ref": "#/components/schemas/RelationshipType"
+     }
+    },
+    "type": "object",
+    "required": [
+     "a",
+     "b",
+     "kind",
+     "type"
+    ],
+    "title": "FamilyGraphLink",
+    "description": "A recorded link that is not parent/child: a union, an explicit sibling pair, or \"other\"."
+   },
+   "FamilyGraphNode": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "person": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PersonSummary"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "hidden": {
+      "type": "boolean",
+      "title": "Hidden",
+      "default": false
+     },
+     "generation": {
+      "type": "integer",
+      "title": "Generation"
+     },
+     "component": {
+      "type": "integer",
+      "title": "Component"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "person",
+     "generation",
+     "component"
+    ],
+    "title": "FamilyGraphNode"
+   },
+   "FamilyGraphOut": {
+    "properties": {
+     "scope": {
+      "type": "string",
+      "enum": [
+       "connected",
+       "all"
+      ],
+      "title": "Scope"
+     },
+     "root_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Root Id"
+     },
+     "revision": {
+      "type": "string",
+      "title": "Revision"
+     },
+     "total_nodes": {
+      "type": "integer",
+      "title": "Total Nodes"
+     },
+     "total_people": {
+      "type": "integer",
+      "title": "Total People"
+     },
+     "offset": {
+      "type": "integer",
+      "title": "Offset"
+     },
+     "nodes": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyGraphNode"
+      },
+      "type": "array",
+      "title": "Nodes"
+     },
+     "edges": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyGraphEdge"
+      },
+      "type": "array",
+      "title": "Edges"
+     },
+     "links": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyGraphLink"
+      },
+      "type": "array",
+      "title": "Links"
+     },
+     "components": {
+      "items": {
+       "$ref": "#/components/schemas/FamilyGraphComponent"
+      },
+      "type": "array",
+      "title": "Components",
+      "default": []
+     },
+     "complete": {
+      "type": "boolean",
+      "title": "Complete"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "scope",
+     "root_id",
+     "revision",
+     "total_nodes",
+     "total_people",
+     "offset",
+     "nodes",
+     "edges",
+     "links",
+     "complete"
+    ],
+    "title": "FamilyGraphOut",
+    "description": "One page of the complete family graph (ADR-0034 \u00a74).\n\n``complete`` is true only on the last page. Until then the client holds a *partial* family and\nmust say so. ``total_nodes`` and ``total_people`` describe the whole authorised result, not the\npage. ``components`` is sent with the first page only."
    },
    "FamilyOut": {
     "properties": {

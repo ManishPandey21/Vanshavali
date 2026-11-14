@@ -19,10 +19,13 @@ describe("erase confirmation gate", () => {
     const fetchMock = vi.fn(async () => jsonResponse({ message: "erased" }));
     vi.stubGlobal("fetch", fetchMock);
     renderWithProviders(<ErasePanel person={person} />);
-    await userEvent.click(screen.getByRole("button", { name: /Erase this person's data/ }));
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText(/anonymous placeholder/)).toBeInTheDocument();
-    const submit = within(dialog).getByRole("button", { name: "Erase permanently" });
+    await userEvent.click(screen.getByRole("button", { name: /Delete this person/ }));
+    const dialog = screen.getByRole("dialog", { name: "Permanently delete person?" });
+    // ADR-0034: the dialog says what really happens: links are cut, nobody else is deleted
+    expect(within(dialog).getByText(/cannot be undone after permanent deletion/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/No one else's record is deleted/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/placeholder/)).not.toBeInTheDocument();
+    const submit = within(dialog).getByRole("button", { name: "Delete permanently" });
     expect(submit).toBeDisabled();
     await userEvent.type(within(dialog).getByLabelText(/^Reason/), "Her own erasure request");
     await userEvent.type(within(dialog).getByLabelText(/Type the name/), "Kamala Dev");
@@ -39,6 +42,6 @@ describe("erase confirmation gate", () => {
 
   it("is not offered to members without tree.manage", () => {
     renderWithProviders(<ErasePanel person={person} />, { tree: makeTree({ my_roles: ["CONTRIBUTOR"], my_permissions: ["tree.read", "person.write"] }) });
-    expect(screen.queryByRole("button", { name: /Erase/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Delete/ })).not.toBeInTheDocument();
   });
 });

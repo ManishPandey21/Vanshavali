@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronsDown, ChevronsUp, List, Network, Users } from "lucide-react";
 import type { Lineage, PersonSummary } from "../../api/types";
 import { useGraph, usePerson } from "../../api/hooks/people";
 import { useTreeCtx } from "../../lib/tree-context";
-import { recentPeople } from "../../lib/recent";
+import { forgetPerson, recentPeople } from "../../lib/recent";
+import { ApiError } from "../../api/client";
 import { useFamilyApex } from "../../lib/apex";
 import { PersonPicker } from "../../components/pickers";
 import { TreeChart } from "../../components/tree/TreeChart";
 import { FamilyView } from "../../components/tree/FamilyView";
 import { TreePersonPanel } from "../../components/tree/TreePersonPanel";
 import { TreeList } from "../../components/tree/TreeList";
+import { FullFamilyTree } from "../../components/tree/FullFamilyTree";
 import { Button } from "../../components/ui/Button";
 import { EmptyState, ErrorAlert, PageHeader, Spinner } from "../../components/ui/feedback";
 import { LineageToggle } from "./person/FamilyTab";
@@ -23,13 +25,24 @@ export function TreeViewerPage() {
   const { t } = useTranslation();
   const { treeId, tree } = useTreeCtx();
   const navigate = useNavigate();
-  const remembered = personId ?? tree.my_linked_person_id ?? recentPeople(treeId)[0] ?? "";
+  // A remembered starting person may since have been removed from the tree. Only an explicit link
+  // (personId in the URL) is allowed to end in "not found"; a remembered one is dropped instead.
+  const [gone, setGone] = useState<readonly string[]>([]);
+  const candidates = [tree.my_linked_person_id, ...recentPeople(treeId)].filter((id): id is string => !!id && !gone.includes(id));
+  const remembered = personId ?? candidates[0] ?? "";
   // With nobody to start from, open on the family elder rather than an empty search box.
   const apex = useFamilyApex(treeId, tree.my_linked_person_id);
   const fallbackRoot = remembered || apex.apexId || "";
   const root = usePerson(treeId, fallbackRoot || undefined);
 
-  if (!remembered && apex.isLoading) return <Spinner />;
+  const missing = !personId && !!remembered && root.error instanceof ApiError && root.error.status === 404 ? remembered : null;
+  useEffect(() => {
+    if (!missing) return;
+    forgetPerson(treeId, missing);
+    setGone((g) => (g.includes(missing) ? g : [...g, missing]));
+  }, [missing, treeId]);
+
+  if (missing || (!remembered && apex.isLoading)) return <Spinner />;
   if (!fallbackRoot) {
     return (
       <div>
@@ -66,7 +79,9 @@ function TreeViewer({
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const dirParam = params.get("dir");
-  const direction = dirParam === "descendants" || dirParam === "ancestors" ? dirParam : defaultDirection;
+  const direction = dirParam === "descendants" || dirParam === "ancestors" || dirParam === "connected" ? dirParam : defaultDirection;
+  const full = direction === "connected";
+  const scope = params.get("scope") === "all" ? "all" : "connected";
   const viewParam = params.get("view");
   const view = viewParam === "list" ? "list" : viewParam === "family" ? "family" : "chart";
   const location = useLocation();
@@ -75,7 +90,8 @@ function TreeViewer({
   const [depth, setDepth] = useState(3);
   const [lineage, setLineage] = useState<Lineage[]>([]);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const graph = useGraph(treeId, rootId, direction, depth, lineage);
+  // the focused views keep their own, limited query; the complete family loads through FullFamilyTree
+  const graph = useGraph(treeId, full ? "" : rootId, full ? "descendants" : direction, depth, lineage);
   const centre = (id: string) => {
     navigate(`/t/${treeId}/tree/${id}?${params.toString()}`, { state: { select: id } });
   };
@@ -99,7 +115,7 @@ function TreeViewer({
     <div>
       <PageHeader
         title={t("treeView.titleFor", { name: rootName })}
-        subtitle={t("treeView.subtitle")}
+        subtitle={t(full && view !== "family" ? "treeView.subtitleFull" : "treeView.subtitle")}
         actions={
           <div className="w-64">
             <PersonPicker treeId={treeId} label={t("treeView.changeRoot")} value={null} onChange={(p) => p && navigate(`/t/${treeId}/tree/${p.id}?${params.toString()}`)} />
@@ -110,7 +126,7 @@ function TreeViewer({
         <div className="flex flex-wrap items-center gap-2">
           {view !== "family" && (
             <div role="group" aria-label={t("treeView.direction")} className="inline-flex rounded-lg border border-stone-300 bg-white p-0.5">
-              {(["ancestors", "descendants"] as const).map((d) => (
+              {(["connected", "ancestors", "descendants"] as const).map((d) => (
                 <button
                   key={d}
                   type="button"
@@ -121,7 +137,7 @@ function TreeViewer({
                   }}
                   className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm ${direction === d ? "bg-kumkum-700 text-white" : ""}`}
                 >
-                  {d === "ancestors" ? <ChevronsUp className="size-4" aria-hidden /> : <ChevronsDown className="size-4" aria-hidden />}
+                  {d === "connected" ? <Network className="size-4" aria-hidden /> : d === "ancestors" ? <ChevronsUp className="size-4" aria-hidden /> : <ChevronsDown className="size-4" aria-hidden />}
                   {t(`treeView.${d}`)}
                 </button>
               ))}
@@ -139,13 +155,15 @@ function TreeViewer({
             </button>
           </div>
         </div>
-        <LineageToggle value={lineage} onChange={setLineage} />
+        {!(full && view !== "family") && <LineageToggle value={lineage} onChange={setLineage} />}
       </div>
 
       <div className={selected ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]" : ""}>
         <div className="min-w-0">
           {view === "family" ? (
             <FamilyView focusId={rootId} lineage={lineage} selectedId={selected} onSelect={setSelected} />
+          ) : full ? (
+            <FullFamilyTree rootId={rootId} rootName={rootName} scope={scope} onScope={(s) => setParam("scope", s)} view={view} selectedId={selected} onSelect={setSelected} />
           ) : (
             <>
               {graph.isLoading && <Spinner />}
@@ -156,7 +174,7 @@ function TreeViewer({
                 </p>
               )}
               {graph.data && graph.data.nodes.length <= 1 && (
-                <EmptyState title={t(`treeView.none.${direction}`)}>{t("treeView.noneHint")}</EmptyState>
+                <EmptyState title={t(`treeView.none.${direction === "ancestors" ? "ancestors" : "descendants"}`)}>{t("treeView.noneHint")}</EmptyState>
               )}
               {graph.data && graph.data.nodes.length > 1 && (
                 <div aria-busy={graph.isFetching}>
@@ -191,7 +209,7 @@ function TreeViewer({
       </div>
       {view === "family" ? (
         <p className="mt-3 text-xs text-ink-muted">{t("treeView.family.hint")}</p>
-      ) : (
+      ) : full ? null : (
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
           <span className="text-ink-muted">{t("treeView.showingGenerations", { count: depth })}</span>
           {graph.data && <span className="text-ink-muted">· {t("treeView.peopleShown", { count: graph.data.nodes.filter((n) => n.person).length })}</span>}
