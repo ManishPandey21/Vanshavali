@@ -1,6 +1,6 @@
 # ADR-0018: Master data — controlled values vs extensible vocabularies
 
-- Status: Accepted · Date: 2026-11-04
+- Status: Accepted · Date: 2026-11-04 · §4 amended by [ADR-0028](0028-super-admin-master-data-console.md) (12 Nov 2026)
 - Relates to: ADR-0003 (assertions, no inference), ADR-0006 (authorisation), ADR-0020 (kinship
   terms are controlled)
 - Plan: [india-master-data-and-smart-forms-plan.md](../india-master-data-and-smart-forms-plan.md),
@@ -75,6 +75,13 @@ version, source and licence. `python -m app.cli.masterdata load` is idempotent:
 
 The pilot `migrate` service, the e2e database reset and the test fixtures run it after
 `alembic upgrade`. JSON is used so the packs need no new dependency.
+
+*Amended by [ADR-0028](0028-super-admin-master-data-console.md) §2–§3:* the packs stop being the only source of truth for global terms.
+Each vocabulary has an `authority`. With `pack`, the default and today's behaviour, the pack stays
+the source of truth. With `database`, terms published from the master-data console, after a
+second administrator approves them, are the truth, and the pack becomes a seed and proposal
+channel. The loader then never overwrites, retires or re-creates a curated term; pack differences
+are recorded as proposals. Terms are still never deleted.
 
 ### 5. API
 - `GET /vocabularies`: list of vocabularies (signed-in users).

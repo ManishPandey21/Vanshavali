@@ -1,6 +1,6 @@
 # ADR-0026: Cultural depth: pravara, devak and kuladevata, regional kinship packs, family traditions
 
-- Status: Accepted · Date: 2026-11-08 (accepted as proposed, including the four open points) · Release: R4 · Implemented (see the implementation notes)
+- Status: Accepted · Date: 2026-11-08 (accepted as proposed, including the four open points) · Release: R4 · Implemented (see the implementation notes) · §4 and the open point "Where curation happens" amended by [ADR-0028](0028-super-admin-master-data-console.md) (12 Nov 2026)
 - Relates to: ADR-0018 (master-data vocabularies; this ADR completes its phase-A transition),
   ADR-0020 (kinship terms, age order), ADR-0003 (heritage as claims, no inference), ADR-0006
   (privacy, field groups), ADR-0021 (review, revisions), ADR-0004 (documents), Q4, Q14
@@ -101,6 +101,12 @@ This applies to kuladevata, kuladevi, devak, gotra and kula entries a family add
 - **Promoted entries keep working.** The family's records keep their stored label and code. The
   tree term records the global code it became, and search returns one result, not two.
 - **Declining** tells the admin, without a reason that names other families.
+
+*Amended by [ADR-0028](0028-super-admin-master-data-console.md) §12:* curation moves from the operator CLI and code review to the
+master-data console, with a second administrator approving each publication. Offers move into
+the console in a later increment; until then the CLI above still applies. Reviewers in the
+console see only what reviewing a term needs: never the offering tree, the offerer or the
+offer's free-text note (the note stays visible to that tree's own admins).
 
 ### 5. Kuladevata and kuladevi linked to a temple
 - A `kuladevata` or `kuladevi` claim may carry a `place_id` (as the ancestral village already
@@ -269,7 +275,8 @@ This applies to kuladevata, kuladevi, devak, gotra and kula entries a family add
   users with that UI or kinship preference, once a native reviewer is found. Suggested first
   candidates: Marathi, Bengali, Punjabi. The owner decides.
 - **Where curation happens.** Proposal: operator CLI plus code review for R4, and a system-admin
-  page later. Alternative: an admin page now.
+  page later. Alternative: an admin page now. *Amended by [ADR-0028](0028-super-admin-master-data-console.md):* the page is the
+  master-data console, with second-admin approval.
 - **Traditions on public trees.** Proposal: never in R4. Alternative: opt-in per entry, for
   entries that name only deceased people.
 - **Surname history as names.** Proposal: historical names with a period (no new attribute).
