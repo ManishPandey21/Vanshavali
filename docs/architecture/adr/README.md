@@ -38,3 +38,4 @@ into 0003, 0009 and 0010.
 | 0031 | [Family profile fields, private addresses and communications](0031-family-profile-addresses-and-communications.md) | Accepted — phased rollout; legacy access retained until explicit conversion |
 | 0032 | [Anonymous landing-page visitor estimate with a first-party cookie](0032-landing-visitor-measurement-cookie.md) | Accepted (measurement off until the activation conditions hold) |
 | 0033 | [Retention of sign-in records and audit-log network identifiers](0033-sign-in-and-audit-network-retention.md) | Accepted |
+| 0034 | [Person lifecycle (remove, restore, permanently delete) and the complete family graph](0034-person-lifecycle-and-complete-family-graph.md) | Proposed (implemented on a draft PR; awaiting owner decision) |
