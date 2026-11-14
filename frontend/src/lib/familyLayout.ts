@@ -45,20 +45,25 @@ function layoutGroup(
   links: readonly FamilyGraphLink[],
 ): { pos: Map<string, { x: number; y: number }>; width: number; height: number } {
   const byId = new Map(nodes.map((n) => [n.id, n]));
+  const add = (m: Map<string, string[]>, k: string, v: string) => {
+    const list = m.get(k);
+    if (list) list.push(v);
+    else m.set(k, [v]);
+  };
   const children = new Map<string, string[]>();
   const parents = new Map<string, string[]>();
   for (const e of edges) {
     if (!byId.has(e.source) || !byId.has(e.target)) continue;
-    children.set(e.source, [...(children.get(e.source) ?? []), e.target]);
-    parents.set(e.target, [...(parents.get(e.target) ?? []), e.source]);
+    add(children, e.source, e.target);
+    add(parents, e.target, e.source);
   }
   const partners = new Map<string, string[]>();
   const siblings = new Map<string, string[]>();
   for (const l of links) {
     if (!byId.has(l.a) || !byId.has(l.b) || l.kind === "other") continue;
     const m = l.kind === "union" ? partners : siblings;
-    m.set(l.a, [...(m.get(l.a) ?? []), l.b]);
-    m.set(l.b, [...(m.get(l.b) ?? []), l.a]);
+    add(m, l.a, l.b);
+    add(m, l.b, l.a);
   }
   const gen = (id: string) => byId.get(id)!.generation;
   const sorted = (ids: readonly string[]) => [...new Set(ids)].sort((a, b) => byAgeThenId(byId.get(a)!, byId.get(b)!));
@@ -77,7 +82,9 @@ function layoutGroup(
         ids.push(p);
       }
     }
-    rows.set(block.gen, [...(rows.get(block.gen) ?? []), block]);
+    const row = rows.get(block.gen);
+    if (row) row.push(block);
+    else rows.set(block.gen, [block]);
     return block;
   };
   const walk = (start: string) => {
@@ -166,20 +173,26 @@ function layoutGroup(
 }
 
 export function layoutFamily(data: FamilyGraphData): Layout {
+  // appended in place: a copy per person would make a large family quadratic
+  const push = <K, V>(m: Map<K, V[]>, k: K, v: V) => {
+    const list = m.get(k);
+    if (list) list.push(v);
+    else m.set(k, [v]);
+  };
   const groups = new Map<number, FamilyGraphNode[]>();
-  for (const n of data.nodes) groups.set(n.component, [...(groups.get(n.component) ?? []), n]);
+  for (const n of data.nodes) push(groups, n.component, n);
   const groupOf = new Map(data.nodes.map((n) => [n.id, n.component]));
   const edgesBy = new Map<number, FamilyGraphEdge[]>();
   for (const e of data.edges) {
     const g = groupOf.get(e.source);
     if (g === undefined || g !== groupOf.get(e.target)) continue; // never across groups
-    edgesBy.set(g, [...(edgesBy.get(g) ?? []), e]);
+    push(edgesBy, g, e);
   }
   const linksBy = new Map<number, FamilyGraphLink[]>();
   for (const l of data.links) {
     const g = groupOf.get(l.a);
     if (g === undefined || g !== groupOf.get(l.b)) continue;
-    linksBy.set(g, [...(linksBy.get(g) ?? []), l]);
+    push(linksBy, g, l);
   }
 
   const out = new Map<string, LaidOutNode>();
@@ -209,7 +222,7 @@ export function layoutFamily(data: FamilyGraphData): Layout {
   }
 
   const rows = new Map<number, string[]>();
-  for (const n of out.values()) rows.set(n.y, [...(rows.get(n.y) ?? []), n.node.id]);
+  for (const n of out.values()) push(rows, n.y, n.node.id);
   for (const [k, ids] of rows) rows.set(k, ids.sort((a, b) => out.get(a)!.x - out.get(b)!.x));
 
   const has = (id: string) => out.has(id);

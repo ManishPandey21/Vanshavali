@@ -319,3 +319,22 @@ def test_unauthenticated_cannot_remove(client, owner, tree):
     p = _family(owner, t)
     assert client.delete(f"/trees/{t}/people/{p['Son']}").status_code in (401, 403, 404)
     assert owner.get(f"/trees/{t}/people/{p['Son']}").status_code == 200
+
+
+def test_restore_cannot_give_a_child_a_third_biological_parent(owner, tree):
+    """Found by the independent review: removal relaxes the two-parent limit, so restore re-checks it."""
+    t = tree["id"]
+    p = _family(owner, t)
+    assert owner.delete(f"/trees/{t}/people/{p['Son']}").status_code == 200
+    father = create_person(owner, t, "Father")["id"]
+    replacement = link(owner, t, father, p["Grandkid"], "biological_parent")
+    r = owner.post(f"/trees/{t}/people/{p['Son']}/restore")
+    assert r.status_code == 409 and r.json()["error"]["code"] == "too_many_biological_parents"
+    assert [x["id"] for x in owner.get(f"/trees/{t}/people/deleted").json()] == [p["Son"]]  # still removed
+    fam = owner.get(f"/trees/{t}/people/{p['Grandkid']}/family").json()
+    assert sorted(x["person"]["id"] for x in fam["parents"]) == sorted([p["Bahu"], father])
+    # once the family settles which link stands, the restore goes through
+    assert owner.delete(f"/trees/{t}/relationships/{replacement['id']}").status_code == 200
+    assert owner.post(f"/trees/{t}/people/{p['Son']}/restore").status_code == 200
+    fam = owner.get(f"/trees/{t}/people/{p['Grandkid']}/family").json()
+    assert sorted(x["person"]["id"] for x in fam["parents"]) == sorted([p["Bahu"], p["Son"]])

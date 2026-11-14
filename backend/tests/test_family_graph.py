@@ -532,3 +532,92 @@ def test_large_family_pages_to_completion_within_a_bounded_number_of_queries(own
     # queries grow with the depth of the family (one frontier per hop), not with its size
     assert max(counts) < 150, counts
     assert elapsed < 30, elapsed
+
+
+# ---------------------------------------------------------------- found by the independent review
+def test_a_link_between_two_hidden_spouses_is_not_sent(owner, tree, member_factory):
+    """Two visible siblings each have a hidden spouse, and those spouses are parent and child."""
+    t = tree["id"]
+    p = {n: create_person(owner, t, n)["id"] for n in ["Parent", "A", "B", "SpouseA", "SpouseB"]}
+    link(owner, t, p["Parent"], p["A"], "biological_parent")
+    link(owner, t, p["Parent"], p["B"], "biological_parent")
+    link(owner, t, p["A"], p["SpouseA"], "spouse")
+    link(owner, t, p["B"], p["SpouseB"], "spouse")
+    link(owner, t, p["SpouseA"], p["SpouseB"], "biological_parent")
+    _hide(owner, t, p["SpouseA"])
+    _hide(owner, t, p["SpouseB"])
+    g, _ = load_all(member_factory(["VIEWER"]), t, scope="connected", person_id=p["A"])
+    assert sum(n["hidden"] for n in g["nodes"]) == 2
+    assert not any(e["source"].startswith("hidden") and e["target"].startswith("hidden") for e in g["edges"])
+    assert all(not (ln["a"].startswith("hidden") and ln["b"].startswith("hidden")) for ln in g["links"])
+
+
+def test_hidden_line_of_descent_keeps_its_own_links(owner, tree, member_factory):
+    """Two hidden generations in a row: the links the walk followed are still drawn."""
+    t = tree["id"]
+    chain = [create_person(owner, t, n)["id"] for n in ["Top", "HiddenOne", "HiddenTwo", "Bottom"]]
+    for a, b in pairwise(chain):
+        link(owner, t, a, b, "biological_parent")
+    _hide(owner, t, chain[1])
+    _hide(owner, t, chain[2])
+    g, _ = load_all(member_factory(["VIEWER"]), t, scope="connected", person_id=chain[0])
+    assert names(g) == ["Bottom", "Top"] and len(g["edges"]) == 3
+
+
+def test_expired_grant_is_not_named_from_an_earlier_plan(owner, tree, member_factory):
+    """The plan is reused across pages; a grant that ends in between changes no row of the tree.
+    The person it made visible must not be named again, even as the far end of a link."""
+    import datetime as dt
+
+    from sqlalchemy import text
+
+    t = tree["id"]
+    x, child = create_person(owner, t, "Xavier")["id"], create_person(owner, t, "Child")["id"]
+    link(owner, t, x, child, "biological_parent")
+    _hide(owner, t, x)
+    viewer = member_factory(["VIEWER"], name="Grantee")
+    member = next(m for m in owner.get(f"/trees/{t}/members").json() if m["display_name"] == "Grantee")
+    r = owner.post(
+        f"/trees/{t}/grants",
+        json={
+            "user_id": member["user_id"],
+            "resource_type": "person",
+            "resource_id": x,
+            "permission": "view",
+        },
+    )
+    assert r.status_code == 201, r.text
+    first = page(viewer, t, scope="connected", person_id=child, limit=1)
+    assert x in str(page(viewer, t, scope="connected", person_id=child))  # visible while granted
+    with owner_session() as s:  # the grant ends without any change to a person or relationship row
+        s.execute(
+            text("UPDATE access_grant SET expires_at = :e WHERE resource_id = :x"),
+            {"e": dt.datetime.now(dt.UTC) - dt.timedelta(seconds=1), "x": x},
+        )
+        s.commit()
+    assert viewer.get(f"/trees/{t}/people/{x}").status_code == 404
+    r = viewer.get(
+        f"/trees/{t}/family-graph",
+        params={"scope": "connected", "person_id": child, "limit": 1, "cursor": first["next_cursor"]},
+    )
+    assert x not in r.text
+    assert r.status_code == 409 and r.json()["error"]["code"] == "graph_changed"
+    g, _ = load_all(viewer, t, scope="connected", person_id=child, limit=1)
+    assert x not in str(g) and sum(n["hidden"] for n in g["nodes"]) == 1
+
+
+def test_cursor_with_a_non_integer_position_is_invalid(owner, family):
+    import base64
+    import json
+
+    t, p = family
+    for bad in (
+        '{"o": 1e999, "r": "x", "s": "connected", "p": "' + p["Anita"] + '"}',
+        json.dumps({"o": True, "r": "x", "s": "connected", "p": p["Anita"]}),
+        json.dumps({"o": "2", "r": "x", "s": "connected", "p": p["Anita"]}),
+    ):
+        cur = base64.urlsafe_b64encode(bad.encode()).decode()
+        r = owner.get(
+            f"/trees/{t}/family-graph", params={"scope": "connected", "person_id": p["Anita"], "cursor": cur}
+        )
+        assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_cursor", bad

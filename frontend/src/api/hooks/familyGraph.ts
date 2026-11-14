@@ -44,7 +44,7 @@ export function useFamilyGraph(treeId: string, scope: FamilyScope, personId: str
     retry: (count, err) => !(err instanceof ApiError && err.status < 500) && count < 2,
   });
 
-  const { hasNextPage, isFetchingNextPage, isFetching, isError, fetchNextPage, error } = q;
+  const { hasNextPage, isFetchingNextPage, isFetching, isRefetching, isError, fetchNextPage, error } = q;
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage && !isFetching && !isError) void fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, isFetching, isError, fetchNextPage]);
@@ -75,7 +75,14 @@ export function useFamilyGraph(treeId: string, scope: FamilyScope, personId: str
       totalPeople: first?.total_people ?? 0,
     };
   }, [pages]);
-  const complete = !!pages?.length && pages[pages.length - 1].complete;
+  // "Complete" is a claim about the tree as it is now. Pages kept from before a change (a refetch
+  // after someone was removed is under way, or it failed) are not that: they may still hold the
+  // person who is gone.
+  const allLoaded = !!pages?.length && pages[pages.length - 1].complete;
+  const complete = allLoaded && !isRefetching && !isError;
+  useEffect(() => {
+    if (complete) restarts.current = 0; // a clean load earns a fresh allowance of automatic restarts
+  }, [complete]);
   const status: FamilyGraphStatus = complete
     ? "complete"
     : !pages?.length
@@ -92,6 +99,6 @@ export function useFamilyGraph(treeId: string, scope: FamilyScope, personId: str
     complete,
     error: status === "incomplete" ? error : null,
     /** Continue after an error: carry on from the last page, or start again if the tree changed. */
-    resume: () => (changed || !pages?.length ? qc.resetQueries({ queryKey: key, exact: true }) : fetchNextPage()),
+    resume: () => (changed || !pages?.length || allLoaded ? qc.resetQueries({ queryKey: key, exact: true }) : fetchNextPage()),
   };
 }

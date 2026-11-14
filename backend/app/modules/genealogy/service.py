@@ -763,6 +763,36 @@ def restore_person(ctx: TreeContext, person_id: uuid.UUID) -> Person:
         raise Conflict("This record was merged into another; undo the merge instead", code="person_merged")
     if person.deleted_at is None:
         raise Conflict("This person is not removed from the tree", code="person_not_removed")
+    # Removal stopped this person counting as a parent, so a replacement may have been recorded
+    # since. Coming back must not leave a child with a third biological parent.
+    undisputed = [EvidenceStatus.DISPROVEN, EvidenceStatus.SUPERSEDED, EvidenceStatus.DISPUTED]
+    removed = select(Person.id).where(Person.tree_id == ctx.tree_id, Person.deleted_at.is_not(None))
+    for child in ctx.db.scalars(
+        select(Relationship.person_b_id).where(
+            Relationship.tree_id == ctx.tree_id,
+            Relationship.person_a_id == person.id,
+            Relationship.type == RelationshipType.BIOLOGICAL_PARENT,
+            Relationship.evidence_status.notin_(undisputed),
+        )
+    ):
+        others = ctx.db.scalar(
+            select(func.count())
+            .select_from(Relationship)
+            .where(
+                Relationship.tree_id == ctx.tree_id,
+                Relationship.person_b_id == child,
+                Relationship.person_a_id != person.id,
+                Relationship.type == RelationshipType.BIOLOGICAL_PARENT,
+                Relationship.evidence_status.notin_(undisputed),
+                Relationship.person_a_id.notin_(removed),
+            )
+        )
+        if (others or 0) >= 2:
+            raise Conflict(
+                "A child of this person now has two other biological parents recorded. Remove or "
+                "mark one of those links as disputed before restoring.",
+                code="too_many_biological_parents",
+            )
     person.deleted_at = None
     lifecycle.forget(ctx)
     provisional_people.forget(ctx)
@@ -1284,6 +1314,13 @@ def _erase_person(ctx: TreeContext, person_id: uuid.UUID, reason: str) -> Person
                 Citation.tree_id == ctx.tree_id,
                 Citation.target_type == CitationTarget.RELATIONSHIP,
                 Citation.target_id.in_(rel_ids),
+            )
+        )
+        db.execute(
+            sa_delete(DocumentLink).where(
+                DocumentLink.tree_id == ctx.tree_id,
+                DocumentLink.target_type == DocumentLinkTarget.RELATIONSHIP,
+                DocumentLink.target_id.in_(rel_ids),
             )
         )
         db.execute(

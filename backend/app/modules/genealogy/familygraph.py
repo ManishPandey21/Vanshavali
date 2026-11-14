@@ -217,8 +217,11 @@ def _walk_component(ctx: TreeContext, seed: uuid.UUID, edges: _Edges, vis: _Visi
             if r.a not in mode or r.b not in mode:
                 continue
             a_hidden, b_hidden = mode[r.a] != _FULL, mode[r.b] != _FULL
-            if not r.lineal and a_hidden and b_hidden:
-                continue  # a link between two hidden people says nothing the viewer may know
+            if a_hidden and b_hidden and (not r.lineal or _LEAF in (mode[r.a], mode[r.b])):
+                # A link between two hidden people is sent only where the walk itself followed it:
+                # a parent/child link on a line of descent. Two hidden spouses of two visible people
+                # who happen to be parent and child stay unconnected for this viewer.
+                continue
             rels[r.id] = r
     comp = _Component(order=order, mode=mode, rels=sorted(rels.values(), key=lambda r: r.id))
     comp.generation = _generations(comp)
@@ -454,9 +457,11 @@ def _decode_cursor(cursor: str, scope: str, root_id: uuid.UUID | None) -> tuple[
     may already see."""
     try:
         data = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
-        offset, rev = int(data["o"]), str(data["r"])
+        if type(data["o"]) is not int:  # not a float, bool or string dressed up as a position
+            raise ValueError
+        offset, rev = data["o"], str(data["r"])
         same = data["s"] == scope and data["p"] == (str(root_id) if root_id else None)
-    except (ValueError, KeyError, TypeError, UnicodeDecodeError):
+    except (ValueError, KeyError, TypeError, OverflowError, UnicodeDecodeError):
         raise Unprocessable("Invalid cursor", code="invalid_cursor") from None
     if not same or offset < 0:
         raise Unprocessable("Invalid cursor", code="invalid_cursor")
@@ -491,20 +496,34 @@ def family_graph(
         raise Unprocessable("Invalid cursor", code="invalid_cursor")
     end = min(total, offset + limit)
 
-    # Authorise this page now, whatever the plan says: only people the shared visibility rule
-    # returns are named. If the plan is out of step with it (a grant or branch changed without
-    # touching the tree), rebuild once from the database and serve that.
-    def page_subjects(p: _Plan) -> tuple[dict[uuid.UUID, Subject], bool]:
-        wanted = [p.seq[i][1] for i in range(offset, min(len(p.seq), offset + limit)) if p.full[i]]
-        subjects = lookup.visible_subjects(ctx, wanted)
-        return subjects, len(subjects) == len(set(wanted))
+    # Authorise this response now, whatever the plan says. Everyone it would *name* is checked
+    # against the shared visibility rule: the people on the page, and the people on earlier pages
+    # that this page's links point back to. If the plan is out of step (a grant expired, a branch
+    # changed, without touching the tree): the first page is rebuilt from the database; a later
+    # page is refused, because pages from two plans must not be stitched together (ADR-0034 §6).
+    def authorise(p: _Plan) -> tuple[dict[uuid.UUID, Subject], bool]:
+        stop = min(len(p.seq), offset + limit)
+        on_page = {p.seq[i][1] for i in range(offset, stop) if p.full[i]}
+        named = set(on_page)
+        first = bisect.bisect_left(p.rels, offset, key=lambda t: t[0])
+        for last, ia, ib, _type, _lineage in p.rels[first:]:
+            if last >= stop:
+                break
+            named.update(p.seq[i][1] for i in (ia, ib) if p.full[i])
+        visible = lookup.visible_subjects(ctx, named)
+        return {pid: s for pid, s in visible.items() if pid in on_page}, len(visible) == len(named)
 
-    subjects, in_step = page_subjects(plan)
+    subjects, in_step = authorise(plan)
     if not in_step:
+        if offset:
+            _cached_plan(ctx, scope, root_id, rev, fresh=True)  # the restart finds a correct plan
+            raise Conflict(
+                "The family tree changed while it was loading. Load it again.", code="graph_changed"
+            )
         plan = _cached_plan(ctx, scope, root_id, rev, fresh=True)
         total = len(plan.seq)
         end = min(total, offset + limit)
-        subjects, in_step = page_subjects(plan)
+        subjects, in_step = authorise(plan)
         if not in_step:  # changed again under us: let the client start over rather than guess
             raise Conflict(
                 "The family tree changed while it was loading. Load it again.", code="graph_changed"

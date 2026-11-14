@@ -161,7 +161,8 @@ export function TreeChart({
 
   // Draw only what is on screen once the family is large; the margin keeps keyboard neighbours mounted.
   const cull = layout.nodes.size > CULL_ABOVE;
-  const detailed = view.k >= DETAIL_SCALE;
+  // only the complete family simplifies its cards; the focused chart keeps names at every zoom
+  const detailed = !family || view.k >= DETAIL_SCALE;
   const bounds = useMemo(() => {
     const mx = NODE_W * 2;
     const my = NODE_H * 3;
@@ -264,7 +265,7 @@ export function TreeChart({
     } else if (e.key === "Home") {
       e.preventDefault();
       setFocusId(layout.rootId);
-      nodeRefs.current.get(layout.rootId)?.focus();
+      setPendingFocus(layout.rootId); // like the arrows: it may be off screen and not drawn yet
       ensureVisible(layout.rootId);
     }
   };
@@ -357,7 +358,7 @@ export function TreeChart({
               const x2 = b.x + NODE_W / 2;
               const lift = Math.min(a.y, b.y) - 16;
               return (
-                <path key={`link-${l.a}-${l.b}`} d={`M${x1},${a.y} C${x1},${lift} ${x2},${lift} ${x2},${b.y}`} fill="none" stroke="#7a6a55" strokeWidth={1.5} strokeDasharray={l.kind === "sibling" ? "1 4" : "1 7"} strokeLinecap="round" aria-hidden />
+                <path key={`link-${l.kind}-${l.a}-${l.b}`} d={`M${x1},${a.y} C${x1},${lift} ${x2},${lift} ${x2},${b.y}`} fill="none" stroke="#7a6a55" strokeWidth={1.5} strokeDasharray={l.kind === "sibling" ? "1 4" : "1 7"} strokeLinecap="round" aria-hidden />
               );
             })}
             {layout.couples.filter((c) => spanOnScreen(c.a, c.b)).map((c) => {

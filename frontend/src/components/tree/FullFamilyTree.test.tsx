@@ -159,6 +159,33 @@ describe("the complete family view", () => {
     expect(onScope).toHaveBeenCalledWith("connected");
   });
 
+  it("stops calling the family complete while it is being reloaded after a change, or if that fails", async () => {
+    // found by the independent review: the old pages must not keep their "complete" label
+    let phase: "first" | "hold" | "fail" = "first";
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const whole: FamilyGraphOut = { ...page1, total_nodes: 2, total_people: 2, complete: true, next_cursor: null };
+    const fetchMock = vi.fn(async () => {
+      if (phase === "hold") await gate;
+      if (phase !== "first") return error(422, "unprocessable");
+      return jsonResponse(whole);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { qc } = renderWithProviders(
+      <FullFamilyTree rootId="anita" rootName="Anita Pandey" scope="connected" onScope={vi.fn()} view="list" selectedId={null} onSelect={vi.fn()} />,
+    );
+    await waitFor(() => expect(status()).toHaveAttribute("data-status", "complete"));
+    phase = "hold";
+    void qc.invalidateQueries({ queryKey: ["tree", "tree-1"] }); // what removing a person does
+    await waitFor(() => expect(status()).not.toHaveAttribute("data-status", "complete"));
+    expect(screen.queryByText(/Everyone connected to/)).not.toBeInTheDocument();
+    phase = "fail";
+    release();
+    await waitFor(() => expect(status()).toHaveAttribute("data-status", "incomplete"));
+    expect(screen.queryByText(/Everyone connected to/)).not.toBeInTheDocument();
+    expect(within(status()).getByRole("button", { name: "Continue loading" })).toBeInTheDocument();
+  });
+
   it("shows a refusal as a failure, never as an empty family", async () => {
     setup(vi.fn(async () => error(403, "forbidden")));
     await waitFor(() => expect(status()).toHaveAttribute("data-status", "incomplete"));

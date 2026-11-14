@@ -97,6 +97,7 @@ Consequences that are intended:
 | Relative-age records, branch and household memberships of the person | Deleted (new). The branch and the household stay; a branch founded by the person keeps its members and loses the founder reference |
 | Document, photo and tradition links to the person | Unlinked (as before). The document, photo or tradition itself stays with its owner |
 | Claim, membership link, outstanding claim invites | Cleared or revoked (as before) |
+| Document links to those relationship rows | Unlinked (new) |
 | Other people, their records, and relationships between them | **Untouched** |
 | The person row | Kept as an inert tombstone: no name data, no links, `erased_at` set. It exists so the audit entry and old foreign keys still resolve. It appears in no view, list, export or count, cannot be opened, and cannot be restored — for admins as well |
 | Audit | `person.erased` with the reason (first 200 characters); no personal data |
@@ -147,7 +148,9 @@ Traversal (`modules/genealogy/familygraph.py`):
    no more: it continues along **parent/child** links (the ancestor and descendant views already
    do), and **never through a hidden person's marriage, sibling or other link** into another family.
    A hidden person reached only by such a link is a leaf.
-4. A link between two hidden people is not sent.
+4. A link between two hidden people is sent only where the walk itself followed it: a parent/child
+   link on a hidden line of descent. Any other link between two hidden people is not sent (two
+   hidden spouses of two visible relatives stay unconnected, even if they are parent and child).
 5. **A group in which the viewer may see nobody is not returned and not counted.** `total_people`
    and `total_nodes` count only what this viewer receives.
 6. A hidden or absent person is never a valid root (404, the same as "does not exist").
@@ -170,6 +173,12 @@ relatives first. Each edge is sent once, on the page that contains the later of 
   and latest change; plus the viewer's membership and roles). If the tree changes between pages the
   next page is refused with **409 `graph_changed`** and the client starts again. Pages from two
   states of the tree are never stitched together, so a person removed mid-load cannot linger.
+- A removed parent who was replaced while removed cannot be restored into a third biological
+  parent: restore is refused (409) until the family settles which link stands.
+- The traversal plan is kept in the worker for two minutes, keyed by that revision. Because some
+  things that change visibility do not change a row of the tree (a grant expiring), every response
+  re-checks everyone it would name, on the page and at the far end of its links. If the plan is out
+  of step, the first page is rebuilt and a later page is refused (409), never stitched.
 - The cursor grants nothing. Every page is authorised from scratch for the caller; a forged or
   borrowed cursor can at most select a different page of what the caller may already see, or is
   refused (422 `invalid_cursor`, 409).
@@ -201,8 +210,13 @@ end (with "Continue loading"), and complete. Only the last is described as the w
 4. **Collapse and expand of branches** in the Whole family mode, and a mini-map.
 5. Whether an existing legacy erasure's relationship rows should be physically deleted by a later,
    separately reviewed data migration.
-6. An in-process cache of the computed traversal keyed by the revision, if page latency on very
-   large trees needs it. The revision makes this safe to add; correctness does not depend on it.
+6. Permanent delete locks the person row only. A name or relationship added by a request that
+   passed its checks just before the delete committed could land on the tombstone. No view shows
+   it, but the tombstone would not be empty. Records merged into the deleted person keep their own
+   data.
+7. `revision()` reads the latest `updated_at`, which is the transaction's start time; a long
+   transaction committing late may not move it. The per-response re-check covers visibility; a
+   structural change missed this way is picked up within the two-minute plan lifetime.
 
 ### 9. Draft PR #82
 
